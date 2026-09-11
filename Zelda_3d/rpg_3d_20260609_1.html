@@ -170,11 +170,11 @@ body{
    🔥 3D DRAGON QUEST ACTION RPG SPELL BUTTONS & HUD
    ══════════════════════════════════════════════════════ */
 /* ══════════════════════════════════════════════════════
-   🔥 3D ACTION RPG SPELL BAR (TOP-CENTER HORIZONTAL SLOT)
+   🔥 3D ACTION RPG SPELL BAR (TOP-CENTER HORIZONTAL SLOT - ULTRA RESPONSIVE)
    ══════════════════════════════════════════════════════ */
 #action3dSpellBar {
   position: fixed; top: 48px; left: 50%; transform: translateX(-50%);
-  display: flex; flex-direction: row-reverse; gap: 14px; z-index: 45;
+  display: flex; flex-direction: row-reverse; gap: 14px; z-index: 99999;
   user-select: none; -webkit-user-select: none; pointer-events: auto;
   align-items: center; justify-content: center;
 }
@@ -365,19 +365,19 @@ body{
 </div>
 
 
-<!-- 🔥 3Dアクション用 ドラクエ呪文・特技ボタン (全デバイス対応 / 残回数バッジ付き) -->
+<!-- 🔥 3Dアクション用 ドラクエ呪文・特技ボタン (全デバイス対応 / 残回数バッジ & 直結クリック属性付き) -->
 <div id="action3dSpellBar">
-  <button type="button" class="spell-btn-3d spell-btn-heal" id="btnCastHeal" title="ホイミ (ライフ4回復) [各ステージ2回 / キー:3またはR]">
+  <button type="button" class="spell-btn-3d spell-btn-heal" id="btnCastHeal" onclick="handleSpellAction('heal', event)" title="ホイミ (主人公ハートライフフル全回復) [各ステージ2回 / キー:3またはR]">
     <span style="font-size:18px;">💚</span>
     <span style="font-size:9px;font-weight:bold;">ホイミ</span>
     <span id="lblHoimiStock" style="font-size:8px;font-weight:bold;background:rgba(0,0,0,0.55);padding:1px 5px;border-radius:4px;">残2</span>
   </button>
-  <button type="button" class="spell-btn-3d spell-btn-thunder" id="btnCastThunder" title="ギガスラッシュ (目の前の敵HP2/3ダメージ) [各ステージ1回 / キー:2またはE]">
+  <button type="button" class="spell-btn-3d spell-btn-thunder" id="btnCastThunder" onclick="handleSpellAction('giga', event)" title="ギガスラッシュ (目の前の敵ライフゲージ全体の2/3ダメージ) [各ステージ1回 / キー:2またはE]">
     <span style="font-size:18px;">⚡</span>
     <span style="font-size:9px;font-weight:bold;">ギガ斬</span>
     <span id="lblGigaStock" style="font-size:8px;font-weight:bold;background:rgba(0,0,0,0.55);padding:1px 5px;border-radius:4px;">残1</span>
   </button>
-  <button type="button" class="spell-btn-3d spell-btn-fire" id="btnCastFire" title="メラゾーマ (目の前の敵HP半分大ダメージ) [各ステージ1回 / キー:1またはQ]">
+  <button type="button" class="spell-btn-3d spell-btn-fire" id="btnCastFire" onclick="handleSpellAction('mela', event)" title="メラゾーマ (目の前の敵ライフゲージ全体の半分大ダメージ) [各ステージ1回 / キー:1またはQ]">
     <span style="font-size:18px;">🔥</span>
     <span style="font-size:9px;font-weight:bold;">メラ</span>
     <span id="lblMelaStock" style="font-size:8px;font-weight:bold;background:rgba(0,0,0,0.55);padding:1px 5px;border-radius:4px;">残1</span>
@@ -3206,6 +3206,22 @@ function gain3dExp(amount){
 // 🔮 ドラクエ呪文システム (ステージ毎の残回数管理 & 新効果)
 // ══════════════════════════════════════════════════
 let spellStock = { hoimi: 2, giga: 1, mela: 1 };
+let lastSpellTriggerTime = 0;
+
+function handleSpellAction(type, e){
+  if(e){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  const now = Date.now();
+  if(now - lastSpellTriggerTime < 200) return; // 200msデバウンスで重複発火防止
+  lastSpellTriggerTime = now;
+  try{ if(typeof getAudioContext==='function') getAudioContext(); }catch(err){}
+  
+  if(type === 'heal') castHoimi3d();
+  else if(type === 'giga') castGigaslash3d();
+  else if(type === 'mela') castMelazoma3d();
+}
 
 function updateSpellBarUI(){
   const btnHeal = document.getElementById('btnCastHeal');
@@ -3231,9 +3247,9 @@ function resetSpellStock(){
   updateSpellBarUI();
 }
 
-// 3D呪文：メラ (🔥 目の前の敵のライフゲージ全体の半分大ダメージ！ [各ステージ1回])
+// 3D呪文：メラ (🔥 目の前敵ライフゲージ全体の半分大ダメージ！ [各ステージ1回])
 function castMelazoma3d(){
-  if(gst !== 'play') return;
+  if(typeof pl === 'undefined' || !pl) return;
   if(spellStock.mela <= 0){
     showDq3dMsg('メラは今ステージ分を使い切った！', '#ff6666');
     return;
@@ -3242,37 +3258,39 @@ function castMelazoma3d(){
   updateSpellBarUI();
   sndDqFire();
   
-  // 目の前（プレイヤー前方）の敵、または最も近い生存敵を取得
+  // 目の前（プレイヤー前方）の敵、ボスを最優先サーチ
   let target = null, minD = 999;
   const angle = pl.rotY !== undefined ? pl.rotY : 0;
   const fwdX = Math.sin(angle), fwdZ = Math.cos(angle);
   
-  enemies.forEach(e => {
-    if(!e.dead){
+  const aliveEnemies = enemies.filter(e => !e.dead);
+  const boss = aliveEnemies.find(e => e.type === 'zeus' || e.type === 'darkgod');
+  if(boss && Math.hypot(boss.wx - pl.wx, boss.wz - pl.wz) < 36){
+    target = boss;
+  } else {
+    aliveEnemies.forEach(e => {
       const d = Math.hypot(e.wx - pl.wx, e.wz - pl.wz);
       const toX = (e.wx - pl.wx) / (d || 1), toZ = (e.wz - pl.wz) / (d || 1);
       const dot = toX * fwdX + toZ * fwdZ;
-      if(dot > 0.2 && d < 28 && d < minD){
+      if(dot > 0.10 && d < 32 && d < minD){
         minD = d; target = e;
       }
-    }
-  });
-  if(!target){
-    enemies.forEach(e => {
-      if(!e.dead){
+    });
+    if(!target && aliveEnemies.length > 0){
+      aliveEnemies.forEach(e => {
         const d = Math.hypot(e.wx - pl.wx, e.wz - pl.wz);
         if(d < minD){ minD = d; target = e; }
-      }
-    });
+      });
+    }
   }
 
-  const bx = target ? target.wx : (pl.wx + fwdX * 5);
-  const bz = target ? target.wz : (pl.wz + fwdZ * 5);
+  const bx = target ? target.wx : (pl.wx + fwdX * 6);
+  const bz = target ? target.wz : (pl.wz + fwdZ * 6);
   const by = terrainH(bx, bz) + 1;
 
-  // 派手な爆炎エフェクト (プールライトで軽量)
-  puffBig(bx, by, bz, 0xff3300, 32, 0.40, { gravity: -0.003, spin: 0.3 });
-  puff(bx, by + 0.5, bz, 0xffcc00, 24, 0.28);
+  // 派手な爆炎エフェクト
+  puffBig(bx, by, bz, 0xff3300, 36, 0.42, { gravity: -0.003, spin: 0.3 });
+  puff(bx, by + 0.5, bz, 0xffcc00, 26, 0.28);
   if(burstEffectLight){
     burstEffectLight.color.setHex(0xff3300);
     burstEffectLight.position.set(bx, by, bz);
@@ -3281,12 +3299,13 @@ function castMelazoma3d(){
   }
 
   if(target){
-    // 💥 目の前の敵のライフゲージ全体の半分大ダメージ！
+    // 💥 目の前の敵のライフゲージ全体の半分（50%）大ダメージ！
     const dmg = Math.max(1, Math.ceil(target.maxHp * 0.5));
-    target.hp -= dmg;
-    target.fl = 25;
-    showDq3dMsg(`メラゾーマ！！ 敵ライフ半減！ -${dmg}ダメージ！`, '#ff4444');
-    puffBig(target.wx, target.wy + 1, target.wz, 0xffaa00, 20, 0.25);
+    target.hp = Math.max(0, target.hp - dmg);
+    target.fl = 30;
+    const targetName = (target.type==='zeus'?'ゼウス':target.type==='darkgod'?'冥王ダークゴッド':target.type==='darkknight'?'ダークナイト':'敵');
+    showDq3dMsg(`メラゾーマ！！ ${targetName}のライフ半分（-${dmg}）を焼却！ 残HP: ${target.hp}/${target.maxHp}`, '#ff4444');
+    puffBig(target.wx, target.wy + 1, target.wz, 0xffaa00, 25, 0.25);
     if(target.hp <= 0) killEnemy(target);
   } else {
     showDq3dMsg('メラゾーマ！！ 巨大火炎弾が炸裂！', '#ff4444');
@@ -3295,7 +3314,7 @@ function castMelazoma3d(){
 
 // 3D呪文：ギガスラッシュ (⚡ 目の前敵ライフゲージ全体の3分の2ダメージ！ [各ステージ1回])
 function castGigaslash3d(){
-  if(gst !== 'play') return;
+  if(typeof pl === 'undefined' || !pl) return;
   if(spellStock.giga <= 0){
     showDq3dMsg('ギガ斬は今ステージ分を使い切った！', '#ff6666');
     return;
@@ -3304,35 +3323,36 @@ function castGigaslash3d(){
   updateSpellBarUI();
   sndDqThunder();
   
-  // 目の前（プレイヤー前方）の敵を取得
   let target = null, minD = 999;
   const angle = pl.rotY !== undefined ? pl.rotY : 0;
   const fwdX = Math.sin(angle), fwdZ = Math.cos(angle);
   
-  enemies.forEach(e => {
-    if(!e.dead){
+  const aliveEnemies = enemies.filter(e => !e.dead);
+  const boss = aliveEnemies.find(e => e.type === 'zeus' || e.type === 'darkgod');
+  if(boss && Math.hypot(boss.wx - pl.wx, boss.wz - pl.wz) < 36){
+    target = boss;
+  } else {
+    aliveEnemies.forEach(e => {
       const d = Math.hypot(e.wx - pl.wx, e.wz - pl.wz);
       const toX = (e.wx - pl.wx) / (d || 1), toZ = (e.wz - pl.wz) / (d || 1);
       const dot = toX * fwdX + toZ * fwdZ;
-      if(dot > 0.2 && d < 28 && d < minD){
+      if(dot > 0.10 && d < 32 && d < minD){
         minD = d; target = e;
       }
-    }
-  });
-  if(!target){
-    enemies.forEach(e => {
-      if(!e.dead){
+    });
+    if(!target && aliveEnemies.length > 0){
+      aliveEnemies.forEach(e => {
         const d = Math.hypot(e.wx - pl.wx, e.wz - pl.wz);
         if(d < minD){ minD = d; target = e; }
-      }
-    });
+      });
+    }
   }
 
   // 前方扇状に聖なる雷光一閃
-  for(let dist = 2; dist <= 16; dist += 2.5){
+  for(let dist = 2; dist <= 18; dist += 2.5){
     const cx = pl.wx + fwdX * dist, cz = pl.wz + fwdZ * dist, cy = terrainH(cx, cz) + 0.5;
-    puffBig(cx, cy + 1, cz, 0xffff44, 20, 0.32, { gravity: -0.005 });
-    puff(cx, cy, cz, 0x00ffff, 16, 0.22);
+    puffBig(cx, cy + 1, cz, 0xffff44, 22, 0.32, { gravity: -0.005 });
+    puff(cx, cy, cz, 0x00ffff, 18, 0.22);
   }
   if(burstEffectLight){
     burstEffectLight.color.setHex(0xffee55);
@@ -3344,20 +3364,21 @@ function castGigaslash3d(){
   if(target){
     // ⚡ 目の前の敵のライフゲージ全体の3分の2ダメージ！
     const dmg = Math.max(1, Math.ceil(target.maxHp * (2 / 3)));
-    target.hp -= dmg;
-    target.fl = 30;
+    target.hp = Math.max(0, target.hp - dmg);
+    target.fl = 35;
     sndDqCrit();
-    showDq3dMsg(`ギガスラッシュ！！ 敵ライフの2/3を斬裂！ -${dmg}ダメージ！`, '#ffee44');
-    puffBig(target.wx, target.wy + 1.2, target.wz, 0xffff00, 30, 0.3);
+    const targetName = (target.type==='zeus'?'ゼウス':target.type==='darkgod'?'冥王ダークゴッド':target.type==='darkknight'?'ダークナイト':'敵');
+    showDq3dMsg(`ギガスラッシュ！！ ${targetName}のライフの2/3（-${dmg}）を斬裂！ 残HP: ${target.hp}/${target.maxHp}`, '#ffee44');
+    puffBig(target.wx, target.wy + 1.2, target.wz, 0xffff00, 32, 0.3);
     if(target.hp <= 0) killEnemy(target);
   } else {
     showDq3dMsg('ギガスラッシュ！！ 聖なる雷光一閃！', '#ffee44');
   }
 }
 
-// 3D呪文：ホイミ (💚 ライフ４回復！ [各ステージ2回])
+// 3D呪文：ホイミ (💚 主人公のハートライフがフル回復！ [各ステージ2回])
 function castHoimi3d(){
-  if(gst !== 'play') return;
+  if(typeof pl === 'undefined' || !pl) return;
   if(spellStock.hoimi <= 0){
     showDq3dMsg('ホイミは今ステージ分を使い切った！', '#ff6666');
     return;
@@ -3365,11 +3386,11 @@ function castHoimi3d(){
   spellStock.hoimi--;
   updateSpellBarUI();
   
-  // 💚 ライフが４つ回復！
-  pl.hp = Math.min(pl.maxHp, pl.hp + 4);
+  // 💚 主人公のハートライフがフル全回復！
+  pl.hp = pl.maxHp;
   sndDqHeal();
-  showDq3dMsg(`ホイミ！ ライフが４つ回復した！ (残り${spellStock.hoimi}回)`, '#44ff88');
-  puffBig(pl.wx, pl.wy + 1.2, pl.wz, 0x34d399, 24, 0.25, { gravity: -0.006 });
+  showDq3dMsg(`ホイミ！！ 主人公のハートライフがフル全回復した！ (残り${spellStock.hoimi}回)`, '#44ff88');
+  puffBig(pl.wx, pl.wy + 1.2, pl.wz, 0x34d399, 28, 0.28, { gravity: -0.006 });
 }
 
 
@@ -4230,19 +4251,19 @@ function update(){
     if(pl.wy<=groundY){const wv=pl.jV;pl.wy=groundY;pl.jV=0;pl.jumping=false;if(wv<-0.35){snd(180,0.05,'square',0.1);puff(pl.wx,pl.wy,pl.wz,0xaaaa88,5,0.08);}if(pl.paraglider){pl.paraglider=false;if(paraGliderMesh)paraGliderMesh.visible=false;}}
   } else pl.wy=groundY;
 
-  // ─ Move ─ (🚀 ステージ1同等以上の快速・俊敏・軽快ダッシュ化)
-  const dx=inp.dx,dz=inp.dz,SPD=pl.shielding?2.8:4.6;
+  // ─ Move ─ (🚀 超高速・俊敏レスポンス：ボス戦でもステージ1以上にキビキビ走る！)
+  const dx=inp.dx,dz=inp.dz,SPD=pl.shielding?3.4:5.4;
   const moving=Math.abs(dx)>0.01||Math.abs(dz)>0.01;
   if(moving){
-    // レスポンスと初速を大幅向上 (0.35 -> 0.55)
-    pl.vx+=(dx*SPD-pl.vx)*0.55; pl.vz+=(dz*SPD-pl.vz)*0.55;
-    pl.walkT++; if(pl.walkT>5){pl.walkT=0;pl.walkF++;}
+    // レスポンスと初速を0.65へ引き上げ、瞬時に最高速へ
+    pl.vx+=(dx*SPD-pl.vx)*0.65; pl.vz+=(dz*SPD-pl.vz)*0.65;
+    pl.walkT++; if(pl.walkT>4){pl.walkT=0;pl.walkF++;}
     const va=Math.atan2(dx,dz),dirs=[0,Math.PI/2,Math.PI,-Math.PI/2];
     let best=pl.dir,bestD=999; dirs.forEach((a,i)=>{let d=Math.abs(va-a);if(d>Math.PI)d=Math.PI*2-d;if(d<bestD){bestD=d;best=i;}});
     pl.dir=best;
-  } else {pl.vx*=0.45;pl.vz*=0.45;if(Math.abs(pl.vx)<0.008)pl.vx=0;if(Math.abs(pl.vz)<0.008)pl.vz=0;}
-  // 移動ストライドを 0.072 -> 0.088 に拡大 (キビキビ走る！)
-  const nx=pl.wx+pl.vx*0.088,nz=pl.wz+pl.vz*0.088;
+  } else {pl.vx*=0.40;pl.vz*=0.40;if(Math.abs(pl.vx)<0.008)pl.vx=0;if(Math.abs(pl.vz)<0.008)pl.vz=0;}
+  // 移動ストライドを0.096に拡大（どんな描画負荷時でも快走！）
+  const nx=pl.wx+pl.vx*0.096,nz=pl.wz+pl.vz*0.096;
   // Footprints on soft terrain
   if(moving&&pl.walkF%2===0&&insideHouse<0&&onTower<0){
     const h=terrainH(pl.wx,pl.wz);
@@ -4563,18 +4584,17 @@ function update(){
   });
   treeGroups.forEach(t=>{/* wind system handles sway */});
   towers.forEach(t=>{t.crystal.rotation.y+=0.03;t.crystal.rotation.x+=0.02;});
-  // Water ripple animation (🚀 最終ステージ最適化: 4フレーム毎に間引きCPU頂点計算負荷を大幅削減)
-  if(waterMeshRef&&fr%4===0){
+  // Water ripple animation (🚀 ボス戦高負荷対策: CPU頂点再計算を完全にスキップし超高速化)
+  if(waterMeshRef&&sIdx<3&&fr%6===0){
     const pos=waterMeshRef._pos,oy=waterMeshRef._origY;
     const t=fr*0.04;
     let vi=0;
-    for(let i=0;i<pos.count;i++){
+    for(let i=0;i<pos.count;i+=2){
       const x=pos.getX(i),z=pos.getZ(i);
-      const wave=Math.sin(x*0.22+t)*0.28+Math.sin(z*0.18+t*0.7)*0.20+Math.sin((x+z)*0.12+t*1.3)*0.12;
-      pos.setY(i,(oy[vi]||0)+wave); vi++;
+      const wave=Math.sin(x*0.22+t)*0.22+Math.sin(z*0.18+t*0.7)*0.16;
+      pos.setY(i,(oy[vi]||0)+wave); vi+=2;
     }
     pos.needsUpdate=true;
-    waterMeshRef.geometry.computeVertexNormals();
   }
 
   // ─ Stage clear ─
@@ -4641,26 +4661,28 @@ function updateDragon(e){
 function updateZeus(e){
   const ratio=e.hp/e.maxHp;
   if(!e.phase) e.phase=1;
-  if(!e.lightTimer) e.lightTimer=180;
-  if(ratio<0.33&&e.phase<3){e.phase=3;e.spd=0.12;}
-  else if(ratio<0.66&&e.phase<2){e.phase=2;e.spd=0.09;}
-  // Move toward player
+  if(!e.lightTimer) e.lightTimer=200;
+  // 🚀 ボスの移動速度を適正化（プレイヤー速度5.4より控えめの0.048〜0.065にし、プレイヤーが自由に距離を取って立ち回れるように改善）
+  if(ratio<0.33&&e.phase<3){e.phase=3;e.spd=0.062;}
+  else if(ratio<0.66&&e.phase<2){e.phase=2;e.spd=0.052;}
+  else e.spd=0.044;
+  
+  // ボスはプレイヤーに向かって進むが、一定の旋回慣性を持たせる
   const a=Math.atan2(pl.wz-e.wz,pl.wx-e.wx);
   const nex=e.wx+Math.cos(a)*e.spd,nez=e.wz+Math.sin(a)*e.spd;
-  if(canGo(nex,e.wz,e.sz*0.3))e.wx=nex; if(canGo(e.wx,nez,e.sz*0.3))e.wz=nez;
-  // Lightning
+  if(canGo(nex,e.wz,e.sz*0.25))e.wx=nex; if(canGo(e.wx,nez,e.sz*0.25))e.wz=nez;
+  
+  // Lightning (落雷による連続ハメ・処理落ちを防止)
   e.lightTimer--;
-  const ltInterval=[240,180,120][e.phase-1]; // 🚀 落雷頻度を適正化しプレイヤーがスムーズに立ち回れるように調整
+  const ltInterval=[280,220,160][e.phase-1];
   if(e.lightTimer<=0){
     e.lightTimer=ltInterval;
-    // Scatter 2-4 lightning strikes around player
-    const n=e.phase+1;
+    const n=Math.min(3, e.phase+1);
     for(let k=0;k<n;k++){
-      const ang=Math.random()*Math.PI*2,r=Math.random()*4;
+      const ang=Math.random()*Math.PI*2,r=2.5+Math.random()*4;
       const lx=pl.wx+Math.cos(ang)*r,lz=pl.wz+Math.sin(ang)*r;
-      setTimeout(()=>spawnLightningRealistic(lx,lz),k*200);
+      setTimeout(()=>spawnLightningRealistic(lx,lz),k*250);
     }
-    // Bolt animation
     if(e.mesh._bolt){e.mesh._bolt.children.forEach(s=>{if(s.material&&s.material.color)s.material.color.setHex(0xffffff);});}
   }
   // Zeus bolt swing
@@ -5010,6 +5032,54 @@ function drawHUD(){
   hc.restore();
   // Hearts
   for(let i=0;i<pl.maxHp;i++){const row=~~(i/15),col=i%15;drawHeart(14+col*24,15+row*27,i<pl.hp);}
+
+  // ── 🔥 BOSS HUGE LIFE GAUGE (Stage 4 & Stage 5 リアルタイム巨大ライフゲージ) ──
+  const activeBoss = enemies.find(e => !e.dead && (e.type === 'zeus' || e.type === 'darkgod'));
+  if(activeBoss && gst === 'play'){
+    hc.save();
+    const bw = Math.min(380, hud.width * 0.76), bh = 14;
+    const bx = (hud.width - bw) / 2, by = 108; // 呪文ボタン直下に美しく配置
+    const ratio = Math.max(0, Math.min(1, activeBoss.hp / activeBoss.maxHp));
+    
+    // 背景プレート
+    hc.fillStyle = 'rgba(10, 10, 25, 0.85)';
+    if(hc.roundRect){ hc.beginPath(); hc.roundRect(bx - 12, by - 18, bw + 24, bh + 26, 8); hc.fill(); }
+    else hc.fillRect(bx - 12, by - 18, bw + 24, bh + 26);
+    
+    hc.strokeStyle = activeBoss.type === 'zeus' ? '#fbbf24' : '#c084fc';
+    hc.lineWidth = 1.8;
+    if(hc.roundRect){ hc.beginPath(); hc.roundRect(bx - 12, by - 18, bw + 24, bh + 26, 8); hc.stroke(); }
+    else hc.strokeRect(bx - 12, by - 18, bw + 24, bh + 26);
+
+    // ボス名 & ライフ数値
+    hc.font = 'bold 12px sans-serif';
+    hc.fillStyle = activeBoss.type === 'zeus' ? '#fde047' : '#e879f9';
+    hc.textAlign = 'left';
+    hc.fillText(activeBoss.type === 'zeus' ? '⚡ 全能神 ゼウス (STAGE IV BOSS)' : '💀 冥王 ダークゴッド (FINAL BOSS)', bx, by - 4);
+    hc.textAlign = 'right';
+    hc.fillStyle = '#ffffff';
+    hc.fillText(`HP: ${Math.max(0, activeBoss.hp)} / ${activeBoss.maxHp} (${Math.round(ratio*100)}%)`, bx + bw, by - 4);
+
+    // ライフバー枠
+    hc.fillStyle = '#1e293b';
+    hc.fillRect(bx, by, bw, bh);
+    
+    // ライフバー本体 (メラやギガ斬で一気に削れるのが一目瞭然！)
+    if(ratio > 0){
+      const hpGrad = hc.createLinearGradient(bx, by, bx + bw, by);
+      if(activeBoss.type === 'zeus'){
+        hpGrad.addColorStop(0, '#ef4444'); hpGrad.addColorStop(0.5, '#f59e0b'); hpGrad.addColorStop(1, '#eab308');
+      } else {
+        hpGrad.addColorStop(0, '#dc2626'); hpGrad.addColorStop(0.5, '#9333ea'); hpGrad.addColorStop(1, '#c084fc');
+      }
+      hc.fillStyle = hpGrad;
+      hc.fillRect(bx, by, bw * ratio, bh);
+    }
+    hc.strokeStyle = '#ffffff';
+    hc.lineWidth = 1.2;
+    hc.strokeRect(bx, by, bw, bh);
+    hc.restore();
+  }
   // Stage label
   const sl=(STAGES[Math.min(sIdx,4)]||{}).label||'';
   const sc2=['#88ff88','#ffaa44','#ff7744','#ff3333','#cc00ff'][sIdx]||'#fff';
@@ -6034,33 +6104,23 @@ function rpExitRpg(){
 
 // 🔥 3Dアクション用 呪文ボタン (メラ・ギガ斬・ホイミ) のタッチ＆クリック確実発動バインド
 function initSpellButtons(){
-  const spells = [
-    { id: 'btnCastFire', fn: castMelazoma3d },
-    { id: 'btnCastThunder', fn: castGigaslash3d },
-    { id: 'btnCastHeal', fn: castHoimi3d },
+  const spellMap = [
+    { id: 'btnCastFire', type: 'mela' },
+    { id: 'btnCastThunder', type: 'giga' },
+    { id: 'btnCastHeal', type: 'heal' },
   ];
-  spells.forEach(s => {
-    const el = document.getElementById(s.id);
+  spellMap.forEach(({ id, type }) => {
+    const el = document.getElementById(id);
     if(!el) return;
-    const trigger = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      try{ if(typeof getAudioContext==='function') getAudioContext(); }catch(err){}
-      s.fn();
-    };
-    el.addEventListener('pointerdown', trigger);
+    const trigger = (e) => handleSpellAction(type, e);
+    el.addEventListener('pointerdown', trigger, { passive: false });
+    el.addEventListener('click', trigger);
     el.addEventListener('touchstart', trigger, { passive: false });
   });
   updateSpellBarUI();
 }
 window.addEventListener('DOMContentLoaded', initSpellButtons);
 setTimeout(initSpellButtons, 300);
-
-</script>
-</body>
-</html>
-
-<script>
 
 // ── BIND TOP BAR & GACHA MODAL EVENTS ────────────
 document.addEventListener('DOMContentLoaded', () => {
