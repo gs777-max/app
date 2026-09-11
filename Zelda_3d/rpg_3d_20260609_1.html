@@ -797,18 +797,28 @@ function playAmbientSound(){
 }
 
 // ══════════════════════════════════════════════════
-// ⚡  ENHANCED LIGHTNING BOLT (more realistic)
+// ⚡  HIGH-PERFORMANCE LIGHTNING BOLT & LIGHT POOL (NO SHADER RECOMPILE)
 // ══════════════════════════════════════════════════
+// 🚀 最終ステージ最適化: 動的scene.add/removeを完全撤廃しシェーダー同期再コンパイルを根絶！
+const lightningFlashLight1 = new THREE.PointLight(0xaaccff, 0, 80);
+const lightningFlashLight2 = new THREE.PointLight(0xaaccff, 0, 60);
+scene.add(lightningFlashLight1);
+scene.add(lightningFlashLight2);
+
+// 共有バーストエフェクトライト (敵撃破・宝石用)
+const burstEffectLight = new THREE.PointLight(0xffaa44, 0, 14);
+scene.add(burstEffectLight);
+
 function spawnLightningRealistic(tx,tz){
-  // Sky flash
-  const flashLight=new THREE.PointLight(0xaaccff,8,80);
-  flashLight.position.set(tx,25,tz); scene.add(flashLight);
-  setTimeout(()=>scene.remove(flashLight),180);
+  // Sky flash via pooled lights (ゼロ遅延・フレームレート維持)
+  lightningFlashLight1.position.set(tx,25,tz);
+  lightningFlashLight1.intensity = 8.0;
+  setTimeout(()=>{ lightningFlashLight1.intensity = 0; }, 180);
   setTimeout(()=>{
-    const fl2=new THREE.PointLight(0xaaccff,5,60);
-    fl2.position.set(tx,22,tz); scene.add(fl2);
-    setTimeout(()=>scene.remove(fl2),100);
-  },120);
+    lightningFlashLight2.position.set(tx,22,tz);
+    lightningFlashLight2.intensity = 5.0;
+    setTimeout(()=>{ lightningFlashLight2.intensity = 0; }, 100);
+  }, 120);
   // Sound
   snd(55+Math.random()*30,0.5,'sawtooth',0.3);
   setTimeout(()=>snd(40+Math.random()*20,0.3,'sawtooth',0.5),200);
@@ -830,11 +840,12 @@ window.addEventListener('resize',()=>{
 scene.add(new THREE.AmbientLight(0xd0e8f8,0.45));
 const sun=new THREE.DirectionalLight(0xfff0cc,3.2);
 sun.position.set(60,120,45); sun.castShadow=true;
-sun.shadow.mapSize.set(4096,4096);
+// 🚀 最終ステージ最適化: 2048x2048 (4096からGPUフィルレートとメモリ負荷を75%削減しつつ高精細な影を維持)
+sun.shadow.mapSize.set(2048,2048);
 sun.shadow.camera.left=-140; sun.shadow.camera.right=140;
 sun.shadow.camera.top=120; sun.shadow.camera.bottom=-120;
 sun.shadow.camera.near=0.5; sun.shadow.camera.far=340;
-sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.05;
+sun.shadow.bias=-0.0008; sun.shadow.normalBias=0.04;
 scene.add(sun);
 // Cool fill from opposite sky
 const fillL=new THREE.DirectionalLight(0x6699cc,0.65);
@@ -1017,7 +1028,25 @@ const STAGE_ENV=[
   {bg:0x0a0018,fog:0x220044,fnear:45,ffar:170,sunC:0xcc88ff,sunI:1.8,label:'皇居・江戸城'},
 ];
 let stageLandmarks=[];
-function clearLandmarks(){stageLandmarks.forEach(m=>scene.remove(m));stageLandmarks.length=0;}
+// 🚀 最終ステージ最適化: メモリリークを完全に防止する再帰的ディスポーズ
+function deepDispose(obj){
+  if(!obj) return;
+  if(obj.children && obj.children.length){
+    for(let i=obj.children.length-1; i>=0; i--) deepDispose(obj.children[i]);
+  }
+  if(obj.geometry) obj.geometry.dispose();
+  if(obj.material){
+    if(Array.isArray(obj.material)) obj.material.forEach(m=>m.dispose());
+    else obj.material.dispose();
+  }
+}
+function clearLandmarks(){
+  stageLandmarks.forEach(m=>{
+    scene.remove(m);
+    deepDispose(m);
+  });
+  stageLandmarks.length=0;
+}
 function applyStageEnv(idx){
   const e=STAGE_ENV[Math.min(idx,4)];
   scene.background.set(e.bg);
@@ -2930,17 +2959,21 @@ function createDarkGod(sc=4.0){
   addShadow(g,3.2*sc); g._mat=voidMat; return g;
 }
 
-// ── LIGHTNING EFFECT ─────────────────────────────
+// ── LIGHTNING EFFECT (POOLED GEOMETRIES) ─────────
 const lightningBolts=[];
+const _lSegGeo = new THREE.BoxGeometry(0.12,2.5,0.12);
+const _lStrikeGeo = new THREE.CylinderGeometry(0.35,0.06,6,8);
+const _lMatYellow = new THREE.MeshBasicMaterial({color:0xffff44,transparent:true,opacity:0.9});
+const _lMatWhite = new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.7});
+
 function spawnLightning(tx,tz){
   const g=new THREE.Group();
-  const mat=new THREE.MeshBasicMaterial({color:0xffff44,transparent:true,opacity:0.9});
   for(let i=0;i<8;i++){
-    const seg=new THREE.Mesh(new THREE.BoxGeometry(0.12,2.5,0.12),mat);
+    const seg=new THREE.Mesh(_lSegGeo,_lMatYellow);
     seg.position.set((Math.random()-0.5)*0.4,terrainH(tx,tz)+8-i*2.5,(Math.random()-0.5)*0.4);
     g.add(seg);
   }
-  const strike=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.06,6,8),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.7}));
+  const strike=new THREE.Mesh(_lStrikeGeo,_lMatWhite);
   strike.position.set(tx,terrainH(tx,tz)+3,tz); scene.add(strike);
   g.position.set(0,0,0); scene.add(g);
   lightningBolts.push({g,timer:22,strike,tx,tz});
@@ -3635,11 +3668,12 @@ function placeChests(stageIdx){
 function initStage(idx){
   sIdx=idx; fr=0; stageStartFr=0;
   afkTimer=0; afkLastX=38; afkLastZ=30;
-  enemies.forEach(e=>{if(e.mesh)scene.remove(e.mesh);}); enemies=[];
-  gems.forEach(g=>{if(g.mesh)scene.remove(g.mesh);}); gems=[];
-  parts.forEach(p=>scene.remove(p.m)); parts=[];
-  lightningBolts.forEach(b=>{scene.remove(b.g);scene.remove(b.strike);}); lightningBolts.length=0;
-  fireBreaths.forEach(b=>scene.remove(b.g)); fireBreaths.length=0;
+  // 🚀 最終ステージ最適化: 前ステージのGPUリソースを完全に解放
+  enemies.forEach(e=>{if(e.mesh){scene.remove(e.mesh);deepDispose(e.mesh);}}); enemies=[];
+  gems.forEach(g=>{if(g.mesh){scene.remove(g.mesh);deepDispose(g.mesh);}}); gems=[];
+  parts.forEach(p=>{scene.remove(p.m);deepDispose(p.m);}); parts=[];
+  lightningBolts.forEach(b=>{scene.remove(b.g);scene.remove(b.strike);deepDispose(b.g);deepDispose(b.strike);}); lightningBolts.length=0;
+  fireBreaths.forEach(b=>{scene.remove(b.g);deepDispose(b.g);}); fireBreaths.length=0;
   if(slashMesh){scene.remove(slashMesh);slashMesh=null;}
   if(laserMesh){scene.remove(laserMesh);laserMesh=null;}
   insideHouse=-1; onTower=-1;
@@ -4285,9 +4319,12 @@ function update(){
         const ang=Math.PI*2/6*i;
         puff(g.wx+Math.cos(ang)*0.5,g.mesh.position.y+0.5,g.wz+Math.sin(ang)*0.5,0xffffff,3,0.1);
       }
-      const fl=new THREE.PointLight(0x00ddff,3,8);
-      fl.position.set(g.wx,g.mesh.position.y,g.wz);scene.add(fl);
-      setTimeout(()=>scene.remove(fl),400);
+      if(burstEffectLight){
+        burstEffectLight.color.setHex(0x00ddff);
+        burstEffectLight.position.set(g.wx,g.mesh.position.y,g.wz);
+        burstEffectLight.intensity = 3.5;
+        setTimeout(()=>{ burstEffectLight.intensity = 0; }, 300);
+      }
     }
   });
 
@@ -4413,8 +4450,8 @@ function update(){
   });
   treeGroups.forEach(t=>{/* wind system handles sway */});
   towers.forEach(t=>{t.crystal.rotation.y+=0.03;t.crystal.rotation.x+=0.02;});
-  // Water ripple animation
-  if(waterMeshRef&&fr%2===0){
+  // Water ripple animation (🚀 最終ステージ最適化: 4フレーム毎に間引きCPU頂点計算負荷を大幅削減)
+  if(waterMeshRef&&fr%4===0){
     const pos=waterMeshRef._pos,oy=waterMeshRef._origY;
     const t=fr*0.04;
     let vi=0;
@@ -4456,10 +4493,13 @@ function killEnemy(e){
   } else {
     puff(e.wx,e.wy+0.8,e.wz,0xff8844,18,0.16);
     puffBig(e.wx,e.wy+1.2,e.wz,0xff4400,10,0.14,{sz:0.12,gravity:-0.004,spin:0.1});
-    // Death flash
-    const fl=new THREE.PointLight(0xff6600,4,12);
-    fl.position.set(e.wx,e.wy+1,e.wz); scene.add(fl);
-    setTimeout(()=>scene.remove(fl),300);
+    // Death flash (🚀 最適化: プールライトで瞬時に発光)
+    if(burstEffectLight){
+      burstEffectLight.color.setHex(0xff6600);
+      burstEffectLight.position.set(e.wx,e.wy+1,e.wz);
+      burstEffectLight.intensity = 4.0;
+      setTimeout(()=>{ burstEffectLight.intensity = 0; }, 250);
+    }
     if(Math.random()<0.6){
       const gm=createGem();gm.position.set(e.wx,e.wy+0.65,e.wz);scene.add(gm);
       gems.push({mesh:gm,wx:e.wx,wz:e.wz,bob:fr*0.1,alive:true});
