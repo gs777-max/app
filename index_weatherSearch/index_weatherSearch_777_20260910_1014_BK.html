@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>SmartWeather Pro | 新世代・高精度スマート天気予報</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Open-Meteoの高精度気象データを活用した新世代天気予報アプリ。GPS現在地取得、24時間予報、気圧・天気痛アラート、気温トレンドグラフ、生活指数ダッシュボードを搭載。" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Zen Kaku Gothic New"', '"Outfit"', 'sans-serif'],
+            display: ['"Outfit"', '"Zen Kaku Gothic New"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+      border-color: rgba(56, 189, 248, 0.5);
+    }
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.6);
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.5);
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.7);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-800 antialiased relative overflow-x-hidden font-sans transition-colors duration-700" id="bodyBg">
+
+  <!-- 天候・時間帯連動の動的アンビエント背景 -->
+  <div class="fixed inset-0 pointer-events-none z-0 transition-opacity duration-1000" id="ambientBgLayer">
+    <div id="ambientGradient" class="absolute inset-0 bg-gradient-to-br from-sky-400/20 via-indigo-200/20 to-blue-600/10"></div>
+    <div class="absolute -top-32 -left-20 w-96 h-96 rounded-full bg-sky-300/30 blur-3xl"></div>
+    <div class="absolute top-1/3 -right-20 w-96 h-96 rounded-full bg-indigo-300/25 blur-3xl"></div>
+    <div class="absolute -bottom-20 left-1/4 w-96 h-96 rounded-full bg-emerald-200/20 blur-3xl"></div>
+  </div>
+
+  <!-- メインコンテナ -->
+  <div class="relative z-10 max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10">
+
+    <!-- ヘッダーエリア -->
+    <header class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/25 text-xl font-bold">
+            ⛅
+          </span>
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-2">
+              SmartWeather <span class="bg-gradient-to-r from-sky-400 to-indigo-300 bg-clip-text text-transparent font-display">PRO</span>
+            </h1>
+            <p class="text-xs text-slate-300 mt-0.5">
+              高精度気象データ × 24hタイムライン × 気圧・天気痛アラート × 生活指数
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ヘッダー右上コントロール（単位切替・共有・更新） -->
+      <div class="flex items-center flex-wrap gap-2">
+        <button
+          id="btnGeoLocation"
+          type="button"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-white shadow-sm transition active:scale-95 cursor-pointer"
+          title="現在地の天気を取得"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          現在地で取得
+        </button>
+
+        <button
+          id="btnRefresh"
+          type="button"
+          class="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium bg-white/10 hover:bg-white/20 text-white border border-white/20 transition active:scale-95 cursor-pointer"
+          title="最新情報に更新"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          更新
+        </button>
+
+        <button
+          id="shareButton"
+          type="button"
+          class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-white/10 hover:bg-white/20 text-white border border-white/20 transition active:scale-95 cursor-pointer"
+          title="予報結果を共有 / コピー"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+          共有
+        </button>
+
+        <span id="shareStatusToast" class="text-xs text-sky-300 font-medium hidden transition-opacity duration-300"></span>
+      </div>
+    </header>
+
+    <!-- 検索コントロール・グラスパネル -->
+    <section class="glass-panel rounded-2xl p-4 sm:p-5 mb-6 shadow-xl relative z-20">
+      <form id="weatherForm" class="space-y-4" onsubmit="return false;">
+        <!-- 上段：地名入力 ＆ リアルタイム候補検索 -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+          <div class="sm:col-span-6 relative">
+            <label for="cityInput" class="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+              <span>都市名 / 地域名（日本語漢字・ひらがな・ローマ字対応）</span>
+              <span id="geocodingSpinner" class="hidden text-sky-600 text-[11px] font-normal animate-pulse">候補を検索中...</span>
+            </label>
+            <div class="relative">
+              <input
+                id="cityInput"
+                type="text"
+                placeholder="例: 東京, 大阪, 札幌, さいたま, New York"
+                value="東京"
+                autocomplete="off"
+                class="w-full pl-9 pr-8 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition shadow-sm"
+              />
+              <span class="absolute left-3 top-3 text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              </span>
+              <button
+                id="btnClearCity"
+                type="button"
+                class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 hidden text-sm p-0.5 rounded-full cursor-pointer"
+                title="入力をクリア"
+              >✕</button>
+            </div>
+
+            <!-- オートコンプリート・ドロップダウン -->
+            <div id="autocompleteDropdown" class="absolute left-0 right-0 top-full mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto hidden z-50 divide-y divide-slate-100">
+            </div>
+          </div>
+
+          <!-- 国コード（任意） -->
+          <div class="sm:col-span-2">
+            <label for="countryInput" class="block text-xs font-bold text-slate-700 mb-1">
+              国コード
+            </label>
+            <input
+              id="countryInput"
+              type="text"
+              placeholder="JP, US等 (任意)"
+              value="JP"
+              class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 uppercase placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition shadow-sm"
+            />
+          </div>
+
+          <!-- 表示期間選択 -->
+          <div class="sm:col-span-2">
+            <label for="weeksSelect" class="block text-xs font-bold text-slate-700 mb-1">
+              表示期間
+            </label>
+            <select
+              id="weeksSelect"
+              class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition shadow-sm"
+            >
+              <option value="1">1週間 (7日)</option>
+              <option value="2" selected>2週間 (14日)</option>
+              <option value="3">最大 (16日)</option>
+            </select>
+          </div>
+
+          <!-- 検索ボタン -->
+          <div class="sm:col-span-2">
+            <button
+              id="btnSearch"
+              type="button"
+              class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>天気を表示</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 中段：クイック主要都市チップ ＆ 履歴 -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 pt-1 border-t border-slate-200/60">
+          <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">主要都市:</span>
+          <div class="flex items-center flex-wrap gap-1.5" id="quickCityChips">
+            <button type="button" data-city="東京" data-country="JP" class="quick-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 transition cursor-pointer font-medium">東京</button>
+            <button type="button" data-city="大阪" data-country="JP" class="quick-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 transition cursor-pointer font-medium">大阪</button>
+            <button type="button" data-city="さいたま" data-country="JP" class="quick-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 transition cursor-pointer font-medium">さいたま</button>
+            <button type="button" data-city="横浜" data-country="JP" class="quick-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 transition cursor-pointer font-medium">横浜</button>
+            <button type="button" data-city="名古屋" data-country="JP" class="quick-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 transition cursor-pointer font-medium">名古屋</button>
+            <button type="button" data-city="札幌" data-country="JP" class="quick-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 transition cursor-pointer font-medium">札幌</button>
+            <button type="button" data-city="福岡" data-country="JP" class="quick-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 transition cursor-pointer font-medium">福岡</button>
+            <button type="button" data-city="京都" data-country="JP" class="quick-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 transition cursor-pointer font-medium">京都</button>
+            <button type="button" data-city="神戸" data-country="JP" class="quick-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 transition cursor-pointer font-medium">神戸</button>
+            <button type="button" data-city="仙台" data-country="JP" class="quick-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 transition cursor-pointer font-medium">仙台</button>
+            <button type="button" data-city="那覇" data-country="JP" class="quick-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 transition cursor-pointer font-medium">那覇</button>
+          </div>
+          <div id="recentSearchWrap" class="hidden sm:flex items-center gap-1.5 ml-auto text-[11px] text-slate-500">
+            <span>履歴:</span>
+            <div id="recentChips" class="flex items-center gap-1"></div>
+          </div>
+        </div>
+
+        <!-- 下段：詳細設定・オプション切り替え -->
+        <div class="flex items-center justify-between text-xs text-slate-600 pt-1">
+          <div class="flex items-center gap-4">
+            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+              <input id="compactMode" type="checkbox" class="rounded text-sky-600 focus:ring-sky-500 h-3.5 w-3.5 cursor-pointer" />
+              <span>コンパクト表示</span>
+            </label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+              <input id="windUnitKmh" type="checkbox" class="rounded text-sky-600 focus:ring-sky-500 h-3.5 w-3.5 cursor-pointer" />
+              <span>風速単位 (km/h)</span>
+            </label>
+          </div>
+          <div class="text-[11px] text-slate-400">
+            データ提供: Open-Meteo (APIキー不要・完全無料)
+          </div>
+        </div>
+      </form>
+
+      <!-- ステータス・エラー通知バー -->
+      <div id="statusBar" class="mt-3 hidden px-3.5 py-2 rounded-xl text-xs font-medium transition-all"></div>
+    </section>
+
+    <!-- メインコンテンツ表示エリア -->
+    <main id="weatherContent" class="space-y-6">
+      <div id="loadingPlaceholder" class="glass-panel rounded-2xl p-12 text-center text-slate-500 animate-pulse">
+        <div class="text-4xl mb-3">⛅</div>
+        <p class="text-sm font-semibold">気象データを読み込んでいます...</p>
+        <p class="text-xs text-slate-400 mt-1">Open-Meteo から高精度な予報と気圧・時間別推移を取得中</p>
+      </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="mt-12 text-center text-xs text-slate-400 border-t border-slate-700/40 pt-6 pb-4">
+      <p class="font-medium text-slate-300">SmartWeather Pro &mdash; 次世代スマート天気予報システム</p>
+      <p class="mt-1 text-slate-400">
+        気象データ提供: <a href="https://open-meteo.com/" target="_blank" rel="noopener" class="underline hover:text-sky-300">Open-Meteo</a> &bull; 
+        完全無料・APIキー不要 &bull; いつでも快適なライフスタイルと健康管理をサポート
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    /**
+     * SmartWeather Pro - 次世代天気予報コアロジック
+     */
+    (function() {
+      const cityInput = document.getElementById('cityInput');
+      const countryInput = document.getElementById('countryInput');
+      const weeksSelect = document.getElementById('weeksSelect');
+      const btnSearch = document.getElementById('btnSearch');
+      const btnGeoLocation = document.getElementById('btnGeoLocation');
+      const btnRefresh = document.getElementById('btnRefresh');
+      const btnClearCity = document.getElementById('btnClearCity');
+      const shareButton = document.getElementById('shareButton');
+      const shareToast = document.getElementById('shareStatusToast');
+      const compactModeEl = document.getElementById('compactMode');
+      const windUnitKmhEl = document.getElementById('windUnitKmh');
+      const statusBar = document.getElementById('statusBar');
+      const weatherContent = document.getElementById('weatherContent');
+      const autocompleteDropdown = document.getElementById('autocompleteDropdown');
+      const geocodingSpinner = document.getElementById('geocodingSpinner');
+      const bodyBg = document.getElementById('bodyBg');
+      const ambientGradient = document.getElementById('ambientGradient');
+      const recentSearchWrap = document.getElementById('recentSearchWrap');
+      const recentChips = document.getElementById('recentChips');
+
+      let currentPlace = null;
+      let currentForecastData = null;
+      let lastShareText = '';
+      let debounceTimer = null;
+      let activeTab = 'hourly';
+
+      // 47都道府県・主要都市・観光地完全内蔵辞書（漢字・ひらがな・英名）
+      const JAPAN_CITY_DICT = [
+        { name: '東京都 (新宿)', en: 'Tokyo', lat: 35.6895, lon: 139.6917, admin: '東京都', aliases: ['東京', 'とうきょう', 'tokyo', '新宿', '渋谷'] },
+        { name: '大阪市', en: 'Osaka', lat: 34.6937, lon: 135.5023, admin: '大阪府', aliases: ['大阪', 'おおさか', 'osaka', '梅田', '難波'] },
+        { name: 'さいたま市', en: 'Saitama', lat: 35.8617, lon: 139.6455, admin: '埼玉県', aliases: ['さいたま', '埼玉', 'saitama', '大宮', '浦和'] },
+        { name: '横浜市', en: 'Yokohama', lat: 35.4437, lon: 139.6380, admin: '神奈川県', aliases: ['横浜', 'よこはま', 'yokohama', '神奈川'] },
+        { name: '名古屋市', en: 'Nagoya', lat: 35.1815, lon: 136.9066, admin: '愛知県', aliases: ['名古屋', 'なごや', 'nagoya', '愛知'] },
+        { name: '札幌市', en: 'Sapporo', lat: 43.0618, lon: 141.3545, admin: '北海道', aliases: ['札幌', 'さっぽろ', 'sapporo', '北海道'] },
+        { name: '福岡市', en: 'Fukuoka', lat: 33.5904, lon: 130.4017, admin: '福岡県', aliases: ['福岡', 'ふくおか', 'fukuoka', '博多'] },
+        { name: '京都市', en: 'Kyoto', lat: 35.0116, lon: 135.7681, admin: '京都府', aliases: ['京都', 'きょうと', 'kyoto'] },
+        { name: '神戸市', en: 'Kobe', lat: 34.6901, lon: 135.1955, admin: '兵庫県', aliases: ['神戸', 'こうべ', 'kobe', '兵庫'] },
+        { name: '仙台市', en: 'Sendai', lat: 38.2682, lon: 140.8694, admin: '宮城県', aliases: ['仙台', 'せんだい', 'sendai', '宮城'] },
+        { name: '那覇市', en: 'Naha', lat: 26.2124, lon: 127.6809, admin: '沖縄県', aliases: ['那覇', 'なは', '沖縄', 'おきなわ', 'naha', 'okinawa'] },
+        { name: '広島市', en: 'Hiroshima', lat: 34.3853, lon: 132.4553, admin: '広島県', aliases: ['広島', 'ひろしま', 'hiroshima'] },
+        { name: '千葉市', en: 'Chiba', lat: 35.6074, lon: 140.1065, admin: '千葉県', aliases: ['千葉', 'ちば', 'chiba', '幕張'] },
+        { name: '北九州市', en: 'Kitakyushu', lat: 33.8835, lon: 130.8752, admin: '福岡県', aliases: ['北九州', 'kitakyushu', '小倉'] },
+        { name: '静岡市', en: 'Shizuoka', lat: 34.9756, lon: 138.3828, admin: '静岡県', aliases: ['静岡', 'しずおか', 'shizuoka'] },
+        { name: '浜松市', en: 'Hamamatsu', lat: 34.7108, lon: 137.7261, admin: '静岡県', aliases: ['浜松', 'hamamatsu'] },
+        { name: '新潟市', en: 'Niigata', lat: 37.9161, lon: 139.0364, admin: '新潟県', aliases: ['新潟', 'にいがた', 'niigata'] },
+        { name: '岡山市', en: 'Okayama', lat: 34.6551, lon: 133.9195, admin: '岡山県', aliases: ['岡山', 'おかやま', 'okayama'] },
+        { name: '熊本市', en: 'Kumamoto', lat: 32.8032, lon: 130.7079, admin: '熊本県', aliases: ['熊本', 'くまもと', 'kumamoto'] },
+        { name: '鹿児島市', en: 'Kagoshima', lat: 31.5966, lon: 130.5571, admin: '鹿児島県', aliases: ['鹿児島', 'かごしま', 'kagoshima'] },
+        { name: '長崎市', en: 'Nagasaki', lat: 32.7503, lon: 129.8779, admin: '長崎県', aliases: ['長崎', 'ながさき', 'nagasaki'] },
+        { name: '金沢市', en: 'Kanazawa', lat: 36.5613, lon: 136.6562, admin: '石川県', aliases: ['金沢', 'かなざわ', 'kanazawa', '石川'] },
+        { name: '宇都宮市', en: 'Utsunomiya', lat: 36.5551, lon: 139.8828, admin: '栃木県', aliases: ['宇都宮', 'うつのみや', 'utsunomiya', '栃木'] },
+        { name: '松山市', en: 'Matsuyama', lat: 33.8392, lon: 132.7656, admin: '愛媛県', aliases: ['松山', 'まつやま', 'matsuyama', '愛媛'] },
+        { name: '高松市', en: 'Takamatsu', lat: 34.3428, lon: 134.0466, admin: '香川県', aliases: ['高松', 'たかまつ', 'takamatsu', '香川'] },
+        { name: '高知市', en: 'Kochi', lat: 33.5588, lon: 133.5311, admin: '高知県', aliases: ['高知', 'こうち', 'kochi'] },
+        { name: '徳島市', en: 'Tokushima', lat: 34.0703, lon: 134.5548, admin: '徳島県', aliases: ['徳島', 'とくしま', 'tokushima'] },
+        { name: '青森市', en: 'Aomori', lat: 40.8244, lon: 140.7400, admin: '青森県', aliases: ['青森', 'あおもり', 'aomori'] },
+        { name: '盛岡市', en: 'Morioka', lat: 39.7020, lon: 141.1545, admin: '岩手県', aliases: ['盛岡', 'もりおか', 'morioka', '岩手'] },
+        { name: '秋田市', en: 'Akita', lat: 39.7200, lon: 140.1026, admin: '秋田県', aliases: ['秋田', 'あきた', 'akita'] },
+        { name: '山形市', en: 'Yamagata', lat: 38.2554, lon: 140.3396, admin: '山形県', aliases: ['山形', 'やまがた', 'yamagata'] },
+        { name: '福島市', en: 'Fukushima', lat: 37.7608, lon: 140.4748, admin: '福島県', aliases: ['福島', 'ふくしま', 'fukushima', '郡山'] },
+        { name: '水戸市', en: 'Mito', lat: 36.3659, lon: 140.4712, admin: '茨城県', aliases: ['水戸', 'みと', 'mito', '茨城', 'つくば'] },
+        { name: '前橋市', en: 'Maebashi', lat: 36.3895, lon: 139.0634, admin: '群馬県', aliases: ['前橋', 'まえばし', 'maebashi', '群馬', '高崎'] },
+        { name: '富山市', en: 'Toyama', lat: 36.6959, lon: 137.2137, admin: '富山県', aliases: ['富山', 'とやま', 'toyama'] },
+        { name: '福井市', en: 'Fukui', lat: 36.0641, lon: 136.2196, admin: '福井県', aliases: ['福井', 'ふくい', 'fukui'] },
+        { name: '甲府市', en: 'Kofu', lat: 35.6639, lon: 138.5684, admin: '山梨県', aliases: ['甲府', 'こうふ', 'kofu', '山梨'] },
+        { name: '長野市', en: 'Nagano', lat: 36.6486, lon: 138.1942, admin: '長野県', aliases: ['長野', 'ながの', 'nagano', '松本', '軽井沢'] },
+        { name: '岐阜市', en: 'Gifu', lat: 35.4233, lon: 136.7607, admin: '岐阜県', aliases: ['岐阜', 'ぎふ', 'gifu'] },
+        { name: '津市', en: 'Tsu', lat: 34.7186, lon: 136.5056, admin: '三重県', aliases: ['津', 'つ', 'tsu', '三重', '四日市'] },
+        { name: '大津市', en: 'Otsu', lat: 35.0178, lon: 135.8553, admin: '滋賀県', aliases: ['大津', 'おおつ', 'otsu', '滋賀'] },
+        { name: '奈良市', en: 'Nara', lat: 34.6851, lon: 135.8048, admin: '奈良県', aliases: ['奈良', 'なら', 'nara'] },
+        { name: '和歌山市', en: 'Wakayama', lat: 34.2305, lon: 135.1708, admin: '和歌山県', aliases: ['和歌山', 'わかやま', 'wakayama'] },
+        { name: '鳥取市', en: 'Tottori', lat: 35.5011, lon: 134.2351, admin: '鳥取県', aliases: ['鳥取', 'とっとり', 'tottori'] },
+        { name: '松江市', en: 'Matsue', lat: 35.4723, lon: 133.0505, admin: '島根県', aliases: ['松江', 'まつえ', 'matsue', '島根', '出雲'] },
+        { name: '山口市', en: 'Yamaguchi', lat: 34.1783, lon: 131.4738, admin: '山口県', aliases: ['山口', 'やまぐち', 'yamaguchi', '下関'] },
+        { name: '佐賀市', en: 'Saga', lat: 33.2635, lon: 130.3009, admin: '佐賀県', aliases: ['佐賀', 'さが', 'saga'] },
+        { name: '大分市', en: 'Oita', lat: 33.2382, lon: 131.6126, admin: '大分県', aliases: ['大分', 'おおいた', 'oita', '別府'] },
+        { name: '宮崎市', en: 'Miyazaki', lat: 31.9077, lon: 131.4202, admin: '宮崎県', aliases: ['宮崎', 'みやざき', 'miyazaki'] },
+        { name: '軽井沢町', en: 'Karuizawa', lat: 36.3488, lon: 138.6358, admin: '長野県', aliases: ['軽井沢', 'かるいざわ', 'karuizawa'] },
+        { name: '箱根町', en: 'Hakone', lat: 35.2323, lon: 139.1069, admin: '神奈川県', aliases: ['箱根', 'はこね', 'hakone'] },
+        { name: '日光市', en: 'Nikko', lat: 36.7199, lon: 139.6983, admin: '栃木県', aliases: ['日光', 'にっこう', 'nikko'] }
+      ];
+
+      function findInLocalDict(query) {
+        if (!query) return [];
+        const q = query.toLowerCase().trim();
+        const hits = [];
+        for (const item of JAPAN_CITY_DICT) {
+          if (item.name.includes(query) || item.admin.includes(query) || item.en.toLowerCase().includes(q)) {
+            hits.push({
+              name: item.name,
+              latitude: item.lat,
+              longitude: item.lon,
+              country_code: 'JP',
+              admin1: item.admin,
+              en: item.en
+            });
+            continue;
+          }
+          for (const alias of item.aliases) {
+            if (alias.toLowerCase().includes(q) || q.includes(alias.toLowerCase())) {
+              hits.push({
+                name: item.name,
+                latitude: item.lat,
+                longitude: item.lon,
+                country_code: 'JP',
+                admin1: item.admin,
+                en: item.en
+              });
+              break;
+            }
+          }
+        }
+        return hits;
+      }
+
+      function initApp() {
+        loadPreferences();
+        renderRecentChips();
+        bindEvents();
+        const initialCity = cityInput.value.trim() || '東京';
+        fetchForecastForCity(initialCity, countryInput.value.trim());
+      }
+
+      function loadPreferences() {
+        try {
+          const saved = JSON.parse(localStorage.getItem('smartWeatherPrefs_v2') || '{}');
+          if (saved.city) cityInput.value = saved.city;
+          if (saved.country) countryInput.value = saved.country;
+          if (saved.weeks) weeksSelect.value = saved.weeks;
+          if (typeof saved.compactMode === 'boolean') compactModeEl.checked = saved.compactMode;
+          if (typeof saved.windUnitKmh === 'boolean') windUnitKmhEl.checked = saved.windUnitKmh;
+          if (saved.city) btnClearCity.classList.remove('hidden');
+        } catch (e) {}
+      }
+
+      function savePreferences() {
+        try {
+          const prefs = {
+            city: cityInput.value.trim(),
+            country: countryInput.value.trim().toUpperCase(),
+            weeks: weeksSelect.value,
+            compactMode: compactModeEl.checked,
+            windUnitKmh: windUnitKmhEl.checked
+          };
+          localStorage.setItem('smartWeatherPrefs_v2', JSON.stringify(prefs));
+        } catch (e) {}
+      }
+
+      function addRecentSearch(place) {
+        if (!place || !place.name) return;
+        try {
+          let recents = JSON.parse(localStorage.getItem('smartWeatherRecents') || '[]');
+          recents = recents.filter(r => r.name !== place.name && r.latitude !== place.latitude);
+          recents.unshift({
+            name: place.name,
+            admin1: place.admin1 || '',
+            country_code: place.country_code || '',
+            latitude: place.latitude,
+            longitude: place.longitude
+          });
+          recents = recents.slice(0, 5);
+          localStorage.setItem('smartWeatherRecents', JSON.stringify(recents));
+          renderRecentChips();
+        } catch (e) {}
+      }
+
+      function renderRecentChips() {
+        try {
+          const recents = JSON.parse(localStorage.getItem('smartWeatherRecents') || '[]');
+          if (!recents.length) {
+            recentSearchWrap.classList.add('hidden');
+            return;
+          }
+          recentSearchWrap.classList.remove('hidden');
+          recentChips.innerHTML = recents.map(r => `
+            <button type="button" class="recent-chip px-2 py-0.5 rounded bg-slate-200/80 hover:bg-sky-200 text-slate-700 transition cursor-pointer font-medium"
+              data-json='${JSON.stringify(r).replace(/'/g, "&apos;")}'>
+              ${escapeHtml(r.name)}
+            </button>
+          `).join('');
+
+          recentChips.querySelectorAll('.recent-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const place = JSON.parse(btn.getAttribute('data-json'));
+              cityInput.value = place.name;
+              if (place.country_code) countryInput.value = place.country_code;
+              fetchForecastForCoords(place);
+            });
+          });
+        } catch (e) {}
+      }
+
+      function bindEvents() {
+        btnSearch.addEventListener('click', () => {
+          const city = cityInput.value.trim();
+          if (!city) {
+            showStatus('都市名を入力してください。', 'error');
+            return;
+          }
+          fetchForecastForCity(city, countryInput.value.trim());
+        });
+
+        cityInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            autocompleteDropdown.classList.add('hidden');
+            btnSearch.click();
+          }
+        });
+
+        cityInput.addEventListener('input', () => {
+          const query = cityInput.value.trim();
+          btnClearCity.classList.toggle('hidden', !query);
+          clearTimeout(debounceTimer);
+          if (query.length < 1) {
+            autocompleteDropdown.classList.add('hidden');
+            return;
+          }
+          debounceTimer = setTimeout(() => {
+            fetchGeocodingSuggestions(query);
+          }, 200);
+        });
+
+        btnClearCity.addEventListener('click', () => {
+          cityInput.value = '';
+          btnClearCity.classList.add('hidden');
+          autocompleteDropdown.classList.add('hidden');
+          cityInput.focus();
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!autocompleteDropdown.contains(e.target) && e.target !== cityInput) {
+            autocompleteDropdown.classList.add('hidden');
+          }
+        });
+
+        btnGeoLocation.addEventListener('click', getCurrentGeoLocation);
+
+        btnRefresh.addEventListener('click', () => {
+          if (currentPlace) {
+            fetchForecastForCoords(currentPlace);
+          } else {
+            btnSearch.click();
+          }
+        });
+
+        document.querySelectorAll('.quick-chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            const cityName = chip.getAttribute('data-city');
+            const countryCode = chip.getAttribute('data-country');
+            cityInput.value = cityName;
+            countryInput.value = countryCode;
+            btnClearCity.classList.remove('hidden');
+            fetchForecastForCity(cityName, countryCode);
+          });
+        });
+
+        compactModeEl.addEventListener('change', () => {
+          savePreferences();
+          if (currentForecastData && currentPlace) {
+            renderFullWeather(currentForecastData, currentPlace);
+          }
+        });
+
+        windUnitKmhEl.addEventListener('change', () => {
+          savePreferences();
+          if (currentForecastData && currentPlace) {
+            renderFullWeather(currentForecastData, currentPlace);
+          }
+        });
+
+        weeksSelect.addEventListener('change', () => {
+          savePreferences();
+          if (currentPlace) {
+            fetchForecastForCoords(currentPlace);
+          }
+        });
+
+        shareButton.addEventListener('click', handleShare);
+      }
+
+      function showStatus(message, type = 'info') {
+        if (!message) {
+          statusBar.classList.add('hidden');
+          return;
+        }
+        statusBar.classList.remove('hidden', 'bg-rose-100', 'text-rose-800', 'bg-emerald-100', 'text-emerald-800', 'bg-sky-100', 'text-sky-800');
+        if (type === 'error') {
+          statusBar.classList.add('bg-rose-100', 'text-rose-800');
+          statusBar.innerHTML = `⚠️ ${escapeHtml(message)}`;
+        } else if (type === 'success') {
+          statusBar.classList.add('bg-emerald-100', 'text-emerald-800');
+          statusBar.innerHTML = `✅ ${escapeHtml(message)}`;
+        } else {
+          statusBar.classList.add('bg-sky-100', 'text-sky-800');
+          statusBar.innerHTML = `ℹ️ ${escapeHtml(message)}`;
+        }
+      }
+
+      function getCurrentGeoLocation() {
+        if (!navigator.geolocation) {
+          showStatus('お使いのブラウザは位置情報サービスに対応していません。', 'error');
+          return;
+        }
+        showStatus('現在地（GPS）を取得中...', 'info');
+        btnGeoLocation.classList.add('animate-pulse');
+
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            btnGeoLocation.classList.remove('animate-pulse');
+            const { latitude, longitude } = pos.coords;
+            showStatus('現在地周辺の天気を取得中...', 'info');
+
+            let placeName = '現在地';
+            try {
+              const revUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=ja`;
+              const res = await fetch(revUrl);
+              if (res.ok) {
+                const geo = await res.json();
+                placeName = geo.city || geo.locality || geo.principalSubdivision || '現在地';
+                cityInput.value = placeName;
+                if (geo.countryCode) countryInput.value = geo.countryCode;
+              }
+            } catch (e) {
+              cityInput.value = `現在地 (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`;
+            }
+
+            const place = {
+              name: placeName,
+              latitude,
+              longitude,
+              country_code: countryInput.value || 'JP',
+              admin1: ''
+            };
+            fetchForecastForCoords(place);
+          },
+          (err) => {
+            btnGeoLocation.classList.remove('animate-pulse');
+            let msg = '現在地の取得に失敗しました。';
+            if (err.code === 1) msg = '位置情報の利用が許可されていません。ブラウザ設定をご確認ください。';
+            else if (err.code === 2) msg = '位置情報を特定できませんでした。';
+            showStatus(msg, 'error');
+          },
+          { timeout: 10000, enableHighAccuracy: true }
+        );
+      }
+
+      // リアルタイム候補検索（内蔵日本辞書 ＋ Open-Meteo Geocoding API）
+      async function fetchGeocodingSuggestions(query) {
+        geocodingSpinner.classList.remove('hidden');
+
+        // まず内蔵辞書から候補を抽出
+        const localHits = findInLocalDict(query);
+        let results = [...localHits];
+
+        try {
+          // Open-Meteo APIにも問い合わせ（ローマ字または英語名で補強）
+          const apiQuery = localHits.length && localHits[0].en ? localHits[0].en : query;
+          const url = new URL('https://geocoding-api.open-meteo.com/v1/search');
+          url.searchParams.set('name', apiQuery);
+          const country = countryInput.value.trim().toUpperCase();
+          if (country) url.searchParams.set('country', country);
+          url.searchParams.set('count', '5');
+          url.searchParams.set('format', 'json');
+
+          const res = await fetch(url.toString());
+          if (res.ok) {
+            const data = await res.json();
+            if (data.results && data.results.length) {
+              for (const r of data.results) {
+                if (!results.some(x => Math.abs(x.latitude - r.latitude) < 0.05 && Math.abs(x.longitude - r.longitude) < 0.05)) {
+                  results.push({
+                    name: r.name,
+                    latitude: r.latitude,
+                    longitude: r.longitude,
+                    country_code: r.country_code || '',
+                    admin1: r.admin1 || ''
+                  });
+                }
+              }
+            }
+          }
+        } catch (e) {}
+
+        geocodingSpinner.classList.add('hidden');
+
+        if (!results.length) {
+          autocompleteDropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 text-center">該当する候補が見つかりません</div>';
+          autocompleteDropdown.classList.remove('hidden');
+          return;
+        }
+
+        autocompleteDropdown.innerHTML = results.slice(0, 8).map((item, idx) => {
+          const sub = [item.admin1, item.country_code].filter(Boolean).join(', ');
+          return `
+            <div class="autocomplete-item p-2.5 hover:bg-sky-50 cursor-pointer flex items-center justify-between transition" data-index="${idx}">
+              <div>
+                <div class="text-sm font-semibold text-slate-800">${escapeHtml(item.name)}</div>
+                <div class="text-[11px] text-slate-500">${escapeHtml(sub)} &bull; 緯度 ${item.latitude.toFixed(2)} / 経度 ${item.longitude.toFixed(2)}</div>
+              </div>
+              <span class="text-xs text-sky-600 font-medium">選択 ➔</span>
+            </div>
+          `;
+        }).join('');
+
+        autocompleteDropdown.classList.remove('hidden');
+
+        autocompleteDropdown.querySelectorAll('.autocomplete-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const idx = parseInt(el.getAttribute('data-index'), 10);
+            const selected = results[idx];
+            cityInput.value = selected.name;
+            if (selected.country_code) countryInput.value = selected.country_code;
+            autocompleteDropdown.classList.add('hidden');
+            fetchForecastForCoords(selected);
+          });
+        });
+      }
+
+      // 都市名から検索
+      async function fetchForecastForCity(cityName, countryCode) {
+        showStatus(`${cityName} の位置情報を検索中...`, 'info');
+        weatherContent.innerHTML = renderSkeleton();
+
+        // 1. 内蔵日本都市辞書から検索
+        const localHits = findInLocalDict(cityName);
+        if (localHits.length > 0) {
+          fetchForecastForCoords(localHits[0]);
+          return;
+        }
+
+        // 2. Open-Meteo Geocoding APIに問い合わせ
+        try {
+          const geoUrl = new URL('https://geocoding-api.open-meteo.com/v1/search');
+          geoUrl.searchParams.set('name', cityName);
+          if (countryCode) geoUrl.searchParams.set('country', countryCode.toUpperCase());
+          geoUrl.searchParams.set('count', '5');
+          geoUrl.searchParams.set('format', 'json');
+
+          const res = await fetch(geoUrl.toString());
+          if (!res.ok) throw new Error('地名検索APIに接続できませんでした');
+          const data = await res.json();
+
+          if (!data.results || !data.results.length) {
+            showStatus(`「${cityName}」が見つかりませんでした。別の表記（例: Tokyo, Osaka）をお試しください。`, 'error');
+            weatherContent.innerHTML = renderEmptyState('該当する都市が見つかりませんでした');
+            return;
+          }
+
+          const place = data.results[0];
+          fetchForecastForCoords(place);
+        } catch (err) {
+          console.error(err);
+          showStatus('通信エラーが発生しました。インターネット接続をご確認ください。', 'error');
+          weatherContent.innerHTML = renderEmptyState('データの取得に失敗しました');
+        }
+      }
+
+      // 座標からOpen-Meteoの総合予報データ（Hourly + Daily）を取得
+      async function fetchForecastForCoords(place) {
+        currentPlace = place;
+        savePreferences();
+        addRecentSearch(place);
+
+        const weeks = parseInt(weeksSelect.value, 10);
+        const forecastDays = Math.min(weeks * 7, 16);
+
+        showStatus(`${place.name} の最新気象データを取得中...`, 'info');
+
+        try {
+          const url = new URL('https://api.open-meteo.com/v1/forecast');
+          url.searchParams.set('latitude', place.latitude);
+          url.searchParams.set('longitude', place.longitude);
+
+          url.searchParams.set(
+            'daily',
+            'weathercode,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_probability_max,precipitation_sum,sunrise,sunset,uv_index_max,windspeed_10m_max,windspeed_10m_min,winddirection_10m_dominant'
+          );
+
+          url.searchParams.set(
+            'hourly',
+            'temperature_2m,apparent_temperature,precipitation_probability,precipitation,weathercode,surface_pressure,windspeed_10m,winddirection_10m,relative_humidity_2m'
+          );
+
+          url.searchParams.set(
+            'current',
+            'temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weathercode,surface_pressure,windspeed_10m,winddirection_10m'
+          );
+
+          url.searchParams.set('forecast_days', String(forecastDays));
+          url.searchParams.set('timezone', 'auto');
+
+          const res = await fetch(url.toString());
+          if (!res.ok) throw new Error('天気予報APIの呼び出しに失敗しました');
+          const data = await res.json();
+
+          currentForecastData = data;
+          showStatus(`${place.name} の気象情報を更新しました（${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}）`, 'success');
+
+          updateAmbientTheme(data);
+          renderFullWeather(data, place);
+          buildShareSummary(data, place);
+        } catch (err) {
+          console.error(err);
+          showStatus('天気データの取得に失敗しました。時間をおいて再試行してください。', 'error');
+          weatherContent.innerHTML = renderEmptyState('天気データを取得できませんでした');
+        }
+      }
+
+      function updateAmbientTheme(data) {
+        if (!data || !data.current) return;
+        const code = data.current.weathercode;
+        const isDay = data.current.is_day !== 0;
+
+        let bgClass = 'bg-slate-900';
+        let grad = 'bg-gradient-to-br from-sky-500/20 via-indigo-500/20 to-slate-900/40';
+
+        if (code === 0 || code === 1) {
+          if (isDay) {
+            bgClass = 'bg-slate-900';
+            grad = 'bg-gradient-to-br from-amber-400/25 via-sky-400/20 to-blue-700/30';
+          } else {
+            bgClass = 'bg-slate-950';
+            grad = 'bg-gradient-to-br from-indigo-900/40 via-purple-900/30 to-slate-950';
+          }
+        } else if ([61, 63, 65, 80, 81, 82].includes(code)) {
+          bgClass = 'bg-slate-900';
+          grad = 'bg-gradient-to-br from-cyan-600/25 via-blue-700/25 to-slate-900/50';
+        } else if ([71, 73, 75, 85, 86].includes(code)) {
+          bgClass = 'bg-slate-900';
+          grad = 'bg-gradient-to-br from-sky-200/30 via-indigo-200/20 to-slate-900/40';
+        } else if ([95, 96, 99].includes(code)) {
+          bgClass = 'bg-slate-950';
+          grad = 'bg-gradient-to-br from-purple-700/35 via-rose-900/25 to-slate-950';
+        }
+
+        bodyBg.className = `min-h-screen ${bgClass} text-slate-800 antialiased relative overflow-x-hidden font-sans transition-colors duration-1000`;
+        ambientGradient.className = `absolute inset-0 ${grad} transition-all duration-1000`;
+      }
+
+      const WEATHER_MAP = {
+        0: { desc: '快晴', icon: '☀️' },
+        1: { desc: '晴れ', icon: '🌤️' },
+        2: { desc: '晴れ時々くもり', icon: '⛅' },
+        3: { desc: 'くもり', icon: '☁️' },
+        45: { desc: '霧', icon: '🌫️' },
+        48: { desc: '着氷性の霧', icon: '🌫️' },
+        51: { desc: '小雨 (霧雨)', icon: '🌦️' },
+        53: { desc: '霧雨', icon: '🌦️' },
+        55: { desc: '強い霧雨', icon: '🌦️' },
+        61: { desc: '小雨', icon: '🌧️' },
+        63: { desc: '雨', icon: '🌧️' },
+        65: { desc: '強い雨', icon: '🌧️' },
+        66: { desc: '氷雨', icon: '🌨️' },
+        67: { desc: '強い氷雨', icon: '🌨️' },
+        71: { desc: '小雪', icon: '❄️' },
+        73: { desc: '雪', icon: '❄️' },
+        75: { desc: '大雪', icon: '❄️' },
+        77: { desc: '霧雪', icon: '🌨️' },
+        80: { desc: 'にわか雨', icon: '🌦️' },
+        81: { desc: '激しいにわか雨', icon: '🌧️' },
+        82: { desc: '猛烈なにわか雨', icon: '⛈️' },
+        85: { desc: 'にわか雪', icon: '🌨️' },
+        86: { desc: '強いにわか雪', icon: '🌨️' },
+        95: { desc: '雷雨', icon: '⛈️' },
+        96: { desc: '雷雨 (雹伴う)', icon: '⛈️' },
+        99: { desc: '激しい雷雨', icon: '⚡' }
+      };
+
+      function getWeatherInfo(code) {
+        return WEATHER_MAP[code] || { desc: '不明', icon: '❓' };
+      }
+
+      function formatWindSpeed(val, isKmh) {
+        if (typeof val !== 'number') return '-';
+        return isKmh ? (val * 3.6).toFixed(1) : val.toFixed(1);
+      }
+
+      function getWindArrow(deg) {
+        if (typeof deg !== 'number') return '•';
+        const arrows = ['↓', '↙', '←', '↖', '↑', '↗', '→', '↘'];
+        const idx = Math.round(((deg % 360) + 360) % 360 / 45) % 8;
+        return arrows[idx];
+      }
+
+      function getWindDirName(deg) {
+        if (typeof deg !== 'number') return '不明';
+        const dirs = ['北', '北東', '東', '南東', '南', '南西', '西', '北西'];
+        const idx = Math.round(((deg % 360) + 360) % 360 / 45) % 8;
+        return dirs[idx];
+      }
+
+      function analyzePressureAlert(hourly) {
+        if (!hourly || !hourly.surface_pressure || !hourly.time) {
+          return { level: 'normal', badge: '✅ 安定', text: '気圧データなし', delta: 0, desc: '平常な気圧です', color: 'border-slate-200 bg-white/70 text-slate-700' };
+        }
+        const now = new Date();
+        const nowIsoPrefix = now.toISOString().slice(0, 13);
+        let curIdx = hourly.time.findIndex(t => t.startsWith(nowIsoPrefix));
+        if (curIdx === -1) curIdx = 0;
+
+        const curPres = hourly.surface_pressure[curIdx];
+        const next12Idx = Math.min(curIdx + 12, hourly.surface_pressure.length - 1);
+        const futurePres = hourly.surface_pressure[next12Idx];
+        const delta = futurePres - curPres;
+
+        if (delta <= -5.0) {
+          return {
+            level: 'danger',
+            badge: '⚡ 警戒：急降下',
+            text: `12時間で ${Math.abs(delta).toFixed(1)} hPa 低下`,
+            desc: '頭痛・天気痛やだるさを感じやすい急激な気圧降下です。無理をせず休息・水分補給を。',
+            color: 'border-rose-300 bg-rose-50 text-rose-800'
+          };
+        } else if (delta <= -2.5) {
+          return {
+            level: 'warning',
+            badge: '⚠️ 注意：低下傾向',
+            text: `12時間で ${Math.abs(delta).toFixed(1)} hPa 低下`,
+            desc: '気圧がやや低下します。気象病・偏頭痛持ちの方は早めの対策をおすすめします。',
+            color: 'border-amber-300 bg-amber-50 text-amber-800'
+          };
+        } else if (delta >= 4.0) {
+          return {
+            level: 'up',
+            badge: '↗ 気圧上昇中',
+            text: `12時間で +${delta.toFixed(1)} hPa 上昇`,
+            desc: '天気が回復に向かい、気圧が急上昇しています。自律神経の乱れにご注意ください。',
+            color: 'border-sky-300 bg-sky-50 text-sky-800'
+          };
+        } else {
+          return {
+            level: 'stable',
+            badge: '✅ 安定',
+            text: `${curPres ? curPres.toFixed(0) : 1013} hPa (変動わずか)`,
+            desc: '気圧は比較的安定しており、天気痛のリスクは低めです。',
+            color: 'border-emerald-300 bg-emerald-50 text-emerald-800'
+          };
+        }
+      }
+
+      function calculateLifestyleIndices(tMax, tMin, weatherCode, windMax, uvMax, popMax) {
+        const avg = (tMax + tMin) / 2;
+        const isRain = [51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(weatherCode);
+        const isSnow = [71,73,75,77,85,86].includes(weatherCode);
+
+        let cloth = { title: '服装', score: '快適', icon: '👕', desc: '長袖シャツやカーディガン' };
+        if (tMax >= 32) cloth = { title: '服装', score: '猛暑', icon: '🎽', desc: '半袖・ノースリーブ＋熱中症対策' };
+        else if (tMax >= 26) cloth = { title: '服装', score: '夏服', icon: '👕', desc: '半袖や通気性の良い服' };
+        else if (avg >= 20) cloth = { title: '服装', score: '適温', icon: '👔', desc: '長袖シャツ＋羽織りもの' };
+        else if (avg >= 15) cloth = { title: '服装', score: 'やや肌寒い', icon: '🧥', desc: 'ジャケットや薄手セーター' };
+        else if (avg >= 8) cloth = { title: '服装', score: '寒い', icon: '🧥', desc: '冬用コート・セーター' };
+        else cloth = { title: '服装', score: '極寒', icon: '🧤', desc: 'ダウンコート＋マフラー・手袋' };
+
+        let umbrella = { title: '傘', score: '不要', icon: '☀️', desc: '傘の心配はありません' };
+        if (isRain || (popMax != null && popMax >= 70)) {
+          umbrella = { title: '傘', score: '長傘必須', icon: '☔', desc: 'しっかりとした雨具が必要です' };
+        } else if ((popMax != null && popMax >= 40) || [80, 81].includes(weatherCode)) {
+          umbrella = { title: '傘', score: '折りたたみ推奨', icon: '🌂', desc: '急な雨に備えて折りたたみ傘を' };
+        } else if (isSnow) {
+          umbrella = { title: '傘', score: '雪対策', icon: '🌂', desc: '傘またはフード付き防寒着' };
+        }
+
+        let laundry = { title: '洗濯', score: '最適', icon: '🧺', desc: '外干しでカラッと乾きます' };
+        if (isRain || isSnow) {
+          laundry = { title: '洗濯', score: '部屋干し', icon: '🚫', desc: '雨・雪のため室内干し推奨' };
+        } else if (popMax != null && popMax >= 50) {
+          laundry = { title: '洗濯', score: '部屋干し推奨', icon: '⚠️', desc: '急な天気の崩れに注意' };
+        } else if (avg < 12 || (windMax != null && windMax > 12)) {
+          laundry = { title: '洗濯', score: '乾きにくい', icon: '🙂', desc: '気温が低めまたは風が強め' };
+        }
+
+        let golf = { title: 'ゴルフ', score: '最高', icon: '⛳', desc: '絶好のプレー日和です' };
+        if (isRain || isSnow) {
+          golf = { title: 'ゴルフ', score: '不向き', icon: '🚫', desc: '雨・雪のためプレーは慎重に' };
+        } else if (windMax != null && windMax >= 10) {
+          golf = { title: 'ゴルフ', score: '強風注意', icon: '🌬️', desc: '風の影響を受けやすいコンディション' };
+        } else if (tMax >= 33) {
+          golf = { title: 'ゴルフ', score: '熱中症警戒', icon: '🥵', desc: '激しい暑さに厳重警戒' };
+        } else if (avg < 8) {
+          golf = { title: 'ゴルフ', score: '防寒必須', icon: '🏌️', desc: '朝晩の冷え込みに十分な防寒を' };
+        }
+
+        let run = { title: 'ランニング', score: '快適', icon: '🏃', desc: '爽やかに走れる気候です' };
+        if (isRain) run = { title: 'ランニング', score: 'スリップ注意', icon: '🌧️', desc: '足元が滑りやすく室内運動推奨' };
+        else if (tMax >= 30) run = { title: 'ランニング', score: '早朝・夜間推奨', icon: '💦', desc: '日中の運動は避け涼しい時間に' };
+        else if (tMin <= 2) run = { title: 'ランニング', score: 'ウォーミングアップを入念に', icon: '🥶', desc: '筋肉の冷えや路面凍結に注意' };
+
+        let uv = { title: '紫外線 (UV)', score: '普通', icon: '🧴', desc: '一般的な紫外線対策を' };
+        const uvVal = uvMax || 0;
+        if (uvVal >= 8) uv = { title: '紫外線 (UV)', score: '極めて強い', icon: '🕶️', desc: '日傘・サングラス・日焼け止め必須' };
+        else if (uvVal >= 6) uv = { title: '紫外線 (UV)', score: '強い', icon: '☀️', desc: '日焼け止めをしっかり塗布' };
+        else if (uvVal < 3) uv = { title: '紫外線 (UV)', score: '弱い', icon: '✨', desc: '紫外線ダメージは少なめ' };
+
+        return [cloth, umbrella, laundry, golf, run, uv];
+      }
+
+      function renderFullWeather(data, place) {
+        const compact = compactModeEl.checked;
+        const isKmh = windUnitKmhEl.checked;
+        const speedUnit = isKmh ? 'km/h' : 'm/s';
+
+        const current = data.current || {};
+        const daily = data.daily || {};
+        const hourly = data.hourly || {};
+
+        const curCode = current.weathercode != null ? current.weathercode : (daily.weathercode ? daily.weathercode[0] : 0);
+        const curInfo = getWeatherInfo(curCode);
+        const curTemp = current.temperature_2m != null ? current.temperature_2m : (daily.temperature_2m_max ? daily.temperature_2m_max[0] : 0);
+        const curApparent = current.apparent_temperature != null ? current.apparent_temperature : curTemp;
+        const curHumidity = current.relative_humidity_2m != null ? current.relative_humidity_2m : 60;
+        const curWind = current.windspeed_10m != null ? current.windspeed_10m : (daily.windspeed_10m_max ? daily.windspeed_10m_max[0] : 0);
+        const curWindDir = current.winddirection_10m != null ? current.winddirection_10m : 0;
+
+        const pressureAlert = analyzePressureAlert(hourly);
+
+        const todayMax = daily.temperature_2m_max ? daily.temperature_2m_max[0] : curTemp;
+        const todayMin = daily.temperature_2m_min ? daily.temperature_2m_min[0] : curTemp;
+        const todayPop = daily.precipitation_probability_max ? daily.precipitation_probability_max[0] : null;
+
+        const locationTitle = [place.name, place.admin1, place.country_code].filter(Boolean).join(' / ');
+
+        let html = `
+          <div class="glass-panel rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden border border-white/60">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div class="flex items-start sm:items-center gap-4 sm:gap-6">
+                <div class="text-6xl sm:text-7xl filter drop-shadow-md">
+                  ${curInfo.icon}
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-700 border border-sky-500/30">
+                      リアルタイム現況
+                    </span>
+                    <span class="text-xs text-slate-500">${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })} 更新</span>
+                  </div>
+                  <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
+                    ${escapeHtml(locationTitle)}
+                  </h2>
+                  <div class="flex items-baseline gap-3 mt-1">
+                    <span class="text-4xl sm:text-5xl font-black text-slate-900 font-display">${curTemp.toFixed(1)}<span class="text-2xl font-light">℃</span></span>
+                    <span class="text-base font-bold text-slate-700">${curInfo.desc}</span>
+                    <span class="text-xs text-slate-500">体感 ${curApparent.toFixed(0)}℃</span>
+                  </div>
+                  <div class="flex items-center gap-3 text-xs text-slate-600 mt-2 font-medium">
+                    <span>最高 <strong class="text-rose-600">${todayMax.toFixed(0)}℃</strong></span>
+                    <span>最低 <strong class="text-sky-600">${todayMin.toFixed(0)}℃</strong></span>
+                    ${todayPop != null ? `<span>降水確率 <strong class="text-blue-600">${Math.round(todayPop)}%</strong></span>` : ''}
+                    <span>湿度 <strong>${curHumidity}%</strong></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-col sm:flex-row lg:flex-col gap-3 lg:w-72">
+                <div class="flex-1 rounded-2xl border p-3.5 ${pressureAlert.color} shadow-sm transition">
+                  <div class="flex items-center justify-between text-xs font-bold mb-1">
+                    <span class="flex items-center gap-1">🧠 気圧・天気痛予報</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/70 shadow-xs">${pressureAlert.badge}</span>
+                  </div>
+                  <div class="text-xs font-semibold">${pressureAlert.text}</div>
+                  <p class="text-[11px] mt-1 leading-snug opacity-90">${pressureAlert.desc}</p>
+                </div>
+
+                <div class="rounded-2xl border border-slate-200 bg-white/70 backdrop-blur p-3 text-xs flex items-center justify-between shadow-sm">
+                  <div class="flex items-center gap-2">
+                    <span class="text-lg">🌬️</span>
+                    <div>
+                      <div class="font-bold text-slate-700">風向・風速</div>
+                      <div class="text-[11px] text-slate-500">${getWindDirName(curWindDir)}の風</div>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-sm font-bold text-slate-900">${formatWindSpeed(curWind, isKmh)} <span class="text-[10px] font-normal">${speedUnit}</span></div>
+                    <div class="text-[11px] text-slate-500">風向記号: ${getWindArrow(curWindDir)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-center sm:justify-start gap-2 border-b border-slate-200/80 pb-2">
+            <button type="button" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${activeTab === 'hourly' ? 'bg-sky-600 text-white shadow-md' : 'bg-white/70 text-slate-600 hover:bg-white'}" data-tab="hourly">
+              🕒 24hタイムライン
+            </button>
+            <button type="button" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${activeTab === 'chart' ? 'bg-sky-600 text-white shadow-md' : 'bg-white/70 text-slate-600 hover:bg-white'}" data-tab="chart">
+              📈 気温＆降水グラフ
+            </button>
+            <button type="button" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${activeTab === 'weekly' ? 'bg-sky-600 text-white shadow-md' : 'bg-white/70 text-slate-600 hover:bg-white'}" data-tab="weekly">
+              📅 週間・16日予報
+            </button>
+            <button type="button" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${activeTab === 'indices' ? 'bg-sky-600 text-white shadow-md' : 'bg-white/70 text-slate-600 hover:bg-white'}" data-tab="indices">
+              ✨ 生活・健康指数
+            </button>
+          </div>
+
+          <div id="tabContentArea">
+            <div id="pane-hourly" class="tab-pane ${activeTab === 'hourly' ? '' : 'hidden'} space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                  <span>🕒 1時間ごとの推移 (今後24〜36時間)</span>
+                  <span class="text-[11px] font-normal text-slate-500">横スクロールで確認できます</span>
+                </h3>
+              </div>
+              <div class="flex gap-2.5 overflow-x-auto custom-scroll pb-3 pt-1">
+                ${renderHourlyCards(hourly, isKmh)}
+              </div>
+            </div>
+
+            <div id="pane-chart" class="tab-pane ${activeTab === 'chart' ? '' : 'hidden'} space-y-3">
+              <div class="glass-panel rounded-2xl p-4 sm:p-6 shadow-md border border-white/60">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                  <div>
+                    <h3 class="text-sm font-bold text-slate-800">📈 気温推移・降水量ビジュアルチャート</h3>
+                    <p class="text-xs text-slate-500">最高・最低気温の変動と降水量を視覚的に把握</p>
+                  </div>
+                  <div class="flex items-center gap-3 text-xs">
+                    <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-rose-500"></span> 最高気温</span>
+                    <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-sky-500"></span> 最低気温</span>
+                    <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded bg-blue-400/60"></span> 降水量(mm)</span>
+                  </div>
+                </div>
+                <div class="relative w-full h-64 sm:h-72">
+                  <canvas id="weatherCanvas" class="w-full h-full block rounded-xl bg-white/40"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div id="pane-weekly" class="tab-pane ${activeTab === 'weekly' ? '' : 'hidden'} space-y-4">
+              ${renderWeeklyCards(daily, isKmh, compact)}
+            </div>
+
+            <div id="pane-indices" class="tab-pane ${activeTab === 'indices' ? '' : 'hidden'} space-y-4">
+              <div class="glass-panel rounded-2xl p-5 shadow-md border border-white/60">
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 class="text-base font-bold text-slate-900">✨ 本日のスマート生活指数ダッシュボード</h3>
+                    <p class="text-xs text-slate-500">気象データに基づく服装・洗濯・ゴルフ・健康のアドバイス</p>
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  ${calculateLifestyleIndices(todayMax, todayMin, curCode, curWind, daily.uv_index_max ? daily.uv_index_max[0] : 5, todayPop).map(idx => `
+                    <div class="glass-card rounded-2xl p-4 flex items-start gap-3.5 border border-slate-200/80 bg-white/80">
+                      <div class="text-3xl p-2 rounded-2xl bg-sky-50 text-sky-600 shadow-xs">
+                        ${idx.icon}
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                          <span class="text-xs font-semibold text-slate-500">${escapeHtml(idx.title)}</span>
+                          <span class="text-xs font-bold text-sky-700 bg-sky-100/70 px-2 py-0.5 rounded-full">${escapeHtml(idx.score)}</span>
+                        </div>
+                        <div class="text-sm font-bold text-slate-800 mt-1 truncate">${escapeHtml(idx.desc)}</div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        weatherContent.innerHTML = html;
+
+        weatherContent.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const target = btn.getAttribute('data-tab');
+            activeTab = target;
+            weatherContent.querySelectorAll('.tab-btn').forEach(b => {
+              b.classList.toggle('bg-sky-600', b === btn);
+              b.classList.toggle('text-white', b === btn);
+              b.classList.toggle('shadow-md', b === btn);
+              b.classList.toggle('bg-white/70', b !== btn);
+              b.classList.toggle('text-slate-600', b !== btn);
+            });
+            weatherContent.querySelectorAll('.tab-pane').forEach(p => {
+              p.classList.toggle('hidden', p.id !== `pane-${target}`);
+            });
+            if (target === 'chart') {
+              drawWeatherChart(daily);
+            }
+          });
+        });
+
+        if (activeTab === 'chart') {
+          setTimeout(() => drawWeatherChart(daily), 50);
+        }
+      }
+
+      function renderHourlyCards(hourly, isKmh) {
+        if (!hourly || !hourly.time || !hourly.time.length) {
+          return '<p class="text-xs text-slate-400">時間別データがありません</p>';
+        }
+        const now = new Date();
+        const nowIsoPrefix = now.toISOString().slice(0, 13);
+        let startIdx = hourly.time.findIndex(t => t.startsWith(nowIsoPrefix));
+        if (startIdx === -1) startIdx = 0;
+
+        const endIdx = Math.min(startIdx + 30, hourly.time.length);
+        let cardsHtml = '';
+
+        for (let i = startIdx; i < endIdx; i++) {
+          const tIso = hourly.time[i];
+          const d = new Date(tIso);
+          const hourLabel = i === startIdx ? '現在' : `${d.getHours()}:00`;
+          const code = hourly.weathercode[i];
+          const info = getWeatherInfo(code);
+          const temp = hourly.temperature_2m[i];
+          const pop = hourly.precipitation_probability ? hourly.precipitation_probability[i] : null;
+          const pSum = hourly.precipitation ? hourly.precipitation[i] : 0;
+          const wind = hourly.windspeed_10m ? hourly.windspeed_10m[i] : 0;
+          const windDir = hourly.winddirection_10m ? hourly.winddirection_10m[i] : 0;
+          const isCurrent = (i === startIdx);
+
+          cardsHtml += `
+            <div class="flex-shrink-0 w-24 p-3 rounded-2xl text-center glass-card ${isCurrent ? 'ring-2 ring-sky-500 bg-sky-50/80' : 'bg-white/80'} border border-slate-200/80">
+              <div class="text-[11px] font-bold ${isCurrent ? 'text-sky-600' : 'text-slate-600'}">${escapeHtml(hourLabel)}</div>
+              <div class="text-2xl my-1.5 filter drop-shadow-xs" title="${info.desc}">${info.icon}</div>
+              <div class="text-sm font-extrabold text-slate-900 font-display">${temp ? temp.toFixed(0) : '-'}°</div>
+              <div class="mt-1.5 flex flex-col gap-0.5 text-[10px]">
+                <span class="font-semibold ${pop != null && pop >= 40 ? 'text-blue-600 font-bold' : 'text-slate-500'}">
+                  💧 ${pop != null ? Math.round(pop) + '%' : '-'}
+                </span>
+                ${pSum > 0 ? `<span class="text-blue-500 font-medium">${pSum.toFixed(1)}mm</span>` : ''}
+                <span class="text-slate-400 mt-0.5 flex items-center justify-center gap-0.5">
+                  <span>${getWindArrow(windDir)}</span>
+                  <span>${formatWindSpeed(wind, isKmh)}</span>
+                </span>
+              </div>
+            </div>
+          `;
+        }
+        return cardsHtml;
+      }
+
+      function renderWeeklyCards(daily, isKmh, compact) {
+        if (!daily || !daily.time || !daily.time.length) {
+          return '<p class="text-xs text-slate-400">日別データがありません</p>';
+        }
+        const speedUnit = isKmh ? 'km/h' : 'm/s';
+        const total = daily.time.length;
+        let html = '';
+        const weeksCount = Math.ceil(total / 7);
+
+        for (let w = 0; w < weeksCount; w++) {
+          const start = w * 7;
+          const end = Math.min(start + 7, total);
+          const weekStartDate = formatDateJp(daily.time[start]);
+          const weekEndDate = formatDateJp(daily.time[end - 1]);
+
+          html += `
+            <div class="glass-panel rounded-2xl overflow-hidden shadow-sm border border-white/60">
+              <div class="px-4 py-3 bg-slate-100/80 border-b border-slate-200/60 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-extrabold text-sky-700 uppercase tracking-wider px-2 py-0.5 rounded-md bg-sky-100">
+                    第 ${w + 1} 週
+                  </span>
+                  <span class="text-xs text-slate-500 font-medium">${escapeHtml(weekStartDate)} 〜 ${escapeHtml(weekEndDate)}</span>
+                </div>
+                <span class="text-[11px] text-slate-500">${end - start}日間</span>
+              </div>
+              <div class="divide-y divide-slate-100">
+          `;
+
+          for (let i = start; i < end; i++) {
+            const dateStr = daily.time[i];
+            const { dayLabel, weekday, isWeekend } = getDayDetails(dateStr);
+            const code = daily.weathercode[i];
+            const info = getWeatherInfo(code);
+            const tMax = daily.temperature_2m_max[i];
+            const tMin = daily.temperature_2m_min[i];
+            const popMax = daily.precipitation_probability_max ? daily.precipitation_probability_max[i] : null;
+            const pSum = daily.precipitation_sum ? daily.precipitation_sum[i] : null;
+            const windMax = daily.windspeed_10m_max ? daily.windspeed_10m_max[i] : null;
+            const windDir = daily.winddirection_10m_dominant ? daily.winddirection_10m_dominant[i] : null;
+            const uvMax = daily.uv_index_max ? daily.uv_index_max[i] : null;
+            const sr = daily.sunrise ? daily.sunrise[i] : null;
+            const ss = daily.sunset ? daily.sunset[i] : null;
+            const isToday = i === 0;
+
+            html += `
+              <div class="p-3.5 sm:p-4 hover:bg-slate-50/80 transition ${isToday ? 'bg-sky-50/50' : 'bg-white/60'}">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div class="flex items-center gap-3.5">
+                    <div class="w-16 flex-shrink-0">
+                      <div class="text-sm font-bold text-slate-900">${dayLabel}</div>
+                      <div class="text-xs font-semibold ${isWeekend === 'sun' ? 'text-rose-600' : (isWeekend === 'sat' ? 'text-sky-600' : 'text-slate-500')}">
+                        ${weekday}
+                        ${isToday ? '<span class="ml-1 px-1.5 py-0.2 rounded bg-sky-600 text-white text-[10px]">今日</span>' : ''}
+                      </div>
+                    </div>
+                    <div class="text-3xl filter drop-shadow-xs" title="${info.desc}">
+                      ${info.icon}
+                    </div>
+                    <div>
+                      <div class="text-sm font-bold text-slate-800">${info.desc}</div>
+                      ${popMax != null ? `<div class="text-xs font-medium ${popMax >= 40 ? 'text-blue-600 font-bold' : 'text-slate-500'}">降水確率: ${Math.round(popMax)}%</div>` : ''}
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-4 sm:gap-6 text-xs text-slate-700">
+                    <div class="text-right">
+                      <div class="font-extrabold text-sm text-slate-900 font-display">
+                        <span class="text-rose-600">${tMax ? tMax.toFixed(0) : '-'}°</span> / <span class="text-sky-600">${tMin ? tMin.toFixed(0) : '-'}°</span>
+                      </div>
+                      <div class="text-[11px] text-slate-500">寒暖差 ${(tMax - tMin).toFixed(0)}℃</div>
+                    </div>
+
+                    <div class="w-24 text-right hidden sm:block">
+                      <div>${pSum != null && pSum > 0 ? `<strong class="text-blue-600">${pSum.toFixed(1)} mm</strong>` : '<span class="text-slate-400">-</span>'}</div>
+                      <div class="text-[11px] text-slate-500">降水量</div>
+                    </div>
+
+                    <div class="w-28 text-right hidden md:block">
+                      <div class="font-semibold">${formatWindSpeed(windMax, isKmh)} ${speedUnit}</div>
+                      <div class="text-[11px] text-slate-500">${getWindDirName(windDir)} ${getWindArrow(windDir)}</div>
+                    </div>
+                  </div>
+                </div>
+
+                ${!compact ? `
+                  <div class="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+                    ${sr && ss ? `<span>🌅 日の出 ${formatTimeShort(sr)} / 日の入 ${formatTimeShort(ss)}</span>` : ''}
+                    ${uvMax != null ? `<span>☀️ UV最大 ${uvMax.toFixed(1)}</span>` : ''}
+                    <span>👔 ${escapeHtml(clothingAdviceShort(tMax, tMin))}</span>
+                    <span>☔ ${escapeHtml(umbrellaAdviceShort(code, popMax))}</span>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }
+
+          html += `
+              </div>
+            </div>
+          `;
+        }
+
+        return html;
+      }
+
+      function drawWeatherChart(daily) {
+        const canvas = document.getElementById('weatherCanvas');
+        if (!canvas || !daily || !daily.time) return;
+
+        const ctx = canvas.getContext('2d');
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+
+        const width = rect.width;
+        const height = rect.height;
+        ctx.clearRect(0, 0, width, height);
+
+        const days = Math.min(daily.time.length, 14);
+        const tMaxArr = daily.temperature_2m_max.slice(0, days);
+        const tMinArr = daily.temperature_2m_min.slice(0, days);
+        const pSumArr = daily.precipitation_sum ? daily.precipitation_sum.slice(0, days) : [];
+
+        const maxTemp = Math.ceil(Math.max(...tMaxArr, 10) + 3);
+        const minTemp = Math.floor(Math.min(...tMinArr, 0) - 2);
+        const tempRange = (maxTemp - minTemp) || 1;
+
+        const padLeft = 35;
+        const padRight = 20;
+        const padTop = 30;
+        const padBottom = 35;
+        const chartW = width - padLeft - padRight;
+        const chartH = height - padTop - padBottom;
+
+        const stepX = chartW / (days - 1);
+
+        const maxPrecip = Math.max(...pSumArr, 10);
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+        for (let i = 0; i < days; i++) {
+          const val = pSumArr[i] || 0;
+          if (val > 0) {
+            const barH = (val / maxPrecip) * (chartH * 0.4);
+            const x = padLeft + i * stepX - 10;
+            const y = padTop + chartH - barH;
+            ctx.fillRect(x, y, 20, barH);
+          }
+        }
+
+        ctx.strokeStyle = 'rgba(203, 213, 225, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        for (let t = Math.ceil(minTemp / 5) * 5; t <= maxTemp; t += 5) {
+          const y = padTop + chartH - ((t - minTemp) / tempRange) * chartH;
+          ctx.beginPath();
+          ctx.moveTo(padLeft, y);
+          ctx.lineTo(width - padRight, y);
+          ctx.stroke();
+
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '10px sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText(`${t}°`, padLeft - 6, y + 3);
+        }
+        ctx.setLineDash([]);
+
+        ctx.strokeStyle = '#f43f5e';
+        ctx.lineWidth = 3;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        for (let i = 0; i < days; i++) {
+          const x = padLeft + i * stepX;
+          const y = padTop + chartH - ((tMaxArr[i] - minTemp) / tempRange) * chartH;
+          if (i === 0) ctx.moveTo(x, y);
+          else {
+            const prevX = padLeft + (i - 1) * stepX;
+            const prevY = padTop + chartH - ((tMaxArr[i - 1] - minTemp) / tempRange) * chartH;
+            const cpX = (prevX + x) / 2;
+            ctx.bezierCurveTo(cpX, prevY, cpX, y, x, y);
+          }
+        }
+        ctx.stroke();
+
+        ctx.strokeStyle = '#0284c7';
+        ctx.lineWidth = 3;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        for (let i = 0; i < days; i++) {
+          const x = padLeft + i * stepX;
+          const y = padTop + chartH - ((tMinArr[i] - minTemp) / tempRange) * chartH;
+          if (i === 0) ctx.moveTo(x, y);
+          else {
+            const prevX = padLeft + (i - 1) * stepX;
+            const prevY = padTop + chartH - ((tMinArr[i - 1] - minTemp) / tempRange) * chartH;
+            const cpX = (prevX + x) / 2;
+            ctx.bezierCurveTo(cpX, prevY, cpX, y, x, y);
+          }
+        }
+        ctx.stroke();
+
+        for (let i = 0; i < days; i++) {
+          const x = padLeft + i * stepX;
+          const yMax = padTop + chartH - ((tMaxArr[i] - minTemp) / tempRange) * chartH;
+          const yMin = padTop + chartH - ((tMinArr[i] - minTemp) / tempRange) * chartH;
+
+          ctx.fillStyle = '#ffffff';
+          ctx.strokeStyle = '#f43f5e';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, yMax, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.strokeStyle = '#0284c7';
+          ctx.beginPath();
+          ctx.arc(x, yMin, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          const dObj = new Date(daily.time[i] + 'T00:00:00');
+          const dLabel = `${dObj.getMonth() + 1}/${dObj.getDate()}`;
+          ctx.fillStyle = '#475569';
+          ctx.font = '10px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(dLabel, x, height - 12);
+        }
+      }
+
+      function getDayDetails(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        const weekdayNames = ['日', '月', '火', '水', '木', '金', '土'];
+        const dayOfWeek = d.getDay();
+        const weekday = weekdayNames[dayOfWeek] + '曜';
+        const dayLabel = `${d.getMonth() + 1}/${d.getDate()}`;
+        const isWeekend = dayOfWeek === 0 ? 'sun' : (dayOfWeek === 6 ? 'sat' : false);
+        return { dayLabel, weekday, isWeekend };
+      }
+
+      function formatDateJp(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+      }
+
+      function formatTimeShort(isoStr) {
+        if (!isoStr) return '';
+        const d = new Date(isoStr);
+        if (Number.isNaN(d.getTime())) return isoStr;
+        return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+      }
+
+      function clothingAdviceShort(tMax, tMin) {
+        const avg = (tMax + tMin) / 2;
+        if (avg >= 26) return '半袖・軽装が快適';
+        if (avg >= 20) return '薄手の長袖や羽織り';
+        if (avg >= 14) return 'ジャケット推奨';
+        if (avg >= 8) return '冬コート着用';
+        return '厳重防寒・手袋推奨';
+      }
+
+      function umbrellaAdviceShort(code, pop) {
+        if ([51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(code) || (pop != null && pop >= 60)) {
+          return '傘必須';
+        }
+        if (pop != null && pop >= 30) return '折りたたみ傘があると安心';
+        return '傘不要';
+      }
+
+      function buildShareSummary(data, place) {
+        try {
+          const lines = [];
+          const placeName = [place.name, place.admin1, place.country_code].filter(Boolean).join(' / ');
+          lines.push(`【SmartWeather Pro】${placeName}の天気予報`);
+
+          const current = data.current || {};
+          const daily = data.daily || {};
+          const hourly = data.hourly || {};
+
+          if (current.temperature_2m != null) {
+            const info = getWeatherInfo(current.weathercode);
+            lines.push(`現在: ${info.desc} ${current.temperature_2m.toFixed(1)}℃ (体感 ${current.apparent_temperature?.toFixed(0) || '-'}℃)`);
+          }
+
+          const alert = analyzePressureAlert(hourly);
+          lines.push(`気圧状況: ${alert.badge} (${alert.text})`);
+
+          if (daily.time && daily.time.length) {
+            lines.push('--- 今後3日間の見通し ---');
+            for (let i = 0; i < Math.min(daily.time.length, 3); i++) {
+              const { dayLabel, weekday } = getDayDetails(daily.time[i]);
+              const info = getWeatherInfo(daily.weathercode[i]);
+              const tMax = daily.temperature_2m_max[i];
+              const tMin = daily.temperature_2m_min[i];
+              const pop = daily.precipitation_probability_max ? Math.round(daily.precipitation_probability_max[i]) : null;
+              const popStr = pop != null ? ` 降水${pop}%` : '';
+              lines.push(`${dayLabel}(${weekday.replace('曜','')}): ${info.desc} ${tMax.toFixed(0)}/${tMin.toFixed(0)}℃${popStr}`);
+            }
+          }
+          lines.push('\nWebで詳細・24h予報を確認:');
+          lines.push(window.location.href);
+
+          lastShareText = lines.join('\n');
+        } catch (e) {
+          lastShareText = '';
+        }
+      }
+
+      async function handleShare() {
+        if (!lastShareText) {
+          showToast('共有する天気情報がありません。');
+          return;
+        }
+
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: document.title,
+              text: lastShareText,
+              url: window.location.href
+            });
+            showToast('共有が完了しました');
+            return;
+          } catch (e) {}
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try {
+            await navigator.clipboard.writeText(lastShareText);
+            showToast('📋 予報サマリーをコピーしました！LINE等に貼付できます');
+            return;
+          } catch (e) {}
+        }
+
+        showToast('手動でテキストをコピーしてください');
+      }
+
+      function showToast(msg) {
+        shareToast.textContent = msg;
+        shareToast.classList.remove('hidden');
+        shareToast.classList.add('opacity-100');
+        setTimeout(() => {
+          shareToast.classList.add('hidden');
+        }, 4000);
+      }
+
+      function renderSkeleton() {
+        return `
+          <div class="glass-panel rounded-3xl p-7 shadow-xl animate-pulse space-y-4">
+            <div class="h-6 bg-slate-200 rounded-lg w-1/3"></div>
+            <div class="h-16 bg-slate-200 rounded-2xl w-2/3"></div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
+              <div class="h-20 bg-slate-200 rounded-xl"></div>
+              <div class="h-20 bg-slate-200 rounded-xl"></div>
+              <div class="h-20 bg-slate-200 rounded-xl"></div>
+              <div class="h-20 bg-slate-200 rounded-xl"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderEmptyState(title) {
+        return `
+          <div class="glass-panel rounded-2xl p-10 text-center text-slate-500">
+            <div class="text-4xl mb-2">🔍</div>
+            <h3 class="text-sm font-bold text-slate-700">${escapeHtml(title)}</h3>
+            <p class="text-xs text-slate-400 mt-1">都市名や国コードを見直して再度お試しください。</p>
+          </div>
+        `;
+      }
+
+      function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      initApp();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>⛳ PGA Master Tour 3D - Antigravity Edition</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --green:#00c850;
+  --gold:#ffd700;
+  --dark:#0a0f1e;
+  --accent:#00c4ff;
+  --red:#ff2244;
+  --white:#e8f4f8;
+  --putt:#aaffdd;
+  --approach:#ffcc44;
+  /* スリム化されたショットUIの高さ */
+  --sui-h:175px;
+}
+html{height:-webkit-fill-available;}
+html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidden;background:#020617;font-family:'Noto Sans JP',sans-serif;color:var(--white);touch-action:none;-webkit-user-select:none;user-select:none;}
+#canvas{display:block;position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;}
+
+/* センター光学照準ライン */
+.center-crosshair{
+  position:absolute;top:0;left:50%;width:1px;height:100%;
+  background:linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.18) 25%, rgba(0,242,254,0.4) 60%, transparent 85%);
+  pointer-events:none;z-index:5;
+}
+
+/* ===== スタート画面 ===== */
+#startScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;overflow-y:auto;background:linear-gradient(160deg,#071210 0%,#0d2a10 40%,#0a1520 100%);display:none;flex-direction:column;align-items:center;padding:16px 12px 30px;}
+.start-title{font-family:'Orbitron',sans-serif;font-size:5vw;font-weight:900;background:linear-gradient(90deg,var(--gold),#aaff44,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:4px;letter-spacing:0.08em;}
+.start-sub{color:#7ba;font-size:0.8rem;text-align:center;margin-bottom:18px;}
+.section-title{font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--gold);border-bottom:1px solid rgba(255,215,0,0.25);padding-bottom:5px;margin-bottom:10px;letter-spacing:0.1em;width:100%;max-width:700px;}
+#charGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:700px;margin-bottom:18px;}
+.char-card{background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 8px;cursor:pointer;transition:all 0.18s;text-align:center;}
+.char-card:hover,.char-card:active{border-color:var(--green);}.char-card.selected{border-color:var(--gold);background:rgba(255,215,0,0.1);}
+.char-avatar{font-size:1.8rem;margin-bottom:3px;}.char-name{font-family:'Orbitron',sans-serif;font-size:0.75rem;font-weight:700;color:var(--white);margin-bottom:4px;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;font-size:0.62rem;margin:2px 0;}.stat-label{color:#8ab;}
+.stat-bar{width:48px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
+.stat-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;}.star-row{color:var(--gold);font-size:0.65rem;}
+#courseGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;max-width:700px;margin-bottom:14px;}
+.course-btn{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px;cursor:pointer;transition:all 0.18s;}
+.course-btn:hover,.course-btn:active{border-color:var(--accent);}.course-btn.selected{border-color:var(--gold);background:rgba(255,215,0,0.08);}
+.course-name{font-size:0.78rem;font-weight:700;color:var(--white);margin-bottom:2px;}.course-info{font-size:0.62rem;color:#6af;}
+#weatherGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;width:100%;max-width:700px;margin-bottom:18px;}
+.weather-btn{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px;cursor:pointer;transition:all 0.18s;text-align:center;}
+.weather-btn:hover,.weather-btn:active{border-color:var(--accent);}.weather-btn.selected{border-color:var(--gold);background:rgba(255,215,0,0.08);}
+.weather-icon{font-size:1.3rem;margin-bottom:2px;}.weather-name{font-size:0.65rem;color:#8ab;}
+/* 飛距離モード選択ボタン */
+.dist-mode-btn:active{transform:scale(0.97);}
+.dist-mode-btn.selected[data-mode="normal"]{
+  border-color:var(--green)!important;
+  background:rgba(0,200,80,0.18)!important;
+  box-shadow:0 0 16px rgba(0,200,80,0.35);
+}
+.dist-mode-btn.selected[data-mode="super"]{
+  border-color:#ff6600!important;
+  background:rgba(255,100,0,0.18)!important;
+  box-shadow:0 0 16px rgba(255,100,0,0.35);
+}
+/* ラウンド数選択ボタン */
+.round-btn{background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.15);border-radius:10px;padding:12px;cursor:pointer;text-align:center;transition:all 0.18s;-webkit-tap-highlight-color:transparent;}
+.round-btn:active{transform:scale(0.96);}
+.round-btn.selected{border-color:var(--gold)!important;background:rgba(255,215,0,0.14)!important;box-shadow:0 0 14px rgba(255,215,0,0.3);}
+.round-btn.selected .rn-num{color:var(--gold)!important;}
+.rn-num{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:#fff;}
+.rn-label{font-size:0.72rem;color:#8ab;margin-top:2px;}
+.rn-sub{font-size:0.6rem;color:#6af;}
+#startBtn{font-family:'Orbitron',sans-serif;background:linear-gradient(135deg,#004418,#009933);color:#fff;border:none;padding:13px 55px;border-radius:50px;font-size:1.05rem;font-weight:700;cursor:pointer;letter-spacing:0.15em;transition:all 0.2s;box-shadow:0 0 25px rgba(0,180,60,0.3);}
+#startBtn:hover{transform:scale(1.06);}
+
+/* ===== インゲームUI ===== */
+#gameUI{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;display:none;z-index:10;}
+
+/* 上部情報バー（スマート・グラスモーフィズム） */
+#topHUD{
+  position:absolute;top:0;left:0;right:0;
+  padding:6px 12px;
+  background:rgba(10,18,36,0.75);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
+  border-bottom:1px solid rgba(255,255,255,0.18);
+  display:flex;justify-content:space-between;align-items:center;gap:6px;
+  height:46px;pointer-events:auto;
+}
+.hud-panel{
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px;padding:3px 10px;min-width:65px;
+}
+.hud-label{font-size:0.5rem;color:#8ab;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;}
+.hud-value{font-family:'Orbitron',sans-serif;font-size:0.85rem;font-weight:700;color:var(--gold);white-space:nowrap;}
+.hud-small{font-size:0.6rem;color:var(--white);white-space:nowrap;}
+
+/* 画面上部中央のターゲットピンバナー（クリックでピン正面に一発リセット） */
+#target-banner-btn{
+  position:absolute;top:52px;left:50%;transform:translateX(-50%);
+  padding:5px 18px;display:flex;align-items:center;gap:8px;
+  border-radius:24px;
+  background:linear-gradient(135deg,rgba(15,23,42,0.92) 0%,rgba(30,41,59,0.92) 100%);
+  border:1.5px solid rgba(255,215,0,0.55);
+  box-shadow:0 0 20px rgba(255,215,0,0.35);
+  cursor:pointer;pointer-events:auto;z-index:20;
+  transition:all 0.18s ease;
+}
+#target-banner-btn:hover{transform:translateX(-50%) scale(1.05);border-color:#ffd700;}
+#target-banner-btn:active{transform:translateX(-50%) scale(0.95);}
+.pin-banner-lbl{font-size:0.65rem;font-weight:900;color:#ffd700;letter-spacing:0.05em;}
+.pin-banner-dist{font-family:'Orbitron',sans-serif;font-size:1.05rem;font-weight:900;color:#fff;}
+.pin-banner-diff{font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,0.4);color:#66ddff;}
+
+/* 天気・風HUD */
+#weatherHUD{
+  position:absolute;top:6px;right:10px;
+  background:rgba(10,18,36,0.65);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:8px;padding:3px 8px;
+  display:flex;align-items:center;gap:6px;font-size:0.65rem;
+}
+
+/* ミニマップ（右上） */
+#miniMap{
+  position:absolute;top:54px;right:10px;
+  width:85px;height:140px;
+  background:rgba(13,38,24,0.85);
+  border:1.5px solid rgba(255,255,255,0.22);
+  border-radius:10px;overflow:hidden;
+  box-shadow:0 4px 15px rgba(0,0,0,0.5);
+  pointer-events:auto;
+}
+#miniMapCanvas{display:block;width:100%;height:100%;}
+
+/* 360°バーチャルジョイスティック＆D-Pad（画面左下） */
+#dpad-controller{
+  position:absolute;bottom:calc(var(--sui-h) + 10px);left:12px;
+  width:125px;height:125px;
+  background:radial-gradient(circle,rgba(15,23,42,0.7) 0%,rgba(15,23,42,0.3) 75%,transparent 100%);
+  border-radius:50%;border:2px solid rgba(0,242,254,0.38);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  box-shadow:0 0 25px rgba(0,0,0,0.6),inset 0 0 15px rgba(0,242,254,0.15);
+  touch-action:none;pointer-events:auto;z-index:20;
+}
+.dpad-compass-ring{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  border-radius:50%;border:1px dashed rgba(255,255,255,0.22);
+  pointer-events:none;
+}
+.dpad-btn{
+  position:absolute;
+  background:rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.3);
+  color:#ffffff;border-radius:50%;
+  font-size:14px;font-weight:900;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  width:34px;height:34px;transition:all 0.12s ease;
+  z-index:2;touch-action:none;
+}
+.dpad-btn:active,.dpad-btn.pressing{
+  background:var(--accent);color:#0f172a;
+  box-shadow:0 0 15px var(--accent);transform:scale(1.1);
+}
+.dpad-btn-up{top:3px;left:45px;}
+.dpad-btn-down{bottom:3px;left:45px;}
+.dpad-btn-left{top:45px;left:3px;}
+.dpad-btn-right{top:45px;right:3px;}
+.joystick-thumb{
+  position:absolute;top:43px;left:43px;width:39px;height:39px;
+  border-radius:50%;
+  background:radial-gradient(circle,#38bdf8 0%,#0284c7 100%);
+  border:2px solid #ffffff;
+  box-shadow:0 0 14px rgba(0,242,254,0.8);
+  cursor:grab;display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:900;color:#ffffff;
+  z-index:10;touch-action:none;
+}
+.joystick-thumb:active{cursor:grabbing;transform:scale(0.95);box-shadow:0 0 22px rgba(0,242,254,1);}
+
+/* ===== ナイスショット結果ポップアップ ===== */
+#niceShotPopup{
+  position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);
+  font-family:'Orbitron',sans-serif;font-size:2rem;font-weight:900;
+  text-align:center;pointer-events:none;display:none;
+  text-shadow:0 0 25px currentColor,0 0 50px currentColor;
+  -webkit-animation:nicePop 0.4s ease-out forwards;animation:nicePop 0.4s ease-out forwards;
+  z-index:50;
+}
+@keyframes nicePop{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(0.3)}
+  60%{transform:translate(-50%,-50%) scale(1.15)}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+
+/* ===== 下部スリム・ショットUI（グラスモーフィズム） ===== */
+#shotUI{
+  position:absolute;bottom:0;left:0;right:0;
+  background:rgba(10,18,36,0.82);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-top:1px solid rgba(255,255,255,0.18);
+  padding:6px 12px calc(8px + env(safe-area-inset-bottom,0px)) 12px;
+  pointer-events:auto;z-index:15;
+  display:flex;flex-direction:column;gap:5px;
+}
+
+/* クラブ＆ライバー */
+#clubBarRow{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.club-select-wrap{
+  display:flex;align-items:center;gap:4px;
+}
+.club-nav-btn{
+  background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);
+  color:#fff;width:32px;height:32px;border-radius:8px;
+  font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.club-nav-btn:active{background:var(--accent);color:#000;}
+#currentClubDisplay{
+  text-align:center;min-width:110px;
+}
+#currentClubName{
+  font-family:'Orbitron',sans-serif;font-size:0.95rem;font-weight:900;
+  color:var(--accent);line-height:1;
+}
+#currentClubDist{
+  font-size:0.65rem;color:#aaffaa;font-weight:700;margin-top:2px;
+}
+
+/* パワーメーター行 */
+#powerRow{
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;
+}
+#powerMeterWrap{
+  position:relative;width:100%;max-width:520px;height:24px;overflow:visible;
+}
+#powerTrack{
+  width:100%;height:24px;border-radius:12px;
+  background:linear-gradient(90deg,
+    #002200 0%,#00aa00 28%,#88ff00 42%,
+    #ffdd00 52%,#ff8800 68%,
+    #ff3300 80%,#ff0000 88%,#ff00ff 95%,#ffffff 100%);
+  border:1.5px solid rgba(255,255,255,0.35);position:relative;overflow:visible;
+}
+#nsZone{position:absolute;top:0;bottom:0;left:78%;width:8%;background:rgba(0,255,100,0.35);border:1.5px solid rgba(0,255,100,0.9);border-radius:4px;pointer-events:none;}
+#snsZone{position:absolute;top:0;bottom:0;left:88%;width:5%;background:rgba(255,220,0,0.45);border:1.5px solid rgba(255,220,0,1);border-radius:4px;pointer-events:none;}
+#unsZone{position:absolute;top:0;bottom:0;left:94%;width:6%;background:rgba(255,0,200,0.55);border:1.5px solid rgba(255,100,255,1);border-radius:4px;pointer-events:none;}
+#impactZone{position:absolute;top:0;bottom:0;background:rgba(0,255,120,0.55);border-radius:5px;left:44%;display:none;}
+#impactZoneUNS{position:absolute;top:0;bottom:0;width:4%;background:rgba(255,100,255,0.85);border:2px solid #ff44ff;border-radius:4px;left:48%;display:none;pointer-events:none;}
+#powerNeedle{position:absolute;top:-5px;bottom:-5px;width:4px;background:#fff;border-radius:2px;box-shadow:0 0 12px #fff;left:0%;pointer-events:none;}
+
+/* パット専用メーター */
+#puttMeterWrap{position:relative;width:100%;max-width:520px;height:28px;display:none;flex-direction:column;align-items:center;gap:1px;}
+#puttTrack{width:100%;height:18px;border-radius:9px;background:linear-gradient(90deg,#001833 0%,#003388 15%,#0066cc 35%,#00aaff 50%,#00ddcc 65%,#aaffdd 80%,#ffffff 100%);border:1.5px solid rgba(0,220,255,0.5);position:relative;overflow:visible;}
+#puttImpactZone{position:absolute;top:0;bottom:0;background:rgba(0,255,160,0.5);border:1.5px solid rgba(0,255,160,0.9);border-radius:5px;display:none;pointer-events:none;}
+#puttNeedle{position:absolute;top:-5px;bottom:-5px;width:4px;background:#fff;border-radius:2px;box-shadow:0 0 10px rgba(0,255,200,1);left:0%;pointer-events:none;}
+#puttPowerLabel{font-size:0.75rem;color:var(--putt);font-family:'Orbitron',sans-serif;text-align:center;font-weight:900;line-height:1;}
+
+/* コントロール行（SHOTボタン ＆ クイックアクション） */
+#controlRow{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+#shootBtn{
+  flex:1;font-family:'Orbitron',sans-serif;
+  background:linear-gradient(135deg,#00f2fe 0%,#4facfe 100%);
+  color:#0f172a;border:none;border-radius:10px;
+  padding:10px 18px;font-size:0.95rem;font-weight:900;
+  cursor:pointer;letter-spacing:0.08em;transition:all 0.1s;
+  box-shadow:0 0 15px rgba(0,242,254,0.5);
+}
+#shootBtn:active{transform:scale(0.95);}
+#shootBtn.putt-mode{background:linear-gradient(135deg,#00aaff,#0066cc)!important;color:#fff;}
+.quick-action-btn{
+  background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
+  color:#fff;padding:8px 12px;border-radius:8px;font-size:0.62rem;font-weight:700;
+  cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:3px;
+}
+.quick-action-btn:active{background:rgba(255,255,255,0.25);}
+
+#scoreCard{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;}
+#scoreTable{background:rgba(18,26,42,0.97);border:2px solid rgba(255,215,0,0.3);border-radius:14px;padding:18px;max-width:95vw;overflow-x:auto;max-height:80vh;overflow-y:auto;}
+#scoreTable h2{font-family:'Orbitron',sans-serif;color:var(--gold);text-align:center;margin-bottom:10px;font-size:1.1rem;}
+#scoreTable table{border-collapse:collapse;font-size:0.7rem;width:100%;}
+#scoreTable th{background:rgba(255,215,0,0.14);color:var(--gold);padding:5px 7px;text-align:center;border:1px solid rgba(255,215,0,0.18);}
+#scoreTable td{padding:4px 7px;text-align:center;border:1px solid rgba(255,255,255,0.05);}
+.sc-eagle{color:#ff88ff;font-weight:700;}.sc-birdie{color:var(--green);font-weight:700;}.sc-bogey{color:#ff9966;}.sc-double{color:var(--red);font-weight:700;}
+#closeScoreBtn{margin-top:14px;font-family:'Orbitron',sans-serif;background:rgba(255,255,255,0.09);color:var(--white);border:1px solid rgba(255,255,255,0.2);padding:8px 22px;border-radius:6px;cursor:pointer;font-size:0.78rem;}
+#loading{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--dark);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.loading-spinner{width:46px;height:46px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--green);border-radius:50%;-webkit-animation:spin 0.75s linear infinite;animation:spin 0.75s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* トーナメント順位表 & 賞金式 */
+#tournamentScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:500;display:none;background:linear-gradient(160deg,#0a0a1a 0%,#0c1a08 40%,#001a0a 100%);flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 14px 30px;overflow-y:auto;}
+.tournament-title{font-family:'Orbitron',sans-serif;font-size:4vw;font-weight:900;background:linear-gradient(90deg,var(--gold),#aaff44,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:4px;letter-spacing:0.1em;}
+.tournament-sub{color:#8ab;font-size:0.78rem;text-align:center;margin-bottom:16px;}
+#leaderboardTable{width:100%;max-width:680px;border-collapse:collapse;font-size:0.75rem;margin-bottom:20px;}
+#leaderboardTable th{background:rgba(255,215,0,0.15);color:var(--gold);padding:7px 10px;text-align:center;border-bottom:2px solid rgba(255,215,0,0.3);font-family:'Orbitron',sans-serif;font-size:0.65rem;letter-spacing:0.05em;}
+#leaderboardTable td{padding:6px 10px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);}
+.lb-rank{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1rem;}
+.lb-player{font-weight:700;font-size:0.82rem;}
+.lb-score{font-family:'Orbitron',sans-serif;font-weight:700;}
+.lb-you{background:rgba(0,255,136,0.1)!important;border-left:3px solid var(--green)!important;}
+.lb-prize{font-size:0.68rem;color:#aaffaa;}
+.rank-1{color:#ffd700;font-size:1.2rem;}.rank-2{color:#cccccc;}.rank-3{color:#cc8844;}
+#playAgainBtn{font-family:'Orbitron',sans-serif;background:linear-gradient(135deg,#004418,#009933);color:#fff;border:none;padding:12px 48px;border-radius:50px;font-size:0.95rem;font-weight:700;cursor:pointer;letter-spacing:0.12em;transition:all 0.2s;box-shadow:0 0 20px rgba(0,180,60,0.3);margin-top:8px;}
+#playAgainBtn:hover{transform:scale(1.05);}
+#prizeScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:600;display:none;background:radial-gradient(ellipse at center,#1a1000 0%,#000 70%);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;}
+.prize-trophy{font-size:5rem;margin-bottom:12px;-webkit-animation:trophySpin 3s ease-in-out infinite;animation:trophySpin 3s ease-in-out infinite;}
+@keyframes trophySpin{0%,100%{transform:scale(1) rotate(-3deg);}50%{transform:scale(1.08) rotate(3deg);}}
+.prize-winner{font-family:'Orbitron',sans-serif;font-size:4vw;font-weight:900;color:var(--gold);margin-bottom:6px;letter-spacing:0.08em;text-shadow:0 0 20px rgba(255,215,0,0.6);}
+.prize-congrats{font-size:5vw;font-weight:900;font-family:'Orbitron',sans-serif;background:linear-gradient(90deg,#ff8800,#ffdd00,#00ff88,#00ccff,#ff00cc,#ff8800);background-size:300% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;-webkit-animation:prizeRainbow 2s linear infinite;animation:prizeRainbow 2s linear infinite;margin-bottom:20px;}
+@keyframes prizeRainbow{0%{background-position:0%}100%{background-position:300%}}
+.prize-amount{font-family:'Orbitron',sans-serif;font-size:8vw;font-weight:900;color:#ffd700;text-shadow:0 0 40px rgba(255,215,0,0.8),0 0 80px rgba(255,150,0,0.4);margin-bottom:8px;letter-spacing:0.05em;}
+.prize-label{font-size:0.85rem;color:#cda;margin-bottom:28px;letter-spacing:0.1em;}
+#confettiCanvas{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:601;}
+.prize-finBtn{font-family:'Orbitron',sans-serif;background:linear-gradient(135deg,#440000,#cc0000);color:#fff;border:none;padding:14px 60px;border-radius:50px;font-size:1.1rem;font-weight:700;cursor:pointer;letter-spacing:0.2em;transition:all 0.2s;box-shadow:0 0 30px rgba(255,0,0,0.3);}
+.prize-finBtn:hover{transform:scale(1.06);}
+#finScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:700;display:none;background:#000;flex-direction:column;align-items:center;justify-content:center;}
+.fin-text{font-family:'Orbitron',sans-serif;font-size:15vw;font-weight:900;color:#fff;letter-spacing:0.3em;-webkit-animation:finFade 2s ease-out forwards;animation:finFade 2s ease-out forwards;}
+.fin-sub{font-size:0.9rem;color:#555;margin-top:16px;letter-spacing:0.2em;-webkit-animation:finFade 3s ease-out forwards;animation:finFade 3s ease-out forwards;}
+@keyframes finFade{0%{opacity:0;transform:scale(0.5);}60%{opacity:1;transform:scale(1.05);}100%{opacity:1;transform:scale(1);}}
+</style>
+</head>
+<body>
+<div id="loading">
+  <div class="loading-spinner"></div>
+  <div style="font-family:'Orbitron',sans-serif;font-size:1rem;color:var(--gold);">PGA MASTER TOUR 3D</div>
+  <div style="font-size:0.75rem;color:#8ab;">コースデータを読み込み中…</div>
+</div>
+
+<canvas id="canvas"></canvas>
+<div class="center-crosshair"></div>
+
+<!-- スタート画面 -->
+<div id="startScreen">
+  <div class="start-title">⛳ PGA MASTER TOUR 3D</div>
+  <div class="start-sub">🌟 360° SMART CAMERA & PHOTOREALISTIC COURSES — Antigravity Edition</div>
+  <div style="width:100%;max-width:700px"><div class="section-title">🏌️ キャラクター選択</div><div id="charGrid"></div></div>
+  <div style="width:100%;max-width:700px"><div class="section-title">🌍 コース選択</div><div id="courseGrid"></div></div>
+  <div style="width:100%;max-width:700px"><div class="section-title">🌤️ 天気</div><div id="weatherGrid"></div></div>
+  <div style="width:100%;max-width:700px"><div class="section-title">🏌️ 飛距離モード</div>
+    <div id="distModeGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:18px;">
+      <div class="dist-mode-btn selected" data-mode="normal"
+        style="background:rgba(0,180,80,0.08);border:2.5px solid var(--green);border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all 0.18s;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--green)">🏌️ 通常モード</div>
+        <div style="font-size:0.72rem;color:#8ab;margin-top:4px">DR 最大 <b style="color:#fff">350yd</b></div>
+        <div style="font-size:0.62rem;color:#6af;margin-top:2px">リアルなPGAツアー飛距離</div>
+      </div>
+      <div class="dist-mode-btn" data-mode="super"
+        style="background:rgba(255,100,0,0.06);border:2.5px solid rgba(255,100,0,0.3);border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all 0.18s;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#ff8844">⚡ 超人モード</div>
+        <div style="font-size:0.72rem;color:#8ab;margin-top:4px">DR 最大 <b style="color:#ff8844">500yd</b></div>
+        <div style="font-size:0.62rem;color:#fa8;margin-top:2px">超ロングドライブで豪快プレイ</div>
+      </div>
+    </div>
+  </div>
+  <div style="width:100%;max-width:700px"><div class="section-title">⛳ ラウンド数</div>
+    <div id="roundGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px;">
+      <div class="round-btn selected" data-holes="3">
+        <div class="rn-num">3</div><div class="rn-label">ホール</div><div class="rn-sub">ショート</div>
+      </div>
+      <div class="round-btn" data-holes="9">
+        <div class="rn-num">9</div><div class="rn-label">ホール</div><div class="rn-sub">ハーフ</div>
+      </div>
+      <div class="round-btn" data-holes="18">
+        <div class="rn-num">18</div><div class="rn-label">ホール</div><div class="rn-sub">フル</div>
+      </div>
+    </div>
+  </div>
+  <button id="startBtn">⛳ ゲームスタート</button>
+</div>
+
+<!-- インゲームUI -->
+<div id="gameUI">
+  <!-- 上部情報バー -->
+  <div id="topHUD">
+    <div class="hud-panel">
+      <div class="hud-label">HOLE / PAR</div>
+      <div class="hud-value" id="hudHolePar">H1 Par4</div>
+    </div>
+    <div class="hud-panel" style="text-align:center">
+      <div class="hud-label">SCORE</div>
+      <div class="hud-value" id="hudScore">E</div>
+      <div class="hud-small" id="hudStrokes">Shot 1</div>
+    </div>
+    <div class="hud-panel" style="text-align:right">
+      <div class="hud-label">PLAYER</div>
+      <div class="hud-value" id="hudPlayer" style="font-size:0.75rem;">-</div>
+    </div>
+  </div>
+
+  <!-- 画面上部中央のターゲットピンバナー（ワンタップでピン真正面にスナップ） -->
+  <div id="target-banner-btn" title="クリックでピンの真正面に瞬時アライン">
+    <div class="pin-banner-lbl">⛳ PIN 🎯</div>
+    <div id="target-dist-val" class="pin-banner-dist">345 YDS</div>
+    <div id="target-height-val" class="pin-banner-diff">-1.5m</div>
+  </div>
+
+  <!-- 天気・風HUD -->
+  <div id="weatherHUD">
+    <span id="weatherIcon">☀️</span>
+    <span id="weatherLabel" style="color:var(--gold);font-weight:700;">晴れ</span>
+    <span>🌬️<b id="windInfo" style="color:var(--accent);">2.4m/s</b><span id="windArrow"> ↗</span></span>
+  </div>
+
+  <!-- ミニマップ -->
+  <div id="miniMap">
+    <canvas id="miniMapCanvas" width="90" height="150"></canvas>
+  </div>
+
+  <!-- 360°バーチャルジョイスティック＆D-Pad（画面左下） -->
+  <div id="dpad-controller" title="360度エイム＆カメラジョイスティック">
+    <div class="dpad-compass-ring"></div>
+    <button id="dpad-btn-up" class="dpad-btn dpad-btn-up" title="カメラ仰角（高）">▲</button>
+    <button id="dpad-btn-left" class="dpad-btn dpad-btn-left" title="左へエイム（長押し連続旋回）">◀</button>
+    <button id="dpad-btn-right" class="dpad-btn dpad-btn-right" title="右へエイム（長押し連続旋回）">▶</button>
+    <button id="dpad-btn-down" class="dpad-btn dpad-btn-down" title="カメラ仰角（低）">▼</button>
+    <div id="joystick-thumb" class="joystick-thumb" title="ドラッグで360度全方位エイミング">360°</div>
+  </div>
+
+  <div id="niceShotPopup">✨ NICE SHOT! ✨</div>
+
+  <!-- 下部スリム・ショットUI -->
+  <div id="shotUI">
+    <!-- クラブ＆ライバー -->
+    <div id="clubBarRow">
+      <div class="club-select-wrap">
+        <button id="clubPrevBtn" class="club-nav-btn" title="前のクラブ">◀</button>
+        <div id="currentClubDisplay">
+          <div id="currentClubName">1W Driver</div>
+          <div id="currentClubDist">Max: 350 YDS</div>
+        </div>
+        <button id="clubNextBtn" class="club-nav-btn" title="次のクラブ">▶</button>
+      </div>
+
+      <!-- ライ表示 -->
+      <div style="font-size:0.7rem;background:rgba(0,0,0,0.4);padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);">
+        🌿 <span id="lieText" style="color:#4ade80;font-weight:700;">Fairway</span> <b id="liePct" style="color:#38bdf8;font-family:monospace;">100%</b>
+      </div>
+
+      <!-- クイックピンエイムボタン -->
+      <button id="quickPinAimBtn" class="quick-action-btn" style="background:rgba(255,215,0,0.18);border-color:var(--gold);" title="ピン正面に照準を戻す">
+        🎯 <span>Pin Aim</span>
+      </button>
+    </div>
+
+    <!-- パワーメーター -->
+    <div id="powerRow">
+      <div id="powerMeterWrap">
+        <div id="powerTrack">
+          <div id="nsZone"></div>
+          <div id="snsZone"></div>
+          <div id="unsZone"></div>
+          <div id="impactZone"></div>
+          <div id="impactZoneUNS"></div>
+          <div id="powerNeedle"></div>
+        </div>
+      </div>
+
+      <!-- パットメーター -->
+      <div id="puttMeterWrap">
+        <div id="puttTrack">
+          <div id="puttImpactZone"></div>
+          <div id="puttNeedle"></div>
+        </div>
+        <div id="puttPowerLabel">目標: 10ft (3yd)</div>
+      </div>
+    </div>
+
+    <!-- コントロールボタン -->
+    <div id="controlRow">
+      <button class="quick-action-btn" id="camBtn" title="カメラ視点切り替え">🎥 <span>CAM</span></button>
+      <button id="shootBtn">🏌️ SHOT (Space)</button>
+      <button class="quick-action-btn" id="nextHoleBtn" style="display:none;background:linear-gradient(135deg,#00c850,#009933);">➡️ <span>次ホール</span></button>
+      <button class="quick-action-btn" id="scoreBtn" title="スコアカード表示">📋 <span>SC</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- スコアカードモーダル -->
+<div id="scoreCard">
+  <div id="scoreTable"><h2>⛳ スコアカード</h2><table id="scoreTableInner"></table></div>
+  <button id="closeScoreBtn">閉じる</button>
+</div>
+
+<!-- 紙吹雪キャンバス -->
+<canvas id="confettiCanvas"></canvas>
+
+<!-- トーナメント順位表 -->
+<div id="tournamentScreen">
+  <div class="tournament-title">🏆 TOURNAMENT RESULTS</div>
+  <div class="tournament-sub" id="tournamentSubtitle">プロゴルフトーナメント 最終順位</div>
+  <table id="leaderboardTable">
+    <thead><tr><th>順位</th><th>選手名</th><th>スコア</th><th>打数</th><th>賞金</th></tr></thead>
+    <tbody id="leaderboardBody"></tbody>
+  </table>
+  <button id="playAgainBtn">🔄 もう一度プレイ</button>
+</div>
+
+<!-- 賞金授与画面（優勝時） -->
+<div id="prizeScreen">
+  <div class="prize-trophy">🏆</div>
+  <div class="prize-congrats">TOURNAMENT CHAMPION!</div>
+  <div class="prize-winner" id="prizeWinnerName">-</div>
+  <div style="font-size:0.75rem;color:#8ab;margin-bottom:24px;letter-spacing:0.1em;">優勝賞金 授与式</div>
+  <div class="prize-amount">$400,000,000</div>
+  <div class="prize-label">FOUR HUNDRED MILLION DOLLARS</div>
+  <button class="prize-finBtn" id="prizeFinBtn">🎬 FIN</button>
+</div>
+
+<!-- FIN画面 -->
+<div id="finScreen">
+  <div class="fin-text">FIN</div>
+  <div class="fin-sub">PGA MASTER TOUR 3D — ありがとうございました</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+
+// ===== 天気 =====
+class Weather{
+  constructor(type="sunny"){
+    this.type=type;this.windDirection=Math.random()*360;
+    this.windStrength=0;this.rainIntensity=0;this.temperature=20;
+    switch(type){
+      case"sunny":this.windStrength=Math.random()*4+0.5;this.temperature=22;break;
+      case"rain":this.windStrength=Math.random()*6+3;this.rainIntensity=15;this.temperature=13;break;
+      case"strongWind":this.windStrength=Math.random()*8+6;this.temperature=17;break;
+      case"fog":this.windStrength=Math.random()*2;this.temperature=9;break;
+    }
+    this.windVec=new THREE.Vector3(Math.sin(this.windDirection*Math.PI/180),0,Math.cos(this.windDirection*Math.PI/180)).multiplyScalar(this.windStrength);
+  }
+  update(dt){
+    const r=this.windDirection*Math.PI/180;
+    this.windVec.set(Math.sin(r)*this.windStrength,0,Math.cos(r)*this.windStrength);
+  }
+  get distMult(){return 1+((this.temperature-15)*0.002);}
+  get label(){return{sunny:"☀️ 晴れ",rain:"🌧️ 雨",strongWind:"💨 強風",fog:"🌫️ 霧"}[this.type]||"☀️";}
+}
+
+// ===== キャラクター =====
+class Character{
+  constructor(d){
+    Object.assign(this,d);
+    const m={"最高に安定":0.7,"安定":2.2,"不安定":5.0};
+    this.ironVar=m[d.ironStability]||2.2;this.apprVar=m[d.approachStability]||2.2;this.puttVar=m[d.putterStability]||1.2;
+    this.driverMult=d.driverSpeed/80;
+  }
+  varianceFor(t){if(t==="putter")return this.puttVar;if(t==="approach")return this.apprVar;return this.ironVar;}
+}
+const CHARACTERS=[
+  {name:"Watu",   realName:"ゴルフの神",    emoji:"🌟",nationality:"JPN",
+   driverSpeed:75,ironStability:"不安定",approachStability:"不安定",putterStability:"安定",
+   skinColor:0xffcc88,shirtColor:0x1144cc,pantsColor:0x222244,hatColor:0x111133,
+   desc:"謎の天才ゴルファー"},
+  {name:"Matuya", realName:"松山英樹",       emoji:"🇯🇵",nationality:"JPN",
+   driverSpeed:80,ironStability:"最高に安定",approachStability:"最高に安定",putterStability:"安定",
+   skinColor:0xffbb77,shirtColor:0xffffff,pantsColor:0x111111,hatColor:0x222222,
+   desc:"マスターズ覇者・日本の誇り"},
+  {name:"TIiger", realName:"タイガー・ウッズ",emoji:"🐯",nationality:"USA",
+   driverSpeed:85,ironStability:"最高に安定",approachStability:"最高に安定",putterStability:"最高に安定",
+   skinColor:0xcc8855,shirtColor:0xcc0000,pantsColor:0x111111,hatColor:0x222222,
+   desc:"最強レジェンド 14メジャー制覇"},
+  {name:"Junbo",  realName:"ジャンボ尾崎",   emoji:"👑",nationality:"JPN",
+   driverSpeed:82,ironStability:"安定",approachStability:"安定",putterStability:"安定",
+   skinColor:0xffaa66,shirtColor:0x0055aa,pantsColor:0x334455,hatColor:0x112233,
+   desc:"国内94勝・プロゴルフの帝王"},
+  {name:"McIlro", realName:"ローリー・マキロイ",emoji:"🍀",nationality:"IRL",
+   driverSpeed:90,ironStability:"安定",approachStability:"安定",putterStability:"不安定",
+   skinColor:0xffddbb,shirtColor:0x003399,pantsColor:0xffffff,hatColor:0x001166,
+   desc:"世界最長飛距離 4メジャー覇者"},
+  {name:"DeCham", realName:"ブライアン・デシャンボー",emoji:"💪",nationality:"USA",
+   driverSpeed:95,ironStability:"安定",approachStability:"不安定",putterStability:"安定",
+   skinColor:0xffcc99,shirtColor:0xff6600,pantsColor:0x222222,hatColor:0x333333,
+   desc:"科学の申し子 超飛距離ゴルファー"},
+];
+
+// ===== クラブ定義 =====
+const CLUBS_NORMAL=[
+  {id:"DR",  name:"1W Driver", maxDist:350,loft:10.5,type:"driver",  runFactor:0.18,peakRatio:0.13},
+  {id:"3W",  name:"3W Wood",   maxDist:250,loft:15,  type:"wood",    runFactor:0.13,peakRatio:0.15},
+  {id:"5W",  name:"5W Wood",   maxDist:230,loft:18,  type:"wood",    runFactor:0.11,peakRatio:0.16},
+  {id:"5I",  name:"5 Iron",    maxDist:180,loft:27,  type:"iron",    runFactor:0.07,peakRatio:0.19},
+  {id:"7I",  name:"7 Iron",    maxDist:150,loft:34,  type:"iron",    runFactor:0.05,peakRatio:0.21},
+  {id:"9I",  name:"9 Iron",    maxDist:125,loft:42,  type:"approach",runFactor:0.03,peakRatio:0.23},
+  {id:"PW",  name:"PW Wedge",  maxDist:110,loft:46,  type:"approach",runFactor:0.02,peakRatio:0.24},
+  {id:"SW",  name:"Sand Wedge",maxDist:75, loft:58,  type:"approach",runFactor:0.008,peakRatio:0.28},
+  {id:"PT",  name:"Putter",    maxDist:30, loft:4,   type:"putter",  runFactor:1.0,  peakRatio:0.01},
+];
+const CLUBS_SUPER=[
+  {id:"DR",  name:"1W Driver", maxDist:500,loft:10.5,type:"driver",  runFactor:0.18,peakRatio:0.13},
+  {id:"3W",  name:"3W Wood",   maxDist:360,loft:15,  type:"wood",    runFactor:0.13,peakRatio:0.15},
+  {id:"5W",  name:"5W Wood",   maxDist:330,loft:18,  type:"wood",    runFactor:0.11,peakRatio:0.16},
+  {id:"5I",  name:"5 Iron",    maxDist:260,loft:27,  type:"iron",    runFactor:0.07,peakRatio:0.19},
+  {id:"7I",  name:"7 Iron",    maxDist:220,loft:34,  type:"iron",    runFactor:0.05,peakRatio:0.21},
+  {id:"9I",  name:"9 Iron",    maxDist:180,loft:42,  type:"approach",runFactor:0.03,peakRatio:0.23},
+  {id:"PW",  name:"PW Wedge",  maxDist:160,loft:46,  type:"approach",runFactor:0.02,peakRatio:0.24},
+  {id:"SW",  name:"Sand Wedge",maxDist:110,loft:58,  type:"approach",runFactor:0.008,peakRatio:0.28},
+  {id:"PT",  name:"Putter",    maxDist:30, loft:4,   type:"putter",  runFactor:1.0,  peakRatio:0.01},
+];
+let CLUBS=CLUBS_NORMAL;
+
+// ===== コースデータ =====
+const COURSES=[
+  {id:"augusta",name:"Augusta National",flag:"🇺🇸",desc:"マスターズ 7,435yd Par72",color:0x1a6b1a,
+   terrainProfile:"hilly", greenSpeed:13.5, roughType:"light",
+   holes:[
+    {n:1, name:"Tea Olive",    par:4,yards:445, dogleg:"right", feat:"rightDogleg|bunker2", elev:"uphill", desc:"右ドッグレッグ。フェアウェイ右バンカー2基。"},
+    {n:2, name:"Pink Dogwood", par:5,yards:575, dogleg:"left",  feat:"leftDogleg|bunker2|water_right", elev:"uphill", desc:"左ドッグレッグのロング。"},
+    {n:3, name:"Flowering Peach",par:4,yards:350,dogleg:"",    feat:"bunker2", elev:"downhill", desc:"最短ミドル。"},
+    {n:12,name:"Golden Bell",   par:3,yards:155, dogleg:"",     feat:"water_front|bunker2",elev:"flat", desc:"Rae's Creekが前方を横切る世界最高のショート。"},
+    {n:13,name:"Azalea",       par:5,yards:545, dogleg:"left",  feat:"leftDogleg|water_left|bunker2",elev:"downhill", desc:"Amen Corner第3番。"},
+    {n:18,name:"Holly",        par:4,yards:465, dogleg:"left",  feat:"leftDogleg|bunker2",elev:"uphill", desc:"最終ホール。左ドッグレッグ登り。"}
+   ]},
+  {id:"pebble",name:"Pebble Beach",flag:"🇺🇸",desc:"USオープン 7,041yd Par72",color:0x1a6b22,
+   terrainProfile:"coastal", greenSpeed:12.0, roughType:"heavy",
+   holes:[
+    {n:1, name:"",par:4,yards:378, dogleg:"right",feat:"rightDogleg|bunker2",elev:"flat", desc:"右ドッグレッグ。"},
+    {n:7, name:"",par:3,yards:107, dogleg:"",     feat:"ocean_front|bunker4",elev:"downhill", desc:"最短・最難関ショート。"},
+    {n:18,name:"",par:5,yards:541, dogleg:"left", feat:"leftDogleg|ocean_left|bunker3",elev:"flat", desc:"海沿いの最終ロング。"}
+   ]},
+  {id:"standrews",name:"St Andrews Old Course",flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿",desc:"ゴルフ発祥の地 7,310yd Par72",color:0x5a9a3a,
+   terrainProfile:"links", greenSpeed:11.0, roughType:"fescue",
+   holes:[
+    {n:1, name:"Burn",         par:4,yards:376, dogleg:"",     feat:"water_front|ob_left",elev:"flat", desc:"Swilcan Burnが横切る。"},
+    {n:17,name:"Road Hole",     par:4,yards:495, dogleg:"right",feat:"rightDogleg|bunker1|ob_right",elev:"flat", desc:"世界最難関のパー4。"},
+    {n:18,name:"Tom Morris",    par:4,yards:354, dogleg:"",    feat:"bunker2|water_front",elev:"flat", desc:"Swilcan Bridgeを渡りフィニッシュ。"}
+   ]},
+  {id:"tpcsawgrass",name:"TPC Sawgrass",flag:"🇺🇸",desc:"Players Championship 7,245yd Par72",color:0x1e8a1e,
+   terrainProfile:"flat_water", greenSpeed:12.5, roughType:"bermuda",
+   holes:[
+    {n:1, name:"",par:4,yards:423, dogleg:"right",feat:"rightDogleg|bunker2|water_right",elev:"flat", desc:"水が絡む開幕ホール。"},
+    {n:17,name:"Island Green",par:3,yards:137, dogleg:"",feat:"island_green",elev:"flat", desc:"グリーン全体が水に囲まれた孤島。"},
+    {n:18,name:"",par:4,yards:462, dogleg:"right",feat:"rightDogleg|water_left|bunker3",elev:"flat", desc:"最終ホール。左手に水。"}
+   ]}
+];
+
+// ===== 地形生成 =====
+class TerrainGen{
+  constructor(W,H,seed){
+    this.W=W;this.H=H;this.seed=seed||Math.random()*999;
+    this.amplitude=1.0;
+  }
+  _smooth(x,z,freq,amp){
+    const s=this.seed;
+    const ix=Math.floor(x*freq), iz=Math.floor(z*freq);
+    const fx=(x*freq-ix), fz=(z*freq-iz);
+    const ux=fx*fx*(3-2*fx), uz=fz*fz*(3-2*fz);
+    const h00=Math.sin(ix*127.1+iz*311.7+s)*43758.5453%1;
+    const h10=Math.sin((ix+1)*127.1+iz*311.7+s)*43758.5453%1;
+    const h01=Math.sin(ix*127.1+(iz+1)*311.7+s)*43758.5453%1;
+    const h11=Math.sin((ix+1)*127.1+(iz+1)*311.7+s)*43758.5453%1;
+    return amp*(h00*(1-ux)*(1-uz)+h10*ux*(1-uz)+h01*(1-ux)*uz+h11*ux*uz-0.5)*2;
+  }
+  getHeight(xi,zi){
+    const x=xi-this.W/2, z=zi-this.H/2;
+    const fwMask=Math.max(0,1-Math.abs(x)/28);
+    const amp=this.amplitude||1.0;
+    let h=0;
+    h+=this._smooth(x,z,0.012,3.2*amp);
+    h+=this._smooth(x,z,0.028,1.6*amp);
+    h*=(1-fwMask*0.82);
+    const teeFade=Math.min(1,Math.abs(z)/12);
+    const greenFade=Math.min(1,Math.abs(z-(this.H-5))/14);
+    return h*teeFade*greenFade;
+  }
+}
+
+// ===== ボール物理 =====
+class Ball{
+  constructor(){
+    this.position=new THREE.Vector3(0,0,0);
+    this.phase="idle";
+    this.inFlight=false;
+    this.mesh=null;
+    this.carryStartPos=new THREE.Vector3();
+    this.carryEndPos=new THREE.Vector3();
+    this.carryDist=0;
+    this.carryTime=0;
+    this.carryElapsed=0;
+    this.peakHeight=0;
+    this.startPos=new THREE.Vector3();
+    this.totalDistYd=0;
+    this.runStartPos=new THREE.Vector3();
+    this.runEndPos=new THREE.Vector3();
+    this.runDist=0;
+    this.runTime=0;
+    this.runElapsed=0;
+    this.puttVel=new THREE.Vector3();
+    this.puttDecay=0;
+    this.puttElapsed=0;
+    this._slopeVec=new THREE.Vector2(0,0);
+    this._aimSx=0; this._aimSz=0;
+    this.distanceTraveled=0;
+    this.onLanded=null;
+    this.onStopped=null;
+    this.landedSurface="fairway";
+  }
+
+  shoot(fromPos, carryDist, runDist, aimAngleRad, sideOffsetYd, peakRatioOverride, getGY){
+    this.phase="carry";this.inFlight=true;
+    this.startPos.copy(fromPos);this.position.copy(fromPos);
+    this.carryElapsed=0;this.distanceTraveled=0;
+    const sx=Math.sin(aimAngleRad), sz=-Math.cos(aimAngleRad);
+    this._aimSx=sx; this._aimSz=sz;
+    const cx=fromPos.x+sx*carryDist+sideOffsetYd;
+    const cz=fromPos.z+sz*carryDist;
+    const cgy=getGY(cx,cz);
+    this.carryStartPos.copy(fromPos);
+    this.carryEndPos.set(cx,cgy,cz);
+    this.carryDist=carryDist;
+    this.carryTime=Math.sqrt(carryDist)*0.19;
+    this.peakHeight=carryDist*(peakRatioOverride||0.18);
+    const rx=cx+sx*runDist+sideOffsetYd*0.3;
+    const rz=cz+sz*runDist;
+    const rgy=getGY(rx,rz);
+    this.runStartPos.copy(this.carryEndPos);
+    this.runEndPos.set(rx,rgy,rz);
+    this.runDist=runDist;
+    this.runTime=Math.max(0.4,Math.min(2.0,Math.sqrt(runDist)*0.22));
+    this.runElapsed=0;
+    this.totalDistYd=(carryDist+runDist);
+  }
+
+  putt(fromPos,speedYdPerSec,aimAngleRad,slopeVec){
+    this.phase="putt_roll";this.inFlight=true;
+    this.startPos.copy(fromPos);this.position.copy(fromPos);
+    this.puttVel.set(Math.sin(aimAngleRad)*speedYdPerSec,0,-Math.cos(aimAngleRad)*speedYdPerSec);
+    this._slopeVec=slopeVec||new THREE.Vector2(0,0);
+    this.puttDecay=1.8;
+    this.puttElapsed=0;this.distanceTraveled=0;
+    this.landedSurface="green";
+    this.totalDistYd=speedYdPerSec*speedYdPerSec/(2*this.puttDecay);
+  }
+
+  update(dt,getGY,getSurf){
+    if(!this.inFlight)return;
+    const SUB=4;const subDt=dt/SUB;
+    for(let i=0;i<SUB;i++){
+      this._step(subDt,getGY,getSurf);
+      if(!this.inFlight)break;
+    }
+    if(this.mesh)this.mesh.position.copy(this.position);
+  }
+
+  _step(dt,getGY,getSurf){
+    if(this.phase==="carry"){
+      this.carryElapsed+=dt;
+      const t=Math.min(this.carryElapsed/this.carryTime,1);
+      this.position.x=this.carryStartPos.x+(this.carryEndPos.x-this.carryStartPos.x)*t;
+      this.position.z=this.carryStartPos.z+(this.carryEndPos.z-this.carryStartPos.z)*t;
+      const groundT=this.carryStartPos.y+(this.carryEndPos.y-this.carryStartPos.y)*t;
+      const arc=Math.sin(Math.PI*t)*this.peakHeight;
+      this.position.y=groundT+arc;
+      if(t>=1){
+        this.position.copy(this.carryEndPos);
+        this.position.y=getGY(this.position.x,this.position.z)+0.03;
+        this.landedSurface=getSurf(this.position.x,this.position.z);
+        if(this.onLanded)this.onLanded(this.landedSurface,this.position.clone());
+        this.phase="run";this.runElapsed=0;
+        this.runStartPos.copy(this.position);
+        if(this.landedSurface==="rough"){this.runDist*=0.4;this.runTime*=0.7;}
+        else if(this.landedSurface==="bunker"){this.runDist*=0.05;this.runTime*=0.3;}
+        else if(this.landedSurface==="green"){this.runDist*=0.45;this.runTime*=0.8;}
+        this.runEndPos.set(
+          this.runStartPos.x+this._aimSx*this.runDist,
+          getGY(this.runStartPos.x+this._aimSx*this.runDist, this.runStartPos.z+this._aimSz*this.runDist),
+          this.runStartPos.z+this._aimSz*this.runDist
+        );
+      }
+    } else if(this.phase==="run"){
+      this.runElapsed+=dt;
+      const tRun=Math.min(this.runElapsed/this.runTime,1);
+      const ease=1-Math.pow(1-tRun,3);
+      this.position.x=this.runStartPos.x+(this.runEndPos.x-this.runStartPos.x)*ease;
+      this.position.z=this.runStartPos.z+(this.runEndPos.z-this.runStartPos.z)*ease;
+      this.position.y=getGY(this.position.x,this.position.z)+0.03;
+      if(tRun>=1)this._stop(getGY,getSurf);
+    } else if(this.phase==="putt_roll"){
+      this.puttElapsed+=dt;
+      const spd=Math.sqrt(this.puttVel.x*this.puttVel.x+this.puttVel.z*this.puttVel.z);
+      if(spd<0.06){this._stop(getGY,getSurf);return;}
+      const friction=this.puttDecay*dt;
+      const newSpd=Math.max(0,spd-friction);
+      const factor=spd>0?newSpd/spd:0;
+      this.puttVel.x*=factor;this.puttVel.z*=factor;
+      this.puttVel.x+=this._slopeVec.x*dt*3.0;
+      this.puttVel.z+=this._slopeVec.y*dt*3.0;
+      this.position.x+=this.puttVel.x*dt;
+      this.position.z+=this.puttVel.z*dt;
+      this.position.y=getGY(this.position.x,this.position.z)+0.03;
+      if(newSpd<0.06)this._stop(getGY,getSurf);
+    }
+    const d=Math.sqrt((this.position.x-this.startPos.x)**2+(this.position.z-this.startPos.z)**2);
+    this.distanceTraveled=d;
+  }
+
+  _stop(getGY,getSurf){
+    this.phase="idle";this.inFlight=false;
+    this.position.y=getGY(this.position.x,this.position.z)+0.03;
+    if(this.onStopped)this.onStopped(this.position.clone(),getSurf(this.position.x,this.position.z));
+  }
+}
+
+// ===== ショットコントローラー =====
+class ShotController{
+  constructor(cb){
+    this.onShotReady=cb;
+    this.phase=0;this.power=0;this.accuracy=0;
+    this.needlePos=0;this.needleDir=1;this.needleSpeed=0.85;
+    this.animating=false;this.raf=null;this.lastTime=0;
+    this.UNS_CENTER=0.50; this.UNS_HALF=0.035;
+    this.SNS_HALF=0.10;
+    this.NS_HALF=0.17;
+    this.niceShotBonus=0;
+  }
+  reset(){
+    this.phase=0;this.power=0;this.accuracy=0;this.niceShotBonus=0;
+    this.needlePos=0;this.needleDir=1;this.animating=false;
+    if(this.raf){cancelAnimationFrame(this.raf);this.raf=null;}
+    const n=document.getElementById("powerNeedle");if(n)n.style.left="0%";
+    const iz=document.getElementById("impactZone");if(iz)iz.style.display="none";
+    const izu=document.getElementById("impactZoneUNS");if(izu)izu.style.display="none";
+    const sb=document.getElementById("shootBtn");if(sb)sb.textContent="🏌️ SHOT (Space)";
+  }
+  startSwing(){
+    if(this.phase!==0)return;
+    this.phase=1;this.animating=true;this.needlePos=0;this.needleDir=1;
+    const sb=document.getElementById("shootBtn");if(sb)sb.textContent="⬆️ パワー最大でストップ！";
+    const iz=document.getElementById("impactZone");if(iz)iz.style.display="none";
+    const izu=document.getElementById("impactZoneUNS");if(izu)izu.style.display="none";
+    this.lastTime=performance.now();this._anim();
+  }
+  _anim(){
+    if(!this.animating)return;
+    const now=performance.now(),dt=(now-this.lastTime)/1000;this.lastTime=now;
+    this.needlePos+=this.needleDir*this.needleSpeed*dt;
+    if(this.needlePos>=1){this.needlePos=1;this.needleDir=-1;}
+    if(this.needlePos<=0){this.needlePos=0;this.needleDir=1;}
+    const pct=Math.round(this.needlePos*100);
+    document.getElementById("powerNeedle").style.left=pct+"%";
+    this.raf=requestAnimationFrame(()=>this._anim());
+  }
+  setPower(){
+    if(this.phase!==1)return;
+    this.phase=2;this.power=Math.round(this.needlePos*100);
+    const c=this.UNS_CENTER,nh=this.NS_HALF;
+    const iz=document.getElementById("impactZone");
+    if(iz){iz.style.left=((c-nh)*100)+"%";iz.style.width=(nh*2*100)+"%";iz.style.display="block";}
+    const izu=document.getElementById("impactZoneUNS");
+    if(izu){izu.style.left=((c-this.UNS_HALF)*100)+"%";izu.style.width=(this.UNS_HALF*2*100)+"%";izu.style.display="block";}
+    const sb=document.getElementById("shootBtn");if(sb)sb.textContent=`⚡ タイミングでインパクト！ (${this.power}%)`;
+    this.needleSpeed=1.55;
+  }
+  setImpact(){
+    if(this.phase!==2)return;
+    this.animating=false;if(this.raf){cancelAnimationFrame(this.raf);this.raf=null;}
+    const diff=Math.abs(this.needlePos-this.UNS_CENTER);
+    if(diff<=this.UNS_HALF){this.niceShotBonus=0.50;this.accuracy=100;}
+    else if(diff<=this.SNS_HALF){this.niceShotBonus=0.30;this.accuracy=88;}
+    else if(diff<=this.NS_HALF){this.niceShotBonus=0.20;this.accuracy=75;}
+    else{this.niceShotBonus=0.00;this.accuracy=diff>0.3?30:55;}
+    const iz=document.getElementById("impactZone");if(iz)iz.style.display="none";
+    const izu=document.getElementById("impactZoneUNS");if(izu)izu.style.display="none";
+    this.phase=0;
+    this.onShotReady(this.power,this.accuracy,this.niceShotBonus);
+    setTimeout(()=>this.reset(),1200);
+  }
+  onInput(){if(this.phase===0)this.startSwing();else if(this.phase===1)this.setPower();else if(this.phase===2)this.setImpact();}
+}
+
+// ===== パットコントローラー =====
+class PuttController{
+  constructor(cb){
+    this.onPuttReady=cb;
+    this.phase=0;this.needlePos=0;this.needleDir=1;
+    this.needleSpeed=0.38;
+    this.animating=false;this.raf=null;this.lastTime=0;
+    this.targetPos=0.4;this.targetRange=0.10;
+    this.distFt=10;
+  }
+  setTargetFromDist(distYd){
+    this.distFt=Math.round(distYd*3);
+    this.targetPos=Math.min(0.92,Math.max(0.06,distYd/20));
+    this.targetRange=Math.max(0.06,0.15-distYd*0.004);
+    const pl=document.getElementById("puttPowerLabel");
+    if(pl)pl.textContent=`目標: ${this.distFt}ft (${Math.round(distYd)}yd)`;
+    const iz=document.getElementById("puttImpactZone");
+    if(iz){
+      iz.style.left=((this.targetPos-this.targetRange/2)*100)+"%";
+      iz.style.width=(this.targetRange*100)+"%";
+    }
+  }
+  reset(){
+    this.phase=0;this.needlePos=0;this.needleDir=1;this.animating=false;
+    if(this.raf){cancelAnimationFrame(this.raf);this.raf=null;}
+    const n=document.getElementById("puttNeedle");if(n)n.style.left="0%";
+    const iz=document.getElementById("puttImpactZone");if(iz)iz.style.display="none";
+    const sb=document.getElementById("shootBtn");if(sb)sb.textContent="⛳ PUTT (Space)";
+  }
+  start(){
+    if(this.phase!==0)return;
+    this.phase=1;this.animating=true;this.needlePos=0;this.needleDir=1;
+    const sb=document.getElementById("shootBtn");if(sb)sb.textContent="🏌️ 緑のゾーンで止める！";
+    const iz=document.getElementById("puttImpactZone");if(iz)iz.style.display="block";
+    this.lastTime=performance.now();this._anim();
+  }
+  _anim(){
+    if(!this.animating)return;
+    const now=performance.now(),dt=(now-this.lastTime)/1000;this.lastTime=now;
+    this.needlePos+=this.needleDir*this.needleSpeed*dt;
+    if(this.needlePos>=1){this.needlePos=1;this.needleDir=-1;}
+    if(this.needlePos<=0){this.needlePos=0;this.needleDir=1;}
+    const n=document.getElementById("puttNeedle");if(n)n.style.left=(this.needlePos*100)+"%";
+    this.raf=requestAnimationFrame(()=>this._anim());
+  }
+  stop(){
+    if(this.phase!==1)return;
+    this.animating=false;if(this.raf){cancelAnimationFrame(this.raf);this.raf=null;}
+    const pw=Math.round(this.needlePos*100);
+    this.phase=0;
+    this.onPuttReady(pw);
+    setTimeout(()=>this.reset(),1000);
+  }
+  onInput(){if(this.phase===0)this.start();else if(this.phase===1)this.stop();}
+}
+
+// ===== メインゲームクラス =====
+class GolfGame{
+  constructor(){
+    this.scene=null;this.camera=null;this.renderer=null;
+    this.ball=null;this.currentCourse=null;this.currentHoleIdx=0;
+    this.currentClubIdx=0;this.aimAngle=0;
+    this.camTilt=0;
+    this.scores=[];this.strokes=0;
+    this.weather=null;this.character=null;
+    this.cameraMode="follow";
+    this.teePos=new THREE.Vector3();this.pinPos=new THREE.Vector3();
+    this.terrainH=200;this.terrainW=100;
+    this.shotCtrl=new ShotController((pw,acc,nsBonus)=>this._executeShot(pw,acc,nsBonus));
+    this.puttCtrl=new PuttController((pw)=>this._executePutt(pw));
+    this.gameMode="normal";
+    this.clock=new THREE.Clock();
+
+    // 弾道トレース
+    this.tracePoints=[];
+    this.traceLine=null;
+    this.persistentTracers=[];
+
+    this.joystickActive=false;
+    this.joystickVector={x:0,y:0};
+  }
+
+  init(){
+    const canvas=document.getElementById("canvas");
+    this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    this.renderer.setSize(window.innerWidth,window.innerHeight);
+    this.renderer.setClearColor(0x0284c7,1);
+    this.scene=new THREE.Scene();
+    this.camera=new THREE.PerspectiveCamera(52,window.innerWidth/window.innerHeight,0.1,2000);
+
+    window.addEventListener("resize",()=>{
+      this.renderer.setSize(window.innerWidth,window.innerHeight);
+      this.camera.aspect=window.innerWidth/window.innerHeight;
+      this.camera.updateProjectionMatrix();
+    });
+
+    this._setupInput();
+    this._setupJoystick();
+  }
+
+  _setupJoystick(){
+    const dpad=document.getElementById("dpad-controller");
+    const thumb=document.getElementById("joystick-thumb");
+    if(!dpad||!thumb)return;
+
+    const startJoy=(clientX,clientY)=>{
+      this.joystickActive=true;
+      updateJoy(clientX,clientY);
+    };
+    const updateJoy=(clientX,clientY)=>{
+      if(!this.joystickActive)return;
+      const rect=dpad.getBoundingClientRect();
+      const cx=rect.left+rect.width/2;
+      const cy=rect.top+rect.height/2;
+      const maxR=rect.width/2-20;
+      let dx=clientX-cx, dy=clientY-cy;
+      const dist=Math.hypot(dx,dy);
+      if(dist>maxR){dx=(dx/dist)*maxR;dy=(dy/dist)*maxR;}
+      thumb.style.transform=`translate(${dx}px,${dy}px)`;
+      this.joystickVector.x=dx/maxR;
+      this.joystickVector.y=dy/maxR;
+    };
+    const endJoy=()=>{
+      this.joystickActive=false;
+      this.joystickVector.x=0;this.joystickVector.y=0;
+      thumb.style.transform=`translate(0px,0px)`;
+    };
+
+    thumb.addEventListener("mousedown",e=>{e.preventDefault();startJoy(e.clientX,e.clientY);});
+    window.addEventListener("mousemove",e=>{if(this.joystickActive)updateJoy(e.clientX,e.clientY);});
+    window.addEventListener("mouseup",()=>endJoy());
+
+    thumb.addEventListener("touchstart",e=>{e.preventDefault();if(e.touches.length>0)startJoy(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+    window.addEventListener("touchmove",e=>{if(this.joystickActive&&e.touches.length>0)updateJoy(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+    window.addEventListener("touchend",()=>endJoy());
+  }
+
+  _setupInput(){
+    const shoot=()=>{if(this.gameMode==="putt")this.puttCtrl.onInput();else this.shotCtrl.onInput();};
+    document.getElementById("shootBtn").addEventListener("click",shoot);
+
+    // ピン自動アライメント
+    document.getElementById("target-banner-btn").addEventListener("click",()=>this.alignToPin(true));
+    document.getElementById("quickPinAimBtn").addEventListener("click",()=>this.alignToPin(true));
+
+    // D-Padボタン
+    const bindTick=(id,tick)=>{
+      const el=document.getElementById(id);
+      if(!el)return;
+      let iv=null;
+      const start=(e)=>{e.preventDefault();tick();iv=setInterval(tick,40);el.classList.add("pressing");};
+      const stop=()=>{if(iv){clearInterval(iv);iv=null;}el.classList.remove("pressing");};
+      el.addEventListener("mousedown",start);window.addEventListener("mouseup",stop);
+      el.addEventListener("touchstart",start,{passive:false});window.addEventListener("touchend",stop);
+    };
+
+    bindTick("dpad-btn-left",()=>{this.aimAngle-=1.5;this._onAimChanged();});
+    bindTick("dpad-btn-right",()=>{this.aimAngle+=1.5;this._onAimChanged();});
+    document.getElementById("dpad-btn-up").addEventListener("click",()=>{this.camTilt=Math.min(30,this.camTilt+8);});
+    document.getElementById("dpad-btn-down").addEventListener("click",()=>{this.camTilt=Math.max(-15,this.camTilt-8);});
+
+    // クラブ切り替え
+    document.getElementById("clubPrevBtn").addEventListener("click",()=>{this.cycleClub(-1);});
+    document.getElementById("clubNextBtn").addEventListener("click",()=>{this.cycleClub(1);});
+
+    // カメラ切り替え
+    document.getElementById("camBtn").addEventListener("click",()=>this.toggleCamera());
+    document.getElementById("scoreBtn").addEventListener("click",()=>this.showScoreCard());
+    document.getElementById("closeScoreBtn").addEventListener("click",()=>document.getElementById("scoreCard").style.display="none");
+    document.getElementById("nextHoleBtn").addEventListener("click",()=>this.nextHole());
+
+    // キーボードショートカット
+    window.addEventListener("keydown",e=>{
+      if(e.code==="Space"||e.code==="Enter"){e.preventDefault();shoot();}
+      else if(e.code==="ArrowLeft"||e.code==="KeyA"){this.aimAngle-=2;this._onAimChanged();}
+      else if(e.code==="ArrowRight"||e.code==="KeyD"){this.aimAngle+=2;this._onAimChanged();}
+      else if(e.code==="KeyP"){this.alignToPin(true);}
+      else if(e.code==="KeyC"){this.cycleClub(1);}
+      else if(e.code==="KeyX"){this.cycleClub(-1);}
+      else if(e.code==="KeyV"){this.toggleCamera();}
+    });
+  }
+
+  // ピン正面へエイム＆カメラを即座に向ける
+  alignToPin(instantSnap=true){
+    if(!this.ball||!this.pinPos)return;
+    const dx=this.pinPos.x-this.ball.position.x;
+    const dz=this.pinPos.z-this.ball.position.z;
+    this.aimAngle=Math.atan2(dx,-dz)*180/Math.PI;
+    this._onAimChanged();
+    if(instantSnap)this.snapCameraToBall();
+  }
+
+  snapCameraToBall(){
+    if(!this.ball)return;
+    const bp=this.ball.position;
+    const rad=this.aimAngle*Math.PI/180;
+    const dist=this.gameMode==="putt"?5.5:12;
+    const h=this.gameMode==="putt"?2.5:6.5;
+    this.camera.position.set(bp.x-Math.sin(rad)*dist,bp.y+h,bp.z+Math.cos(rad)*dist);
+    this.camera.lookAt(bp.x+Math.sin(rad)*25,bp.y+1.5,bp.z-Math.cos(rad)*25);
+  }
+
+  cycleClub(dir){
+    if(this.ball.inFlight)return;
+    this.currentClubIdx=(this.currentClubIdx+dir+CLUBS.length)%CLUBS.length;
+    this._updateClubDisplay();
+  }
+
+  _updateClubDisplay(){
+    const club=CLUBS[this.currentClubIdx];
+    document.getElementById("currentClubName").textContent=club.name;
+    document.getElementById("currentClubDist").textContent=`Max: ${club.maxDist} YDS`;
+  }
+
+  _onAimChanged(){
+    this.aimAngle=((this.aimAngle%360)+360)%360;
+    if(this.aimAngle>180)this.aimAngle-=360;
+    this._updateAimViz();
+  }
+
+  loadHole(course,idx){
+    while(this.scene.children.length>0)this.scene.remove(this.scene.children[0]);
+    this.tracePoints=[];
+    if(this.traceLine){this.scene.remove(this.traceLine);this.traceLine=null;}
+    this.persistentTracers=[];
+
+    const hole=course.holes[idx];
+    this.terrainH=hole.yards;
+    this._terrainGen=new TerrainGen(this.terrainW,this.terrainH);
+    this._terrainGen.amplitude=course.terrainProfile==="hilly"?3.5:1.2;
+
+    this._buildSky();
+    this._buildLighting();
+    this._buildTerrain(hole,course);
+    this._buildPinAndLightBeam();
+    this._buildBallMesh();
+    this._buildAimViz();
+
+    this.teePos.set(0,this.getGY(0,0)+0.3,0);
+    const gZ=-this.terrainH*0.97;
+    this.pinPos.set(0,this.getGY(0,gZ)+0.3,gZ);
+
+    this.ball.position.copy(this.teePos);
+    if(this.ball.mesh)this.ball.mesh.position.copy(this.teePos);
+
+    this.strokes=0;
+    this._updateHUD();
+    this.autoSelectClub(hole.yards);
+    this.alignToPin(true);
+  }
+
+  _buildLighting(){
+    const amb=new THREE.AmbientLight(0xfff8f0,1.4);
+    this.scene.add(amb);
+    const hemi=new THREE.HemisphereLight(0x88d4ff,0x3a5a18,1.2);
+    this.scene.add(hemi);
+    const sun=new THREE.DirectionalLight(0xfffae8,1.8);
+    sun.position.set(100,150,-60);
+    this.scene.add(sun);
+  }
+
+  _buildSky(){
+    const skyGeo=new THREE.SphereGeometry(900,32,16);
+    const skyMat=new THREE.MeshBasicMaterial({color:0x38bdf8,side:THREE.BackSide});
+    this.scene.add(new THREE.Mesh(skyGeo,skyMat));
+  }
+
+  _buildTerrain(hole,course){
+    const TW=this.terrainW,TH=this.terrainH;
+    const SW=48,SH=64;
+    const geo=new THREE.PlaneGeometry(TW,TH,SW,SH);
+    geo.rotateX(-Math.PI/2);
+    const pa=geo.attributes.position;
+    for(let i=0;i<=SH;i++)for(let j=0;j<=SW;j++){
+      const idx=i*(SW+1)+j;
+      pa.setY(idx,this._terrainGen.getHeight(j*(TW/SW),i*(TH/SH)));
+    }
+    geo.computeVertexNormals();
+
+    const mat=new THREE.MeshLambertMaterial({color:course.color||0x3cb825});
+    const mesh=new THREE.Mesh(geo,mat);
+    mesh.position.set(0,0,-TH/2);
+    this.scene.add(mesh);
+
+    // フェアウェイ刈り込みストライプ
+    for(let s=0;s<8;s++){
+      const stripe=new THREE.Mesh(
+        new THREE.PlaneGeometry(6,TH*0.95),
+        new THREE.MeshBasicMaterial({color:s%2===0?0x44c020:0x38aa18,transparent:true,opacity:0.35})
+      );
+      stripe.rotation.x=-Math.PI/2;
+      stripe.position.set(-24+s*6,0.01,-TH/2);
+      this.scene.add(stripe);
+    }
+  }
+
+  // 天柱ライトビーム＆ピン
+  _buildPinAndLightBeam(){
+    const gZ=-this.terrainH*0.97;
+    const gy=this.getGY(0,gZ);
+
+    // ピンポール
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,6,8),new THREE.MeshBasicMaterial({color:0xffffff}));
+    pole.position.set(0,gy+3,gZ);
+    this.scene.add(pole);
+
+    // 赤旗
+    const flag=new THREE.Mesh(new THREE.PlaneGeometry(1.8,1.2),new THREE.MeshBasicMaterial({color:0xef4444,side:THREE.DoubleSide}));
+    flag.position.set(0.9,gy+5.4,gZ);
+    this.scene.add(flag);
+
+    // 上空90mの天柱ライトビーム
+    const beamGeo=new THREE.CylinderGeometry(1.2,1.2,90,16);
+    const beamMat=new THREE.MeshBasicMaterial({
+      color:0xffd700,transparent:true,opacity:0.32,side:THREE.DoubleSide
+    });
+    const beam=new THREE.Mesh(beamGeo,beamMat);
+    beam.position.set(0,gy+45,gZ);
+    this.scene.add(beam);
+  }
+
+  _buildBallMesh(){
+    const mesh=new THREE.Mesh(
+      new THREE.SphereGeometry(0.22,16,16),
+      new THREE.MeshPhongMaterial({color:0xffffff,shininess:80})
+    );
+    this.ball=new Ball();
+    this.ball.mesh=mesh;
+    this.scene.add(mesh);
+  }
+
+  _buildAimViz(){
+    // エイムライン
+    const pts=[new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,-150)];
+    this.aimLineMesh=new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({color:0x00f2fe,transparent:true,opacity:0.8})
+    );
+    this.scene.add(this.aimLineMesh);
+
+    // 着弾サークル
+    const ringGeo=new THREE.RingGeometry(3.5,4.8,24);
+    ringGeo.rotateX(-Math.PI/2);
+    this.targetRingMesh=new THREE.Mesh(
+      ringGeo,
+      new THREE.MeshBasicMaterial({color:0xffd700,transparent:true,opacity:0.8,side:THREE.DoubleSide})
+    );
+    this.scene.add(this.targetRingMesh);
+  }
+
+  _updateAimViz(){
+    if(!this.aimLineMesh||!this.ball)return;
+    const bp=this.ball.position;
+    const rad=this.aimAngle*Math.PI/180;
+
+    this.aimLineMesh.position.copy(bp);
+    this.aimLineMesh.position.y+=0.15;
+    this.aimLineMesh.rotation.y=-rad;
+
+    const club=CLUBS[this.currentClubIdx];
+    const targetDist=club.maxDist*0.9144;
+    const tx=bp.x+Math.sin(rad)*targetDist;
+    const tz=bp.z-Math.cos(rad)*targetDist;
+    const ty=this.getGY(tx,tz);
+
+    this.targetRingMesh.position.set(tx,ty+0.15,tz);
+  }
+
+  getGY(x,z){
+    if(!this._terrainGen)return 0;
+    const TW=this.terrainW,TH=this.terrainH;
+    return this._terrainGen.getHeight(x+TW/2,-z-TH/2);
+  }
+
+  getSurf(x,z){
+    const dToPin=Math.hypot(x-this.pinPos.x,z-this.pinPos.z);
+    if(dToPin<12)return"green";
+    if(Math.abs(x)>26)return"rough";
+    return"fairway";
+  }
+
+  autoSelectClub(yards){
+    let best=0, minDiff=9999;
+    for(let i=0;i<CLUBS.length-1;i++){
+      const diff=Math.abs(CLUBS[i].maxDist-yards);
+      if(diff<minDiff){minDiff=diff;best=i;}
+    }
+    this.currentClubIdx=best;
+    this._updateClubDisplay();
+  }
+
+  _executeShot(power,accuracy,nsBonus){
+    if(this.ball.inFlight)return;
+    const club=CLUBS[this.currentClubIdx];
+    const carry=club.maxDist*(power/100)*(1-club.runFactor)*(1+nsBonus);
+    const run=club.maxDist*(power/100)*club.runFactor;
+    const rad=this.aimAngle*Math.PI/180;
+    const sideErr=(accuracy-50)*0.15;
+
+    this.tracePoints=[this.ball.position.clone()];
+    this.ball.shoot(this.ball.position.clone(),carry,run,rad,sideErr,club.peakRatio,(x,z)=>this.getGY(x,z));
+    this.strokes++;
+
+    if(nsBonus>=0.3){
+      const pop=document.getElementById("niceShotPopup");
+      pop.style.display="block";
+      setTimeout(()=>pop.style.display="none",1400);
+    }
+
+    this._updateHUD();
+  }
+
+  _executePutt(power){
+    if(this.ball.inFlight)return;
+    const speed=20*(power/100);
+    const rad=this.aimAngle*Math.PI/180;
+    this.tracePoints=[this.ball.position.clone()];
+    this.ball.putt(this.ball.position.clone(),speed,rad,new THREE.Vector2(0,0));
+    this.strokes++;
+    this._updateHUD();
+  }
+
+  _updateHUD(){
+    const distYd=Math.round(this.ball.position.distanceTo(this.pinPos)*1.09361);
+    const hDiff=(this.pinPos.y-this.ball.position.y).toFixed(1);
+    document.getElementById("target-dist-val").textContent=`${distYd} YDS`;
+    document.getElementById("target-height-val").textContent=`${hDiff>=0?'+':''}${hDiff}m`;
+    document.getElementById("hudStrokes").textContent=`Shot ${this.strokes+1}`;
+    document.getElementById("hudHolePar").textContent=`H${this.currentHoleIdx+1} Par${this.currentCourse?this.currentCourse.holes[this.currentHoleIdx].par:4}`;
+  }
+
+  toggleCamera(){
+    this.cameraMode=this.cameraMode==="follow"?"overview":"follow";
+  }
+
+  nextHole(){
+    document.getElementById("nextHoleBtn").style.display="none";
+    this.currentHoleIdx++;
+    if(this.currentHoleIdx>=this.currentCourse.holes.length){
+      this._showTournament();
+      return;
+    }
+    this.loadHole(this.currentCourse,this.currentHoleIdx);
+  }
+
+  showScoreCard(){
+    let html="<tr><th>Hole</th><th>Par</th><th>Strokes</th></tr>";
+    this.currentCourse.holes.forEach((h,i)=>{
+      const sc=this.scores[i]||"-";
+      html+=`<tr><td>${h.n}</td><td>${h.par}</td><td>${sc}</td></tr>`;
+    });
+    document.getElementById("scoreTableInner").innerHTML=html;
+    document.getElementById("scoreCard").style.display="flex";
+  }
+
+  _showTournament(){
+    document.getElementById("gameUI").style.display="none";
+    document.getElementById("tournamentScreen").style.display="flex";
+  }
+
+  start(course,charData,weatherType,roundHoles,distMode){
+    CLUBS=distMode==="super"?CLUBS_SUPER:CLUBS_NORMAL;
+    const maxH=Math.min(roundHoles||18,course.holes.length);
+    this.currentCourse={...course,holes:course.holes.slice(0,maxH)};
+    this.character=new Character(charData);
+    this.weather=new Weather(weatherType);
+    this.scores=this.currentCourse.holes.map(()=>0);
+
+    document.getElementById("hudPlayer").textContent=charData.name;
+    document.getElementById("startScreen").style.display="none";
+    document.getElementById("gameUI").style.display="block";
+
+    this.loadHole(this.currentCourse,0);
+
+    const loop=()=>{
+      requestAnimationFrame(loop);
+      const dt=Math.min(this.clock.getDelta(),0.05);
+
+      if(this.joystickActive&&!this.ball.inFlight){
+        this.aimAngle+=this.joystickVector.x*120*dt;
+        this._onAimChanged();
+      }
+
+      this.ball.update(dt,(x,z)=>this.getGY(x,z),(x,z)=>this.getSurf(x,z));
+
+      // 弾道トレース更新
+      if(this.ball.inFlight){
+        this.tracePoints.push(this.ball.position.clone());
+        if(this.traceLine)this.scene.remove(this.traceLine);
+        if(this.tracePoints.length>1){
+          const geo=new THREE.BufferGeometry().setFromPoints(this.tracePoints);
+          this.traceLine=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0x00f2fe,linewidth:3}));
+          this.scene.add(this.traceLine);
+        }
+      }
+
+      // カメラ追従
+      if(this.ball.inFlight){
+        const rad=this.aimAngle*Math.PI/180;
+        this.camera.position.set(this.ball.position.x-Math.sin(rad)*8,this.ball.position.y+4.5,this.ball.position.z+Math.cos(rad)*8);
+        this.camera.lookAt(this.ball.position.x,this.ball.position.y+1,this.ball.position.z);
+      }else{
+        this.snapCameraToBall();
+      }
+
+      // ホールイン判定
+      if(!this.ball.inFlight&&this.strokes>0&&this.ball.position.distanceTo(this.pinPos)<1.5){
+        this.scores[this.currentHoleIdx]=this.strokes;
+        document.getElementById("nextHoleBtn").style.display="flex";
+      }
+
+      this.renderer.render(this.scene,this.camera);
+    };
+    loop();
+  }
+}
+
+// ===== UI初期化 =====
+const game=new GolfGame();
+function buildStartUI(){
+  const cg=document.getElementById("charGrid");
+  CHARACTERS.forEach((c,i)=>{
+    const card=document.createElement("div");card.className="char-card"+(i===0?" selected":"");card.dataset.idx=i;
+    card.innerHTML=`
+      <div class="char-avatar">${c.emoji}</div>
+      <div class="char-name">${c.name}</div>
+      <div style="font-size:0.6rem;color:#88ccff">${c.realName}</div>`;
+    card.addEventListener("click",()=>{document.querySelectorAll(".char-card").forEach(x=>x.classList.remove("selected"));card.classList.add("selected");});
+    cg.appendChild(card);
+  });
+
+  const courseG=document.getElementById("courseGrid");
+  COURSES.forEach((c,i)=>{
+    const btn=document.createElement("div");btn.className="course-btn"+(i===0?" selected":"");btn.dataset.idx=i;
+    btn.innerHTML=`<div class="course-name">${c.flag} ${c.name}</div><div class="course-info">${c.desc}</div>`;
+    btn.addEventListener("click",()=>{document.querySelectorAll(".course-btn").forEach(x=>x.classList.remove("selected"));btn.classList.add("selected");});
+    courseG.appendChild(btn);
+  });
+
+  const wg=document.getElementById("weatherGrid");
+  [{type:"sunny",icon:"☀️",name:"晴れ"},{type:"rain",icon:"🌧️",name:"雨"},{type:"strongWind",icon:"💨",name:"強風"},{type:"fog",icon:"🌫️",name:"霧"}].forEach((w,i)=>{
+    const btn=document.createElement("div");btn.className="weather-btn"+(i===0?" selected":"");btn.dataset.type=w.type;
+    btn.innerHTML=`<div class="weather-icon">${w.icon}</div><div class="weather-name">${w.name}</div>`;
+    btn.addEventListener("click",()=>{document.querySelectorAll(".weather-btn").forEach(x=>x.classList.remove("selected"));btn.classList.add("selected");});
+    wg.appendChild(btn);
+  });
+
+  document.querySelectorAll(".dist-mode-btn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll(".dist-mode-btn").forEach(b=>b.classList.remove("selected"));
+      btn.classList.add("selected");
+    });
+  });
+
+  document.querySelectorAll(".round-btn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll(".round-btn").forEach(b=>b.classList.remove("selected"));
+      btn.classList.add("selected");
+    });
+  });
+
+  document.getElementById("startBtn").addEventListener("click",()=>{
+    const ci=parseInt((document.querySelector(".char-card.selected")||{dataset:{}}).dataset.idx||0);
+    const coi=parseInt((document.querySelector(".course-btn.selected")||{dataset:{}}).dataset.idx||0);
+    const wt=(document.querySelector(".weather-btn.selected")||{dataset:{}}).dataset.type||"sunny";
+    const roundH=parseInt((document.querySelector(".round-btn.selected")||{dataset:{holes:"18"}}).dataset.holes||18);
+    const distMode=(document.querySelector(".dist-mode-btn.selected")||{dataset:{mode:"normal"}}).dataset.mode||"normal";
+    game.start(COURSES[coi],CHARACTERS[ci],wt,roundH,distMode);
+  });
+}
+
+window.addEventListener("load",()=>{
+  setTimeout(()=>{
+    document.getElementById("loading").style.display="none";
+    document.getElementById("startScreen").style.display="flex";
+    game.init();
+    buildStartUI();
+  },300);
+});
+</script>
+</body>
+</html>

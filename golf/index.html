@@ -1,0 +1,2954 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PGA Master Tour - Photorealistic 3D Golf</title>
+    <style>
+        :root {
+            --bg-glass: rgba(10, 18, 36, 0.76);
+            --border-glass: rgba(255, 255, 255, 0.22);
+            --primary: #00f2fe;
+            --primary-glow: rgba(0, 242, 254, 0.6);
+            --accent: #ffd700;
+            --success: #10b981;
+            --text-main: #ffffff;
+            --text-muted: #cbd5e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            background-color: #020617;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--text-main);
+        }
+
+        #render-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            display: block;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        #render-canvas:active {
+            cursor: grabbing;
+        }
+
+        /* Center Optical Aiming Crosshair */
+        .center-crosshair {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.18) 25%, rgba(0, 242, 254, 0.4) 60%, transparent 85%);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* High-End Glassmorphism Panel */
+        .glass-panel {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.45);
+        }
+
+        /* UI Overlay Layer */
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            padding: 16px 20px;
+            touch-action: none;
+        }
+
+        .interactive {
+            pointer-events: auto;
+            touch-action: manipulation;
+        }
+
+        /* Header Info */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .hole-card {
+            padding: 10px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .hole-card h1 {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hole-badges {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 2px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .badge-par {
+            background: rgba(16, 185, 129, 0.25);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.5);
+        }
+
+        .badge-shot {
+            background: rgba(59, 130, 246, 0.25);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.5);
+        }
+
+        /* Top Target Beacon Banner (Click to Auto-Align PIN) */
+        .target-banner {
+            grid-row: 1;
+            align-self: flex-start;
+            justify-self: center;
+            padding: 7px 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
+            border: 1.5px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .target-banner:hover {
+            transform: scale(1.05);
+            border-color: #ffd700;
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.6);
+        }
+
+        .target-banner:active {
+            transform: scale(0.95);
+        }
+
+        .pin-target-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: #ffd700;
+            letter-spacing: 1px;
+        }
+
+        .pin-target-dist {
+            font-size: 19px;
+            font-weight: 900;
+            color: #ffffff;
+            font-family: "Courier New", Courier, monospace;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .pin-target-height {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .height-up { color: #f87171; }
+        .height-down { color: #60a5fa; }
+
+        /* Integrated Wind Indicator */
+        .wind-card {
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .wind-dial {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .wind-arrow {
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 14px solid var(--primary);
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 0 6px var(--primary-glow));
+        }
+
+        .wind-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wind-info .label {
+            font-size: 9px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .wind-info .value {
+            font-size: 14px;
+            font-weight: 800;
+            font-family: "Courier New", Courier, monospace;
+        }
+
+        /* Minimap (Top Right) */
+        .minimap-panel {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #minimap-canvas {
+            background: #0d2618;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            width: 80px;
+            height: 165px;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Footer Controls */
+        footer {
+            grid-row: 3;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 14px;
+        }
+
+        /* 360° Responsive Dual-Mode D-Pad & Analog Joystick */
+        .dpad-container {
+            width: 135px;
+            height: 135px;
+            position: relative;
+            background: radial-gradient(circle, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.25) 75%, transparent 100%);
+            border-radius: 50%;
+            border: 2px solid rgba(0, 242, 254, 0.35);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(0, 242, 254, 0.15);
+            touch-action: none;
+        }
+
+        .dpad-compass-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 1px dashed rgba(255, 255, 255, 0.25);
+            pointer-events: none;
+        }
+
+        .dpad-btn {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            border-radius: 50%;
+            font-size: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            transition: all 0.15s ease;
+            z-index: 2;
+            touch-action: none;
+        }
+
+        .dpad-btn:hover {
+            background: var(--primary);
+            color: #0f172a;
+            box-shadow: 0 0 16px var(--primary-glow);
+            transform: scale(1.12);
+        }
+
+        .dpad-btn:active {
+            transform: scale(0.92);
+            background: #00f2fe;
+        }
+
+        .dpad-btn-up { top: 4px; left: 49px; }
+        .dpad-btn-down { bottom: 4px; left: 49px; }
+        .dpad-btn-left { top: 49px; left: 4px; }
+        .dpad-btn-right { top: 49px; right: 4px; }
+
+        .joystick-thumb {
+            position: absolute;
+            top: 46px;
+            left: 46px;
+            width: 43px;
+            height: 43px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #38bdf8 0%, #0284c7 100%);
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.7);
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            z-index: 10;
+            transition: transform 0.08s ease-out;
+            touch-action: none;
+        }
+
+        .joystick-thumb:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+            box-shadow: 0 0 25px rgba(0, 242, 254, 1.0);
+        }
+
+        /* Club Selector & Lie */
+        .club-lie-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .lie-badge-card {
+            padding: 5px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .lie-text {
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .lie-percent {
+            font-size: 12px;
+            font-weight: 700;
+            color: #38bdf8;
+            font-family: monospace;
+        }
+
+        .club-panel {
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .club-arrow-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .club-arrow-btn:hover {
+            background: var(--primary);
+            color: #0f172a;
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .club-arrow-btn:active {
+            transform: scale(0.92);
+        }
+
+        .club-display {
+            text-align: center;
+            min-width: 110px;
+        }
+
+        .club-name {
+            font-size: 17px;
+            font-weight: 900;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+        }
+
+        .club-stats {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* 3-Step Swing Gauge */
+        .swing-gauge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .swing-track {
+            width: 48px;
+            height: 185px;
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
+            transition: border-color 0.2s ease;
+        }
+
+        .swing-track:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+
+        .gauge-gradient-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, #10b981 0%, #facc15 60%, #ef4444 100%);
+            opacity: 0.45;
+        }
+
+        .impact-sweetspot {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 14%;
+            background: rgba(16, 185, 129, 0.75);
+            border-top: 2px solid #34d399;
+            box-shadow: 0 0 14px rgba(52, 211, 153, 0.9);
+        }
+
+        .impact-center-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #ffffff;
+            box-shadow: 0 0 8px #ffffff;
+        }
+
+        .gauge-power-marker {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #ffea00;
+            box-shadow: 0 0 10px #ffea00;
+            display: none;
+            z-index: 5;
+        }
+
+        .gauge-cursor {
+            position: absolute;
+            left: -4px;
+            width: calc(100% + 8px);
+            height: 7px;
+            background: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0 0 14px #ffffff, 0 0 25px var(--primary);
+            z-index: 6;
+            bottom: 0%;
+        }
+
+        .swing-btn {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            border: none;
+            padding: 13px 32px;
+            min-width: 125px;
+            border-radius: 28px;
+            color: #0f172a;
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            box-shadow: 0 4px 25px var(--primary-glow);
+            transition: all 0.2s ease;
+        }
+
+        .swing-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0, 242, 254, 0.7);
+        }
+
+        .swing-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Action Buttons */
+        .action-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .action-icon-btn {
+            padding: 9px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #fff;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            min-height: 38px;
+            transition: all 0.2s ease;
+        }
+
+        .action-icon-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .action-icon-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Nice Shot Popup Banner */
+        #nice-shot-banner {
+            position: fixed;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            padding: 16px 44px;
+            border-radius: 40px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.95) 0%, rgba(255, 107, 0, 0.95) 100%);
+            color: #ffffff;
+            font-size: 34px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
+            border: 2px solid #ffffff;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 100;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #nice-shot-banner.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.0);
+        }
+
+        /* Celebration Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .celebration-card {
+            padding: 34px 48px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            max-width: 90vw;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .celebration-card h2 {
+            font-size: 36px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .celebration-card p {
+            font-size: 16px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .btn-primary-modal {
+            margin-top: 10px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            padding: 13px 36px;
+            border-radius: 26px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary-modal:hover {
+            transform: scale(1.04);
+        }
+
+        .btn-primary-modal:active {
+            transform: scale(0.96);
+        }
+
+        /* Mobile Responsive Adjustments */
+        @media (max-width: 768px) {
+            #ui-overlay { padding: 10px 12px; }
+            .hole-card { padding: 6px 12px; }
+            .hole-card h1 { font-size: 14px; }
+            .target-banner { padding: 5px 14px; gap: 8px; }
+            .pin-target-dist { font-size: 15px; }
+            .dpad-container { width: 115px; height: 115px; }
+            .dpad-btn { width: 32px; height: 32px; font-size: 12px; }
+            .dpad-btn-up { top: 3px; left: 41px; }
+            .dpad-btn-down { bottom: 3px; left: 41px; }
+            .dpad-btn-left { top: 41px; left: 3px; }
+            .dpad-btn-right { top: 41px; right: 3px; }
+            .joystick-thumb { top: 38px; left: 38px; width: 38px; height: 38px; font-size: 8px; }
+            .minimap-panel { top: 8px; right: 8px; }
+            #minimap-canvas { width: 65px; height: 130px; }
+            .club-panel { padding: 5px 8px; }
+            .club-display { min-width: 75px; }
+            .club-name { font-size: 14px; }
+            .swing-track { width: 38px; height: 140px; }
+            .swing-btn { padding: 10px 18px; font-size: 14px; min-width: 95px; }
+            .action-icon-btn { padding: 6px 8px; font-size: 10px; min-height: 32px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Photorealistic Pure Canvas 3D Viewport -->
+    <canvas id="render-canvas"></canvas>
+
+    <!-- Center Aiming Optical Crosshair Line -->
+    <div class="center-crosshair"></div>
+
+    <!-- MinGol Style Nice Shot Banner -->
+    <div id="nice-shot-banner">✨ NICE SHOT! ✨</div>
+
+    <!-- UI Overlay Layer -->
+    <div id="ui-overlay">
+        <!-- Header -->
+        <header>
+            <div class="hole-card glass-panel interactive">
+                <h1 id="hole-title">Hole 1 - Pebble Ocean Links</h1>
+                <div class="hole-badges">
+                    <span id="par-info" class="badge badge-par">PAR 4</span>
+                    <span id="shot-count" class="badge badge-shot">Shot 1</span>
+                </div>
+            </div>
+
+            <!-- Target Beacon Distance & Height HUD (Click to Auto-Align PIN) -->
+            <div id="target-banner-btn" class="target-banner interactive" title="Click to auto-aim directly at the PIN">
+                <div class="pin-target-label">⛳ PIN 🎯</div>
+                <div id="target-dist-val" class="pin-target-dist">345 YDS</div>
+                <div id="target-height-val" class="pin-target-height height-down">-1.5m</div>
+            </div>
+
+            <!-- Integrated Wind Indicator -->
+            <div class="wind-card glass-panel interactive">
+                <div class="wind-dial">
+                    <div id="wind-arrow" class="wind-arrow"></div>
+                </div>
+                <div class="wind-info">
+                    <span class="label">Wind</span>
+                    <span id="wind-speed" class="value">2.4 m/s</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Minimap (Top Right) -->
+        <div class="minimap-panel glass-panel interactive">
+            <canvas id="minimap-canvas" width="110" height="230"></canvas>
+        </div>
+
+        <!-- Footer Controls -->
+        <footer>
+            <!-- 360° Dual-Mode D-Pad & Analog Joystick Controller -->
+            <div id="dpad-controller" class="dpad-container interactive" title="360° Aim & Camera Joystick">
+                <div class="dpad-compass-ring"></div>
+                <button id="dpad-btn-up" class="dpad-btn dpad-btn-up" title="High Angle View">▲</button>
+                <button id="dpad-btn-left" class="dpad-btn dpad-btn-left" title="Aim Left (Hold to Spin)">◀</button>
+                <button id="dpad-btn-right" class="dpad-btn dpad-btn-right" title="Aim Right (Hold to Spin)">▶</button>
+                <button id="dpad-btn-down" class="dpad-btn dpad-btn-down" title="Low Angle View">▼</button>
+                <div id="joystick-thumb" class="joystick-thumb" title="Drag for 360° Free Aiming">360°</div>
+            </div>
+
+            <!-- Club Selector & Lie Percentage -->
+            <div class="club-lie-group interactive">
+                <div class="lie-badge-card glass-panel">
+                    <span id="terrain-lie-name" class="lie-text" style="color: #4ade80;">Fairway</span>
+                    <span id="terrain-lie-percent" class="lie-percent">98-100%</span>
+                </div>
+
+                <div class="club-panel glass-panel">
+                    <button id="club-prev-btn" class="club-arrow-btn" title="Previous Club">◀</button>
+                    <div class="club-display">
+                        <div id="club-name" class="club-name">1W Driver</div>
+                        <div id="club-stats" class="club-stats">Max: 260 YDS | Loft: 10.5°</div>
+                    </div>
+                    <button id="club-next-btn" class="club-arrow-btn" title="Next Club">▶</button>
+                </div>
+            </div>
+
+            <!-- 3-Step Swing Gauge -->
+            <div class="swing-gauge-container interactive">
+                <div class="swing-track">
+                    <div class="gauge-gradient-fill"></div>
+                    <div id="impact-target-zone" class="impact-sweetspot">
+                        <div class="impact-center-line"></div>
+                    </div>
+                    <div id="gauge-power-marker" class="gauge-power-marker"></div>
+                    <div id="gauge-cursor" class="gauge-cursor"></div>
+                </div>
+                <button id="swing-action-btn" class="swing-btn">SWING</button>
+            </div>
+
+            <!-- Action Quick Bar -->
+            <div class="action-bar interactive">
+                <button id="btn-align-pin" class="action-icon-btn" title="Auto-Aim at PIN">
+                    🎯 <span>Pin Aim</span>
+                </button>
+                <button id="btn-cam-view" class="action-icon-btn" title="Cycle Camera Mode">
+                    🎥 <span>Camera</span>
+                </button>
+                <button id="btn-grid-toggle" class="action-icon-btn" title="Toggle Slope Grid">
+                    🌐 <span>Grid</span>
+                </button>
+                <button id="btn-reset-shot" class="action-icon-btn" title="Reset Shot">
+                    ↺ <span>Reset</span>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Celebration Modal -->
+    <div id="celebration-modal" class="modal-overlay hidden">
+        <div class="celebration-card glass-panel interactive">
+            <h2 id="score-result-title">BIRDIE! 🐦</h2>
+            <p id="score-result-detail">Completed Hole 1 in 3 strokes (Par 4)</p>
+            <button id="btn-next-hole" class="btn-primary-modal">Next Hole ⛳</button>
+        </div>
+    </div>
+
+    <!-- Pure Integrated Single-File JavaScript Engine (No External Dependencies) -->
+    <script>
+    (function() {
+        'use strict';
+
+        // ==========================================
+        // 1. PURE 3D VECTOR MATH
+        // ==========================================
+        class Vec3 {
+            constructor(x = 0, y = 0, z = 0) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+            }
+            set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; }
+            copy(v) { this.x = v.x; this.y = v.y; this.z = v.z; return this; }
+            clone() { return new Vec3(this.x, this.y, this.z); }
+            add(v) { this.x += v.x; this.y += v.y; this.z += v.z; return this; }
+            sub(v) { this.x -= v.x; this.y -= v.y; this.z -= v.z; return this; }
+            scale(s) { this.x *= s; this.y *= s; this.z *= s; return this; }
+            addScaled(v, s) { this.x += v.x * s; this.y += v.y * s; this.z += v.z * s; return this; }
+            dot(v) { return this.x * v.x + this.y * v.y + this.z * v.z; }
+            length() { return Math.hypot(this.x, this.y, this.z); }
+            distanceTo(v) { return Math.hypot(this.x - v.x, this.y - v.y, this.z - v.z); }
+            normalize() {
+                const len = this.length();
+                if (len > 0.00001) { this.x /= len; this.y /= len; this.z /= len; }
+                return this;
+            }
+        }
+
+        // ==========================================
+        // 2. WEB AUDIO SYNTHESIZER
+        // ==========================================
+        class PureSoundEffects {
+            constructor() {
+                this.ctx = null;
+                this.initialized = false;
+                this.setupUnlock();
+            }
+
+            init() {
+                if (this.initialized && this.ctx) return;
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.ctx = new AudioContext();
+                        this.initialized = true;
+                    }
+                } catch (e) {}
+            }
+
+            resume() {
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            setupUnlock() {
+                const unlock = () => {
+                    this.init();
+                    this.resume();
+                    if (this.ctx && this.ctx.state === 'running') {
+                        ['touchstart', 'touchend', 'pointerdown', 'click'].forEach(evt => {
+                            document.removeEventListener(evt, unlock);
+                        });
+                    }
+                };
+                ['touchstart', 'touchend', 'pointerdown', 'click'].forEach(evt => {
+                    document.addEventListener(evt, unlock, { passive: true });
+                });
+            }
+
+            playJustImpact(power = 1.0) {
+                this.init();
+                this.resume();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                const osc = this.ctx.createOscillator();
+                const oscGain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(2400, now);
+                osc.frequency.exponentialRampToValueAtTime(450, now + 0.15);
+
+                oscGain.gain.setValueAtTime(0.7 * power, now);
+                oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+                osc.connect(oscGain);
+                oscGain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.24);
+
+                const boomOsc = this.ctx.createOscillator();
+                const boomGain = this.ctx.createGain();
+                boomOsc.type = 'triangle';
+                boomOsc.frequency.setValueAtTime(280, now);
+                boomOsc.frequency.exponentialRampToValueAtTime(55, now + 0.16);
+
+                boomGain.gain.setValueAtTime(0.85 * power, now);
+                boomGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+                boomOsc.connect(boomGain);
+                boomGain.connect(this.ctx.destination);
+                boomOsc.start(now);
+                boomOsc.stop(now + 0.2);
+
+                this.playNoiseBurst(now, 0.04, 0.6 * power);
+            }
+
+            playIronShot(power = 1.0) {
+                this.init();
+                this.resume();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1100, now);
+                osc.frequency.exponentialRampToValueAtTime(220, now + 0.11);
+
+                gain.gain.setValueAtTime(0.75 * power, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.14);
+
+                this.playNoiseBurst(now, 0.03, 0.45 * power);
+            }
+
+            playPutterShot(power = 1.0) {
+                this.init();
+                this.resume();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(480, now);
+                osc.frequency.exponentialRampToValueAtTime(150, now + 0.08);
+
+                gain.gain.setValueAtTime(0.45 * Math.max(0.2, power), now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            }
+
+            playBounce(intensity = 0.5) {
+                this.init();
+                this.resume();
+                if (!this.ctx || intensity < 0.05) return;
+                const now = this.ctx.currentTime;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(75, now + 0.06);
+
+                gain.gain.setValueAtTime(0.35 * Math.min(1.0, intensity), now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+
+            playCupIn() {
+                this.init();
+                this.resume();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                [0, 0.045, 0.09].forEach((delay, idx) => {
+                    const hitTime = now + delay;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'sine';
+                    const freq = idx === 0 ? 1200 : (idx === 1 ? 900 : 640);
+                    osc.frequency.setValueAtTime(freq, hitTime);
+                    osc.frequency.exponentialRampToValueAtTime(freq * 0.6, hitTime + 0.06);
+
+                    const vol = 0.55 / (idx + 1);
+                    gain.gain.setValueAtTime(vol, hitTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, hitTime + 0.07);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(hitTime);
+                    osc.stop(hitTime + 0.08);
+                });
+
+                setTimeout(() => this.playFanfare(), 180);
+            }
+
+            playFanfare() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    const startTime = now + i * 0.08;
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, startTime);
+
+                    gain.gain.setValueAtTime(0.28, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.7);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.75);
+                });
+            }
+
+            playMeterTick() {
+                this.init();
+                this.resume();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1350, now);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.04);
+            }
+
+            playNoiseBurst(time, duration, volume) {
+                const bufferSize = Math.floor(this.ctx.sampleRate * duration);
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.2));
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.setValueAtTime(1600, time);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(volume, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start(time);
+            }
+        }
+        const sound = new PureSoundEffects();
+
+        // ==========================================
+        // 3. CLUBS & REALISTIC TERRAIN PROFILE
+        // ==========================================
+        const CLUBS = {
+            '1W': { name: '1W Driver', type: 'wood', loft: 10.5, speed: 70, spin: 2600, range: 260 },
+            '3W': { name: '3W Wood', type: 'wood', loft: 15.0, speed: 62, spin: 3400, range: 230 },
+            '5I': { name: '5 Iron', type: 'iron', loft: 24.0, speed: 53, spin: 5000, range: 190 },
+            '7I': { name: '7 Iron', type: 'iron', loft: 32.0, speed: 46, spin: 6500, range: 155 },
+            '9I': { name: '9 Iron', type: 'iron', loft: 40.0, speed: 40, spin: 8000, range: 130 },
+            'SW': { name: 'Sand Wedge', type: 'wedge', loft: 56.0, speed: 29, spin: 9800, range: 85 },
+            'PT': { name: 'Putter', type: 'putter', loft: 3.5, speed: 13, spin: 800, range: 28 }
+        };
+
+        const TERRAIN_TYPES = {
+            TEE: { name: 'Tee Ground', friction: 0.96, restitution: 0.45, liePenalty: 1.0, color: '#38b000', liePct: '100%' },
+            FAIRWAY: { name: 'Fairway', friction: 0.95, restitution: 0.4, liePenalty: 1.0, color: '#44a060', liePct: '98-100%' },
+            ROUGH: { name: 'Rough', friction: 0.88, restitution: 0.2, liePenalty: 0.82, color: '#255e3e', liePct: '80-85%' },
+            DEEP_ROUGH: { name: 'Deep Rough', friction: 0.80, restitution: 0.1, liePenalty: 0.65, color: '#163f2a', liePct: '60-70%' },
+            BUNKER: { name: 'White Sand Bunker', friction: 0.35, restitution: 0.05, liePenalty: 0.55, color: '#f3e9d2', liePct: '50-60%' },
+            GREEN: { name: 'Putting Green', friction: 0.984, restitution: 0.48, liePenalty: 1.0, color: '#5ec250', liePct: '100%' },
+            WATER: { name: 'Ocean Hazard', friction: 0.0, restitution: 0.0, liePenalty: 0.0, color: '#0077b6', liePct: '0%' }
+        };
+
+        // ==========================================
+        // 4. PHOTOREALISTIC CHAMPIONSHIP COURSES
+        // ==========================================
+        const HOLE_DATA = [
+            {
+                holeNumber: 1,
+                par: 4,
+                teePosition: new Vec3(0, 3.8, 0),
+                cupPosition: new Vec3(12, 2.3, 315),
+                totalYards: 345,
+                description: "Hole 1 - Pebble Ocean Links (Par 4, 345 YDS)",
+                fairwayPath: [
+                    { x: 0, z: 0 },
+                    { x: 5, z: 95 },
+                    { x: 14, z: 205 },
+                    { x: 12, z: 315 }
+                ],
+                fairwayWidth: 36,
+                greenCenter: { x: 12, z: 315 },
+                greenRadius: 17,
+                bunkers: [
+                    { x: -14, z: 175, r: 11 },
+                    { x: 26, z: 295, r: 9 },
+                    { x: -3, z: 330, r: 8 }
+                ],
+                waterHazards: [
+                    { x: -44, z: 165, rx: 30, rz: 95, waterLevel: 0.1 }
+                ],
+                distanceMarkers: [
+                    { x: -14, z: 115, color: '#3b82f6', label: '200Y' },
+                    { x: 18, z: 115, color: '#3b82f6', label: '200Y' },
+                    { x: -13, z: 165, color: '#ffffff', label: '150Y' },
+                    { x: 19, z: 165, color: '#ffffff', label: '150Y' },
+                    { x: -10, z: 215, color: '#ef4444', label: '100Y' },
+                    { x: 18, z: 215, color: '#ef4444', label: '100Y' }
+                ],
+                trees: [
+                    { x: -32, z: 40, s: 1.3, type: 'pine' },
+                    { x: -36, z: 105, s: 1.5, type: 'broad' },
+                    { x: -42, z: 210, s: 1.4, type: 'pine' },
+                    { x: -26, z: 310, s: 1.6, type: 'broad' },
+                    { x: 30, z: 30, s: 1.2, type: 'pine' },
+                    { x: 38, z: 95, s: 1.4, type: 'broad' },
+                    { x: 34, z: 185, s: 1.3, type: 'pine' },
+                    { x: 36, z: 265, s: 1.5, type: 'broad' },
+                    { x: 30, z: 335, s: 1.2, type: 'pine' }
+                ]
+            },
+            {
+                holeNumber: 2,
+                par: 3,
+                teePosition: new Vec3(0, 5.8, 0),
+                cupPosition: new Vec3(0, 1.4, 155),
+                totalYards: 170,
+                description: "Hole 2 - Emerald Sanctuary (Par 3, 170 YDS)",
+                fairwayPath: [
+                    { x: 0, z: 0 },
+                    { x: 0, z: 60 },
+                    { x: 0, z: 155 }
+                ],
+                fairwayWidth: 28,
+                greenCenter: { x: 0, z: 155 },
+                greenRadius: 18,
+                bunkers: [
+                    { x: -15, z: 150, r: 8 },
+                    { x: 15, z: 160, r: 8 }
+                ],
+                waterHazards: [
+                    { x: 0, z: 100, rx: 55, rz: 34, waterLevel: 0.1 }
+                ],
+                distanceMarkers: [
+                    { x: -12, z: 55, color: '#ef4444', label: '100Y' },
+                    { x: 12, z: 55, color: '#ef4444', label: '100Y' }
+                ],
+                trees: [
+                    { x: -28, z: 30, s: 1.3, type: 'pine' },
+                    { x: 28, z: 30, s: 1.3, type: 'broad' },
+                    { x: -34, z: 155, s: 1.7, type: 'pine' },
+                    { x: 34, z: 155, s: 1.7, type: 'broad' },
+                    { x: 0, z: 195, s: 1.5, type: 'pine' }
+                ]
+            },
+            {
+                holeNumber: 3,
+                par: 5,
+                teePosition: new Vec3(0, 8.5, 0),
+                cupPosition: new Vec3(-18, 1.8, 480),
+                totalYards: 525,
+                description: "Hole 3 - Majestic Vista (Par 5, 525 YDS)",
+                fairwayPath: [
+                    { x: 0, z: 0 },
+                    { x: 10, z: 160 },
+                    { x: 0, z: 320 },
+                    { x: -18, z: 480 }
+                ],
+                fairwayWidth: 38,
+                greenCenter: { x: -18, z: 480 },
+                greenRadius: 19,
+                bunkers: [
+                    { x: 24, z: 150, r: 12 },
+                    { x: -16, z: 310, r: 10 },
+                    { x: -28, z: 470, r: 9 },
+                    { x: -6, z: 495, r: 8 }
+                ],
+                waterHazards: [
+                    { x: 38, z: 330, rx: 36, rz: 95, waterLevel: 0.1 }
+                ],
+                distanceMarkers: [
+                    { x: -15, z: 280, color: '#3b82f6', label: '200Y' },
+                    { x: 15, z: 280, color: '#3b82f6', label: '200Y' },
+                    { x: -14, z: 330, color: '#ffffff', label: '150Y' },
+                    { x: 14, z: 330, color: '#ffffff', label: '150Y' },
+                    { x: -12, z: 380, color: '#ef4444', label: '100Y' },
+                    { x: 12, z: 380, color: '#ef4444', label: '100Y' }
+                ],
+                trees: [
+                    { x: -30, z: 60, s: 1.4, type: 'pine' },
+                    { x: -36, z: 200, s: 1.5, type: 'broad' },
+                    { x: -32, z: 360, s: 1.6, type: 'pine' },
+                    { x: 30, z: 60, s: 1.3, type: 'broad' },
+                    { x: 40, z: 220, s: 1.4, type: 'pine' },
+                    { x: 26, z: 455, s: 1.5, type: 'broad' }
+                ]
+            }
+        ];
+
+        class PureGolfCourse {
+            constructor() {
+                this.currentHoleIndex = 0;
+                this.holeData = HOLE_DATA[0];
+            }
+
+            get teePosition() { return this.holeData.teePosition; }
+            get cupPosition() {
+                const h = this.getTerrainHeight(this.holeData.cupPosition.x, this.holeData.cupPosition.z);
+                return new Vec3(this.holeData.cupPosition.x, h, this.holeData.cupPosition.z);
+            }
+
+            loadHole(index) {
+                this.currentHoleIndex = index % HOLE_DATA.length;
+                this.holeData = HOLE_DATA[this.currentHoleIndex];
+            }
+
+            getTerrainHeight(x, z) {
+                const hole = this.holeData;
+                const progress = Math.max(0, Math.min(1, z / hole.cupPosition.z));
+                let baseHeight = Math.sin(progress * Math.PI) * 2.4 + Math.cos(x * 0.04) * 1.3;
+
+                const distToTee = Math.hypot(x - hole.teePosition.x, z - hole.teePosition.z);
+                if (distToTee < 14) {
+                    baseHeight += Math.cos((distToTee / 14) * (Math.PI / 2)) * 2.0;
+                }
+
+                const distToGreen = Math.hypot(x - hole.greenCenter.x, z - hole.greenCenter.z);
+                if (distToGreen < hole.greenRadius + 6) {
+                    const factor = 1.0 - Math.min(1.0, distToGreen / (hole.greenRadius + 6));
+                    baseHeight += ((x - hole.greenCenter.x) * 0.028 + (z - hole.greenCenter.z) * 0.016) * factor;
+                }
+
+                for (const b of hole.bunkers) {
+                    const d = Math.hypot(x - b.x, z - b.z);
+                    if (d < b.r) {
+                        baseHeight -= Math.cos((d / b.r) * (Math.PI / 2)) * 1.5;
+                    }
+                }
+
+                for (const w of hole.waterHazards) {
+                    const d = Math.hypot((x - w.x) / w.rx, (z - w.z) / w.rz);
+                    if (d < 1.0) {
+                        baseHeight -= Math.cos(d * (Math.PI / 2)) * 2.4;
+                    }
+                }
+
+                return baseHeight;
+            }
+
+            getTerrainNormal(x, z) {
+                const eps = 0.15;
+                const hL = this.getTerrainHeight(x - eps, z);
+                const hR = this.getTerrainHeight(x + eps, z);
+                const hD = this.getTerrainHeight(x, z - eps);
+                const hU = this.getTerrainHeight(x, z + eps);
+                return new Vec3(hL - hR, 2 * eps, hD - hU).normalize();
+            }
+
+            getTerrainType(x, z) {
+                const hole = this.holeData;
+
+                for (const w of hole.waterHazards) {
+                    if (Math.hypot((x - w.x) / w.rx, (z - w.z) / w.rz) < 0.95) {
+                        if (this.getTerrainHeight(x, z) <= w.waterLevel + 0.05) return TERRAIN_TYPES.WATER;
+                    }
+                }
+
+                for (const b of hole.bunkers) {
+                    if (Math.hypot(x - b.x, z - b.z) < b.r) return TERRAIN_TYPES.BUNKER;
+                }
+
+                if (Math.hypot(x - hole.greenCenter.x, z - hole.greenCenter.z) < hole.greenRadius) {
+                    return TERRAIN_TYPES.GREEN;
+                }
+
+                if (Math.hypot(x - hole.teePosition.x, z - hole.teePosition.z) < 8) {
+                    return TERRAIN_TYPES.TEE;
+                }
+
+                let minDist = 9999;
+                for (let i = 0; i < hole.fairwayPath.length - 1; i++) {
+                    const p1 = hole.fairwayPath[i];
+                    const p2 = hole.fairwayPath[i + 1];
+                    const d = this.distToSegment(x, z, p1.x, p1.z, p2.x, p2.z);
+                    if (d < minDist) minDist = d;
+                }
+
+                if (minDist < hole.fairwayWidth * 0.5) return TERRAIN_TYPES.FAIRWAY;
+                if (minDist < hole.fairwayWidth * 0.85) return TERRAIN_TYPES.ROUGH;
+                return TERRAIN_TYPES.DEEP_ROUGH;
+            }
+
+            distToSegment(px, pz, vx, vz, wx, wz) {
+                const l2 = (vx - wx) * (vx - wx) + (vz - wz) * (vz - wz);
+                if (l2 === 0) return Math.hypot(px - vx, pz - vz);
+                let t = ((px - vx) * (wx - vx) + (pz - vz) * (wz - vz)) / l2;
+                t = Math.max(0, Math.min(1, t));
+                return Math.hypot(px - (vx + t * (wx - vx)), pz - (vz + t * (wz - vz)));
+            }
+        }
+
+        // ==========================================
+        // 5. GOLF PHYSICS ENGINE
+        // ==========================================
+        class PureGolfPhysics {
+            constructor(course) {
+                this.course = course;
+                this.gravity = 9.81;
+                this.airDensity = 1.225;
+                this.ballRadius = 0.02135;
+                this.ballMass = 0.0459;
+                this.ballArea = Math.PI * this.ballRadius * this.ballRadius;
+                this.cd = 0.24;
+                this.cl = 0.18;
+
+                this.ballPosition = new Vec3();
+                this.ballVelocity = new Vec3();
+                this.ballSpin = new Vec3();
+
+                this.inAir = false;
+                this.isRolling = false;
+                this.isStopped = true;
+                this.inWater = false;
+                this.inCup = false;
+                this.initialPos = new Vec3();
+                this.wind = new Vec3(0, 0, 0);
+
+                this.persistentTracers = [];
+            }
+
+            setWind(speed, dirRad) {
+                this.wind.set(Math.sin(dirRad) * speed, 0, Math.cos(dirRad) * speed);
+            }
+
+            resetBall(pos) {
+                this.ballPosition.copy(pos);
+                this.initialPos.copy(pos);
+                this.ballVelocity.set(0, 0, 0);
+                this.ballSpin.set(0, 0, 0);
+                this.inAir = false;
+                this.isRolling = false;
+                this.isStopped = true;
+                this.inWater = false;
+                this.inCup = false;
+            }
+
+            clearTracers() {
+                this.persistentTracers = [];
+            }
+
+            launch(clubKey, powerRatio, accuracyRatio, aimAngleRad) {
+                const club = CLUBS[clubKey];
+                if (!club) return;
+
+                this.initialPos.copy(this.ballPosition);
+                this.inCup = false;
+                this.inWater = false;
+
+                const currentTerrain = this.course.getTerrainType(this.ballPosition.x, this.ballPosition.z);
+                const liePenalty = currentTerrain.liePenalty || 1.0;
+
+                if (club.type === 'putter') {
+                    const putterSpeed = club.speed * powerRatio * liePenalty;
+                    const deviationAngle = (accuracyRatio - 0.5) * 0.05;
+                    const actualAim = aimAngleRad + deviationAngle;
+
+                    this.ballVelocity.set(
+                        Math.sin(actualAim) * putterSpeed,
+                        0,
+                        Math.cos(actualAim) * putterSpeed
+                    );
+                    this.ballSpin.set(0, 0, 0);
+                    this.inAir = false;
+                    this.isRolling = true;
+                    this.isStopped = false;
+                    return;
+                }
+
+                const sweetSpotOffset = accuracyRatio - 0.5;
+                const actualPower = powerRatio * liePenalty;
+                const baseSpeed = club.speed * actualPower;
+                const loftRad = (club.loft * (1.0 - sweetSpotOffset * 0.1) * Math.PI) / 180;
+
+                const horizDeviationRad = (sweetSpotOffset * 14.0 * Math.PI) / 180;
+                const finalAimRad = aimAngleRad + horizDeviationRad;
+
+                const horizontalSpeed = baseSpeed * Math.cos(loftRad);
+                const verticalSpeed = baseSpeed * Math.sin(loftRad);
+
+                this.ballVelocity.set(
+                    Math.sin(finalAimRad) * horizontalSpeed,
+                    verticalSpeed,
+                    Math.cos(finalAimRad) * horizontalSpeed
+                );
+
+                const backspinRpm = club.spin * actualPower * (1.0 - Math.abs(sweetSpotOffset) * 0.3);
+                const sidespinRpm = sweetSpotOffset * 3500 * actualPower;
+
+                this.ballSpin.set(
+                    (backspinRpm * 2 * Math.PI) / 60,
+                    (sidespinRpm * 2 * Math.PI) / 60,
+                    0
+                );
+
+                this.inAir = true;
+                this.isRolling = false;
+                this.isStopped = false;
+            }
+
+            update(delta, callbacks = {}) {
+                if (this.isStopped) return;
+
+                const dt = Math.min(delta, 0.033);
+                const subSteps = 4;
+                const subDt = dt / subSteps;
+
+                for (let step = 0; step < subSteps; step++) {
+                    if (this.isStopped) break;
+                    if (this.inAir) this.updateAirFlight(subDt, callbacks);
+                    else if (this.isRolling) this.updateGroundRoll(subDt, callbacks);
+                }
+            }
+
+            updateAirFlight(dt, callbacks) {
+                const relVel = new Vec3(
+                    this.ballVelocity.x - this.wind.x,
+                    this.ballVelocity.y - this.wind.y,
+                    this.ballVelocity.z - this.wind.z
+                );
+                const speed = relVel.length();
+
+                if (speed > 0.001) {
+                    const dragMag = 0.5 * this.airDensity * speed * speed * this.cd * this.ballArea;
+                    const dragForce = relVel.clone().normalize().scale(-dragMag);
+
+                    const forward = this.ballVelocity.clone().normalize();
+                    const liftMag = 0.5 * this.airDensity * speed * speed * this.cl * this.ballArea * (this.ballSpin.x / 500);
+                    const liftForce = new Vec3(0, liftMag, 0);
+
+                    const rightDir = new Vec3(forward.z, 0, -forward.x).normalize();
+                    const curveMag = 0.5 * this.airDensity * speed * speed * this.cl * this.ballArea * (this.ballSpin.y / 500);
+                    const curveForce = rightDir.scale(curveMag);
+
+                    const totalForce = dragForce.add(liftForce).add(curveForce);
+                    const accel = totalForce.scale(1 / this.ballMass);
+                    accel.y -= this.gravity;
+
+                    this.ballVelocity.addScaled(accel, dt);
+                } else {
+                    this.ballVelocity.y -= this.gravity * dt;
+                }
+
+                this.ballSpin.scale(Math.pow(0.98, dt * 60));
+                this.ballPosition.addScaled(this.ballVelocity, dt);
+
+                const groundH = this.course.getTerrainHeight(this.ballPosition.x, this.ballPosition.z);
+                const terrain = this.course.getTerrainType(this.ballPosition.x, this.ballPosition.z);
+
+                if (this.ballPosition.y <= groundH + this.ballRadius) {
+                    this.ballPosition.y = groundH + this.ballRadius;
+                    this.handleGroundImpact(terrain, callbacks);
+                }
+            }
+
+            handleGroundImpact(terrain, callbacks) {
+                if (terrain === TERRAIN_TYPES.WATER) {
+                    this.inWater = true;
+                    this.isStopped = true;
+                    this.inAir = false;
+                    this.isRolling = false;
+                    if (callbacks.onWater) callbacks.onWater();
+                    return;
+                }
+
+                const normal = this.course.getTerrainNormal(this.ballPosition.x, this.ballPosition.z);
+                const normalVel = this.ballVelocity.dot(normal);
+
+                if (callbacks.onBounce) callbacks.onBounce(Math.abs(normalVel) / 20, terrain);
+
+                if (terrain === TERRAIN_TYPES.BUNKER) {
+                    this.ballVelocity.set(0, 0, 0);
+                    this.inAir = false;
+                    this.isRolling = false;
+                    this.isStopped = true;
+                    if (callbacks.onRest) callbacks.onRest();
+                    return;
+                }
+
+                if (normalVel < -1.5) {
+                    const restitution = terrain.restitution || 0.4;
+                    const normalComp = normal.clone().scale(normalVel);
+                    const tangentComp = this.ballVelocity.clone().sub(normalComp);
+
+                    const spinBite = (this.ballSpin.x / 1000) * 0.5;
+                    tangentComp.scale(Math.max(0.2, (terrain.friction || 0.9) - spinBite));
+
+                    this.ballVelocity.copy(tangentComp).addScaled(normalComp, -restitution);
+                    this.ballSpin.x *= 0.4;
+                    this.ballSpin.y *= 0.4;
+                } else {
+                    this.inAir = false;
+                    this.isRolling = true;
+                    this.ballVelocity.y = 0;
+                }
+            }
+
+            updateGroundRoll(dt, callbacks) {
+                const x = this.ballPosition.x;
+                const z = this.ballPosition.z;
+                const groundH = this.course.getTerrainHeight(x, z);
+                const terrain = this.course.getTerrainType(x, z);
+                const normal = this.course.getTerrainNormal(x, z);
+
+                this.ballPosition.y = groundH + this.ballRadius;
+
+                const cupPos = this.course.cupPosition;
+                const distToCup = Math.hypot(x - cupPos.x, z - cupPos.z);
+                const cupRadius = 0.054;
+
+                if (distToCup < cupRadius) {
+                    const speed = this.ballVelocity.length();
+                    if (speed < 3.2) {
+                        this.inCup = true;
+                        this.isStopped = true;
+                        this.isRolling = false;
+                        this.ballPosition.set(cupPos.x, cupPos.y - 0.04, cupPos.z);
+                        if (callbacks.onCupIn) callbacks.onCupIn();
+                        return;
+                    } else {
+                        const deflect = new Vec3(x - cupPos.x, 0, z - cupPos.z).normalize();
+                        this.ballVelocity.addScaled(deflect, 0.5);
+                    }
+                }
+
+                const slopeAccel = new Vec3(normal.x, 0, normal.z).scale(this.gravity * 0.9);
+                this.ballVelocity.addScaled(slopeAccel, dt);
+
+                const frictionRate = Math.pow(terrain.friction || 0.95, dt * 60);
+                this.ballVelocity.scale(frictionRate);
+                this.ballPosition.addScaled(this.ballVelocity, dt);
+
+                if (this.ballVelocity.length() < 0.05) {
+                    this.ballVelocity.set(0, 0, 0);
+                    this.isRolling = false;
+                    this.isStopped = true;
+                    if (callbacks.onRest) callbacks.onRest();
+                }
+            }
+        }
+
+        // ==========================================
+        // 6. PHOTOREALISTIC 3D PERSPECTIVE RENDERER
+        // ==========================================
+        class Pure3DRenderer {
+            constructor(canvas, course, physics) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.course = course;
+                this.physics = physics;
+
+                this.camPos = new Vec3(0, 5, -10);
+                this.camYaw = 0;
+                this.camPitch = 0.08;
+                this.fov = 65;
+
+                this.showGreenGrid = true;
+                this.gridAnimTime = 0;
+                this.sunDir = new Vec3(0.55, 0.8, 0.35).normalize();
+
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            }
+
+            resize() {
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+                this.canvas.width = this.width;
+                this.canvas.height = this.height;
+                this.focalLength = (this.width / 2) / Math.tan((this.fov * Math.PI) / 360);
+            }
+
+            project(worldPos) {
+                const dx = worldPos.x - this.camPos.x;
+                const dy = worldPos.y - this.camPos.y;
+                const dz = worldPos.z - this.camPos.z;
+
+                const cosY = Math.cos(this.camYaw);
+                const sinY = Math.sin(this.camYaw);
+
+                const x1 = dx * cosY - dz * sinY;
+                const z1 = dx * sinY + dz * cosY;
+
+                const cosP = Math.cos(this.camPitch);
+                const sinP = Math.sin(this.camPitch);
+                const y2 = dy * cosP + z1 * sinP;
+                const z2 = -dy * sinP + z1 * cosP;
+
+                if (z2 <= 0.2) return null;
+
+                const screenX = (x1 * this.focalLength) / z2 + this.width / 2;
+                const screenY = (-y2 * this.focalLength) / z2 + this.height / 2;
+
+                return { x: screenX, y: screenY, z: z2 };
+            }
+
+            render(currentTrailPoints, aimAngleRad, club) {
+                const ctx = this.ctx;
+                ctx.clearRect(0, 0, this.width, this.height);
+
+                this.drawSky();
+
+                const renderList = [];
+                this.collectTerrainQuads(renderList);
+                this.collectDistanceMarkers(renderList);
+                this.collectTrees(renderList);
+                this.collectFlagAndLightBeam(renderList);
+
+                if (this.showGreenGrid) {
+                    this.collectGreenGrid(renderList);
+                }
+
+                this.collectTracers(renderList, currentTrailPoints);
+                this.collectBallAndAim(renderList, aimAngleRad, club);
+
+                renderList.sort((a, b) => b.depth - a.depth);
+
+                for (const item of renderList) {
+                    item.render(ctx);
+                }
+            }
+
+            drawSky() {
+                const ctx = this.ctx;
+                const skyGrad = ctx.createLinearGradient(0, 0, 0, this.height * 0.72);
+                skyGrad.addColorStop(0, '#0284c7');
+                skyGrad.addColorStop(0.35, '#38bdf8');
+                skyGrad.addColorStop(0.7, '#bae6fd');
+                skyGrad.addColorStop(1, '#f0f9ff');
+                ctx.fillStyle = skyGrad;
+                ctx.fillRect(0, 0, this.width, this.height);
+
+                ctx.fillStyle = '#0369a1';
+                ctx.fillRect(0, this.height * 0.44, this.width, this.height * 0.1);
+
+                ctx.fillStyle = 'rgba(15, 60, 50, 0.42)';
+                ctx.beginPath();
+                ctx.moveTo(0, this.height * 0.46);
+                const segments = 16;
+                for (let i = 0; i <= segments; i++) {
+                    const sx = (this.width / segments) * i;
+                    const sy = this.height * 0.43 + Math.sin(i * 1.1 + this.camYaw * 2.2) * 20;
+                    ctx.lineTo(sx, sy);
+                }
+                ctx.lineTo(this.width, this.height);
+                ctx.lineTo(0, this.height);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            collectTerrainQuads(list) {
+                const hole = this.course.holeData;
+                const stepX = 4;
+                const stepZ = 5;
+
+                const minZ = Math.max(-20, Math.floor((this.camPos.z - 20) / stepZ) * stepZ);
+                const maxZ = Math.min(hole.cupPosition.z + 65, Math.floor((this.camPos.z + 380) / stepZ) * stepZ);
+                const minX = -48;
+                const maxX = 48;
+
+                for (let z = minZ; z < maxZ; z += stepZ) {
+                    for (let x = minX; x < maxX; x += stepX) {
+                        const p00 = new Vec3(x, this.course.getTerrainHeight(x, z), z);
+                        const p10 = new Vec3(x + stepX, this.course.getTerrainHeight(x + stepX, z), z);
+                        const p11 = new Vec3(x + stepX, this.course.getTerrainHeight(x + stepX, z + stepZ), z + stepZ);
+                        const p01 = new Vec3(x, this.course.getTerrainHeight(x, z + stepZ), z + stepZ);
+
+                        const proj00 = this.project(p00);
+                        const proj10 = this.project(p10);
+                        const proj11 = this.project(p11);
+                        const proj01 = this.project(p01);
+
+                        if (!proj00 || !proj10 || !proj11 || !proj01) continue;
+
+                        const minSX = Math.min(proj00.x, proj10.x, proj11.x, proj01.x);
+                        const maxSX = Math.max(proj00.x, proj10.x, proj11.x, proj01.x);
+                        const minSY = Math.min(proj00.y, proj10.y, proj11.y, proj01.y);
+                        const maxSY = Math.max(proj00.y, proj10.y, proj11.y, proj01.y);
+                        if (maxSX < 0 || minSX > this.width || maxSY < 0 || minSY > this.height) continue;
+
+                        const avgZ = (proj00.z + proj10.z + proj11.z + proj01.z) / 4;
+
+                        const midX = x + stepX / 2;
+                        const midZ = z + stepZ / 2;
+                        const terrain = this.course.getTerrainType(midX, midZ);
+                        const normal = this.course.getTerrainNormal(midX, midZ);
+                        
+                        let light = Math.max(0.68, Math.min(1.22, 0.72 + normal.dot(this.sunDir) * 0.45));
+
+                        if (terrain === TERRAIN_TYPES.FAIRWAY) {
+                            const stripePattern = Math.sin(midZ * 0.35);
+                            light *= stripePattern > 0 ? 1.07 : 0.94;
+                        }
+
+                        let isWater = (terrain === TERRAIN_TYPES.WATER);
+
+                        list.push({
+                            depth: avgZ,
+                            render: (ctx) => {
+                                if (isWater) {
+                                    const waterGrad = ctx.createLinearGradient(proj00.x, proj00.y, proj11.x, proj11.y);
+                                    waterGrad.addColorStop(0, '#0077b6');
+                                    waterGrad.addColorStop(0.5, '#0096c7');
+                                    waterGrad.addColorStop(1, '#023e8a');
+                                    ctx.fillStyle = waterGrad;
+                                } else {
+                                    ctx.fillStyle = this.getShadedColor(terrain.color, light);
+                                }
+
+                                ctx.strokeStyle = ctx.fillStyle;
+                                ctx.lineWidth = 0.5;
+                                ctx.beginPath();
+                                ctx.moveTo(proj00.x, proj00.y);
+                                ctx.lineTo(proj10.x, proj10.y);
+                                ctx.lineTo(proj11.x, proj11.y);
+                                ctx.lineTo(proj01.x, proj01.y);
+                                ctx.closePath();
+                                ctx.fill();
+                                ctx.stroke();
+                            }
+                        });
+                    }
+                }
+            }
+
+            collectDistanceMarkers(list) {
+                const markers = this.course.holeData.distanceMarkers || [];
+                for (const m of markers) {
+                    const gh = this.course.getTerrainHeight(m.x, m.z);
+                    const pBottom = this.project(new Vec3(m.x, gh, m.z));
+                    const pTop = this.project(new Vec3(m.x, gh + 1.2, m.z));
+
+                    if (!pBottom || !pTop) continue;
+
+                    list.push({
+                        depth: pBottom.z,
+                        render: (ctx) => {
+                            ctx.strokeStyle = m.color;
+                            ctx.lineWidth = Math.max(2, 45 / pBottom.z);
+                            ctx.beginPath();
+                            ctx.moveTo(pBottom.x, pBottom.y);
+                            ctx.lineTo(pTop.x, pTop.y);
+                            ctx.stroke();
+
+                            if (pBottom.z < 120) {
+                                ctx.fillStyle = m.color;
+                                ctx.font = 'bold 10px monospace';
+                                ctx.textAlign = 'center';
+                                ctx.fillText(m.label, pTop.x, pTop.y - 4);
+                            }
+                        }
+                    });
+                }
+            }
+
+            collectTrees(list) {
+                for (const t of this.course.holeData.trees) {
+                    const groundH = this.course.getTerrainHeight(t.x, t.z);
+                    const basePos = new Vec3(t.x, groundH, t.z);
+                    const topPos = new Vec3(t.x, groundH + 7.5 * t.s, t.z);
+
+                    const pBase = this.project(basePos);
+                    const pTop = this.project(topPos);
+
+                    if (!pBase || !pTop) continue;
+
+                    const depth = pBase.z;
+                    const treeHeight = Math.abs(pBase.y - pTop.y);
+                    const trunkWidth = Math.max(2, treeHeight * 0.08);
+                    const foliageWidth = treeHeight * 0.5;
+
+                    list.push({
+                        depth: depth,
+                        render: (ctx) => {
+                            ctx.fillStyle = '#45260f';
+                            ctx.fillRect(pBase.x - trunkWidth / 2, pBase.y - treeHeight * 0.35, trunkWidth, treeHeight * 0.35);
+
+                            if (t.type === 'broad') {
+                                ctx.fillStyle = '#1e7b34';
+                                ctx.beginPath();
+                                ctx.arc(pBase.x, pBase.y - treeHeight * 0.65, foliageWidth * 0.55, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.fillStyle = '#2db84d';
+                                ctx.beginPath();
+                                ctx.arc(pBase.x - foliageWidth * 0.15, pBase.y - treeHeight * 0.72, foliageWidth * 0.35, 0, Math.PI * 2);
+                                ctx.fill();
+                            } else {
+                                for (let i = 0; i < 3; i++) {
+                                    const tierBaseY = pBase.y - treeHeight * (0.25 + i * 0.22);
+                                    const tierTopY = pBase.y - treeHeight * (0.58 + i * 0.22);
+                                    const tierW = foliageWidth * (1.0 - i * 0.18);
+
+                                    ctx.fillStyle = i === 2 ? '#22c55e' : (i === 1 ? '#15803d' : '#14532d');
+                                    ctx.beginPath();
+                                    ctx.moveTo(pBase.x, tierTopY);
+                                    ctx.lineTo(pBase.x + tierW / 2, tierBaseY);
+                                    ctx.lineTo(pBase.x - tierW / 2, tierBaseY);
+                                    ctx.closePath();
+                                    ctx.fill();
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            collectFlagAndLightBeam(list) {
+                const cup = this.course.cupPosition;
+                const pBottom = this.project(cup);
+                const pFlagTop = this.project(new Vec3(cup.x, cup.y + 2.8, cup.z));
+                const pSkyBeam = this.project(new Vec3(cup.x, cup.y + 90.0, cup.z));
+
+                if (!pBottom || !pFlagTop) return;
+
+                const depth = pBottom.z;
+                const flagHeight = Math.abs(pBottom.y - pFlagTop.y);
+
+                list.push({
+                    depth: depth + 0.05,
+                    render: (ctx) => {
+                        if (pSkyBeam) {
+                            const beamW = Math.max(7, 170 / pBottom.z);
+                            const beamGrad = ctx.createLinearGradient(pBottom.x, pBottom.y, pSkyBeam.x, pSkyBeam.y);
+                            beamGrad.addColorStop(0, 'rgba(255, 215, 0, 0.7)');
+                            beamGrad.addColorStop(0.3, 'rgba(255, 235, 59, 0.35)');
+                            beamGrad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+
+                            ctx.fillStyle = beamGrad;
+                            ctx.beginPath();
+                            ctx.moveTo(pBottom.x - beamW / 2, pBottom.y);
+                            ctx.lineTo(pBottom.x + beamW / 2, pBottom.y);
+                            ctx.lineTo(pSkyBeam.x + beamW * 1.4, pSkyBeam.y);
+                            ctx.lineTo(pSkyBeam.x - beamW * 1.4, pSkyBeam.y);
+                            ctx.closePath();
+                            ctx.fill();
+                        }
+
+                        ctx.fillStyle = '#0f172a';
+                        ctx.beginPath();
+                        ctx.ellipse(pBottom.x, pBottom.y, Math.max(3, flagHeight * 0.07), Math.max(1.5, flagHeight * 0.035), 0, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = Math.max(1.8, flagHeight * 0.025);
+                        ctx.beginPath();
+                        ctx.moveTo(pBottom.x, pBottom.y);
+                        ctx.lineTo(pFlagTop.x, pFlagTop.y);
+                        ctx.stroke();
+
+                        const clothW = Math.max(10, flagHeight * 0.26);
+                        const clothH = Math.max(6, flagHeight * 0.16);
+                        ctx.fillStyle = '#ef4444';
+                        ctx.beginPath();
+                        ctx.moveTo(pFlagTop.x, pFlagTop.y);
+                        ctx.lineTo(pFlagTop.x + clothW, pFlagTop.y + clothH * 0.5);
+                        ctx.lineTo(pFlagTop.x, pFlagTop.y + clothH);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                });
+            }
+
+            collectGreenGrid(list) {
+                const hole = this.course.holeData;
+                const green = hole.greenCenter;
+                const r = hole.greenRadius;
+                const step = 2.2;
+
+                for (let x = green.x - r; x <= green.x + r; x += step) {
+                    for (let z = green.z - r; z <= green.z + r; z += step) {
+                        if (Math.hypot(x - green.x, z - green.z) <= r) {
+                            const h = this.course.getTerrainHeight(x, z);
+                            const normal = this.course.getTerrainNormal(x, z);
+                            const mag = Math.hypot(normal.x, normal.z);
+                            const p = this.project(new Vec3(x, h + 0.06, z));
+
+                            if (!p) continue;
+
+                            const animOffset = ((this.gridAnimTime * 2.2 + x + z) % 1.4) / 1.4;
+                            const shiftX = (mag > 0.001 ? normal.x / mag : 0) * animOffset * 0.9;
+                            const shiftZ = (mag > 0.001 ? normal.z / mag : 0) * animOffset * 0.9;
+                            const pAnim = this.project(new Vec3(x + shiftX, h + 0.06, z + shiftZ));
+
+                            if (!pAnim) continue;
+
+                            list.push({
+                                depth: pAnim.z,
+                                render: (ctx) => {
+                                    const beadRadius = Math.max(1.8, Math.min(5.5, (1 / pAnim.z) * 55));
+                                    ctx.fillStyle = mag < 0.02 ? '#4ade80' : (mag < 0.05 ? '#facc15' : '#ef4444');
+                                    ctx.beginPath();
+                                    ctx.arc(pAnim.x, pAnim.y, beadRadius, 0, Math.PI * 2);
+                                    ctx.fill();
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+
+            collectTracers(list, currentTrailPoints) {
+                for (let tIdx = 0; tIdx < this.physics.persistentTracers.length; tIdx++) {
+                    const tracer = this.physics.persistentTracers[tIdx];
+                    if (tracer.points.length < 2) continue;
+
+                    list.push({
+                        depth: 15,
+                        render: (ctx) => {
+                            ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+                            ctx.lineWidth = 2.5;
+                            ctx.setLineDash([4, 4]);
+                            ctx.beginPath();
+                            let started = false;
+                            for (const pt of tracer.points) {
+                                const pp = this.project(pt);
+                                if (pp) {
+                                    if (!started) { ctx.moveTo(pp.x, pp.y); started = true; }
+                                    else { ctx.lineTo(pp.x, pp.y); }
+                                }
+                            }
+                            if (started) ctx.stroke();
+                            ctx.setLineDash([]);
+
+                            if (tracer.landingPos) {
+                                const pLand = this.project(tracer.landingPos);
+                                if (pLand) {
+                                    ctx.fillStyle = '#38bdf8';
+                                    ctx.beginPath();
+                                    ctx.arc(pLand.x, pLand.y, 4, 0, Math.PI * 2);
+                                    ctx.fill();
+
+                                    ctx.font = 'bold 11px monospace';
+                                    ctx.textAlign = 'center';
+                                    ctx.fillText(`Shot ${tracer.shotNum}: ${tracer.distance}Y`, pLand.x, pLand.y - 8);
+                                }
+                            }
+                        }
+                    });
+                }
+
+                if (currentTrailPoints.length > 1) {
+                    list.push({
+                        depth: 8,
+                        render: (ctx) => {
+                            ctx.strokeStyle = '#00f2fe';
+                            ctx.lineWidth = 4.0;
+                            ctx.shadowColor = '#00f2fe';
+                            ctx.shadowBlur = 10;
+                            ctx.beginPath();
+                            let started = false;
+                            for (const pt of currentTrailPoints) {
+                                const pp = this.project(pt);
+                                if (pp) {
+                                    if (!started) { ctx.moveTo(pp.x, pp.y); started = true; }
+                                    else { ctx.lineTo(pp.x, pp.y); }
+                                }
+                            }
+                            if (started) ctx.stroke();
+                            ctx.shadowBlur = 0;
+                        }
+                    });
+                }
+            }
+
+            collectBallAndAim(list, aimAngleRad, club) {
+                const ballPos = this.physics.ballPosition;
+                const pBall = this.project(ballPos);
+
+                const groundH = this.course.getTerrainHeight(ballPos.x, ballPos.z);
+                const pShadow = this.project(new Vec3(ballPos.x, groundH, ballPos.z));
+
+                if (!this.physics.inAir && !this.physics.isRolling && pBall) {
+                    const targetDist = club.range * 0.9144;
+                    const targetX = ballPos.x + Math.sin(aimAngleRad) * targetDist;
+                    const targetZ = ballPos.z + Math.cos(aimAngleRad) * targetDist;
+                    const targetH = this.course.getTerrainHeight(targetX, targetZ);
+                    const pTarget = this.project(new Vec3(targetX, targetH, targetZ));
+                    const hDiff = targetH - ballPos.y;
+
+                    if (pTarget) {
+                        list.push({
+                            depth: pTarget.z + 0.1,
+                            render: (ctx) => {
+                                ctx.strokeStyle = '#ffd700';
+                                ctx.lineWidth = 2.5;
+                                ctx.beginPath();
+                                ctx.ellipse(pTarget.x, pTarget.y, 20, 10, 0, 0, Math.PI * 2);
+                                ctx.stroke();
+
+                                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                                ctx.lineWidth = 1.5;
+                                ctx.beginPath();
+                                ctx.ellipse(pTarget.x, pTarget.y, 32, 16, 0, 0, Math.PI * 2);
+                                ctx.stroke();
+
+                                ctx.fillStyle = '#ffd700';
+                                ctx.font = 'bold 12px monospace';
+                                ctx.textAlign = 'center';
+                                ctx.fillText(`${club.range}Y (${(hDiff >= 0 ? '+' : '') + hDiff.toFixed(1)}m)`, pTarget.x, pTarget.y - 14);
+
+                                ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                                ctx.lineWidth = 2.5;
+                                ctx.setLineDash([7, 6]);
+                                ctx.beginPath();
+                                const segments = 18;
+                                for (let i = 0; i <= segments; i++) {
+                                    const t = i / segments;
+                                    const px = ballPos.x + (targetX - ballPos.x) * t;
+                                    const pz = ballPos.z + (targetZ - ballPos.z) * t;
+                                    const gh = this.course.getTerrainHeight(px, pz);
+                                    const arch = Math.sin(t * Math.PI) * (club.type === 'putter' ? 0 : 9);
+                                    const pArc = this.project(new Vec3(px, gh + arch, pz));
+                                    if (pArc) {
+                                        if (i === 0) ctx.moveTo(pArc.x, pArc.y);
+                                        else ctx.lineTo(pArc.x, pArc.y);
+                                    }
+                                }
+                                ctx.stroke();
+                                ctx.setLineDash([]);
+                            }
+                        });
+                    }
+                }
+
+                if (pBall) {
+                    list.push({
+                        depth: pBall.z,
+                        render: (ctx) => {
+                            if (pShadow && ballPos.y > groundH) {
+                                const shadowAlpha = Math.max(0.1, 0.65 - (ballPos.y - groundH) * 0.05);
+                                ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
+                                ctx.beginPath();
+                                ctx.ellipse(pShadow.x, pShadow.y, Math.max(2.5, 65 / pShadow.z), Math.max(1.2, 32 / pShadow.z), 0, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
+
+                            const ballRadius = Math.max(4.0, Math.min(18, (1 / pBall.z) * 115));
+                            const grad = ctx.createRadialGradient(
+                                pBall.x - ballRadius * 0.3,
+                                pBall.y - ballRadius * 0.3,
+                                ballRadius * 0.1,
+                                pBall.x,
+                                pBall.y,
+                                ballRadius
+                            );
+                            grad.addColorStop(0, '#ffffff');
+                            grad.addColorStop(0.8, '#e2e8f0');
+                            grad.addColorStop(1, '#94a3b8');
+
+                            ctx.fillStyle = grad;
+                            ctx.beginPath();
+                            ctx.arc(pBall.x, pBall.y, ballRadius, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        }
+                    });
+                }
+            }
+
+            getShadedColor(hex, factor) {
+                let num = parseInt(hex.replace('#', ''), 16);
+                let r = Math.min(255, Math.floor(((num >> 16) & 255) * factor));
+                let g = Math.min(255, Math.floor(((num >> 8) & 255) * factor));
+                let b = Math.min(255, Math.floor((num & 255) * factor));
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+        }
+
+        // ==========================================
+        // 7. UI & CONTROLLER (360° JOYSTICK & D-PAD)
+        // ==========================================
+        class PureGolfUI {
+            constructor(game) {
+                this.game = game;
+
+                this.holeTitleEl = document.getElementById('hole-title');
+                this.parInfoEl = document.getElementById('par-info');
+                this.shotCountEl = document.getElementById('shot-count');
+                this.targetDistValEl = document.getElementById('target-dist-val');
+                this.targetHeightValEl = document.getElementById('target-height-val');
+
+                this.clubNameEl = document.getElementById('club-name');
+                this.clubStatsEl = document.getElementById('club-stats');
+                this.terrainLieNameEl = document.getElementById('terrain-lie-name');
+                this.terrainLiePercentEl = document.getElementById('terrain-lie-percent');
+
+                this.windSpeedEl = document.getElementById('wind-speed');
+                this.windArrowEl = document.getElementById('wind-arrow');
+                this.celebrationModalEl = document.getElementById('celebration-modal');
+                this.scoreResultTitleEl = document.getElementById('score-result-title');
+                this.scoreResultDetailEl = document.getElementById('score-result-detail');
+                this.niceShotBannerEl = document.getElementById('nice-shot-banner');
+
+                this.minimapCanvas = document.getElementById('minimap-canvas');
+                this.minimapCtx = this.minimapCanvas ? this.minimapCanvas.getContext('2d') : null;
+
+                this.swingContainerEl = document.querySelector('.swing-gauge-container');
+                this.gaugeCursorEl = document.getElementById('gauge-cursor');
+                this.gaugePowerMarkerEl = document.getElementById('gauge-power-marker');
+                this.swingBtnEl = document.getElementById('swing-action-btn');
+
+                // 360° Joystick & D-Pad Elements
+                this.dpadContainer = document.getElementById('dpad-controller');
+                this.joystickThumb = document.getElementById('joystick-thumb');
+                this.joystickActive = false;
+                this.joystickVector = { x: 0, y: 0 };
+
+                this.swingState = 'IDLE';
+                this.gaugeProgress = 0.0;
+                this.selectedPower = 0.0;
+                this.selectedAccuracy = 0.5;
+                this.gaugeSpeed = 1.35;
+
+                this.bindEvents();
+                this.setupJoystick();
+            }
+
+            setupJoystick() {
+                if (!this.dpadContainer || !this.joystickThumb) return;
+
+                const startJoy = (clientX, clientY) => {
+                    this.joystickActive = true;
+                    updateJoy(clientX, clientY);
+                };
+
+                const updateJoy = (clientX, clientY) => {
+                    if (!this.joystickActive) return;
+                    const rect = this.dpadContainer.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const maxRadius = rect.width / 2 - 20;
+
+                    let dx = clientX - centerX;
+                    let dy = clientY - centerY;
+                    const dist = Math.hypot(dx, dy);
+
+                    if (dist > maxRadius) {
+                        dx = (dx / dist) * maxRadius;
+                        dy = (dy / dist) * maxRadius;
+                    }
+
+                    this.joystickThumb.style.transform = `translate(${dx}px, ${dy}px)`;
+                    this.joystickVector.x = dx / maxRadius;
+                    this.joystickVector.y = dy / maxRadius;
+                };
+
+                const endJoy = () => {
+                    this.joystickActive = false;
+                    this.joystickVector.x = 0;
+                    this.joystickVector.y = 0;
+                    this.joystickThumb.style.transform = `translate(0px, 0px)`;
+                };
+
+                this.joystickThumb.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    startJoy(e.clientX, e.clientY);
+                });
+
+                window.addEventListener('mousemove', (e) => {
+                    if (this.joystickActive) updateJoy(e.clientX, e.clientY);
+                });
+
+                window.addEventListener('mouseup', () => {
+                    if (this.joystickActive) endJoy();
+                });
+
+                this.joystickThumb.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (e.touches.length > 0) startJoy(e.touches[0].clientX, e.touches[0].clientY);
+                }, { passive: false });
+
+                window.addEventListener('touchmove', (e) => {
+                    if (this.joystickActive && e.touches.length > 0) {
+                        updateJoy(e.touches[0].clientX, e.touches[0].clientY);
+                    }
+                }, { passive: false });
+
+                window.addEventListener('touchend', () => {
+                    if (this.joystickActive) endJoy();
+                });
+
+                window.addEventListener('touchcancel', () => {
+                    if (this.joystickActive) endJoy();
+                });
+            }
+
+            bindEvents() {
+                window.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        this.handleSwingInput();
+                    } else if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+                        this.game.aimAngleRad -= 0.045;
+                    } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+                        this.game.aimAngleRad += 0.045;
+                    } else if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+                        this.game.adjustCameraAltitude(1);
+                    } else if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+                        this.game.adjustCameraAltitude(-1);
+                    } else if (e.code === 'KeyP') {
+                        this.game.alignToPin(true);
+                    } else if (e.code === 'KeyC') {
+                        this.game.cycleClub(1);
+                    } else if (e.code === 'KeyX') {
+                        this.game.cycleClub(-1);
+                    } else if (e.code === 'KeyV') {
+                        this.game.toggleCameraMode();
+                    } else if (e.code === 'KeyG') {
+                        this.game.toggleGreenGrid();
+                    } else if (e.code === 'KeyR') {
+                        this.game.resetCurrentShot();
+                    }
+                });
+
+                const bindButton = (el, action) => {
+                    if (!el) return;
+                    let lastTrigger = 0;
+                    const trigger = (e) => {
+                        const now = Date.now();
+                        if (now - lastTrigger < 150) return;
+                        lastTrigger = now;
+                        if (e.cancelable && e.type !== 'click') e.preventDefault();
+                        e.stopPropagation();
+                        action();
+                    };
+                    el.addEventListener('click', trigger);
+                    el.addEventListener('touchend', trigger);
+                };
+
+                const bindContinuous = (el, onTick) => {
+                    if (!el) return;
+                    let interval = null;
+                    const start = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onTick();
+                        interval = setInterval(onTick, 35);
+                    };
+                    const stop = () => {
+                        if (interval) {
+                            clearInterval(interval);
+                            interval = null;
+                        }
+                    };
+
+                    el.addEventListener('mousedown', start);
+                    window.addEventListener('mouseup', stop);
+                    el.addEventListener('touchstart', start, { passive: false });
+                    window.addEventListener('touchend', stop);
+                    window.addEventListener('touchcancel', stop);
+                };
+
+                // D-Pad 4-Way Buttons
+                bindContinuous(document.getElementById('dpad-btn-left'), () => {
+                    this.game.aimAngleRad -= 0.04;
+                });
+                bindContinuous(document.getElementById('dpad-btn-right'), () => {
+                    this.game.aimAngleRad += 0.04;
+                });
+                bindButton(document.getElementById('dpad-btn-up'), () => {
+                    this.game.adjustCameraAltitude(1);
+                });
+                bindButton(document.getElementById('dpad-btn-down'), () => {
+                    this.game.adjustCameraAltitude(-1);
+                });
+
+                // Auto-Align PIN Buttons
+                bindButton(document.getElementById('btn-align-pin'), () => this.game.alignToPin(true));
+                bindButton(document.getElementById('target-banner-btn'), () => this.game.alignToPin(true));
+
+                // Swing Triggers
+                bindButton(this.swingBtnEl, () => this.handleSwingInput());
+                if (this.swingContainerEl) {
+                    this.swingContainerEl.addEventListener('click', (e) => {
+                        if (e.target !== this.swingBtnEl) {
+                            e.stopPropagation();
+                            this.handleSwingInput();
+                        }
+                    });
+                }
+
+                // Club Selectors
+                bindButton(document.getElementById('club-prev-btn'), () => this.game.cycleClub(-1));
+                bindButton(document.getElementById('club-next-btn'), () => this.game.cycleClub(1));
+
+                // Actions
+                bindButton(document.getElementById('btn-cam-view'), () => this.game.toggleCameraMode());
+                bindButton(document.getElementById('btn-grid-toggle'), () => this.game.toggleGreenGrid());
+                bindButton(document.getElementById('btn-reset-shot'), () => this.game.resetCurrentShot());
+
+                // Modal Next Hole
+                bindButton(document.getElementById('btn-next-hole'), () => {
+                    this.celebrationModalEl.classList.add('hidden');
+                    this.game.nextHole();
+                });
+            }
+
+            handleSwingInput() {
+                if (this.game.physics.inAir || this.game.physics.isRolling) return;
+                sound.playMeterTick();
+
+                switch (this.swingState) {
+                    case 'IDLE':
+                        this.swingState = 'POWER_UP';
+                        this.gaugeProgress = 0.0;
+                        this.gaugePowerMarkerEl.style.display = 'none';
+                        if (this.swingBtnEl) this.swingBtnEl.textContent = 'SET POWER';
+                        break;
+
+                    case 'POWER_UP':
+                        this.selectedPower = Math.max(0.15, Math.min(1.0, this.gaugeProgress));
+                        this.swingState = 'IMPACT_ACTIVE';
+                        this.gaugePowerMarkerEl.style.display = 'block';
+                        this.gaugePowerMarkerEl.style.bottom = `${this.selectedPower * 100}%`;
+                        if (this.swingBtnEl) this.swingBtnEl.textContent = 'IMPACT!';
+                        break;
+
+                    case 'IMPACT_ACTIVE':
+                        const impactDiff = this.gaugeProgress;
+                        this.selectedAccuracy = 0.5 + impactDiff * 0.5;
+                        this.swingState = 'IDLE';
+                        this.gaugePowerMarkerEl.style.display = 'none';
+                        if (this.swingBtnEl) this.swingBtnEl.textContent = 'SWING';
+
+                        const isJustImpact = Math.abs(impactDiff) < 0.045;
+                        if (isJustImpact) {
+                            this.showNiceShotEffect();
+                        }
+
+                        this.game.executeShot(this.selectedPower, this.selectedAccuracy, isJustImpact);
+                        break;
+                }
+            }
+
+            showNiceShotEffect() {
+                if (!this.niceShotBannerEl) return;
+                this.niceShotBannerEl.classList.add('show');
+                setTimeout(() => {
+                    this.niceShotBannerEl.classList.remove('show');
+                }, 1300);
+            }
+
+            update(delta) {
+                if (this.joystickActive && !this.game.physics.inAir && !this.game.physics.isRolling) {
+                    const joyTurnSpeed = 2.4;
+                    this.game.aimAngleRad += this.joystickVector.x * joyTurnSpeed * delta;
+                }
+
+                if (this.swingState === 'POWER_UP') {
+                    this.gaugeProgress += delta * this.gaugeSpeed;
+                    if (this.gaugeProgress >= 1.0) {
+                        this.gaugeProgress = 1.0;
+                        this.selectedPower = 1.0;
+                        this.swingState = 'IMPACT_ACTIVE';
+                        this.gaugePowerMarkerEl.style.display = 'block';
+                        this.gaugePowerMarkerEl.style.bottom = '100%';
+                        if (this.swingBtnEl) this.swingBtnEl.textContent = 'IMPACT!';
+                    }
+                    this.gaugeCursorEl.style.bottom = `${this.gaugeProgress * 100}%`;
+                } else if (this.swingState === 'IMPACT_ACTIVE') {
+                    this.gaugeProgress -= delta * this.gaugeSpeed * 1.45;
+                    if (this.gaugeProgress <= -0.3) {
+                        this.selectedAccuracy = 0.9;
+                        this.swingState = 'IDLE';
+                        this.gaugePowerMarkerEl.style.display = 'none';
+                        if (this.swingBtnEl) this.swingBtnEl.textContent = 'SWING';
+                        this.game.executeShot(this.selectedPower, this.selectedAccuracy, false);
+                    }
+                    const clamped = Math.max(0, this.gaugeProgress);
+                    this.gaugeCursorEl.style.bottom = `${clamped * 100}%`;
+                } else {
+                    this.gaugeCursorEl.style.bottom = '0%';
+                    if (this.swingBtnEl && this.swingBtnEl.textContent !== 'SWING') {
+                        this.swingBtnEl.textContent = 'SWING';
+                    }
+                }
+
+                this.updateHUD();
+                this.renderMinimap();
+            }
+
+            updateHUD() {
+                const course = this.game.course;
+                const ballPos = this.game.physics.ballPosition;
+                const cupPos = course.cupPosition;
+
+                const distMeters = ballPos.distanceTo(cupPos);
+                const distYards = Math.round(distMeters * 1.09361);
+                const heightDiff = cupPos.y - ballPos.y;
+
+                if (this.targetDistValEl) this.targetDistValEl.textContent = `${distYards} YDS`;
+                if (this.targetHeightValEl) {
+                    this.targetHeightValEl.textContent = `${(heightDiff >= 0 ? '+' : '') + heightDiff.toFixed(1)}m`;
+                    this.targetHeightValEl.className = `pin-target-height ${heightDiff >= 0 ? 'height-up' : 'height-down'}`;
+                }
+
+                if (this.shotCountEl) this.shotCountEl.textContent = `Shot ${this.game.shotCount}`;
+                if (this.holeTitleEl) this.holeTitleEl.textContent = course.holeData.description;
+                if (this.parInfoEl) this.parInfoEl.textContent = `PAR ${course.holeData.par}`;
+
+                const club = CLUBS[this.game.currentClubKey];
+                if (club && this.clubNameEl) {
+                    this.clubNameEl.textContent = club.name;
+                    if (this.clubStatsEl) this.clubStatsEl.textContent = `Max: ${club.range} YDS | Loft: ${club.loft}°`;
+                }
+
+                const terrain = course.getTerrainType(ballPos.x, ballPos.z);
+                if (this.terrainLieNameEl) {
+                    this.terrainLieNameEl.textContent = terrain.name;
+                    this.terrainLieNameEl.style.color = terrain.color;
+                }
+                if (this.terrainLiePercentEl) {
+                    this.terrainLiePercentEl.textContent = terrain.liePct;
+                }
+
+                const wind = this.game.physics.wind;
+                const speed = wind.length();
+                if (this.windSpeedEl) this.windSpeedEl.textContent = `${speed.toFixed(1)} m/s`;
+                if (this.windArrowEl) {
+                    const angleDeg = (Math.atan2(wind.x, wind.z) * 180) / Math.PI;
+                    this.windArrowEl.style.transform = `rotate(${angleDeg}deg)`;
+                }
+            }
+
+            renderMinimap() {
+                if (!this.minimapCtx) return;
+                const ctx = this.minimapCtx;
+                const w = this.minimapCanvas.width;
+                const h = this.minimapCanvas.height;
+
+                ctx.clearRect(0, 0, w, h);
+
+                const hole = this.game.course.holeData;
+                const ballPos = this.game.physics.ballPosition;
+                const cupPos = this.game.course.cupPosition;
+
+                const mapZMax = hole.cupPosition.z + 40;
+                const scaleY = h / mapZMax;
+                const scaleX = w / 110;
+                const offsetX = w / 2;
+
+                const toMapX = (x) => offsetX + x * scaleX;
+                const toMapY = (z) => h - z * scaleY;
+
+                ctx.strokeStyle = '#44a060';
+                ctx.lineWidth = hole.fairwayWidth * scaleX * 0.95;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                for (let i = 0; i < hole.fairwayPath.length; i++) {
+                    const p = hole.fairwayPath[i];
+                    if (i === 0) ctx.moveTo(toMapX(p.x), toMapY(p.z));
+                    else ctx.lineTo(toMapX(p.x), toMapY(p.z));
+                }
+                ctx.stroke();
+
+                ctx.fillStyle = '#5ec250';
+                ctx.beginPath();
+                ctx.arc(toMapX(hole.greenCenter.x), toMapY(hole.greenCenter.z), hole.greenRadius * scaleX, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#0077b6';
+                for (const wtr of hole.waterHazards) {
+                    ctx.beginPath();
+                    ctx.ellipse(toMapX(wtr.x), toMapY(wtr.z), wtr.rx * scaleX, wtr.rz * scaleY, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = '#f3e9d2';
+                for (const b of hole.bunkers) {
+                    ctx.beginPath();
+                    ctx.arc(toMapX(b.x), toMapY(b.z), b.r * scaleX, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                for (const tracer of this.game.physics.persistentTracers) {
+                    if (tracer.points.length > 1) {
+                        ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        for (let i = 0; i < tracer.points.length; i++) {
+                            const p = tracer.points[i];
+                            if (i === 0) ctx.moveTo(toMapX(p.x), toMapY(p.z));
+                            else ctx.lineTo(toMapX(p.x), toMapY(p.z));
+                        }
+                        ctx.stroke();
+                    }
+                }
+
+                const club = CLUBS[this.game.currentClubKey];
+                const targetDist = club.range * 0.9144;
+                const targetX = ballPos.x + Math.sin(this.game.aimAngleRad) * targetDist;
+                const targetZ = ballPos.z + Math.cos(this.game.aimAngleRad) * targetDist;
+
+                ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.moveTo(toMapX(ballPos.x), toMapY(ballPos.z));
+                ctx.lineTo(toMapX(targetX), toMapY(targetZ));
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(toMapX(targetX), toMapY(targetZ), 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.arc(toMapX(cupPos.x), toMapY(cupPos.z), 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = '#00f2fe';
+                ctx.shadowBlur = 6;
+                ctx.beginPath();
+                ctx.arc(toMapX(ballPos.x), toMapY(ballPos.z), 4.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            showCelebration(title, detail) {
+                if (this.scoreResultTitleEl) this.scoreResultTitleEl.textContent = title;
+                if (this.scoreResultDetailEl) this.scoreResultDetailEl.textContent = detail;
+                if (this.celebrationModalEl) this.celebrationModalEl.classList.remove('hidden');
+            }
+        }
+
+        // ==========================================
+        // 8. MAIN GOLF APPLICATION
+        // ==========================================
+        class PureGolfGame {
+            constructor() {
+                this.canvas = document.getElementById('render-canvas');
+                this.shotCount = 1;
+                this.currentClubKey = '1W';
+                this.aimAngleRad = 0;
+                this.cameraMode = 'ADDRESS';
+                this.cameraAltitudeLevel = 0;
+
+                this.currentTrailPoints = [];
+                this.maxTrailPoints = 65;
+
+                this.course = new PureGolfCourse();
+                this.physics = new PureGolfPhysics(this.course);
+                this.renderer = new Pure3DRenderer(this.canvas, this.course, this.physics);
+                this.ui = new PureGolfUI(this);
+
+                this.isAimDragging = false;
+                this.prevInputX = 0;
+                this.lastTime = performance.now();
+
+                this.initInput();
+                this.startHole();
+
+                this.loop = this.loop.bind(this);
+                requestAnimationFrame(this.loop);
+            }
+
+            alignToPin(instantSnap = true) {
+                const ballPos = this.physics.ballPosition;
+                const cupPos = this.course.cupPosition;
+                this.aimAngleRad = Math.atan2(cupPos.x - ballPos.x, cupPos.z - ballPos.z);
+
+                if (instantSnap) {
+                    this.snapCameraToBall();
+                }
+            }
+
+            snapCameraToBall() {
+                const ballPos = this.physics.ballPosition;
+                const extraH = this.cameraAltitudeLevel * 1.8;
+                const camDist = (this.cameraMode === 'PUTT' ? 2.6 : 4.6) + (this.cameraAltitudeLevel * 1.5);
+                const camH = (this.cameraMode === 'PUTT' ? 0.95 : 1.6) + extraH;
+
+                this.renderer.camPos.x = ballPos.x - Math.sin(this.aimAngleRad) * camDist;
+                this.renderer.camPos.y = ballPos.y + camH;
+                this.renderer.camPos.z = ballPos.z - Math.cos(this.aimAngleRad) * camDist;
+                this.renderer.camYaw = this.aimAngleRad;
+                this.renderer.camPitch = (this.cameraMode === 'PUTT' ? 0.12 : 0.08) + (this.cameraAltitudeLevel * 0.08);
+            }
+
+            startHole() {
+                this.shotCount = 1;
+                this.physics.clearTracers();
+                const tee = this.course.teePosition;
+                this.physics.resetBall(tee);
+
+                const windSpeed = 1.0 + Math.random() * 5.5;
+                const windDir = Math.random() * Math.PI * 2;
+                this.physics.setWind(windSpeed, windDir);
+
+                this.autoSelectClub();
+                this.cameraMode = 'ADDRESS';
+                this.cameraAltitudeLevel = 0;
+                this.currentTrailPoints = [];
+
+                this.alignToPin(true);
+            }
+
+            autoSelectClub() {
+                const ballPos = this.physics.ballPosition;
+                const cupPos = this.course.cupPosition;
+                const distYards = ballPos.distanceTo(cupPos) * 1.09361;
+                const terrain = this.course.getTerrainType(ballPos.x, ballPos.z);
+
+                if (terrain === TERRAIN_TYPES.GREEN || distYards < 22) {
+                    this.currentClubKey = 'PT';
+                    this.renderer.showGreenGrid = true;
+                } else if (distYards > 215) {
+                    this.currentClubKey = '1W';
+                    this.renderer.showGreenGrid = false;
+                } else if (distYards > 175) {
+                    this.currentClubKey = '3W';
+                    this.renderer.showGreenGrid = false;
+                } else if (distYards > 145) {
+                    this.currentClubKey = '5I';
+                    this.renderer.showGreenGrid = false;
+                } else if (distYards > 120) {
+                    this.currentClubKey = '7I';
+                    this.renderer.showGreenGrid = false;
+                } else if (distYards > 95) {
+                    this.currentClubKey = '9I';
+                    this.renderer.showGreenGrid = false;
+                } else {
+                    this.currentClubKey = 'SW';
+                    this.renderer.showGreenGrid = false;
+                }
+            }
+
+            cycleClub(direction) {
+                if (this.physics.inAir || this.physics.isRolling) return;
+                const keys = Object.keys(CLUBS);
+                let idx = keys.indexOf(this.currentClubKey);
+                idx = (idx + direction + keys.length) % keys.length;
+                this.currentClubKey = keys[idx];
+                if (this.currentClubKey === 'PT') this.renderer.showGreenGrid = true;
+            }
+
+            toggleGreenGrid() {
+                this.renderer.showGreenGrid = !this.renderer.showGreenGrid;
+            }
+
+            toggleCameraMode() {
+                if (this.cameraMode === 'ADDRESS') this.cameraMode = 'OVERVIEW';
+                else if (this.cameraMode === 'OVERVIEW') this.cameraMode = 'PUTT';
+                else this.cameraMode = 'ADDRESS';
+            }
+
+            adjustCameraAltitude(dir) {
+                this.cameraAltitudeLevel = Math.max(-1, Math.min(2, this.cameraAltitudeLevel + dir));
+            }
+
+            executeShot(power, accuracy, isJustImpact = false) {
+                const club = CLUBS[this.currentClubKey];
+                if (isJustImpact) {
+                    sound.playJustImpact(power);
+                } else {
+                    if (club.type === 'wood') sound.playJustImpact(power * 0.85);
+                    else if (club.type === 'putter') sound.playPutterShot(power);
+                    else sound.playIronShot(power);
+                }
+
+                this.currentTrailPoints = [this.physics.ballPosition.clone()];
+                this.physics.launch(this.currentClubKey, power, accuracy, this.aimAngleRad);
+                this.cameraMode = 'FOLLOW';
+            }
+
+            onBallRest() {
+                const shotDistance = Math.round(this.physics.ballPosition.distanceTo(this.physics.initialPos) * 1.09361);
+                if (this.currentTrailPoints.length > 1) {
+                    this.physics.persistentTracers.push({
+                        shotNum: this.shotCount,
+                        points: [...this.currentTrailPoints],
+                        landingPos: this.physics.ballPosition.clone(),
+                        distance: shotDistance
+                    });
+                }
+                this.currentTrailPoints = [];
+
+                this.shotCount++;
+                const terrain = this.course.getTerrainType(this.physics.ballPosition.x, this.physics.ballPosition.z);
+
+                if (terrain === TERRAIN_TYPES.GREEN) {
+                    this.renderer.showGreenGrid = true;
+                    this.currentClubKey = 'PT';
+                } else {
+                    this.autoSelectClub();
+                }
+
+                this.cameraMode = (terrain === TERRAIN_TYPES.GREEN) ? 'PUTT' : 'ADDRESS';
+                this.alignToPin(true);
+            }
+
+            onWaterHazard() {
+                alert("🌊 Ocean Hazard! +1 Penalty stroke.");
+                this.shotCount++;
+                this.physics.resetBall(this.physics.initialPos);
+                this.onBallRest();
+            }
+
+            onCupIn() {
+                sound.playCupIn();
+                const par = this.course.holeData.par;
+                const strokes = this.shotCount;
+                const diff = strokes - par;
+
+                let title = "PAR";
+                if (strokes === 1) title = "HOLE IN ONE! 👑🎉";
+                else if (diff <= -3) title = "ALBATROSS! 🦅✨";
+                else if (diff === -2) title = "EAGLE! 🦅";
+                else if (diff === -1) title = "BIRDIE! 🐦";
+                else if (diff === 0) title = "PAR 👍";
+                else if (diff === 1) title = "BOGEY";
+                else title = `+${diff} OVER PAR`;
+
+                const detail = `Completed Hole ${this.course.holeData.holeNumber} in ${strokes} strokes (Par ${par})`;
+                this.ui.showCelebration(title, detail);
+            }
+
+            nextHole() {
+                this.course.loadHole(this.course.currentHoleIndex + 1);
+                this.startHole();
+            }
+
+            resetCurrentShot() {
+                this.physics.resetBall(this.physics.initialPos);
+                this.currentTrailPoints = [];
+                this.cameraMode = 'ADDRESS';
+                this.alignToPin(true);
+            }
+
+            updateCamera(delta) {
+                const ballPos = this.physics.ballPosition;
+
+                if (this.cameraMode === 'ADDRESS') {
+                    const extraH = this.cameraAltitudeLevel * 1.8;
+                    const camDist = 4.6 + (this.cameraAltitudeLevel * 1.5);
+                    const camH = 1.6 + extraH;
+                    
+                    const targetX = ballPos.x - Math.sin(this.aimAngleRad) * camDist;
+                    const targetY = ballPos.y + camH;
+                    const targetZ = ballPos.z - Math.cos(this.aimAngleRad) * camDist;
+
+                    this.renderer.camPos.x += (targetX - this.renderer.camPos.x) * delta * 12;
+                    this.renderer.camPos.y += (targetY - this.renderer.camPos.y) * delta * 12;
+                    this.renderer.camPos.z += (targetZ - this.renderer.camPos.z) * delta * 12;
+
+                    this.renderer.camYaw = this.aimAngleRad;
+                    this.renderer.camPitch = 0.08 + (this.cameraAltitudeLevel * 0.08);
+
+                } else if (this.cameraMode === 'FOLLOW') {
+                    const vel = this.physics.ballVelocity;
+                    const speed = vel.length();
+                    const forwardX = speed > 0.5 ? vel.x / speed : Math.sin(this.aimAngleRad);
+                    const forwardZ = speed > 0.5 ? vel.z / speed : Math.cos(this.aimAngleRad);
+
+                    const targetX = ballPos.x - forwardX * 6.5;
+                    const targetY = ballPos.y + 3.2;
+                    const targetZ = ballPos.z - forwardZ * 6.5;
+
+                    this.renderer.camPos.x += (targetX - this.renderer.camPos.x) * delta * 8;
+                    this.renderer.camPos.y += (targetY - this.renderer.camPos.y) * delta * 8;
+                    this.renderer.camPos.z += (targetZ - this.renderer.camPos.z) * delta * 8;
+
+                    this.renderer.camYaw = Math.atan2(forwardX, forwardZ);
+                    this.renderer.camPitch = 0.18;
+
+                } else if (this.cameraMode === 'PUTT') {
+                    const cup = this.course.cupPosition;
+                    const dx = cup.x - ballPos.x;
+                    const dz = cup.z - ballPos.z;
+                    const len = Math.hypot(dx, dz) || 1;
+
+                    const targetX = ballPos.x - (dx / len) * 2.6;
+                    const targetY = ballPos.y + 0.95;
+                    const targetZ = ballPos.z - (dz / len) * 2.6;
+
+                    this.renderer.camPos.x += (targetX - this.renderer.camPos.x) * delta * 12;
+                    this.renderer.camPos.y += (targetY - this.renderer.camPos.y) * delta * 12;
+                    this.renderer.camPos.z += (targetZ - this.renderer.camPos.z) * delta * 12;
+
+                    this.renderer.camYaw = Math.atan2(dx, dz);
+                    this.renderer.camPitch = 0.12;
+
+                } else if (this.cameraMode === 'OVERVIEW') {
+                    const targetX = ballPos.x;
+                    const targetY = ballPos.y + 65;
+                    const targetZ = ballPos.z - 30;
+
+                    this.renderer.camPos.x += (targetX - this.renderer.camPos.x) * delta * 6;
+                    this.renderer.camPos.y += (targetY - this.renderer.camPos.y) * delta * 6;
+                    this.renderer.camPos.z += (targetZ - this.renderer.camPos.z) * delta * 6;
+
+                    this.renderer.camYaw = 0;
+                    this.renderer.camPitch = 0.8;
+                }
+            }
+
+            initInput() {
+                const isInteractive = (target) => {
+                    return target && (target.closest('.interactive') || target.tagName === 'BUTTON' || target.closest('button'));
+                };
+
+                // Mouse Drag Aiming
+                window.addEventListener('mousedown', (e) => {
+                    if (e.button === 0 && !isInteractive(e.target)) {
+                        this.isAimDragging = true;
+                        this.prevInputX = e.clientX;
+                        document.body.style.cursor = 'grabbing';
+                    }
+                });
+
+                window.addEventListener('mousemove', (e) => {
+                    if (this.isAimDragging && !this.physics.inAir && !this.physics.isRolling) {
+                        const dx = e.clientX - this.prevInputX;
+                        this.aimAngleRad += dx * 0.005;
+                        this.prevInputX = e.clientX;
+                    }
+                });
+
+                window.addEventListener('mouseup', () => {
+                    this.isAimDragging = false;
+                    document.body.style.cursor = 'default';
+                });
+
+                // Mouse Wheel Camera Altitude
+                window.addEventListener('wheel', (e) => {
+                    if (!isInteractive(e.target)) {
+                        if (e.deltaY > 30) this.adjustCameraAltitude(1);
+                        else if (e.deltaY < -30) this.adjustCameraAltitude(-1);
+                    }
+                }, { passive: true });
+
+                // Touch Drag Aiming
+                window.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 0 && !isInteractive(e.target)) {
+                        this.isAimDragging = true;
+                        this.prevInputX = e.touches[0].clientX;
+                    }
+                }, { passive: true });
+
+                window.addEventListener('touchmove', (e) => {
+                    if (this.isAimDragging && e.touches.length > 0 && !this.physics.inAir && !this.physics.isRolling) {
+                        const dx = e.touches[0].clientX - this.prevInputX;
+                        this.aimAngleRad += dx * 0.006;
+                        this.prevInputX = e.touches[0].clientX;
+                    }
+                }, { passive: true });
+
+                window.addEventListener('touchend', () => {
+                    this.isAimDragging = false;
+                }, { passive: true });
+
+                window.addEventListener('touchcancel', () => {
+                    this.isAimDragging = false;
+                }, { passive: true });
+            }
+
+            loop(now) {
+                requestAnimationFrame(this.loop);
+                const delta = Math.min((now - this.lastTime) / 1000, 0.1);
+                this.lastTime = now;
+
+                this.physics.update(delta, {
+                    onBounce: (intensity) => sound.playBounce(intensity),
+                    onWater: () => this.onWaterHazard(),
+                    onCupIn: () => this.onCupIn(),
+                    onRest: () => this.onBallRest()
+                });
+
+                if (this.physics.inAir || this.physics.isRolling) {
+                    this.currentTrailPoints.push(this.physics.ballPosition.clone());
+                    if (this.currentTrailPoints.length > this.maxTrailPoints) this.currentTrailPoints.shift();
+                }
+
+                this.renderer.gridAnimTime += delta;
+                this.ui.update(delta);
+                this.updateCamera(delta);
+
+                const currentClub = CLUBS[this.currentClubKey];
+                this.renderer.render(this.currentTrailPoints, this.aimAngleRad, currentClub);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            new PureGolfGame();
+        });
+    })();
+    </script>
+</body>
+</html>
