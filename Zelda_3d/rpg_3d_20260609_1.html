@@ -3227,6 +3227,23 @@
     let titleModeIdx = 0; // 0=3Dアクション, 1=RPGモード
 
     // ── MOUSE & TOUCH UNIVERSAL POINTER HANDLER ───────
+    
+    // タイトル画面でのボタンホバーカーソル
+    window.addEventListener('pointermove', e => {
+      if (gst === 'title') {
+        const px = e.clientX, py = e.clientY;
+        const W = window.innerWidth, H = window.innerHeight;
+        const _bw = Math.min(180, W * 0.28), _bh = 75, _by = H * 0.50;
+        const _bx0 = W / 2 - _bw - 12, _bx1 = W / 2 + 12;
+        if ((px >= _bx0 && px <= _bx0 + _bw && py >= _by && py <= _by + _bh) ||
+            (px >= _bx1 && px <= _bx1 + _bw && py >= _by && py <= _by + _bh)) {
+          document.body.style.cursor = 'pointer';
+          return;
+        }
+      }
+      document.body.style.cursor = 'default';
+    });
+
     window.addEventListener('pointerdown', e => {
       const px = e.clientX, py = e.clientY;
       const W = window.innerWidth, H = window.innerHeight;
