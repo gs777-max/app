@@ -170,40 +170,40 @@ body{
    🔥 3D DRAGON QUEST ACTION RPG SPELL BUTTONS & HUD
    ══════════════════════════════════════════════════════ */
 /* ══════════════════════════════════════════════════════
-   🔥 3D ACTION RPG SPELL BAR (MOBILE ERGONOMIC HORIZONTAL SLOT)
+   🔥 3D ACTION RPG SPELL BAR (TOP-CENTER HORIZONTAL SLOT)
    ══════════════════════════════════════════════════════ */
 #action3dSpellBar {
-  position: fixed; right: 18px; bottom: 185px;
-  display: flex; flex-direction: row-reverse; gap: 10px; z-index: 35;
+  position: fixed; top: 48px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: row-reverse; gap: 14px; z-index: 45;
   user-select: none; -webkit-user-select: none; pointer-events: auto;
-  align-items: center; justify-content: flex-end;
+  align-items: center; justify-content: center;
 }
 .spell-btn-3d {
-  width: 50px; height: 50px; border-radius: 50%;
-  border: 2px solid #fbbf24; color: #fff;
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 2.5px solid #fbbf24; color: #fff;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65), inset 0 0 10px rgba(255, 255, 255, 0.25);
   cursor: pointer; touch-action: manipulation; transition: transform 0.08s, filter 0.08s;
   font-family: 'Segoe UI', system-ui, sans-serif; padding: 0;
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
 .spell-btn-3d:active {
   transform: scale(0.90); filter: brightness(1.3);
 }
 .spell-btn-fire {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.92) 0%, rgba(185, 28, 28, 0.92) 100%);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.94) 0%, rgba(185, 28, 28, 0.94) 100%);
   border-color: #fca5a5;
 }
 .spell-btn-thunder {
-  background: linear-gradient(135deg, rgba(234, 179, 8, 0.92) 0%, rgba(161, 98, 7, 0.92) 100%);
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.94) 0%, rgba(161, 98, 7, 0.94) 100%);
   border-color: #fef08a;
 }
 .spell-btn-heal {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.92) 0%, rgba(4, 120, 87, 0.92) 100%);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.94) 0%, rgba(4, 120, 87, 0.94) 100%);
   border-color: #6ee7b7;
 }
 @media (max-height: 440px) {
-  #action3dSpellBar { bottom: 155px; gap: 8px; right: 14px; }
+  #action3dSpellBar { top: 44px; gap: 10px; }
   .spell-btn-3d { width: 44px; height: 44px; }
 }
 
@@ -437,21 +437,21 @@ function getDayPhase(f){ return(f%DAY_DURATION)/DAY_DURATION; } // 0-1
 function sunAngle(f){ return getDayPhase(f)*Math.PI*2-Math.PI*0.5; }
 function skyColorForPhase(p){
   // p=0 midnight, 0.25 sunrise, 0.5 noon, 0.75 sunset, 1 midnight
-  // 🌟 ファンタジー調の澄んだ月光夜 (アンビエント光&月光ディレクショナルで夜でも美しく鮮明に見える)
-  if(p<0.20){// night
-    const t=p/0.20; return {sky:lerpHex(0x0a1636,0x14224c,t),fog:lerpHex(0x101e42,0x1a2b58,t),sunI:0.45,ambI:0.40,ambC:0x4a6ee0};}
-  if(p<0.30){// dawn
-    const t=(p-0.20)/0.10; return {sky:lerpHex(0x14224c,0xd4703a,t),fog:lerpHex(0x1a2b58,0xff8844,t),sunI:0.45+t*0.75,ambI:0.40+t*0.1,ambC:lerpHex(0x4a6ee0,0xffccaa,t)};}
-  if(p<0.50){// morning
-    const t=(p-0.30)/0.20; return {sky:lerpHex(0xd4703a,0x5a9ed8,t),fog:lerpHex(0xff8844,0x9ec8f0,t),sunI:1.2+t*2.0,ambI:0.50+t*0.1,ambC:lerpHex(0xffccaa,0xd0e8f8,t)};}
-  if(p<0.70){// afternoon
-    const t=(p-0.50)/0.20; return {sky:lerpHex(0x5a9ed8,0x3a7ac8,t),fog:lerpHex(0x9ec8f0,0x88b8e8,t),sunI:3.2-t*0.5,ambI:0.55,ambC:0xd0e8f8};}
-  if(p<0.80){// sunset
-    const t=(p-0.70)/0.10; return {sky:lerpHex(0x3a7ac8,0xcc4418,t),fog:lerpHex(0x88b8e8,0xff6633,t),sunI:2.7-t*2.2,ambI:0.55-t*0.12,ambC:lerpHex(0xd0e8f8,0xff9944,t)};}
-  if(p<0.90){// dusk
-    const t=(p-0.80)/0.10; return {sky:lerpHex(0xcc4418,0x0a1636,t),fog:lerpHex(0xff6633,0x101e42,t),sunI:Math.max(0.45,0.5-t*0.1),ambI:0.43-t*0.03,ambC:lerpHex(0xff9944,0x4a6ee0,t)};}
-  // full night
-  const t=(p-0.90)/0.10; return {sky:lerpHex(0x0a1636,0x0a1636,t),fog:lerpHex(0x101e42,0x101e42,1),sunI:0.45,ambI:0.40,ambC:0x4a6ee0};
+  // 🌟 夜でも明るめでちゃんと見える満月の白夜ライティング (環境光0.85 & 強力月光1.20で地面・建物・敵が鮮明！)
+  if(p<0.20){// night (白銀の明るい月夜)
+    const t=p/0.20; return {sky:lerpHex(0x1c305c,0x243d75,t),fog:lerpHex(0x223868,0x2a4682,t),sunI:1.20,ambI:0.85,ambC:0x80a8ff};}
+  if(p<0.30){// dawn (朝焼け)
+    const t=(p-0.20)/0.10; return {sky:lerpHex(0x243d75,0xe28548,t),fog:lerpHex(0x2a4682,0xff9a55,t),sunI:1.20+t*0.8,ambI:0.85+t*0.05,ambC:lerpHex(0x80a8ff,0xffddbb,t)};}
+  if(p<0.50){// morning (清々しい朝)
+    const t=(p-0.30)/0.20; return {sky:lerpHex(0xe28548,0x68aae0,t),fog:lerpHex(0xff9a55,0xaad0f5,t),sunI:2.0+t*1.5,ambI:0.90,ambC:lerpHex(0xffddbb,0xd8ecfa,t)};}
+  if(p<0.70){// afternoon (昼間)
+    const t=(p-0.50)/0.20; return {sky:lerpHex(0x68aae0,0x4888d2,t),fog:lerpHex(0xaad0f5,0x95c2ee,t),sunI:3.5-t*0.5,ambI:0.90,ambC:0xd8ecfa};}
+  if(p<0.80){// sunset (夕暮れ)
+    const t=(p-0.70)/0.10; return {sky:lerpHex(0x4888d2,0xd64c20,t),fog:lerpHex(0x95c2ee,0xff7744,t),sunI:3.0-t*1.6,ambI:0.88-t*0.05,ambC:lerpHex(0xd8ecfa,0xffaa55,t)};}
+  if(p<0.90){// dusk (黄昏)
+    const t=(p-0.80)/0.10; return {sky:lerpHex(0xd64c20,0x1c305c,t),fog:lerpHex(0xff7744,0x223868,t),sunI:Math.max(1.20,1.4-t*0.2),ambI:0.85,ambC:lerpHex(0xffaa55,0x80a8ff,t)};}
+  // full night (真夜中)
+  const t=(p-0.90)/0.10; return {sky:lerpHex(0x1c305c,0x1c305c,t),fog:lerpHex(0x223868,0x223868,1),sunI:1.20,ambI:0.85,ambC:0x80a8ff};
 }
 function lerpHex(a,b,t){
   const ar=(a>>16)&0xff,ag=(a>>8)&0xff,ab=a&0xff;
@@ -479,8 +479,8 @@ const starsMesh=(()=>{
   const pts=new THREE.Points(geo,mat); scene.add(pts); return pts;
 })();
 
-// プレイヤー追従の温かいランタン光 (夜間・暗闇の視認性を劇的に向上)
-const playerLantern = new THREE.PointLight(0xffb74d, 1.2, 18, 1.2);
+// プレイヤー追従の温かい高輝度ランタン光 (夜間でも周囲26mが白熱灯のようにクッキリ明るい！)
+const playerLantern = new THREE.PointLight(0xffdf80, 2.5, 26, 1.0);
 scene.add(playerLantern);
 window.playerLantern = playerLantern;
 
@@ -497,23 +497,26 @@ function updateDayNight(){
   const isNight = (p < 0.25 || p > 0.75);
   
   if(isNight){
-    // 🌙 夜間は月光 (Moonlight) として機能：月の方向から青白い光を優しく照射しリアルな立体感を維持
+    // 🌙 夜間は高輝度満月光 (Bright Full-Moon) として機能：青白く清らかな月光が地面と建物を昼間のように鮮明に照らす
     const ma=sa+Math.PI;
-    sun.position.set(WW/2+Math.cos(ma)*SUN_DIST, Math.max(40, Math.sin(ma)*SUN_DIST), WD/2+Math.cos(ma)*0.3*SUN_DIST);
+    sun.position.set(WW/2+Math.cos(ma)*SUN_DIST, Math.max(50, Math.sin(ma)*SUN_DIST), WD/2+Math.cos(ma)*0.3*SUN_DIST);
     sun.intensity=dc.sunI;
-    sun.color.set(0x99ccff);
+    sun.color.set(0xc8e4ff);
+    // 夜間カメラ自動露出補正 (ナイトHDRブーストで暗がりを完全一掃！)
+    if(renderer) renderer.toneMappingExposure = 1.60;
   } else {
     sun.position.set(WW/2+sx,sy,WD/2+sx*0.3);
     sun.intensity=Math.max(0,dc.sunI);
     sun.color.set(p<0.30||p>0.75?0xff9944:p<0.50?0xffcc88:0xfff0cc);
+    if(renderer) renderer.toneMappingExposure = 1.25;
   }
   
-  // Ambient & Hemisphere (夜間でも地面や木々、建物がはっきり見える環境光)
+  // Ambient & Hemisphere (夜間でも地面や木々、建物が昼間並みに明るくクリアに見える環境光)
   scene.children.forEach(c=>{
     if(c.isAmbientLight){c.intensity=dc.ambI;c.color.set(dc.ambC);}
-    if(c.isHemisphereLight){c.intensity=Math.max(0.25,dc.ambI*1.6);}
+    if(c.isHemisphereLight){c.intensity=Math.max(0.65,dc.ambI*1.8);}
   });
-  fillL.intensity=Math.max(0.15,dc.sunI*0.3);
+  fillL.intensity=Math.max(0.40,dc.sunI*0.45);
 
   // Moon & stars (night)
   const nightness=(p<0.25?(1-p/0.25):p>0.75?(p-0.75)/0.25:0);
@@ -522,10 +525,10 @@ function updateDayNight(){
   const ma=sa+Math.PI;
   moonMesh.position.set(WW/2+Math.cos(ma)*SUN_DIST,Math.sin(ma)*SUN_DIST,WD/2+Math.cos(ma)*0.3*SUN_DIST);
 
-  // プレイヤー周囲のランタン光 (夜間に自動点灯し、足元や周囲18mを温かく照らす)
+  // プレイヤー周囲のランタン光 (足元と周囲26mを温かく強力に照らし、夜でも完璧な視認性を保証)
   if(window.playerLantern && typeof pl !== 'undefined' && pl){
-    window.playerLantern.position.set(pl.wx, pl.wy + 1.2, pl.wz);
-    window.playerLantern.intensity = nightness * 1.6 + 0.3;
+    window.playerLantern.position.set(pl.wx, pl.wy + 1.3, pl.wz);
+    window.playerLantern.intensity = nightness * 2.8 + 0.8;
   }
 
   // Time label
