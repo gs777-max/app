@@ -202,6 +202,14 @@ body{
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.94) 0%, rgba(4, 120, 87, 0.94) 100%);
   border-color: #6ee7b7;
 }
+.spell-btn-3d.spell-disabled {
+  opacity: 0.35 !important;
+  filter: grayscale(0.90) !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  border-color: #475569 !important;
+  box-shadow: none !important;
+}
 @media (max-height: 440px) {
   #action3dSpellBar { top: 44px; gap: 10px; }
   .spell-btn-3d { width: 44px; height: 44px; }
@@ -357,22 +365,22 @@ body{
 </div>
 
 
-<!-- 🔥 3Dアクション用 ドラクエ呪文・特技ボタン (全デバイス対応) -->
+<!-- 🔥 3Dアクション用 ドラクエ呪文・特技ボタン (全デバイス対応 / 残回数バッジ付き) -->
 <div id="action3dSpellBar">
-  <button type="button" class="spell-btn-3d spell-btn-fire" id="btnCastFire" title="メラゾーマ (MP:6) [キー:1またはQ]">
-    <span style="font-size:18px;">🔥</span>
-    <span style="font-size:9px;font-weight:bold;">メラ</span>
-    <span style="font-size:7px;opacity:0.8;">MP6</span>
-  </button>
-  <button type="button" class="spell-btn-3d spell-btn-thunder" id="btnCastThunder" title="ギガスラッシュ (MP:10) [キー:2またはE]">
-    <span style="font-size:18px;">⚡</span>
-    <span style="font-size:9px;font-weight:bold;">ギガ斬</span>
-    <span style="font-size:7px;opacity:0.8;">MP10</span>
-  </button>
-  <button type="button" class="spell-btn-3d spell-btn-heal" id="btnCastHeal" title="ホイミ (MP:4) [キー:3またはR]">
+  <button type="button" class="spell-btn-3d spell-btn-heal" id="btnCastHeal" title="ホイミ (ライフ4回復) [各ステージ2回 / キー:3またはR]">
     <span style="font-size:18px;">💚</span>
     <span style="font-size:9px;font-weight:bold;">ホイミ</span>
-    <span style="font-size:7px;opacity:0.8;">MP4</span>
+    <span id="lblHoimiStock" style="font-size:8px;font-weight:bold;background:rgba(0,0,0,0.55);padding:1px 5px;border-radius:4px;">残2</span>
+  </button>
+  <button type="button" class="spell-btn-3d spell-btn-thunder" id="btnCastThunder" title="ギガスラッシュ (目の前の敵HP2/3ダメージ) [各ステージ1回 / キー:2またはE]">
+    <span style="font-size:18px;">⚡</span>
+    <span style="font-size:9px;font-weight:bold;">ギガ斬</span>
+    <span id="lblGigaStock" style="font-size:8px;font-weight:bold;background:rgba(0,0,0,0.55);padding:1px 5px;border-radius:4px;">残1</span>
+  </button>
+  <button type="button" class="spell-btn-3d spell-btn-fire" id="btnCastFire" title="メラゾーマ (目の前の敵HP半分大ダメージ) [各ステージ1回 / キー:1またはQ]">
+    <span style="font-size:18px;">🔥</span>
+    <span style="font-size:9px;font-weight:bold;">メラ</span>
+    <span id="lblMelaStock" style="font-size:8px;font-weight:bold;background:rgba(0,0,0,0.55);padding:1px 5px;border-radius:4px;">残1</span>
   </button>
 </div>
 <canvas id="hud"></canvas>
@@ -840,8 +848,8 @@ window.addEventListener('resize',()=>{
 scene.add(new THREE.AmbientLight(0xd0e8f8,0.45));
 const sun=new THREE.DirectionalLight(0xfff0cc,3.2);
 sun.position.set(60,120,45); sun.castShadow=true;
-// 🚀 最終ステージ最適化: 2048x2048 (4096からGPUフィルレートとメモリ負荷を75%削減しつつ高精細な影を維持)
-sun.shadow.mapSize.set(2048,2048);
+// 🚀 全ステージ超高速化: 1024x1024 (ステージ1同等の超軽量60fps固定・高品位ソフトシャドウ)
+sun.shadow.mapSize.set(1024,1024);
 sun.shadow.camera.left=-140; sun.shadow.camera.right=140;
 sun.shadow.camera.top=120; sun.shadow.camera.bottom=-120;
 sun.shadow.camera.near=0.5; sun.shadow.camera.far=340;
@@ -3194,77 +3202,174 @@ function gain3dExp(amount){
 }
 
 // 3D呪文：メラゾーマ (🔥 巨大火炎弾射出)
+// ══════════════════════════════════════════════════
+// 🔮 ドラクエ呪文システム (ステージ毎の残回数管理 & 新効果)
+// ══════════════════════════════════════════════════
+let spellStock = { hoimi: 2, giga: 1, mela: 1 };
+
+function updateSpellBarUI(){
+  const btnHeal = document.getElementById('btnCastHeal');
+  const btnThunder = document.getElementById('btnCastThunder');
+  const btnFire = document.getElementById('btnCastFire');
+  const lblHeal = document.getElementById('lblHoimiStock');
+  const lblGiga = document.getElementById('lblGigaStock');
+  const lblMela = document.getElementById('lblMelaStock');
+
+  if(lblHeal) lblHeal.textContent = `残${spellStock.hoimi}`;
+  if(lblGiga) lblGiga.textContent = `残${spellStock.giga}`;
+  if(lblMela) lblMela.textContent = `残${spellStock.mela}`;
+
+  if(btnHeal) btnHeal.classList.toggle('spell-disabled', spellStock.hoimi <= 0);
+  if(btnThunder) btnThunder.classList.toggle('spell-disabled', spellStock.giga <= 0);
+  if(btnFire) btnFire.classList.toggle('spell-disabled', spellStock.mela <= 0);
+}
+
+function resetSpellStock(){
+  spellStock.hoimi = 2; // 各ステージ2回
+  spellStock.giga = 1;  // 各ステージ1回
+  spellStock.mela = 1;  // 各ステージ1回
+  updateSpellBarUI();
+}
+
+// 3D呪文：メラ (🔥 目の前の敵のライフゲージ全体の半分大ダメージ！ [各ステージ1回])
 function castMelazoma3d(){
   if(gst !== 'play') return;
-  if(dq3dState.mp < 6){ showDq3dMsg('MPが足りない！(必要: 6)', '#ff6666'); return; }
-  dq3dState.mp -= 6;
+  if(spellStock.mela <= 0){
+    showDq3dMsg('メラは今ステージ分を使い切った！', '#ff6666');
+    return;
+  }
+  spellStock.mela--;
+  updateSpellBarUI();
   sndDqFire();
-  showDq3dMsg('メラゾーマ！！ 巨大火炎弾が炸裂！', '#ff4444');
   
-  // プレイヤー前方に爆炎火球
+  // 目の前（プレイヤー前方）の敵、または最も近い生存敵を取得
+  let target = null, minD = 999;
   const angle = pl.rotY !== undefined ? pl.rotY : 0;
   const fwdX = Math.sin(angle), fwdZ = Math.cos(angle);
-  const bx = pl.wx + fwdX * 5, bz = pl.wz + fwdZ * 5, by = terrainH(bx, bz) + 1;
   
-  puffBig(bx, by, bz, 0xff3300, 28, 0.35, { gravity: -0.003, spin: 0.3 });
-  puff(bx, by + 0.5, bz, 0xffcc00, 20, 0.25);
-  
-  const fLight = new THREE.PointLight(0xff3300, 8, 20);
-  fLight.position.set(bx, by, bz); scene.add(fLight);
-  setTimeout(()=>scene.remove(fLight), 400);
-  
-  // 周囲の敵へ範囲ダメージ (55ダメージ)
   enemies.forEach(e => {
-    if(!e.dead && Math.hypot(e.wx - bx, e.wz - bz) < 7){
-      e.hp -= 55; e.fl = 20;
-      puff(e.wx, e.wy + 1, e.wz, 0xffaa00, 15, 0.2);
-      if(e.hp <= 0) killEnemy(e);
+    if(!e.dead){
+      const d = Math.hypot(e.wx - pl.wx, e.wz - pl.wz);
+      const toX = (e.wx - pl.wx) / (d || 1), toZ = (e.wz - pl.wz) / (d || 1);
+      const dot = toX * fwdX + toZ * fwdZ;
+      if(dot > 0.2 && d < 28 && d < minD){
+        minD = d; target = e;
+      }
     }
   });
+  if(!target){
+    enemies.forEach(e => {
+      if(!e.dead){
+        const d = Math.hypot(e.wx - pl.wx, e.wz - pl.wz);
+        if(d < minD){ minD = d; target = e; }
+      }
+    });
+  }
+
+  const bx = target ? target.wx : (pl.wx + fwdX * 5);
+  const bz = target ? target.wz : (pl.wz + fwdZ * 5);
+  const by = terrainH(bx, bz) + 1;
+
+  // 派手な爆炎エフェクト (プールライトで軽量)
+  puffBig(bx, by, bz, 0xff3300, 32, 0.40, { gravity: -0.003, spin: 0.3 });
+  puff(bx, by + 0.5, bz, 0xffcc00, 24, 0.28);
+  if(burstEffectLight){
+    burstEffectLight.color.setHex(0xff3300);
+    burstEffectLight.position.set(bx, by, bz);
+    burstEffectLight.intensity = 8.0;
+    setTimeout(()=>{ burstEffectLight.intensity = 0; }, 300);
+  }
+
+  if(target){
+    // 💥 目の前の敵のライフゲージ全体の半分大ダメージ！
+    const dmg = Math.max(1, Math.ceil(target.maxHp * 0.5));
+    target.hp -= dmg;
+    target.fl = 25;
+    showDq3dMsg(`メラゾーマ！！ 敵ライフ半減！ -${dmg}ダメージ！`, '#ff4444');
+    puffBig(target.wx, target.wy + 1, target.wz, 0xffaa00, 20, 0.25);
+    if(target.hp <= 0) killEnemy(target);
+  } else {
+    showDq3dMsg('メラゾーマ！！ 巨大火炎弾が炸裂！', '#ff4444');
+  }
 }
 
-// 3D呪文：ギガスラッシュ (⚡ 黄金の雷光聖剣一閃)
+// 3D呪文：ギガスラッシュ (⚡ 目の前敵ライフゲージ全体の3分の2ダメージ！ [各ステージ1回])
 function castGigaslash3d(){
   if(gst !== 'play') return;
-  if(dq3dState.mp < 10){ showDq3dMsg('MPが足りない！(必要: 10)', '#ff6666'); return; }
-  dq3dState.mp -= 10;
+  if(spellStock.giga <= 0){
+    showDq3dMsg('ギガ斬は今ステージ分を使い切った！', '#ff6666');
+    return;
+  }
+  spellStock.giga--;
+  updateSpellBarUI();
   sndDqThunder();
-  showDq3dMsg('ギガスラッシュ！！ 聖なる雷光一閃！', '#ffee44');
   
+  // 目の前（プレイヤー前方）の敵を取得
+  let target = null, minD = 999;
   const angle = pl.rotY !== undefined ? pl.rotY : 0;
   const fwdX = Math.sin(angle), fwdZ = Math.cos(angle);
   
-  // 前方扇状に雷光炸裂
-  for(let dist = 3; dist <= 14; dist += 3){
-    const cx = pl.wx + fwdX * dist, cz = pl.wz + fwdZ * dist, cy = terrainH(cx, cz) + 0.5;
-    puffBig(cx, cy + 1, cz, 0xffff44, 18, 0.28, { gravity: -0.006 });
-    puff(cx, cy, cz, 0x00ffff, 14, 0.2);
-  }
-  
-  const gLight = new THREE.PointLight(0xffee55, 10, 25);
-  gLight.position.set(pl.wx + fwdX * 6, pl.wy + 3, pl.wz + fwdZ * 6); scene.add(gLight);
-  setTimeout(()=>scene.remove(gLight), 500);
-  
-  // 前方の敵に一撃120ダメージ！
   enemies.forEach(e => {
-    if(!e.dead && Math.hypot(e.wx - pl.wx, e.wz - pl.wz) < 14){
-      e.hp -= 120; e.fl = 25;
-      sndDqCrit();
-      puff(e.wx, e.wy + 1, e.wz, 0xffff00, 25, 0.25);
-      if(e.hp <= 0) killEnemy(e);
+    if(!e.dead){
+      const d = Math.hypot(e.wx - pl.wx, e.wz - pl.wz);
+      const toX = (e.wx - pl.wx) / (d || 1), toZ = (e.wz - pl.wz) / (d || 1);
+      const dot = toX * fwdX + toZ * fwdZ;
+      if(dot > 0.2 && d < 28 && d < minD){
+        minD = d; target = e;
+      }
     }
   });
+  if(!target){
+    enemies.forEach(e => {
+      if(!e.dead){
+        const d = Math.hypot(e.wx - pl.wx, e.wz - pl.wz);
+        if(d < minD){ minD = d; target = e; }
+      }
+    });
+  }
+
+  // 前方扇状に聖なる雷光一閃
+  for(let dist = 2; dist <= 16; dist += 2.5){
+    const cx = pl.wx + fwdX * dist, cz = pl.wz + fwdZ * dist, cy = terrainH(cx, cz) + 0.5;
+    puffBig(cx, cy + 1, cz, 0xffff44, 20, 0.32, { gravity: -0.005 });
+    puff(cx, cy, cz, 0x00ffff, 16, 0.22);
+  }
+  if(burstEffectLight){
+    burstEffectLight.color.setHex(0xffee55);
+    burstEffectLight.position.set(pl.wx + fwdX * 6, pl.wy + 3, pl.wz + fwdZ * 6);
+    burstEffectLight.intensity = 9.0;
+    setTimeout(()=>{ burstEffectLight.intensity = 0; }, 350);
+  }
+
+  if(target){
+    // ⚡ 目の前の敵のライフゲージ全体の3分の2ダメージ！
+    const dmg = Math.max(1, Math.ceil(target.maxHp * (2 / 3)));
+    target.hp -= dmg;
+    target.fl = 30;
+    sndDqCrit();
+    showDq3dMsg(`ギガスラッシュ！！ 敵ライフの2/3を斬裂！ -${dmg}ダメージ！`, '#ffee44');
+    puffBig(target.wx, target.wy + 1.2, target.wz, 0xffff00, 30, 0.3);
+    if(target.hp <= 0) killEnemy(target);
+  } else {
+    showDq3dMsg('ギガスラッシュ！！ 聖なる雷光一閃！', '#ffee44');
+  }
 }
 
-// 3D呪文：ホイミ (💚 HP大幅回復)
+// 3D呪文：ホイミ (💚 ライフ４回復！ [各ステージ2回])
 function castHoimi3d(){
   if(gst !== 'play') return;
-  if(dq3dState.mp < 4){ showDq3dMsg('MPが足りない！(必要: 4)', '#ff6666'); return; }
-  dq3dState.mp -= 4;
-  pl.hp = Math.min(pl.maxHp, pl.hp + 16);
+  if(spellStock.hoimi <= 0){
+    showDq3dMsg('ホイミは今ステージ分を使い切った！', '#ff6666');
+    return;
+  }
+  spellStock.hoimi--;
+  updateSpellBarUI();
+  
+  // 💚 ライフが４つ回復！
+  pl.hp = Math.min(pl.maxHp, pl.hp + 4);
   sndDqHeal();
-  showDq3dMsg('ホイミ！ HPが16回復した！', '#44ff88');
-  puffBig(pl.wx, pl.wy + 1.2, pl.wz, 0x34d399, 20, 0.2, { gravity: -0.005 });
+  showDq3dMsg(`ホイミ！ ライフが４つ回復した！ (残り${spellStock.hoimi}回)`, '#44ff88');
+  puffBig(pl.wx, pl.wy + 1.2, pl.wz, 0x34d399, 24, 0.25, { gravity: -0.006 });
 }
 
 
@@ -3668,6 +3773,8 @@ function placeChests(stageIdx){
 function initStage(idx){
   sIdx=idx; fr=0; stageStartFr=0;
   afkTimer=0; afkLastX=38; afkLastZ=30;
+  // 🔮 各ステージ毎に呪文使用回数を全回復 (ホイミ2回、ギガ斬1回、メラ1回)
+  resetSpellStock();
   // 🚀 最終ステージ最適化: 前ステージのGPUリソースを完全に解放
   enemies.forEach(e=>{if(e.mesh){scene.remove(e.mesh);deepDispose(e.mesh);}}); enemies=[];
   gems.forEach(g=>{if(g.mesh){scene.remove(g.mesh);deepDispose(g.mesh);}}); gems=[];
@@ -3696,31 +3803,31 @@ function initStage(idx){
   });
 
   if(idx===3){
-    // Stage 4: Zeus + Dark Knight
-    const bx=38,bz=20;
+    // Stage 4: Zeus + Dark Knight (🚀 初期間合いを適正化しプレイヤーが自由にダッシュ可能に)
+    const bx=38,bz=14;
     const m=createZeus(2.0);
     m.position.set(bx,terrainH(bx,bz),bz); scene.add(m);
-    enemies=[{mesh:m,wx:bx,wz:bz,wy:terrainH(bx,bz),sz:2.5,hp:60,maxHp:60,
-      spd:0.05,dir:0,mt:0,fl:0,stunTimer:0,dead:false,dT:0,type:'zeus',
-      phase:1,cTimer:180,lightTimer:180,charging:false,cvx:0,cvz:0}];
+    enemies=[{mesh:m,wx:bx,wz:bz,wy:terrainH(bx,bz),sz:2.2,hp:50,maxHp:50,
+      spd:0.045,dir:0,mt:0,fl:0,stunTimer:0,dead:false,dT:0,type:'zeus',
+      phase:1,cTimer:180,lightTimer:220,charging:false,cvx:0,cvz:0}];
     // Add dark knight escort
-    const dk=createDarkKnight(1.8); const dkx=48,dkz=26;
+    const dk=createDarkKnight(1.6); const dkx=52,dkz=16;
     dk.position.set(dkx,terrainH(dkx,dkz),dkz); scene.add(dk);
     enemies.push({mesh:dk,wx:dkx,wz:dkz,wy:terrainH(dkx,dkz),sz:1.8,hp:18,maxHp:18,
       spd:0.09,dir:0,mt:0,fl:0,stunTimer:0,dead:false,dT:0,type:'darkknight',fireTimer:0});
     return;
   }
   if(idx===4){
-    // Stage 5: Dark God final boss
-    const bx=38,bz=18;
-    const m=createDarkGod(2.8);
+    // Stage 5: Dark God final boss (🚀 初期間合いを適正化)
+    const bx=38,bz=14;
+    const m=createDarkGod(2.5);
     m.position.set(bx,terrainH(bx,bz),bz); scene.add(m);
-    enemies=[{mesh:m,wx:bx,wz:bz,wy:terrainH(bx,bz),sz:3.8,hp:100,maxHp:100,
-      spd:0.04,dir:0,mt:0,fl:0,stunTimer:0,dead:false,dT:0,type:'darkgod',
-      phase:1,cTimer:200,lightTimer:200,charging:false,cvx:0,cvz:0}];
+    enemies=[{mesh:m,wx:bx,wz:bz,wy:terrainH(bx,bz),sz:3.0,hp:80,maxHp:80,
+      spd:0.038,dir:0,mt:0,fl:0,stunTimer:0,dead:false,dT:0,type:'darkgod',
+      phase:1,cTimer:200,lightTimer:240,charging:false,cvx:0,cvz:0}];
     // Dark knight pair escort
-    [[28,24],[48,24]].forEach(([ex,ez])=>{
-      const dk=createDarkKnight(2.0); dk.position.set(ex,terrainH(ex,ez),ez); scene.add(dk);
+    [[24,18],[52,18]].forEach(([ex,ez])=>{
+      const dk=createDarkKnight(1.7); dk.position.set(ex,terrainH(ex,ez),ez); scene.add(dk);
       enemies.push({mesh:dk,wx:ex,wz:ez,wy:terrainH(ex,ez),sz:2.0,hp:22,maxHp:22,
         spd:0.10,dir:0,mt:0,fl:0,stunTimer:0,dead:false,dT:0,type:'darkknight',fireTimer:0});
     });
@@ -4123,17 +4230,19 @@ function update(){
     if(pl.wy<=groundY){const wv=pl.jV;pl.wy=groundY;pl.jV=0;pl.jumping=false;if(wv<-0.35){snd(180,0.05,'square',0.1);puff(pl.wx,pl.wy,pl.wz,0xaaaa88,5,0.08);}if(pl.paraglider){pl.paraglider=false;if(paraGliderMesh)paraGliderMesh.visible=false;}}
   } else pl.wy=groundY;
 
-  // ─ Move ─
-  const dx=inp.dx,dz=inp.dz,SPD=pl.shielding?1.8:3.2;
+  // ─ Move ─ (🚀 ステージ1同等以上の快速・俊敏・軽快ダッシュ化)
+  const dx=inp.dx,dz=inp.dz,SPD=pl.shielding?2.8:4.6;
   const moving=Math.abs(dx)>0.01||Math.abs(dz)>0.01;
   if(moving){
-    pl.vx+=(dx*SPD-pl.vx)*0.35; pl.vz+=(dz*SPD-pl.vz)*0.35;
-    pl.walkT++; if(pl.walkT>7){pl.walkT=0;pl.walkF++;}
+    // レスポンスと初速を大幅向上 (0.35 -> 0.55)
+    pl.vx+=(dx*SPD-pl.vx)*0.55; pl.vz+=(dz*SPD-pl.vz)*0.55;
+    pl.walkT++; if(pl.walkT>5){pl.walkT=0;pl.walkF++;}
     const va=Math.atan2(dx,dz),dirs=[0,Math.PI/2,Math.PI,-Math.PI/2];
     let best=pl.dir,bestD=999; dirs.forEach((a,i)=>{let d=Math.abs(va-a);if(d>Math.PI)d=Math.PI*2-d;if(d<bestD){bestD=d;best=i;}});
     pl.dir=best;
-  } else {pl.vx*=0.55;pl.vz*=0.55;if(Math.abs(pl.vx)<0.008)pl.vx=0;if(Math.abs(pl.vz)<0.008)pl.vz=0;}
-  const nx=pl.wx+pl.vx*0.072,nz=pl.wz+pl.vz*0.072;
+  } else {pl.vx*=0.45;pl.vz*=0.45;if(Math.abs(pl.vx)<0.008)pl.vx=0;if(Math.abs(pl.vz)<0.008)pl.vz=0;}
+  // 移動ストライドを 0.072 -> 0.088 に拡大 (キビキビ走る！)
+  const nx=pl.wx+pl.vx*0.088,nz=pl.wz+pl.vz*0.088;
   // Footprints on soft terrain
   if(moving&&pl.walkF%2===0&&insideHouse<0&&onTower<0){
     const h=terrainH(pl.wx,pl.wz);
@@ -4357,9 +4466,13 @@ function update(){
     e.wy=terrainH(e.wx,e.wz); e.mesh.position.set(e.wx,e.wy,e.wz);
     if(d2(e,pl)<22) e.mesh.rotation.y=Math.atan2(pl.wx-e.wx,pl.wz-e.wz);
 
-    // Separation push
+    // Separation push (🚀 ボス巨体による押し潰し・吸着・足止めを完全解消)
     const sep=d2(e,pl);
-    if(sep<e.sz+pl.sz-0.1){const pa=Math.atan2(e.wz-pl.wz,e.wx-pl.wx);const push=e.sz+pl.sz-sep+0.05;e.wx+=Math.cos(pa)*push*0.5;e.wz+=Math.sin(pa)*push*0.5;}
+    if(sep<e.sz+pl.sz-0.1){
+      const pa=Math.atan2(e.wz-pl.wz,e.wx-pl.wx);
+      const push=(e.sz+pl.sz-sep)*0.15; // プレイヤーの自由移動を邪魔しないソフトな反発
+      e.wx+=Math.cos(pa)*push; e.wz+=Math.sin(pa)*push;
+    }
 
     // ─ Sword hit ─
     if(pl.atkT>12&&e.fl===0&&Math.abs(pl.wy-e.wy)<2.5){
@@ -4399,7 +4512,7 @@ function update(){
         e.fl=10; pl.bFlash=14; pl.inv=30;
       } else {
         const dmg=getDiffDmg((e.type==='zeus'||e.type==='darkgod')?5:(e.type==='dragon'||e.type==='bear'||e.type==='tiger'||e.type==='minotaur'||e.type==='cyclops')?2:1);
-        pl.hp-=dmg; pl.inv=85;
+        pl.hp-=dmg; pl.inv=35; // 🚀 被弾硬直時間を85から35へ大幅短縮！すぐに反撃＆ダッシュ可能
         snd(150,0.22,'sawtooth');
         puff(pl.wx,pl.wy+1,pl.wz,0xff4444,12,0.14);
         puffBig(pl.wx,pl.wy+1.2,pl.wz,0xff0000,6,0.12,{gravity:-0.004});
@@ -4417,7 +4530,7 @@ function update(){
     // Lightning damage to player
     if(b.timer===15&&Math.hypot(pl.wx-b.tx,pl.wz-b.tz)<3&&pl.inv===0){
       if(shieldOK({wx:b.tx,wz:b.tz})){snd(380,0.07,'square');pl.bFlash=14;pl.inv=30;}
-      else{pl.hp-=getDiffDmg(5);pl.inv=80;snd(100,0.3,'sawtooth');puff(pl.wx,pl.wy+1,pl.wz,0xffff00,10,0.15);if(pl.hp<=0)gst='dead';}
+      else{pl.hp-=getDiffDmg(5);pl.inv=35;snd(100,0.3,'sawtooth');puff(pl.wx,pl.wy+1,pl.wz,0xffff00,10,0.15);if(pl.hp<=0)gst='dead';}
     }
     if(b.timer<=0){scene.remove(b.g);scene.remove(b.strike);lightningBolts.splice(i,1);}
   }
@@ -4428,7 +4541,7 @@ function update(){
     b.g.children.forEach((m,j)=>{m.material.opacity=(b.timer/24)*0.85-j*0.03;});
     if(b.timer===15&&d2({wx:b.ex,wz:b.ez},pl)<5&&pl.inv===0){
       if(shieldOK({wx:b.ex,wz:b.ez})){snd(380,0.07,'square');pl.bFlash=14;pl.inv=30;}
-      else{pl.hp-=getDiffDmg(3);pl.inv=70;snd(200,0.2,'sawtooth');puff(pl.wx,pl.wy+1,pl.wz,0xff4400,8,0.12);if(pl.hp<=0)gst='dead';}
+      else{pl.hp-=getDiffDmg(3);pl.inv=30;snd(200,0.2,'sawtooth');puff(pl.wx,pl.wy+1,pl.wz,0xff4400,8,0.12);if(pl.hp<=0)gst='dead';}
     }
     if(b.timer<=0){scene.remove(b.g);fireBreaths.splice(i,1);}
   }
@@ -4537,7 +4650,7 @@ function updateZeus(e){
   if(canGo(nex,e.wz,e.sz*0.3))e.wx=nex; if(canGo(e.wx,nez,e.sz*0.3))e.wz=nez;
   // Lightning
   e.lightTimer--;
-  const ltInterval=[180,120,60][e.phase-1];
+  const ltInterval=[240,180,120][e.phase-1]; // 🚀 落雷頻度を適正化しプレイヤーがスムーズに立ち回れるように調整
   if(e.lightTimer<=0){
     e.lightTimer=ltInterval;
     // Scatter 2-4 lightning strikes around player
@@ -4865,8 +4978,8 @@ function drawHUD(){
   if(gst==='endroll'){drawEndroll();return;}
   const HH=75;
   // ── Damage flash overlay ──
-  if(pl&&pl.inv>70){
-    const alpha=((pl.inv-70)/15)*0.35;
+  if(pl&&pl.inv>20){
+    const alpha=((pl.inv-20)/15)*0.35;
     hc.fillStyle=`rgba(220,0,0,${alpha})`;
     hc.fillRect(0,0,hud.width,hud.height);
   }
@@ -5938,6 +6051,7 @@ function initSpellButtons(){
     el.addEventListener('pointerdown', trigger);
     el.addEventListener('touchstart', trigger, { passive: false });
   });
+  updateSpellBarUI();
 }
 window.addEventListener('DOMContentLoaded', initSpellButtons);
 setTimeout(initSpellButtons, 300);
