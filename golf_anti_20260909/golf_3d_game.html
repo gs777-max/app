@@ -338,8 +338,7 @@ html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidd
 /* スイング中：大きな数字表示スペース確保 */
 #powerRow.swinging{margin-top:0 !important;}
 #powerMeterWrap{position:relative;width:96vw;max-width:500px;height:26px;overflow:visible;margin-bottom:24px;}
-#powerTrack{
-  width:100%;height:26px;border-radius:13px;
+#powerTrack{width:100%;height:40px;border-radius:13px;
   background:linear-gradient(90deg,
     #002200 0%,#00aa00 28%,#88ff00 42%,
     #ffdd00 52%,#ff8800 68%,
@@ -351,7 +350,7 @@ html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidd
 #unsZone{position:absolute;top:0;bottom:0;left:94%;width:6%;background:rgba(255,0,200,0.5);border:1.5px solid rgba(255,100,255,1);border-radius:4px;pointer-events:none;}
 #impactZone{position:absolute;top:0;bottom:0;background:rgba(0,255,120,0.5);border-radius:5px;left:44%;display:none;}
 #impactZoneUNS{position:absolute;top:0;bottom:0;width:4%;background:rgba(255,100,255,0.8);border:2px solid #ff44ff;border-radius:4px;left:48%;display:none;pointer-events:none;}
-#powerNeedle{position:absolute;top:-6px;bottom:-6px;width:4px;background:#fff;border-radius:2px;box-shadow:0 0 10px rgba(255,255,255,1);left:0%;pointer-events:none;}
+#powerNeedle{position:absolute;top:-10px;bottom:-10px;width:8px;background:#fff;border-radius:2px;box-shadow:0 0 10px rgba(255,255,255,1);left:0%;pointer-events:none;}
 
 /* パワー数字行 */
 #powerValueRow{display:none;position:absolute;top:-40px;left:0;right:0;align-items:center;justify-content:space-between;padding:0 4px;pointer-events:none;z-index:20;}
@@ -372,11 +371,11 @@ html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidd
 
 /* パットメーター */
 #puttMeterWrap{position:relative;width:92vw;max-width:480px;height:34px;display:none;flex-direction:column;align-items:center;gap:1px;}
-#puttTrack{width:100%;height:20px;border-radius:10px;background:linear-gradient(90deg,#001833 0%,#003388 15%,#0066cc 35%,#00aaff 50%,#00ddcc 65%,#aaffdd 80%,#ffffff 100%);border:1.5px solid rgba(0,220,255,0.5);position:relative;overflow:visible;}
+#puttTrack{width:100%;height:40px;border-radius:10px;background:linear-gradient(90deg,#001833 0%,#003388 15%,#0066cc 35%,#00aaff 50%,#00ddcc 65%,#aaffdd 80%,#ffffff 100%);border:1.5px solid rgba(0,220,255,0.5);position:relative;overflow:visible;}
 #puttScaleRow{width:100%;display:flex;justify-content:space-between;padding:0 2px;}
 .putt-scale-lbl{font-size:0.62rem;color:rgba(0,230,255,0.9);font-family:'Orbitron',sans-serif;font-weight:700;}
 #puttImpactZone{position:absolute;top:0;bottom:0;background:rgba(0,255,160,0.5);border:1.5px solid rgba(0,255,160,0.9);border-radius:5px;display:none;pointer-events:none;}
-#puttNeedle{position:absolute;top:-6px;bottom:-6px;width:4px;background:#fff;border-radius:2px;box-shadow:0 0 10px rgba(0,255,200,1);left:0%;pointer-events:none;}
+#puttNeedle{position:absolute;top:-10px;bottom:-10px;width:8px;background:#fff;border-radius:2px;box-shadow:0 0 10px rgba(0,255,200,1);left:0%;pointer-events:none;}
 #puttPowerLabel{font-size:0.9rem;color:var(--putt);font-family:'Orbitron',sans-serif;text-align:center;font-weight:900;text-shadow:0 0 10px currentColor;line-height:1.2;}
 
 /* ===== コントロール行（エイム・SHOT・サブ）===== */
@@ -726,10 +725,10 @@ html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidd
 }
 #centerControls #powerRow.swinging { margin-top: 0 !important; }
 #centerControls #powerMeterWrap, #centerControls #puttMeterWrap {
-  width: 100%; max-width: 440px; height: 20px; position: relative; margin: 0 !important;
+  width: 100%; max-width: 440px; height: 40px; position: relative; margin: 0 !important;
   cursor: pointer; touch-action: manipulation;
 }
-#centerControls #powerTrack, #centerControls #puttTrack { height: 20px; border-radius: 10px; }
+#centerControls #powerTrack, #centerControls #puttTrack { height: 40px; border-radius: 20px; }
 #centerControls #powerZoneRow { display: none; }
 #centerControls #powerValueRow {
   position: absolute; top: -32px; left: 0; right: 0;
@@ -1254,7 +1253,7 @@ html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidd
     <!-- 互換性維持用の必須要素（JSの初期化・ホールアウト処理がクラッシュしないよう常駐） -->
     <div id="shotGuide" style="display:none !important;"></div>
     <button id="traceBtn" style="display:none !important;"></button>
-    <button id="nextHoleBtn" style="display:none; position:absolute; top:45%; left:50%; transform:translate(-50%,-50%); z-index:999; padding:15px 40px; font-size:1.5rem; font-family:'Orbitron',sans-serif; font-weight:900; background:linear-gradient(135deg,#6600cc,#aa00ff); border:2px solid #fff; border-radius:12px; color:#fff; box-shadow:0 0 20px #a200ff; cursor:pointer; text-align:center;">NEXT HOLE ➔</button>
+    <button id="nextHoleBtn" style="display:none; position:absolute; top:20%; left:50%; transform:translate(-50%,-50%); z-index:9999; padding:20px 50px; font-size:2rem; font-family:'Orbitron',sans-serif; font-weight:900; background:linear-gradient(135deg,#6600cc,#aa00ff); border:2px solid #fff; border-radius:12px; color:#fff; box-shadow:0 0 20px #a200ff; cursor:pointer; text-align:center;">NEXT HOLE ➔</button>
   </div>
 
   <!-- D-Plane 微調整モーダル -->
@@ -3864,7 +3863,7 @@ class GolfGame{
     // ②  ラフ（コース別・プロ品質）
     // ═══════════════════════════════════════════════════════
     // ベースラフ色（コース芝の種類で異なる）
-    const roughColor=isLinks?(rain?0x3a3818:0x606830):isCoastal?(rain?0x183808:0x246014):(rain?0x183808:fog?0x26480e:0x1e6010);
+    const roughColor = 0x3a5a22;
     add(new THREE.PlaneGeometry(TW*2.3,TH*1.09),roughColor||0x1b5814,-0.06);
     // セミラフ（フェアウェイとラフの中間）
     const semiRough=isLinks?(rain?0x484828:0x788840):(rain?0x226010:0x2a8018);
@@ -3894,7 +3893,7 @@ class GolfGame{
     }
     fwGeo.computeVertexNormals();
     // ★ コース・天候・季節別リアルフェアウェイカラー
-    let fwBase=course.color||0x2da824;
+    let fwBase = 0x6ab04c;
     if(isLinks) fwBase=rain?0x4a7028:0x6a9a38;        // リンクス=フェスキュー芝（黄緑系）
     else if(isCoastal) fwBase=rain?0x287018:0x38a028;  // 海岸=洋芝
     else if(isHilly) fwBase=rain?0x205518:0x2a8020;    // 丘陵=バミューダ芝
