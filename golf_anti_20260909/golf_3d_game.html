@@ -3673,6 +3673,8 @@ class GolfGame{
 
   // ===== ホール読み込み =====
   loadHole(course,idx){
+    this.currentCourse = course || this.currentCourse;
+    this.currentHoleIdx = idx;
     this.camOrbit=0;this.camTilt=0; // ★ ホール開始時にカメラリセット
     this.traceLines=[];this._curTraceLine=null;this._curTracePoints=[];this._curTraceMarkers=[]; // ★ 弾道トレース履歴クリア（シーン自体がリセットされるため配列のみクリア）
     // カメラ操作ヒントを表示（5秒）
@@ -3944,6 +3946,257 @@ class GolfGame{
     const isStAndrews=(cid==="standrews");
     const isSawgrass=(cid==="tpcsawgrass");
     const isToda=(cid==="toda");
+
+    // ═════════════════════════════════════════════════════════════
+    // ★★★ 戸田パブリックゴルフコース (河川敷 9ホール2WAY) 構築 ★★★
+    // ═════════════════════════════════════════════════════════════
+    if(isToda){
+      window._waterBoxes = [];
+      window._shortcutBanZone = null;
+      window._obVolumes = [];
+      window._runoffAreas = [];
+
+      // ─── 共通マテリアル（仕様書完全準拠） ───
+      const matFW = new THREE.MeshLambertMaterial({color: TODA_PALETTE.fairway});
+      const matRough = new THREE.MeshLambertMaterial({color: TODA_PALETTE.rough});
+      const matGreen = new THREE.MeshLambertMaterial({color: TODA_PALETTE.green});
+      const matSubGreen = new THREE.MeshLambertMaterial({color: 0x2bb52b}); // サブグリーン
+      const matBunker = new THREE.MeshLambertMaterial({color: TODA_PALETTE.bunker});
+      const matWater = new THREE.MeshPhongMaterial({color: TODA_PALETTE.water, transparent:true, opacity:0.88, shininess:80});
+      const matBush = new THREE.MeshLambertMaterial({color: TODA_PALETTE.bush});
+
+      // ─── 荒川河川敷ベースフラット大地 ───
+      const baseRiverLand = new THREE.Mesh(new THREE.PlaneGeometry(TW*4, TH*1.5), matRough);
+      baseRiverLand.rotation.x = -Math.PI/2;
+      baseRiverLand.position.set(0, -0.04, -TH/2);
+      this.scene.add(baseRiverLand);
+
+      // ─── ティー位置・ピン位置の動的バインド ───
+      const teeCoord = hole.tee || {x:0, y:0.36, z:0};
+      const pinCoord = hole.pin || {x:-5, y:1.8, z:gZ};
+      const subPinCoord = hole.subPin || {x:5, y:1.8, z:gZ};
+
+      this.teePos.set(teeCoord.x, teeCoord.y, teeCoord.z);
+      this.pinPos.set(pinCoord.x, pinCoord.y, pinCoord.z);
+
+      const ph = hole.physHole || ((hole.n-1)%9 + 1);
+      const isRightAngleDogleg = (ph === 8);
+
+      // ─── フェアウェイ構築 ───
+      if(!isRightAngleDogleg){
+        // 通常ストレートホール
+        const fwWidth = (hole.dogleg==="slight_right"||hole.dogleg==="right") ? TW*0.75 : TW*0.62;
+        const fwMesh = new THREE.Mesh(new THREE.PlaneGeometry(fwWidth, TH*0.98), matFW);
+        fwMesh.rotation.x = -Math.PI/2;
+        fwMesh.position.set(0, 0.01, -TH/2);
+        fwMesh.receiveShadow = true;
+        this.scene.add(fwMesh);
+
+        // ファーストカット境界帯
+        for(const sd of [-1, 1]){
+          const fc = new THREE.Mesh(new THREE.PlaneGeometry(4.0, TH*0.98), new THREE.MeshLambertMaterial({color: TODA_PALETTE.firstCut}));
+          fc.rotation.x = -Math.PI/2;
+          fc.position.set(sd*(fwWidth/2 + 2.0), 0.012, -TH/2);
+          this.scene.add(fc);
+        }
+      } else {
+        // ★★★ 【Hole 8 & Hole 17】 200yから直角の左ドッグレッグ ★★★
+        // ① ティーから200yd地点へのストレート区間FW
+        const leg1Length = 215;
+        const leg1W = 34;
+        const leg1 = new THREE.Mesh(new THREE.PlaneGeometry(leg1W, leg1Length), matFW);
+        leg1.rotation.x = -Math.PI/2;
+        leg1.position.set(0, 0.01, -leg1Length/2);
+        leg1.receiveShadow = true;
+        this.scene.add(leg1);
+
+        // ファーストカット（縦方向の左右）
+        for(const sd of [-1, 1]){
+          const fc1 = new THREE.Mesh(new THREE.PlaneGeometry(4.0, leg1Length), new THREE.MeshLambertMaterial({color: TODA_PALETTE.firstCut}));
+          fc1.rotation.x = -Math.PI/2;
+          fc1.position.set(sd*(leg1W/2 + 2.0), 0.012, -leg1Length/2);
+          this.scene.add(fc1);
+        }
+
+        // ② 200ydコーナーから真左（-X方向）へ直角に折れ曲がる区間FW
+        // コーナー: Z = -185 〜 -225, X = 0 から X = -95 まで横に伸びる
+        const cornerZ = -205;
+        const leg2W = 95;
+        const leg2Depth = 40;
+        const leg2 = new THREE.Mesh(new THREE.PlaneGeometry(leg2W, leg2Depth), matFW);
+        leg2.rotation.x = -Math.PI/2;
+        leg2.position.set(-leg2W/2 + 10, 0.014, cornerZ);
+        leg2.receiveShadow = true;
+        this.scene.add(leg2);
+
+        // ファーストカット（横方向の上下）
+        for(const sd of [-1, 1]){
+          const fc2 = new THREE.Mesh(new THREE.PlaneGeometry(leg2W, 4.0), new THREE.MeshLambertMaterial({color: TODA_PALETTE.firstCut}));
+          fc2.rotation.x = -Math.PI/2;
+          fc2.position.set(-leg2W/2 + 10, 0.015, cornerZ + sd*(leg2Depth/2 + 2.0));
+          this.scene.add(fc2);
+        }
+
+        // ③ コーナー内側（X: -8 〜 -55, Z: -60 〜 -190）を塞ぐ密集した高い防風林
+        // ティーからグリーンへの直接ショットを完全にブロック！
+        for(let z = -70; z >= -195; z -= 14){
+          for(let x = -12; x >= -50; x -= 14){
+            const jx = x + (Math.random()-0.5)*6;
+            const jz = z + (Math.random()-0.5)*6;
+            const treeH = 3.6 + Math.random()*1.8;
+            this._addTree(jx, jz, gen, treeH, "broad");
+          }
+        }
+
+        // ④ ローカルルール空域OB（ショートカット禁止判定ボリューム）
+        window._shortcutBanZone = {
+          minX: -65, maxX: -6,
+          minZ: -202, maxZ: -65,
+          maxY: 60
+        };
+
+        // ⑤ 外周OB白杭（右サイドおよびコーナー奥）
+        for(let z = 10; z >= -230; z -= 18){
+          const stk = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 1.4, 6), new THREE.MeshBasicMaterial({color: TODA_PALETTE.ob}));
+          stk.position.set(leg1W/2 + 4, 0.7, z);
+          this.scene.add(stk);
+        }
+        // 突き当たり奥（Z = -230以奥）のOB白杭
+        for(let x = -leg1W/2; x <= leg1W/2 + 4; x += 10){
+          const stk = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 1.4, 6), new THREE.MeshBasicMaterial({color: TODA_PALETTE.ob}));
+          stk.position.set(x, 0.7, -228);
+          this.scene.add(stk);
+        }
+      }
+
+      // ─── ティーグラウンド（OUT用・IN用） ───
+      const teeA = new THREE.Mesh(new THREE.BoxGeometry(10, 0.25, 8), new THREE.MeshLambertMaterial({color: TODA_PALETTE.tee}));
+      teeA.position.set(0, 0.12, 0);
+      this.scene.add(teeA);
+      for(const mx of [-2.4, 2.4]){
+        const mk = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), new THREE.MeshLambertMaterial({color: 0x2288ff}));
+        mk.position.set(mx, 0.4, 0);
+        this.scene.add(mk);
+      }
+
+      // IN用別ティー
+      const inTeeCoord = hole.isIN ? teeCoord : {x:6, y:0.36, z:19};
+      const teeB = new THREE.Mesh(new THREE.BoxGeometry(10, 0.25, 8), new THREE.MeshLambertMaterial({color: TODA_PALETTE.tee}));
+      teeB.position.set(inTeeCoord.x, 0.12, inTeeCoord.z);
+      this.scene.add(teeB);
+      for(const mx of [-2.4, 2.4]){
+        const mk = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), new THREE.MeshLambertMaterial({color: 0xcc2222}));
+        mk.position.set(inTeeCoord.x+mx, 0.4, inTeeCoord.z);
+        this.scene.add(mk);
+      }
+
+      // ─── 砲台グリーン（2つのグリーン） ───
+      const gHeight = pinCoord.y || 1.8;
+      const gRadius = 9.0;
+      
+      // ① アクティブグリーン砲台マウンド（法面＋天面）
+      const basePodium = new THREE.Mesh(new THREE.CylinderGeometry(gRadius, gRadius+5.0, gHeight, 32), matRough);
+      basePodium.position.set(pinCoord.x, gHeight*0.5, pinCoord.z);
+      this.scene.add(basePodium);
+
+      const activeGreenMesh = new THREE.Mesh(new THREE.CylinderGeometry(gRadius*0.92, gRadius*0.92, 0.15, 32), matGreen);
+      activeGreenMesh.position.set(pinCoord.x, gHeight + 0.05, pinCoord.z);
+      this.scene.add(activeGreenMesh);
+      this.greenPos = {x: pinCoord.x, z: pinCoord.z, r: gRadius*0.92, y: gHeight};
+
+      // アクティブグリーンのカップリング
+      const cupRing = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.8, 24), new THREE.MeshBasicMaterial({color:0xffffff, side:THREE.DoubleSide}));
+      cupRing.rotation.x = -Math.PI/2;
+      cupRing.position.set(pinCoord.x, gHeight + 0.14, pinCoord.z);
+      this.scene.add(cupRing);
+
+      // ② サブグリーン砲台マウンド（フラッグなしBグリーン）
+      const subPodium = new THREE.Mesh(new THREE.CylinderGeometry(gRadius*0.95, gRadius+4.5, gHeight*0.95, 28), matRough);
+      subPodium.position.set(subPinCoord.x, gHeight*0.48, subPinCoord.z);
+      this.scene.add(subPodium);
+
+      const subGreenMesh = new THREE.Mesh(new THREE.CylinderGeometry(gRadius*0.88, gRadius*0.88, 0.15, 28), matSubGreen);
+      subGreenMesh.position.set(subPinCoord.x, gHeight*0.95 + 0.05, subPinCoord.z);
+      this.scene.add(subGreenMesh);
+
+      // 砲台グリーン法面の滑落エリア登録
+      window._runoffAreas.push({pos: new THREE.Vector3(pinCoord.x, 0, pinCoord.z), radius: gRadius + 4.5});
+
+      // ─── その他ホール固有ギミック ───
+      // 【Hole 1 / 10】
+      if(ph === 1){
+        this._addTree(0, -230, gen, 3.2, "broad");
+        window._obVolumes.push({minX: -TW*2, maxX: -TW*0.62/2 - 5, minZ: -TH*1.5, maxZ: 10, reason:"左OBライン (白杭)"});
+      }
+      // 【Hole 2 / 11】
+      if(ph === 2){
+        const pz = -140;
+        const pWater = new THREE.Mesh(new THREE.PlaneGeometry(28, 60), matWater);
+        pWater.rotation.x = -Math.PI/2;
+        pWater.position.set(TW*0.62/2 + 10, 0.03, pz);
+        this.scene.add(pWater);
+        window._waterBoxes.push({minX: TW*0.62/2 - 2, maxX: TW*2, minZ: pz - 32, maxZ: pz + 32, maxY: 0.5});
+      }
+      // 【Hole 3 / 12】
+      if(ph === 3){
+        const bkZ = pinCoord.z + 14;
+        const bA = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 6.2, 0.8, 24), matBunker);
+        bA.position.set(pinCoord.x, 0.35, bkZ);
+        this.scene.add(bA);
+        window._bunkerZones.push({x: pinCoord.x, z: bkZ, radius: 6.0});
+      }
+      // 【Hole 4 / 13】
+      if(ph === 4){
+        this._addTree(0, -190, gen, 3.0, "broad");
+        const dropZ = pinCoord.z - 12;
+        const dropSlope = new THREE.Mesh(new THREE.BoxGeometry(TW*0.6, 1.5, 16), matRough);
+        dropSlope.rotation.x = 0.25;
+        dropSlope.position.set(pinCoord.x, -0.2, dropZ);
+        this.scene.add(dropSlope);
+        window._runoffAreas.push({pos: new THREE.Vector3(pinCoord.x, 0, dropZ), radius: 14.0});
+      }
+      // 【Hole 5 / 14】
+      if(ph === 5){
+        const river = new THREE.Mesh(new THREE.PlaneGeometry(TW*2, TH*1.2), matWater);
+        river.rotation.x = -Math.PI/2;
+        river.position.set(-TW - 5, 0.02, -TH/2);
+        this.scene.add(river);
+        window._obVolumes.push({minX: -TW*3, maxX: -TW*0.75/2 - 2, minZ: -TH*1.5, maxZ: 10, reason:"荒川河川敷 超浅OB"});
+      }
+      // 【Hole 6 / 15】
+      if(ph === 6){
+        const creekZ = -240;
+        const creekW = TW*0.62 * 1.3;
+        const creekL = 20;
+        const creekMesh = new THREE.Mesh(new THREE.PlaneGeometry(creekW, creekL), matWater);
+        creekMesh.rotation.x = -Math.PI/2;
+        creekMesh.position.set(0, 0.03, creekZ);
+        this.scene.add(creekMesh);
+        window._waterBoxes.push({minX: -creekW/2 - 4, maxX: creekW/2 + 4, minZ: creekZ - creekL/2, maxZ: creekZ + creekL/2, maxY: 0.5});
+      }
+      // 【Hole 7 / 16】
+      if(ph === 7){
+        const obX = -TW*0.62/2 - 2;
+        window._obVolumes.push({minX: -TW*2, maxX: obX, minZ: -TH*1.5, maxZ: 10, reason:"左サイド極浅OB"});
+      }
+      // 【Hole 9 / 18】
+      if(ph === 9){
+        const bkDist = gRadius + 3.2;
+        const bkAngles = [0, Math.PI/2, Math.PI, Math.PI*1.5];
+        for(const ang of bkAngles){
+          const bx = pinCoord.x + Math.sin(ang)*bkDist;
+          const bz = pinCoord.z + Math.cos(ang)*bkDist;
+          const bkMesh = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 5.0, 0.9, 20), matBunker);
+          bkMesh.position.set(bx, 0.4, bz);
+          this.scene.add(bkMesh);
+          window._bunkerZones.push({x: bx, z: bz, radius: 4.8});
+        }
+        window._runoffAreas.push({pos: new THREE.Vector3(pinCoord.x, 0, pinCoord.z), radius: gRadius + 6.0});
+      }
+
+      console.log(`[Toda Public] Built 2WAY Hole ${hole.n} (Physical Hole ${ph}, isIN: ${hole.isIN}, Dogleg: ${hole.dogleg})`);
+      return; // 戸田パブリック固有の構築完了
+    }
 
     // ★ feat解析（コース特性をビジュアルに反映）
     const feat=hole.feat||"";
@@ -5574,71 +5827,323 @@ const bCntGreen=Math.min(bunkerCount,5);
   }
 
   _drawMiniMap(){
-    const cv=document.getElementById("miniMapCanvas"),ctx=cv.getContext("2d");
-    if(!cv||!ctx)return;
-    const W=cv.width,H=cv.height;
-    ctx.clearRect(0,0,W,H);
-    // 背景（ラフ）
-    ctx.fillStyle="#1a4a12";ctx.fillRect(0,0,W,H);
-    // フェアウェイ帯
-    const sX=W/100,sZ=H/this.terrainH,cx=W/2,cy=H*0.04;
-    ctx.fillStyle="#2a7a1a";ctx.fillRect(cx-20*sX,cy,40*sX,H-cy*2);
-    // グリーン
-    const pz=Math.min(H-6,Math.abs(this.pinPos.z)*sZ+cy);
-    ctx.fillStyle="#00cc44";ctx.beginPath();ctx.arc(cx,pz,8,0,Math.PI*2);ctx.fill();
-    // ピンマーカー
-    ctx.fillStyle="#ff2222";ctx.beginPath();ctx.arc(cx,pz,4,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.stroke();
-    // ティー（スタート）
-    ctx.fillStyle="#4488ff";ctx.beginPath();ctx.arc(cx,cy+5,3,0,Math.PI*2);ctx.fill();
-    // バンカーなどはスキップ（軽量化）
-    if(this.ball){
-      const bx=Math.max(5,Math.min(W-5,cx+this.ball.position.x*sX));
-      const bz=Math.max(5,Math.min(H-5,cy+Math.abs(this.ball.position.z)*sZ));
-      // 飛行中の軌跡
-      if(this.ball.inFlight&&this.ball.phase==="carry"){
-        const sx=Math.max(5,Math.min(W-5,cx+this.ball.carryStartPos.x*sX));
-        const sz=Math.max(5,Math.min(H-5,cy+Math.abs(this.ball.carryStartPos.z)*sZ));
-        ctx.strokeStyle="rgba(255,255,100,0.5)";ctx.lineWidth=1.5;
-        ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(sx,sz);ctx.lineTo(bx,bz);ctx.stroke();
-        ctx.setLineDash([]);
-      }
-      // ボール本体
-      ctx.fillStyle=this.ball.inFlight?"#ffff00":"#ffffff";
-      ctx.beginPath();ctx.arc(bx,bz,4,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle="rgba(0,0,0,0.5)";ctx.lineWidth=1;ctx.stroke();
-      // エイム方向矢印
-      if(!this.ball.inFlight){
-        const rad=this.aimAngle*Math.PI/180;
-        const len=14;
-        const ex=bx+Math.sin(rad)*len, ez=bz-Math.cos(rad)*len;
-        ctx.strokeStyle=this.gameMode==="putt"?"#00ffdd":"#ffd700";
-        ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(bx,bz);ctx.lineTo(ex,ez);ctx.stroke();
-        // 矢頭
-        ctx.fillStyle=this.gameMode==="putt"?"#00ffdd":"#ffd700";
-        ctx.beginPath();ctx.arc(ex,ez,2.5,0,Math.PI*2);ctx.fill();
-      }
-    }
-    // ホール番号
-    ctx.font="bold 9px 'Orbitron',monospace";
-    ctx.fillStyle="rgba(255,215,0,0.9)";ctx.textAlign="center";
-    ctx.fillText("H"+(this.currentHoleIdx+1),cx,cy+18);
-    // 距離スケール
-    ctx.font="8px monospace";ctx.fillStyle="rgba(255,255,255,0.5)";ctx.textAlign="left";
-    ctx.fillText(Math.round(this.terrainH)+"yd",2,H-3);
-    if(this.weather){
-      const wr=this.weather.windDirection*Math.PI/180;
-      const ws=Math.min(this.weather.windStrength,15)/15;
-      const wx=W-14,wy=H-14;
-      ctx.strokeStyle="rgba(100,200,255,0.8)";ctx.lineWidth=1.5;
-      ctx.beginPath();ctx.arc(wx,wy,9,0,Math.PI*2);ctx.stroke();
-      ctx.strokeStyle="#88ccff";ctx.lineWidth=2;
-      ctx.beginPath();ctx.moveTo(wx,wy);
-      ctx.lineTo(wx+Math.sin(wr)*8*ws,wy-Math.cos(wr)*8*ws);ctx.stroke();
-    }
-  }
+    const cv = document.getElementById("miniMapCanvas");
+    if(!cv) return;
+    const ctx = cv.getContext("2d");
+    if(!ctx) return;
 
-  // ===== 常時残り距離表示（全クラブ・パター完全一致システム） =====
+    const W = cv.width, H = cv.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // 背景：ラフ（河川敷の深緑）
+    ctx.fillStyle = "#1b4614";
+    ctx.fillRect(0, 0, W, H);
+
+    const isTodaCourse = (this.currentCourse && this.currentCourse.id === "toda");
+    const curHole = (this.currentCourse && this.currentCourse.holes) ? this.currentCourse.holes[this.currentHoleIdx] : null;
+    const ph = curHole ? (curHole.physHole || ((curHole.n - 1) % 9 + 1)) : (this.currentHoleIdx + 1);
+    const isRightAngleDogleg = isTodaCourse && (ph === 8 || (curHole && (curHole.dogleg === "sharp_left" || curHole.n === 8 || curHole.n === 17)));
+
+    if(isRightAngleDogleg){
+      // ═════════════════════════════════════════════════════════════
+      // ★★★ 【Hole 8 & Hole 17】 200yから直角の左ドッグレッグ描画 ★★★
+      // GDO戸田パブリック公式コースレイアウト図に完全準拠
+      // ═════════════════════════════════════════════════════════════
+      // ティー位置: 下部右側 (X: 78, Y: 96)
+      const teeX = W * 0.72;
+      const teeY = H - 14;
+      // コーナー位置 (200yd IP地点): 上部右側 (X: 78, Y: 42)
+      const cornerX = W * 0.72;
+      const cornerY = H * 0.40;
+      // 左奥グリーン位置: (X: 24, Y: 42) 付近
+      const greenX = W * 0.22;
+      const greenY = cornerY;
+      const subGreenX = W * 0.22;
+      const subGreenY = cornerY - 15;
+
+      const legW = 22; // フェアウェイ幅
+
+      // ① 直角L字フェアウェイ背景（ファーストカット外縁）
+      ctx.fillStyle = "#3d7c28";
+      // 縦区間外縁
+      ctx.fillRect(teeX - legW/2 - 2, cornerY - 2, legW + 4, teeY - cornerY + 10);
+      // 横区間外縁
+      ctx.fillRect(greenX - 8, cornerY - legW/2 - 2, (cornerX - greenX) + legW/2 + 10, legW + 4);
+
+      // ② メインフェアウェイ（高麗芝グリーン #698B22）
+      ctx.fillStyle = "#5c9428";
+      // 縦区間（ティーから200yd直進）
+      ctx.fillRect(teeX - legW/2, cornerY, legW, teeY - cornerY + 6);
+      // 横区間（200ydから真左90度直角折れ）
+      ctx.fillRect(greenX - 6, cornerY - legW/2, (cornerX - greenX) + legW/2 + 2, legW);
+
+      // フェアウェイの刈り目・境界ライン（白/黄緑細線）
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      // 外側直角ライン
+      ctx.moveTo(teeX + legW/2, teeY + 6);
+      ctx.lineTo(cornerX + legW/2, cornerY - legW/2);
+      ctx.lineTo(greenX - 6, cornerY - legW/2);
+      ctx.stroke();
+
+      // 内側直角ライン
+      ctx.beginPath();
+      ctx.moveTo(teeX - legW/2, teeY + 6);
+      ctx.lineTo(cornerX - legW/2, cornerY + legW/2);
+      ctx.lineTo(greenX - 6, cornerY + legW/2);
+      ctx.stroke();
+
+      // ③ コーナー内側を塞ぐ密集林（ショートカットを遮断する深緑エリア）
+      ctx.fillStyle = "#0c2807";
+      ctx.beginPath();
+      ctx.rect(W * 0.24, cornerY + legW/2 + 2, (cornerX - legW/2) - (W * 0.24), (teeY - 6) - (cornerY + legW/2 + 2));
+      ctx.fill();
+
+      // 樹木アイコン群（防風林の立体感）
+      const forestDots = [
+        [0.34, 0.58], [0.44, 0.55], [0.54, 0.58], [0.38, 0.68], [0.48, 0.65],
+        [0.58, 0.70], [0.32, 0.78], [0.42, 0.76], [0.52, 0.80], [0.44, 0.86]
+      ];
+      for(const fd of forestDots){
+        ctx.fillStyle = "#004d00";
+        ctx.beginPath();
+        ctx.arc(W * fd[0], H * fd[1], 3.5, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = "#1a7010";
+        ctx.beginPath();
+        ctx.arc(W * fd[0] - 0.8, H * fd[1] - 0.8, 1.8, 0, Math.PI*2);
+        ctx.fill();
+      }
+
+      // ショートカット禁止ライン（赤破線＆バッジ）
+      ctx.strokeStyle = "rgba(255, 40, 40, 0.85)";
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(teeX - 6, teeY - 6);
+      ctx.lineTo(greenX + 4, greenY + 6);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "rgba(255, 40, 40, 0.95)";
+      ctx.font = "bold 8px 'Noto Sans JP', sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("🚫直角90°", W * 0.45, H * 0.74);
+
+      // ④ 200ydコーナーIP点マーク
+      ctx.fillStyle = "#ffee00";
+      ctx.beginPath();
+      ctx.arc(cornerX, cornerY, 3, 0, Math.PI*2);
+      ctx.fill();
+      ctx.font = "bold 7px sans-serif";
+      ctx.fillStyle = "#ffff55";
+      ctx.textAlign = "right";
+      ctx.fillText("200y角", cornerX - 4, cornerY - 6);
+
+      // ⑤ 2つの砲台グリーン
+      // サブグリーン
+      ctx.fillStyle = "#269e26";
+      ctx.beginPath();
+      ctx.arc(subGreenX, subGreenY, 6.5, 0, Math.PI*2);
+      ctx.fill();
+
+      // アクティブターゲットグリーン
+      const isIN = (curHole && curHole.isIN);
+      const targetGX = isIN ? subGreenX : greenX;
+      const targetGY = isIN ? subGreenY : greenY;
+      ctx.fillStyle = "#32cd32";
+      ctx.beginPath();
+      ctx.arc(targetGX, targetGY, 8, 0, Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // ピンフラッグ
+      ctx.fillStyle = "#ff2222";
+      ctx.beginPath();
+      ctx.arc(targetGX, targetGY, 3.5, 0, Math.PI*2);
+      ctx.fill();
+
+      // ガードバンカー
+      ctx.fillStyle = "#deb887";
+      ctx.beginPath();
+      ctx.arc(targetGX + 7, targetGY + 5, 3.2, 0, Math.PI*2);
+      ctx.fill();
+
+      // ⑥ ティーマーク（OUT青 / IN赤）
+      ctx.fillStyle = isIN ? "#ee3333" : "#3388ff";
+      ctx.beginPath();
+      ctx.arc(teeX, teeY, 3.8, 0, Math.PI*2);
+      ctx.fill();
+
+      // ⑦ ボール位置投影（直角ドッグレッグ座標変換）
+      if(this.ball){
+        const bx3 = this.ball.position.x;
+        const bz3 = this.ball.position.z;
+
+        let mbx = teeX;
+        let mby = teeY;
+
+        if(bz3 > -205){
+          // ストレート区間（Z: 0 〜 -200）
+          const tZ = Math.min(1.0, Math.max(0, -bz3 / 205));
+          mby = teeY - tZ * (teeY - cornerY);
+          mbx = teeX + (bx3 / 25) * (legW / 2);
+        } else {
+          // 直角左折区間（X: 0 〜 -80）
+          mby = cornerY - ((bz3 + 205) / 40) * (legW / 2);
+          const tX = Math.min(1.0, Math.max(0, -bx3 / 80));
+          mbx = cornerX - tX * (cornerX - greenX);
+        }
+
+        // ボール本体
+        ctx.fillStyle = this.ball.inFlight ? "#ffff00" : "#ffffff";
+        ctx.beginPath();
+        ctx.arc(mbx, mby, 3.8, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0,0,0,0.8)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // エイム方向矢印
+        if(!this.ball.inFlight){
+          const rad = this.aimAngle * Math.PI / 180;
+          const len = 13;
+          const ex = mbx + Math.sin(rad) * len;
+          const ey = mby - Math.cos(rad) * len;
+          ctx.strokeStyle = this.gameMode === "putt" ? "#00ffdd" : "#ffd700";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(mbx, mby);
+          ctx.lineTo(ex, ey);
+          ctx.stroke();
+          ctx.fillStyle = ctx.strokeStyle;
+          ctx.beginPath();
+          ctx.arc(ex, ey, 2.5, 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+
+    } else {
+      // ═════════════════════════════════════════════════════════════
+      // 通常ホール：手前（下）がティー、奥（上）がグリーン
+      // ═════════════════════════════════════════════════════════════
+      const sX = W / 100;
+      const sZ = (H - 24) / Math.max(100, this.terrainH);
+      const cx = W / 2;
+      const teeY = H - 12;
+      const pinY = 12;
+
+      // フェアウェイ帯（下から上へまっすぐ）
+      ctx.fillStyle = "#2a7a1a";
+      ctx.fillRect(cx - 18*sX, pinY, 36*sX, teeY - pinY);
+
+      // ファーストカット境界
+      ctx.strokeStyle = "#388a24";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(cx - 18*sX, pinY, 36*sX, teeY - pinY);
+
+      // グリーン
+      ctx.fillStyle = "#00cc44";
+      ctx.beginPath();
+      ctx.arc(cx, pinY, 7.5, 0, Math.PI*2);
+      ctx.fill();
+
+      // ピンマーカー
+      ctx.fillStyle = "#ff2222";
+      ctx.beginPath();
+      ctx.arc(cx, pinY, 3.5, 0, Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // ティー（手前下側）
+      ctx.fillStyle = (curHole && curHole.isIN) ? "#ee3333" : "#4488ff";
+      ctx.beginPath();
+      ctx.arc(cx, teeY, 3.5, 0, Math.PI*2);
+      ctx.fill();
+
+      // ボール
+      if(this.ball){
+        const bx = Math.max(4, Math.min(W - 4, cx + this.ball.position.x * sX));
+        const distRatio = Math.max(0, Math.min(1.0, Math.abs(this.ball.position.z) / Math.max(100, this.terrainH)));
+        const by = Math.max(pinY, Math.min(teeY, teeY - distRatio * (teeY - pinY)));
+
+        // 飛行軌跡
+        if(this.ball.inFlight && this.ball.phase === "carry"){
+          const startRatio = Math.max(0, Math.min(1.0, Math.abs(this.ball.carryStartPos.z) / Math.max(100, this.terrainH)));
+          const sy = teeY - startRatio * (teeY - pinY);
+          const sx = cx + this.ball.carryStartPos.x * sX;
+          ctx.strokeStyle = "rgba(255,255,100,0.55)";
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(bx, by);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        ctx.fillStyle = this.ball.inFlight ? "#ffff00" : "#ffffff";
+        ctx.beginPath();
+        ctx.arc(bx, by, 3.5, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0,0,0,0.6)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // エイム矢印
+        if(!this.ball.inFlight){
+          const rad = this.aimAngle * Math.PI / 180;
+          const len = 12;
+          const ex = bx + Math.sin(rad) * len;
+          const ey = by - Math.cos(rad) * len;
+          ctx.strokeStyle = this.gameMode === "putt" ? "#00ffdd" : "#ffd700";
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(bx, by);
+          ctx.lineTo(ex, ey);
+          ctx.stroke();
+          ctx.fillStyle = ctx.strokeStyle;
+          ctx.beginPath();
+          ctx.arc(ex, ey, 2.2, 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+    }
+
+    // ─── 共通オーバーレイ（ホール番号・風向） ───
+    ctx.font = "bold 9px 'Orbitron',monospace";
+    ctx.fillStyle = "rgba(255,215,0,0.95)";
+    ctx.textAlign = "left";
+    ctx.fillText("H" + (this.currentHoleIdx + 1), 4, 12);
+
+    ctx.font = "8px monospace";
+    ctx.fillStyle = "rgba(255,255,255,0.65)";
+    ctx.textAlign = "left";
+    ctx.fillText(Math.round(this.terrainH) + "yd", 4, H - 3);
+
+    // 風向インジケータ（右上）
+    if(this.weather){
+      const wr = this.weather.windDirection * Math.PI / 180;
+      const ws = Math.min(this.weather.windStrength, 15) / 15;
+      const wx = W - 12, wy = 12;
+      ctx.strokeStyle = "rgba(100,200,255,0.7)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(wx, wy, 8, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.strokeStyle = "#88ccff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(wx, wy);
+      ctx.lineTo(wx + Math.sin(wr) * 7 * ws, wy - Math.cos(wr) * 7 * ws);
+      ctx.stroke();
+    }
+  }// ===== 常時残り距離表示（全クラブ・パター完全一致システム） =====
   _updateDistPanel(){
     if(!this.ball||!this.pinPos)return;
     const distYd=Math.round(this._distToPin());
