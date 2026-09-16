@@ -1015,6 +1015,9 @@ html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidd
 </div>
 
 <!-- インゲームUI -->
+
+    <div id="tacticalAlertBadge" style="position:absolute;top:74px;left:12px;background:rgba(200,30,30,0.85);color:#fff;font-family:'Noto Sans JP',sans-serif;font-size:0.75rem;font-weight:700;padding:4px 12px;border-radius:20px;box-shadow:0 0 10px rgba(255,0,0,0.5);border:1px solid #ffaaaa;z-index:20;display:none;pointer-events:none;letter-spacing:0.04em;"></div>
+
 <div id="gameUI">
   <!-- ホール情報バー（topHUD直下・横一列）-->
   <div id="holeInfo">
@@ -1049,7 +1052,7 @@ html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidd
       </div>
     </div>
     <div class="hud-panel" style="text-align:center">
-      <div class="hud-label">Score</div>
+      <div class="hud-label" style="font-size:0.6rem;">TOTAL STROKES</div>
       <div class="hud-value" id="hudScore">E</div>
       <div class="hud-small" id="hudStrokes">0打</div>
     </div>
@@ -1867,6 +1870,120 @@ const CLUBS_SUPER=[
 let CLUBS=CLUBS_NORMAL;
 
 const COURSES=[
+  {id:"toda",name:"戸田パブリック",flag:"🇯🇵",desc:"荒川河川敷 18H(9H×2WAY) Par72",color:0x698B22,
+   terrainProfile:"flat_river", greenSpeed:11.0, roughType:"korai",
+   isToda2Way:true,
+   holes:[
+    // 【OUTコース】フロント9 (1〜9番)
+    {n:1,  physHole:1, isIN:false, par:5,yards:511, dogleg:"", feat:"ob_left|penalty_right|center_tree",
+     name:"Hole 1", drakon:true,
+     tee:{x:0, y:0.36, z:0}, pin:{x:-5, y:1.8, z:-511}, subPin:{x:6, y:1.8, z:-511},
+     desc:"【ドラコン推奨】ストレートなロングホール。左全長OB、右1ペナ。230yd地点のFWセンター木がIP点。",
+     alert:"⚠️ 左OB注意 / 230yd中央ツリー狙い"},
+
+    {n:2,  physHole:2, isIN:false, par:3,yards:178, dogleg:"", feat:"water_right|ob_left|elevated_green",
+     name:"Hole 2", nearpin:true,
+     tee:{x:0, y:0.36, z:0}, pin:{x:-5, y:1.8, z:-178}, subPin:{x:6, y:1.8, z:-198},
+     desc:"【ニアピン推奨】ストレートなショート。左浅いOB、右グリーン周辺に池。左手前からのアプローチが定石。",
+     alert:"💧 右サイドに池ハザード / 左OB警戒"},
+
+    {n:3,  physHole:3, isIN:false, par:4,yards:324, dogleg:"", feat:"alison_bunker|river_left|narrow_creek",
+     name:"Hole 3",
+     tee:{x:0, y:0.36, z:0}, pin:{x:-5, y:1.8, z:-324}, subPin:{x:5, y:1.8, z:-315},
+     desc:"ストレートミドル。左川の浅いOB、右細川と高林。砲台グリーン手前にアゴの高いアリソン風ガードバンカー。",
+     alert:"🏖️ グリーン手前 アゴ高アリソンバンカー"},
+
+    {n:4,  physHole:4, isIN:false, par:4,yards:373, dogleg:"slight_right", feat:"center_symbol_tree|drop_slope_green|water_right",
+     name:"Hole 4",
+     tee:{x:0, y:0.36, z:0}, pin:{x:-5, y:1.8, z:-373}, subPin:{x:5, y:1.8, z:-338},
+     desc:"やや右ドッグレッグ。FW中央にシンボルツリー。砲台グリーン奥は急な下り傾斜でこぼれは致命的。",
+     alert:"⚠️ グリーン奥は急激な滑落スロープ！手前から"},
+
+    {n:5,  physHole:5, isIN:false, par:5,yards:515, dogleg:"right", feat:"river_ob_left|dense_trees_right",
+     name:"Hole 5", drakon:true,
+     tee:{x:0, y:0.36, z:0}, pin:{x:7, y:1.8, z:-515}, subPin:{x:-6, y:1.8, z:-518},
+     desc:"【ドラコン推奨】左側面すべてが荒川で右ドッグレッグ。2打目以降左は超強烈に浅いOB！右ショートカットは高林が阻む。",
+     alert:"🚨 左全域が荒川・超危険OB！右林を避けFWキープ"},
+
+    {n:6,  physHole:6, isIN:false, par:4,yards:353, dogleg:"", feat:"cross_water_240|elevated_green|river_left",
+     name:"Hole 6",
+     tee:{x:0, y:0.36, z:0}, pin:{x:-5, y:1.8, z:-353}, subPin:{x:6, y:1.8, z:-346},
+     desc:"ストレート。240ヤード地点に池。ドライバーで打つと池に入るため、クラブ選択（レイアップ）を強要する戦略的ホール。",
+     alert:"🌊 240yd地点に池！ドライバー危険・レイアップ推奨"},
+
+    {n:7,  physHole:7, isIN:false, par:4,yards:311, dogleg:"", feat:"tight_ob_left|bush_pressure",
+     name:"Hole 7",
+     tee:{x:0, y:0.36, z:0}, pin:{x:-4, y:1.8, z:-311}, subPin:{x:5, y:1.8, z:-337},
+     desc:"距離の短いパー4。左サイドに極端に近いOBラインと深いブッシュ。視覚的プレッシャーを克服してバーディを狙う。",
+     alert:"⚠️ 左OBライン極近！右サイド狙い安全策"},
+
+    {n:8,  physHole:8, isIN:false, par:4,yards:354, dogleg:"sharp_left", feat:"right_angle_dogleg|corner_forest|local_rule_shortcut_ban",
+     name:"Hole 8",
+     tee:{x:0, y:0.36, z:0}, pin:{x:-42, y:1.8, z:-260}, subPin:{x:-36, y:1.8, z:-270},
+     desc:"直角の左ドッグレッグ。200ヤード地点左にコーナーを塞ぐ林。直接グリーン狙いはローカルルールで禁止。コーナー刻み必須。",
+     alert:"🚫 直角左ドッグレッグ！ローカルルール：ショートカット禁止"},
+
+    {n:9,  physHole:9, isIN:false, par:3,yards:188, dogleg:"", feat:"fortress_green|deep_surround_bunkers|high_spin_required",
+     name:"Hole 9", nearpin:true,
+     tee:{x:0, y:0.36, z:0}, pin:{x:-6, y:2.0, z:-188}, subPin:{x:6, y:2.0, z:-170},
+     desc:"【ニアピン推奨】完全な要塞型砲台グリーン。全周を深いガードバンカーが囲む。キャリーで落としスピンで止めないとバンカー滑落。",
+     alert:"🏰 要塞型砲台グリーン！全周バンカー・スピン必須"},
+
+    // 【INコース】バック9 (10〜18番) ※物理9ホールを別ティー・別グリーンで使用
+    {n:10, physHole:1, isIN:true,  par:5,yards:535, dogleg:"", feat:"ob_left|penalty_right|center_tree",
+     name:"Hole 10", drakon:true,
+     tee:{x:5, y:0.36, z:24}, pin:{x:6, y:1.8, z:-511}, subPin:{x:-5, y:1.8, z:-511},
+     desc:"【ドラコン推奨】Hole 1の別ティー・別グリーン(OUTより24y延長)。右奥グリーンへ。230ydセンターツリーが目印。",
+     alert:"⚠️ OUTより+24yd / 右奥グリーン狙い"},
+
+    {n:11, physHole:2, isIN:true,  par:3,yards:198, dogleg:"", feat:"water_right|ob_left|elevated_green",
+     name:"Hole 11", nearpin:true,
+     tee:{x:3, y:0.36, z:20}, pin:{x:6, y:1.8, z:-198}, subPin:{x:-5, y:1.8, z:-178},
+     desc:"【ニアピン推奨】Hole 2の別ティー・別グリーン(OUTより20y延長)。最奥の右グリーンへ。池のプレッシャーが増す。",
+     alert:"💧 198yd最長ショート / 右池プレッシャー"},
+
+    {n:12, physHole:3, isIN:true,  par:4,yards:315, dogleg:"", feat:"alison_bunker|river_left",
+     name:"Hole 12",
+     tee:{x:4, y:0.36, z:-9}, pin:{x:5, y:1.8, z:-324}, subPin:{x:-5, y:1.8, z:-324},
+     desc:"Hole 3の別ティー・別グリーン(OUTより9y短縮)。右側グリーンへ。手前のアリソンバンカーを確実に避ける。",
+     alert:"🏖️ 右グリーン狙い / アリソンバンカー警戒"},
+
+    {n:13, physHole:4, isIN:true,  par:4,yards:338, dogleg:"slight_right", feat:"center_symbol_tree|drop_slope_green",
+     name:"Hole 13",
+     tee:{x:6, y:0.36, z:-35}, pin:{x:5, y:1.8, z:-373}, subPin:{x:-5, y:1.8, z:-373},
+     desc:"Hole 4の別ティー・別グリーン(OUTより35y短縮)。短縮された分攻めやすいが、奥の急傾斜こぼれは依然危険。",
+     alert:"⚠️ 338ydミドル / グリーン奥の滑落に注意"},
+
+    {n:14, physHole:5, isIN:true,  par:5,yards:518, dogleg:"right", feat:"river_ob_left|dense_trees_right",
+     name:"Hole 14", drakon:true,
+     tee:{x:-3, y:0.36, z:3}, pin:{x:-6, y:1.8, z:-515}, subPin:{x:7, y:1.8, z:-515},
+     desc:"【ドラコン推奨】Hole 5の別ティー・別グリーン(OUTより3y延長)。左手前グリーンを狙う。左荒川OBの脅威。",
+     alert:"🚨 左全域荒川OB！右ドッグレッグを丁寧に進める"},
+
+    {n:15, physHole:6, isIN:true,  par:4,yards:346, dogleg:"", feat:"cross_water_240|elevated_green",
+     name:"Hole 15",
+     tee:{x:4, y:0.36, z:-7}, pin:{x:6, y:1.8, z:-353}, subPin:{x:-5, y:1.8, z:-353},
+     desc:"Hole 6の別ティー・別グリーン(OUTより7y短縮)。池までの距離を計算したレイアップでセカンド勝負。",
+     alert:"🌊 240yd池ハザード！ティーショットは番手を落とす"},
+
+    {n:16, physHole:7, isIN:true,  par:4,yards:337, dogleg:"", feat:"tight_ob_left|bush_pressure",
+     name:"Hole 16",
+     tee:{x:0, y:0.36, z:26}, pin:{x:5, y:1.8, z:-311}, subPin:{x:-4, y:1.8, z:-311},
+     desc:"Hole 7の別ティー・別グリーン(OUTより26y延長)。右グリーンへ。左浅OBの重圧に負けずフェアウェイ中央へ。",
+     alert:"⚠️ 左浅OB！落ち着いてフェアウェイキープ"},
+
+    {n:17, physHole:8, isIN:true,  par:4,yards:373, dogleg:"sharp_left", feat:"right_angle_dogleg|corner_forest|local_rule_shortcut_ban",
+     name:"Hole 17",
+     tee:{x:6, y:0.36, z:19}, pin:{x:-36, y:1.8, z:-270}, subPin:{x:-42, y:1.8, z:-260},
+     desc:"Hole 8の別ティー・別グリーン(OUTより19y延長)。直角左ドッグレッグ。コーナーへ正確に200yd刻む。",
+     alert:"🚫 直角ドッグレッグ・ショートカット禁止！刻み必須"},
+
+    {n:18, physHole:9, isIN:true,  par:3,yards:170, dogleg:"", feat:"fortress_green|deep_surround_bunkers|high_spin_required",
+     name:"Hole 18", nearpin:true,
+     tee:{x:5, y:0.36, z:-18}, pin:{x:6, y:2.0, z:-170}, subPin:{x:-6, y:2.0, z:-188},
+     desc:"【ニアピン推奨】感動のフィニッシュホール！要塞砲台グリーン手前側(170yd)。全周バンカーを越えて1オンなるか。",
+     alert:"🏰 最終18番！要塞砲台グリーン＆360度バンカー"}
+  ]},
   // ─────────────────────────────────────────────
   // Augusta National Golf Club  Par72 7,435yd
   // マスターズが開催される世界最高峰コース
@@ -2047,46 +2164,12 @@ const COURSES=[
   // 戸田パブリックゴルフコース  Par72
   // 荒川河川敷の公共コース（旧データ維持）
   // ─────────────────────────────────────────────
-  {id:"toda",name:"戸田パブリック",flag:"🇯🇵",desc:"荒川河川敷 Par72",color:0x3a8b2a,
-   terrainProfile:"flat_river", greenSpeed:10.5, roughType:"korai",
-   holes:[
-    {n:1, par:5,yards:511,feat:"ob_left|penalty_right|bunker2",name:"Tea Olive",
-     desc:"距離のあるロング。左サイドにOB、右に1ペナ。230yd地点の木がターゲット。"},
-    {n:2, par:3,yards:178,feat:"bunker3",name:"Pink Dogwood",
-     desc:"距離あるショート。右手前バンカーは絶対NG。グリーンは左から受けている。"},
-    {n:3, par:4,yards:324,feat:"bunker1",name:"Flowering Peach",
-     desc:"ヤーデージ短め。200yd地点に大きなバンカー。刻むのが賢明な戦略。"},
-    {n:4, par:4,yards:373,feat:"",name:"Flowering Crab Apple",
-     desc:"センターの木がターゲット。グリーン奥は急な下り傾斜のためオーバー厳禁。"},
-    {n:5, par:5,yards:515,feat:"ob_left",name:"Magnolia",
-     desc:"右ドッグレッグのロング。左OBが非常に近いため2打目以降も注意が必要。"},
-    {n:6, par:4,yards:353,feat:"water_right|bunker1",name:"Juniper",
-     desc:"240ydの右側地点に池あり。池に届かないクラブ選択が必須。砲台グリーン。"},
-    {n:7, par:4,yards:311,feat:"ob_left",name:"Pampas",
-     desc:"短めのミドル。左OBが近いため飛距離より方向性。バーディを狙えるホール。"},
-    {n:8, par:4,yards:354,feat:"leftDogleg",name:"Yellow Jasmine",
-     desc:"直角の左ドッグレッグ。ショートカット禁止。正面250y先の角が狙い目。"},
-    {n:9, par:3,yards:188,feat:"bunker2|elevated_green",name:"Carolina Cherry",
-     desc:"最難関ショート。砲台グリーンで両サイドにバンカー。"},
-    {n:10,par:5,yards:535,feat:"ob_left|penalty_right|bunker2",name:"Camellia",
-     desc:"OUTより距離の長いロング。左OB・右1ペナ。正確なティーショットが不可欠。"},
-    {n:11,par:3,yards:198,feat:"water_right|bunker2",name:"White Dogwood",
-     desc:"池が絡む長いショート。右に池がありメンタルを刺激する難ホール。"},
-    {n:12,par:4,yards:315,feat:"bunker1",name:"Golden Bell",
-     desc:"短めのミドル。フェアウェイ中央のバンカー手前に刻んでセカンド勝負。"},
-    {n:13,par:4,yards:338,feat:"",name:"Azalea",
-     desc:"戦略的ミドル。グリーン奥の下り傾斜はNGゾーン。手前から確実に。"},
-    {n:14,par:5,yards:518,feat:"rightDogleg|ob_left",name:"Chinese Fir",
-     desc:"幸魂大橋下の右ドッグレッグ。左OBを避けやや右狙いが安全策。"},
-    {n:15,par:4,yards:346,feat:"water_right",name:"Firethorn",
-     desc:"240yd地点の池に注意。右グリーン時はやや右サイドから狙うのがベスト。"},
-    {n:16,par:4,yards:337,feat:"ob_left",name:"Redbud",
-     desc:"短めのミドル。左OBに注意しつつも積極的にスコアを稼ぎたい攻め所。"},
-    {n:17,par:4,yards:373,feat:"leftDogleg",name:"Nandina",
-     desc:"左ドッグレッグ。右ラフに入れると左足下がりの難しいセカンドが残る。"},
-    {n:18,par:3,yards:170,feat:"elevated_green|bunker2",name:"Holly",
-     desc:"難関の最終ショート。小さな砲台グリーン。花道から転がして乗せる勇気が必要。"},
-  ]},
+    // ─────────────────────────────────────────────
+  // 戸田パブリックゴルフコース (Toda Public Golf Course)
+  // 荒川河川敷 9ホール2WAY 18ホール Par72 6,237yd
+  // ─────────────────────────────────────────────
+  
+  
   // ─────────────────────────────────────────────
   // 宍戸ヒルズCC 西コース  Par72 7,437yd
   // ─────────────────────────────────────────────
@@ -2198,30 +2281,55 @@ class TerrainGen{
     return amp*(h00*(1-ux)*(1-uz)+h10*ux*(1-uz)+h01*(1-ux)*uz+h11*ux*uz-0.5)*2;
   }
   getHeight(xi,zi){
-    const x=xi-this.W/2, z=zi-this.H/2;
-    // フェアウェイ中央マスク（中心±25yd はほぼ平坦）
-    const fwWidth=25+Math.abs(z*this.fairwayCurve)*0.5;
-    const fwMask=Math.max(0,1-Math.abs(x)/fwWidth);
-    // ★ コースプロファイル別起伏（amplitudeで倍率調整）
-    const amp=this.amplitude||1.0;
-    let h=0;
-    h+=this._smooth(x,z,0.012,3.5*amp);
-    h+=this._smooth(x,z,0.028,1.8*amp);
-    h+=this._smooth(x,z,0.055,0.8*amp);
-    h+=this._smooth(x,z,0.12, 0.3*amp);
-    // フェアウェイは平坦に
-    h*=(1-fwMask*0.82);
-    // ティー周辺（z≈0）とグリーン周辺を平坦に
-    const teeFade =Math.min(1,Math.abs(z)/12);
-    const greenFade=Math.min(1,Math.abs(z-(this.H-5))/14);
-    return h*teeFade*greenFade;
-  }
+      let h = this._smooth(xi,zi,this.freq,this.amplitude);
+      if(window._bunkerZones){
+        for(let b of window._bunkerZones){
+          let dx = xi - b.x; let dz = zi - b.z;
+          let dist = Math.sqrt(dx*dx + dz*dz);
+          if(dist < b.radius){
+            // ポットバンカー（すり鉢状の深い窪み）
+            let depth = (b.radius - dist) / b.radius;
+            h -= depth * 1.5; // 最大1.5mの深さ
+          }
+        }
+      }
+      return h;
+    }
 }
 
 // =============================================
 // ★★★ ULTRA REALISTIC Ball Physics Engine ★★★
 // Magnus効果・バックスピン・ライ別ラン・傾斜パット対応
 // =============================================
+
+// ─────────────────────────────────────────────────────────────
+// ★★★ 戸田パブリックゴルフコース PBRマテリアル＆物性定義 ★★★
+// 仕様書準拠カラーパレット・反発係数・摩擦係数
+// ─────────────────────────────────────────────────────────────
+const TODA_PALETTE = {
+  tee:      0x7CCD7C, // 鮮やかな緑（高麗芝）
+  fairway:  0x698B22, // ランが出やすい固めの高麗芝
+  firstCut: 0x556B2F, // FWより一段階暗く抵抗を感じさせる
+  rough:    0x2E4B1C, // 深く密集した高麗芝の重さ
+  green:    0x32CD32, // 砲台グリーン高麗芝
+  bunker:   0xDEB887, // 重く湿り気のある河川敷ダークベージュ
+  water:    0x4682B4, // 濁度があるマットなスチールブルー
+  bush:     0x006400, // 視覚的圧迫感を与える深い深緑
+  ob:       0xFFFFFF, // 白杭
+  penalty:  0xFFCC00  // 黄・赤杭
+};
+
+const TODA_PHYSICS = {
+  tee:      { restitution: 0.55, friction: 0.35, rollDecay: 1.6 },
+  fairway:  { restitution: 0.50, friction: 0.40, rollDecay: 1.8 },
+  firstCut: { restitution: 0.40, friction: 0.55, rollDecay: 2.8 },
+  rough:    { restitution: 0.25, friction: 0.75, rollDecay: 4.8 },
+  green:    { restitution: 0.35, friction: 0.20, rollDecay: 1.25 },
+  bunker:   { restitution: 0.08, friction: 0.95, rollDecay: 9.5 },
+  water:    { restitution: 0.00, friction: 1.00, rollDecay: 0.0 },
+  slope:    { restitution: 0.38, friction: 0.15, rollDecay: 0.85 } // 砲台法面（滑落）
+};
+
 class Ball{
   constructor(){
     this.position=new THREE.Vector3(0,0,0);
@@ -2308,7 +2416,105 @@ class Ball{
     if(this.mesh){
       this.mesh.position.copy(this.position);
       // ボール回転アニメーション
-      if(this.phase==="carry"){this.mesh.rotation.x+=dt*10;}
+      
+
+    // --- 物理トリガー拡張 ---
+    if(this.phase==="carry" || this.phase==="run"){
+
+    // --- 戸田パブリック専用ギミック判定 ---
+    if(this.phase==="carry" || this.phase==="run"){
+      // ① 直角ドッグレッグ（Hole 8/17）ショートカット禁止空域判定
+      if(window._shortcutBanZone){
+        const sb = window._shortcutBanZone;
+        if(this.position.x >= sb.minX && this.position.x <= sb.maxX &&
+           this.position.z >= sb.minZ && this.position.z <= sb.maxZ){
+          console.log("Local Rule Violation: Shortcut Ban Hit");
+          this.state="OB";
+          this.inFlight=false;
+          this.phase="idle";
+          if(typeof showBroadcastBanner==="function"){
+            showBroadcastBanner("LOCAL RULE VIOLATION", "ショートカット禁止エリアです (OB)");
+          }
+          if(this.onStopped) this.onStopped("OB");
+          return;
+        }
+      }
+      // ② 240yd地点横断池（Hole 6/15）など矩形ウォーターハザード判定
+      if(window._waterBoxes){
+        for(let wb of window._waterBoxes){
+          if(this.position.x >= wb.minX && this.position.x <= wb.maxX &&
+             this.position.z >= wb.minZ && this.position.z <= wb.maxZ &&
+             this.position.y <= (wb.maxY || 0.4)){
+            console.log("Toda Water Hazard Hit");
+            this.state="Water";
+            this.inFlight=false;
+            this.phase="idle";
+            if(typeof createImpactSparks==="function") createImpactSparks(this.position);
+            if(typeof showBroadcastBanner==="function"){
+              showBroadcastBanner("WATER HAZARD", "池ポチャ 1ペナルティです");
+            }
+            if(this.onStopped) this.onStopped("Water");
+            return;
+          }
+        }
+      }
+    }
+
+      // OBトリガー判定
+      if(window._obVolumes){
+        for(let ob of window._obVolumes){
+          if(this.mesh.position.x > ob.minX && this.mesh.position.x < ob.maxX &&
+             this.mesh.position.z > ob.minZ && this.mesh.position.z < ob.maxZ){
+            console.log("OB Trigger Hit");
+            this.state="OB";
+            this.vel.set(0,0,0);
+            this.phase="idle";
+            showBroadcastBanner("OUT OF BOUNDS", "1ペナルティで打ち直しです");
+            break;
+          }
+        }
+      }
+      // Kill-Z (Water) 判定
+      if(window._waterLevel !== undefined && this.mesh.position.y < window._waterLevel){
+        console.log("Water Kill-Z Hit");
+        this.state="Water";
+        this.vel.set(0,0,0);
+        this.phase="idle";
+        createImpactSparks(this.mesh.position); // Splash
+        showBroadcastBanner("WATER HAZARD", "池ポチャ 1ペナルティです");
+      }
+      
+      // ランオフエリア（摩擦ゼロ）判定
+      if(this.phase==="run" && window._runoffAreas){
+        let inRunoff = false;
+        for(let ro of window._runoffAreas){
+          if(this.mesh.position.distanceTo(ro.pos) < ro.radius){
+            inRunoff = true; break;
+          }
+        }
+        if(inRunoff){
+          // 摩擦をほぼゼロにして重力方向（傾斜）に転がす
+          this.vel.x *= 0.995;
+          this.vel.z *= 0.995;
+          // 傾斜に従って加速
+          if(this.surfNormal){
+            this.vel.x += this.surfNormal.x * dt * 9.8 * 0.5;
+            this.vel.z += this.surfNormal.z * dt * 9.8 * 0.5;
+          }
+        }
+      }
+      
+      // バンカー反発係数減衰
+      if(this.surf === "bunker" && this.phase==="carry"){
+          // ドロップして跳ねない（目玉）
+          this.vel.y *= 0.05;
+          this.vel.x *= 0.2;
+          this.vel.z *= 0.2;
+          this.phase="run";
+      }
+    }
+
+if(this.phase==="carry"){this.mesh.rotation.x+=dt*10;}
       else if(this.phase==="run"||this.phase==="putt_roll"){this.mesh.rotation.x+=dt*6;this.mesh.rotation.y+=dt*1.5;}
     }
   }
@@ -3737,6 +3943,7 @@ class GolfGame{
     const isPebble=(cid==="pebble");
     const isStAndrews=(cid==="standrews");
     const isSawgrass=(cid==="tpcsawgrass");
+    const isToda=(cid==="toda");
 
     // ★ feat解析（コース特性をビジュアルに反映）
     const feat=hole.feat||"";
@@ -3988,7 +4195,57 @@ class GolfGame{
     // ★ feat の bunkerN から実際のバンカー数を取得
     const blist=[];
     // グリーンサイドバンカー（feat=bunkerN → N基）
-    const bCntGreen=Math.min(bunkerCount,5);
+    
+    // ==== カスタムホール（9コース対応）ロジック ====
+    window._obVolumes = [];
+    window._waterLevel = -0.5;
+    window._runoffAreas = [];
+    window._bunkerZones = [];
+    
+    // TPCソーグラス #17 アイランドグリーン
+    if(cid==="tpcsawgrass" && hole.n===17){
+       window._waterLevel = 0.1;
+       // 周囲360度を水に
+       addWater(new THREE.PlaneGeometry(TW*4,TH*2), 0, -TH/2, 0.05);
+       // 右手前のバンカー
+       window._bunkerZones.push({x: TW*0.1, z: -TH/2 + 10, radius: 4});
+    }
+    
+    // ペブルビーチ #7 海
+    if(cid==="pebble" && hole.n===7){
+       window._waterLevel = -0.1;
+       // 崖と海
+       addWater(new THREE.PlaneGeometry(TW*5,TH*3), 0, -TH/2 - 20, -0.2);
+    }
+    
+    // オーガスタ #12
+    if(cid==="augusta" && hole.n===12){
+       window._waterLevel = -0.1;
+       // レイズクリーク
+       addWater(new THREE.PlaneGeometry(TW, 15), 0, -TH/2 + 20, -0.1);
+       // グリーン手前の滑る傾斜
+       window._runoffAreas.push({pos: new THREE.Vector3(0,0,-TH/2 + 10), radius: 10});
+    }
+
+    // 戸田パブリック #5 OB
+    if(cid==="toda" && hole.n===5){
+       window._obVolumes.push({minX: -TW/2-5, maxX: -TW/2, minZ: -TH, maxZ: 0});
+       window._obVolumes.push({minX: TW/2, maxX: TW/2+5, minZ: -TH, maxZ: 0});
+    }
+    
+    // セントアンドリュース (ポットバンカー)
+    if(cid==="standrews"){
+       // ポットバンカーをランダムに配置
+       for(let i=0; i<10; i++){
+          window._bunkerZones.push({
+             x: (Math.random()-0.5)*TW*0.6, 
+             z: -(Math.random()*TH*0.8), 
+             radius: 2 + Math.random()*2
+          });
+       }
+    }
+
+const bCntGreen=Math.min(bunkerCount,5);
     const bAngles=[-0.7,0.7,-1.4,1.4,0];
     for(let b=0;b<bCntGreen;b++){
       const ang=bAngles[b]||b*0.5;
@@ -5660,6 +5917,18 @@ class GolfGame{
   }
 
   _updateHoleUI(hole){
+
+    // ★ 戸田パブリック タクティカルアラート表示
+    const alertEl = document.getElementById("tacticalAlertBadge");
+    if(alertEl){
+      if(hole.alert){
+        alertEl.textContent = hole.alert;
+        alertEl.style.display = "block";
+      } else {
+        alertEl.style.display = "none";
+      }
+    }
+
     if(!hole)return;
     const total=this.currentCourse?this.currentCourse.holes.length:18;
     const cur=this.currentHoleIdx+1;
@@ -5733,11 +6002,36 @@ class GolfGame{
     if(wa)wa.textContent=" "+arrows[Math.round(w.windDirection/45)%8];
   }
   _updateHUDStrokes(){
-    const total=this.scores.reduce((a,b)=>a+b,0);
-    const pars=(this.currentCourse&&this.currentCourse.holes?this.currentCourse.holes.slice(0,this.currentHoleIdx+1):[]).reduce((a,h)=>a+h.par,0);
-    const trel=total-pars;
-    document.getElementById("hudStrokes").textContent=`${this.strokes}打`;
-    document.getElementById("hudScore").textContent=trel===0?"E":trel>0?`+${trel}`:String(trel);
+    let totalCompletedStrokes = 0;
+    let completedPars = 0;
+    
+    // Calculate stats ONLY for fully completed holes
+    for(let i=0; i<this.currentHoleIdx; i++){
+      const sc = this.scores[i] || 0;
+      if (sc > 0) { // Only count if actually played
+          totalCompletedStrokes += sc;
+          if (this.currentCourse && this.currentCourse.holes[i]) {
+              completedPars += this.currentCourse.holes[i].par;
+          }
+      }
+    }
+    
+    // Absolute total strokes = completed holes + strokes taken so far on current hole
+    const absoluteTotalStrokes = totalCompletedStrokes + this.strokes;
+    
+    // Relative score (trel) is strictly for COMPLETED holes.
+    // If no holes are completed, you are Even par (E).
+    const trel = totalCompletedStrokes - completedPars;
+    const relStr = trel === 0 ? "E" : (trel > 0 ? `+${trel}` : String(trel));
+    
+    const hudStrokes = document.getElementById("hudStrokes");
+    if(hudStrokes) hudStrokes.textContent = `${this.strokes}打`;
+    
+    const hudScore = document.getElementById("hudScore");
+    if(hudScore) {
+       // Display "TotalStrokes (RelativeScore)" e.g., "0打 (E)" at start, "4打 (-1)" on hole 2
+       hudScore.innerHTML = `<span style="font-size:1.1em">${absoluteTotalStrokes}打</span> <span style="font-size:0.65em; color:#ddd">(${relStr})</span>`;
+    }
   }
   _autoSelectClub(yards){
     if(this.gameMode==="putt"){this.currentClubIdx=CLUBS.length-1;this._highlightClub();return;}
@@ -5873,7 +6167,7 @@ class GolfGame{
     let html=`<tr style="background:rgba(0,80,40,0.3)"><td colspan="7" style="font-size:0.52rem;color:#88ddaa;padding:2px 4px">
       ${this.currentCourse?this.currentCourse.name:""} | Green: <b style="color:#ffd700">${cGS}</b> | Rough: <b>${cRT}</b></td></tr>
     <tr><th>H</th><th>Name</th><th>Par</th><th>Yds</th><th>Sc</th><th>±</th><th>Putt</th></tr>`;
-    let tp=0,ts=0;
+    let tp=0,ts=0,tr=0;
     course.holes.forEach((h,i)=>{
       const sc=this.scores[i]||0,rel=sc-h.par;
       let cls="";
@@ -5887,9 +6181,9 @@ class GolfGame{
         hf2.includes("elevated")?"⛰":"";
       const hnDisp=(h.name?h.name.substring(0,8):"")+(hfIcon?" "+hfIcon:"");
       html+=`<tr${isCurrent}><td>${h.n}</td><td style="font-size:0.55rem">${hnDisp}</td><td>${h.par}</td><td>${h.yards}</td><td class="${cls}">${sc||"-"}</td><td class="${cls}">${sc?rs:"-"}</td><td style="color:#88aaff">${pt}</td></tr>`;
-      tp+=h.par;ts+=sc;
+      tp+=h.par; if(sc>0){ ts+=sc; tr+=rel; }
     });
-    const tr=ts-tp;
+    
     const avgPutts=this._stats.putts.length>0?(this._stats.putts.reduce((a,b)=>a+b,0)/this._stats.putts.length).toFixed(1):'?';
     const firPct=this._stats.firTotal>0?Math.round(this._stats.fir/this._stats.firTotal*100):'?';
     const girPct=this._stats.girTotal>0?Math.round(this._stats.gir/this._stats.girTotal*100):'?';
