@@ -1052,7 +1052,7 @@ html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidd
       </div>
     </div>
     <div class="hud-panel" style="text-align:center">
-      <div class="hud-label" style="font-size:0.6rem;">TOTAL STROKES</div>
+      <div class="hud-label" style="font-size:0.6rem;letter-spacing:0.08em;color:#ffd700;">SCORE</div>
       <div class="hud-value" id="hudScore">E</div>
       <div class="hud-small" id="hudStrokes">0打</div>
     </div>
@@ -5835,8 +5835,8 @@ const bCntGreen=Math.min(bunkerCount,5);
     const W = cv.width, H = cv.height;
     ctx.clearRect(0, 0, W, H);
 
-    // 背景：ラフ（河川敷の深緑）
-    ctx.fillStyle = "#1b4614";
+    // 背景：ラフ（深い河川敷の濃緑 #0e2a0a）
+    ctx.fillStyle = "#0e2a0a";
     ctx.fillRect(0, 0, W, H);
 
     const isTodaCourse = (this.currentCourse && this.currentCourse.id === "toda");
@@ -5846,139 +5846,221 @@ const bCntGreen=Math.min(bunkerCount,5);
 
     if(isRightAngleDogleg){
       // ═════════════════════════════════════════════════════════════
-      // ★★★ 【Hole 8 & Hole 17】 200yから直角の左ドッグレッグ描画 ★★★
-      // GDO戸田パブリック公式コースレイアウト図に完全準拠
+      // ★★★ GDO公式レイアウト画像に完全準拠した直角左ドッグレッグ ★★★
+      // 添付画像 (media_1789620186490.png) をピクセルレベルで再現
       // ═════════════════════════════════════════════════════════════
-      // ティー位置: 下部右側 (X: 78, Y: 96)
-      const teeX = W * 0.72;
-      const teeY = H - 14;
-      // コーナー位置 (200yd IP地点): 上部右側 (X: 78, Y: 42)
-      const cornerX = W * 0.72;
-      const cornerY = H * 0.40;
-      // 左奥グリーン位置: (X: 24, Y: 42) 付近
-      const greenX = W * 0.22;
-      const greenY = cornerY;
-      const subGreenX = W * 0.22;
-      const subGreenY = cornerY - 15;
+      
+      // 1. 座標定義（下部ティーから右斜め上へ200yd、そこで左上へ90度直角折れ）
+      // ティーグラウンド中心
+      const teeX = W * 0.36;
+      const teeY = H * 0.90;
 
-      const legW = 22; // フェアウェイ幅
+      // 200ydコーナー（IP点・曲がり角）
+      const cornerX = W * 0.64;
+      const cornerY = H * 0.44;
 
-      // ① 直角L字フェアウェイ背景（ファーストカット外縁）
-      ctx.fillStyle = "#3d7c28";
-      // 縦区間外縁
-      ctx.fillRect(teeX - legW/2 - 2, cornerY - 2, legW + 4, teeY - cornerY + 10);
-      // 横区間外縁
-      ctx.fillRect(greenX - 8, cornerY - legW/2 - 2, (cornerX - greenX) + legW/2 + 10, legW + 4);
+      // 左奥グリーンエリア中心
+      const greenAreaX = W * 0.28;
+      const greenAreaY = H * 0.18;
 
-      // ② メインフェアウェイ（高麗芝グリーン #698B22）
-      ctx.fillStyle = "#5c9428";
-      // 縦区間（ティーから200yd直進）
-      ctx.fillRect(teeX - legW/2, cornerY, legW, teeY - cornerY + 6);
-      // 横区間（200ydから真左90度直角折れ）
-      ctx.fillRect(greenX - 6, cornerY - legW/2, (cornerX - greenX) + legW/2 + 2, legW);
+      // 2つのグリーン
+      // 手前グリーン (OUT / Hole 8 用)
+      const g1X = W * 0.22;
+      const g1Y = H * 0.22;
+      // 奥グリーン (IN / Hole 17 用)
+      const g2X = W * 0.38;
+      const g2Y = H * 0.15;
 
-      // フェアウェイの刈り目・境界ライン（白/黄緑細線）
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
-      ctx.lineWidth = 1;
+      // 2. フェアウェイ（L字形状のパス）
+      // ティーからコーナーへのストレート区間（幅22px、角度約25度の右傾斜）
+      const fwAngle = Math.atan2(cornerY - teeY, cornerX - teeX);
+      const perpAngle = fwAngle + Math.PI / 2;
+      const hw1 = 12; // 縦区間半幅
+
+      // コーナーから左上への直角区間（幅24px、角度約-155度）
+      const leg2Angle = Math.atan2(greenAreaY - cornerY, greenAreaX - cornerX);
+      const perpAngle2 = leg2Angle + Math.PI / 2;
+      const hw2 = 14; // 横区間半幅
+
+      // メインフェアウェイ（高麗芝の鮮やかな緑 #698B22 / #589228）
+      ctx.save();
       ctx.beginPath();
-      // 外側直角ライン
-      ctx.moveTo(teeX + legW/2, teeY + 6);
-      ctx.lineTo(cornerX + legW/2, cornerY - legW/2);
-      ctx.lineTo(greenX - 6, cornerY - legW/2);
-      ctx.stroke();
+      // ティー下部
+      ctx.moveTo(teeX - Math.cos(perpAngle)*hw1, teeY - Math.sin(perpAngle)*hw1 + 4);
+      // ティー下部右
+      ctx.lineTo(teeX + Math.cos(perpAngle)*hw1, teeY + Math.sin(perpAngle)*hw1 + 4);
+      // 右外縁〜コーナー外角
+      ctx.lineTo(cornerX + Math.cos(perpAngle)*hw1 + 2, cornerY + Math.sin(perpAngle)*hw1 + 2);
+      // コーナー外角奥
+      ctx.lineTo(cornerX + Math.cos(perpAngle2)*hw2 + 4, cornerY + Math.sin(perpAngle2)*hw2 + 4);
+      // グリーン奥右
+      ctx.lineTo(greenAreaX + Math.cos(perpAngle2)*hw2 + 6, greenAreaY + Math.sin(perpAngle2)*hw2 + 6);
+      // グリーン奥左（丸み）
+      ctx.arc(greenAreaX - 2, greenAreaY, hw2 + 4, perpAngle2, perpAngle2 + Math.PI);
+      // グリーン手前左
+      ctx.lineTo(greenAreaX - Math.cos(perpAngle2)*hw2 - 2, greenAreaY - Math.sin(perpAngle2)*hw2 - 2);
+      // コーナー内角
+      ctx.lineTo(cornerX - Math.cos(perpAngle)*hw1 - 1, cornerY - Math.sin(perpAngle)*hw1 - 1);
+      // ティー左外縁
+      ctx.lineTo(teeX - Math.cos(perpAngle)*hw1, teeY - Math.sin(perpAngle)*hw1 + 4);
+      ctx.closePath();
 
-      // 内側直角ライン
-      ctx.beginPath();
-      ctx.moveTo(teeX - legW/2, teeY + 6);
-      ctx.lineTo(cornerX - legW/2, cornerY + legW/2);
-      ctx.lineTo(greenX - 6, cornerY + legW/2);
-      ctx.stroke();
-
-      // ③ コーナー内側を塞ぐ密集林（ショートカットを遮断する深緑エリア）
-      ctx.fillStyle = "#0c2807";
-      ctx.beginPath();
-      ctx.rect(W * 0.24, cornerY + legW/2 + 2, (cornerX - legW/2) - (W * 0.24), (teeY - 6) - (cornerY + legW/2 + 2));
+      // フェアウェイのベース塗り
+      ctx.fillStyle = "#5c9625";
       ctx.fill();
 
-      // 樹木アイコン群（防風林の立体感）
-      const forestDots = [
-        [0.34, 0.58], [0.44, 0.55], [0.54, 0.58], [0.38, 0.68], [0.48, 0.65],
-        [0.58, 0.70], [0.32, 0.78], [0.42, 0.76], [0.52, 0.80], [0.44, 0.86]
-      ];
-      for(const fd of forestDots){
+      // GDO特有の斜めシマシマ刈り目ストライプ
+      ctx.clip();
+      ctx.strokeStyle = "rgba(120, 190, 60, 0.35)";
+      ctx.lineWidth = 3.2;
+      for (let s = -H; s < W + H; s += 6.5) {
+        ctx.beginPath();
+        ctx.moveTo(s, 0);
+        ctx.lineTo(s + H * 0.9, H);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 3. カート道（白い細線）- 添付画像通りに左サイドを通る
+      ctx.strokeStyle = "rgba(230, 235, 240, 0.75)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      // ティー周囲から左サイドへカーブ
+      ctx.arc(teeX, teeY + 2, 7, 0, Math.PI);
+      ctx.moveTo(teeX - 7, teeY + 2);
+      ctx.bezierCurveTo(teeX - 8, teeY - 20, cornerX - 18, cornerY + 15, cornerX - 12, cornerY - 2);
+      ctx.lineTo(greenAreaX - 4, greenAreaY + 10);
+      ctx.stroke();
+
+      // 4. コーナー左側の小さな青い池（添付画像中央のハザード）
+      ctx.fillStyle = "#4682b4";
+      ctx.beginPath();
+      ctx.ellipse(cornerX - 16, cornerY + 4, 3.5, 2.5, -0.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#88ccff";
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      // 5. 木々の列（添付画像通りに右側・左側・コーナー奥・内角に密集配置）
+      const drawTreeWithShadow = (tx, ty, r = 3.2) => {
+        // 黒い接地影（右下）
+        ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+        ctx.beginPath();
+        ctx.ellipse(tx + 1.2, ty + 1.5, r * 0.9, r * 0.7, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        // 樹冠（深緑）
         ctx.fillStyle = "#004d00";
         ctx.beginPath();
-        ctx.arc(W * fd[0], H * fd[1], 3.5, 0, Math.PI*2);
+        ctx.arc(tx, ty, r, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = "#1a7010";
+        // ハイライト（黄緑）
+        ctx.fillStyle = "#228811";
         ctx.beginPath();
-        ctx.arc(W * fd[0] - 0.8, H * fd[1] - 0.8, 1.8, 0, Math.PI*2);
+        ctx.arc(tx - 0.6, ty - 0.6, r * 0.5, 0, Math.PI * 2);
         ctx.fill();
+      };
+
+      // 右サイドの木々の列（ティーからコーナーまで）
+      for (let i = 0; i < 9; i++) {
+        const t = i / 8;
+        const tx = (teeX + Math.cos(perpAngle)*hw1 + 4) * (1 - t) + (cornerX + Math.cos(perpAngle)*hw1 + 5) * t;
+        const ty = (teeY + Math.sin(perpAngle)*hw1) * (1 - t) + (cornerY + Math.sin(perpAngle)*hw1 + 2) * t;
+        drawTreeWithShadow(tx, ty, 3.0);
       }
 
-      // ショートカット禁止ライン（赤破線＆バッジ）
-      ctx.strokeStyle = "rgba(255, 40, 40, 0.85)";
-      ctx.lineWidth = 1.8;
+      // コーナー奥の木々の列（北東の壁）
+      const cornerWallTrees = [
+        [cornerX + 10, cornerY - 4], [cornerX + 6, cornerY - 10], [cornerX + 1, cornerY - 14],
+        [cornerX - 5, cornerY - 18], [cornerX - 12, cornerY - 21]
+      ];
+      for(const pt of cornerWallTrees) drawTreeWithShadow(pt[0], pt[1], 3.2);
+
+      // 左サイドの木々の列（ショートカットを遮断する内角の林）
+      const innerCornerForest = [
+        [teeX - 6, teeY - 14], [teeX - 3, teeY - 26], [teeX + 2, teeY - 38],
+        [teeX + 7, teeY - 50], [cornerX - 10, cornerY + 12], [cornerX - 6, cornerY + 18],
+        [cornerX - 18, cornerY + 24], [cornerX - 14, cornerY + 34], [cornerX - 22, cornerY + 44]
+      ];
+      for(const pt of innerCornerForest) drawTreeWithShadow(pt[0], pt[1], 3.4);
+
+      // ショートカット禁止ライン（赤破線）
+      ctx.strokeStyle = "rgba(255, 50, 50, 0.85)";
+      ctx.lineWidth = 1.6;
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
-      ctx.moveTo(teeX - 6, teeY - 6);
-      ctx.lineTo(greenX + 4, greenY + 6);
+      ctx.moveTo(teeX, teeY - 8);
+      ctx.lineTo(g1X + 4, g1Y + 6);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      ctx.fillStyle = "rgba(255, 40, 40, 0.95)";
-      ctx.font = "bold 8px 'Noto Sans JP', sans-serif";
+      ctx.fillStyle = "rgba(255, 60, 60, 0.95)";
+      ctx.font = "bold 7.5px 'Noto Sans JP', sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("🚫直角90°", W * 0.45, H * 0.74);
+      ctx.fillText("🚫直角90°", W * 0.44, H * 0.72);
 
-      // ④ 200ydコーナーIP点マーク
-      ctx.fillStyle = "#ffee00";
-      ctx.beginPath();
-      ctx.arc(cornerX, cornerY, 3, 0, Math.PI*2);
-      ctx.fill();
-      ctx.font = "bold 7px sans-serif";
-      ctx.fillStyle = "#ffff55";
-      ctx.textAlign = "right";
-      ctx.fillText("200y角", cornerX - 4, cornerY - 6);
+      // 6. ティーグラウンド（手前下部・明るい緑の長方形）
+      ctx.fillStyle = "#7CCD7C";
+      ctx.fillRect(teeX - 5, teeY - 3, 10, 6);
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 0.8;
+      ctx.strokeRect(teeX - 5, teeY - 3, 10, 6);
 
-      // ⑤ 2つの砲台グリーン
-      // サブグリーン
-      ctx.fillStyle = "#269e26";
-      ctx.beginPath();
-      ctx.arc(subGreenX, subGreenY, 6.5, 0, Math.PI*2);
-      ctx.fill();
-
-      // アクティブターゲットグリーン
+      // ティーマーカー（OUT青 / IN赤）
       const isIN = (curHole && curHole.isIN);
-      const targetGX = isIN ? subGreenX : greenX;
-      const targetGY = isIN ? subGreenY : greenY;
-      ctx.fillStyle = "#32cd32";
+      ctx.fillStyle = isIN ? "#ee3333" : "#3388ff";
       ctx.beginPath();
-      ctx.arc(targetGX, targetGY, 8, 0, Math.PI*2);
+      ctx.arc(teeX, teeY, 3.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 7. 2つのグリーン ＆ バンカー（添付画像通りに左上に2個）
+      // 手前グリーン (g1X, g1Y)
+      // 奥グリーン (g2X, g2Y)
+      // 2つのグリーンの間の白いバンカー
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.ellipse((g1X + g2X) / 2 - 2, (g1Y + g2Y) / 2 + 1, 4.5, 3.0, 0.7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#deb887";
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      // グリーン1（手前・Hole 8用）
+      ctx.fillStyle = isIN ? "#269e26" : "#32cd32";
+      ctx.beginPath();
+      ctx.arc(g1X, g1Y, 6.5, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      // ピンフラッグ
+      // グリーン2（奥・Hole 17用）
+      ctx.fillStyle = isIN ? "#32cd32" : "#269e26";
+      ctx.beginPath();
+      ctx.arc(g2X, g2Y, 6.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // アクティブグリーンのピンフラッグ
+      const targetGX = isIN ? g2X : g1X;
+      const targetGY = isIN ? g2Y : g1Y;
       ctx.fillStyle = "#ff2222";
       ctx.beginPath();
-      ctx.arc(targetGX, targetGY, 3.5, 0, Math.PI*2);
+      ctx.arc(targetGX, targetGY, 3.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // ガードバンカー
-      ctx.fillStyle = "#deb887";
+      // 8. 200yd地点コーナーIPマーカー
+      ctx.fillStyle = "#ffee00";
       ctx.beginPath();
-      ctx.arc(targetGX + 7, targetGY + 5, 3.2, 0, Math.PI*2);
+      ctx.arc(cornerX, cornerY, 3.2, 0, Math.PI * 2);
       ctx.fill();
+      ctx.font = "bold 7px sans-serif";
+      ctx.fillStyle = "#ffff55";
+      ctx.textAlign = "left";
+      ctx.fillText("200y", cornerX + 3, cornerY - 2);
 
-      // ⑥ ティーマーク（OUT青 / IN赤）
-      ctx.fillStyle = isIN ? "#ee3333" : "#3388ff";
-      ctx.beginPath();
-      ctx.arc(teeX, teeY, 3.8, 0, Math.PI*2);
-      ctx.fill();
-
-      // ⑦ ボール位置投影（直角ドッグレッグ座標変換）
+      // 9. ボール位置投影（斜め直角コース座標変換）
       if(this.ball){
         const bx3 = this.ball.position.x;
         const bz3 = this.ball.position.z;
@@ -5987,23 +6069,23 @@ const bCntGreen=Math.min(bunkerCount,5);
         let mby = teeY;
 
         if(bz3 > -205){
-          // ストレート区間（Z: 0 〜 -200）
+          // ティーからコーナーへのストレート区間（Z: 0 〜 -200）
           const tZ = Math.min(1.0, Math.max(0, -bz3 / 205));
-          mby = teeY - tZ * (teeY - cornerY);
-          mbx = teeX + (bx3 / 25) * (legW / 2);
+          mbx = teeX + tZ * (cornerX - teeX) + (bx3 / 25) * 6;
+          mby = teeY + tZ * (cornerY - teeY);
         } else {
-          // 直角左折区間（X: 0 〜 -80）
-          mby = cornerY - ((bz3 + 205) / 40) * (legW / 2);
+          // コーナーから左上グリーンへの直角区間（X: 0 〜 -80）
           const tX = Math.min(1.0, Math.max(0, -bx3 / 80));
-          mbx = cornerX - tX * (cornerX - greenX);
+          mbx = cornerX + tX * (targetGX - cornerX);
+          mby = cornerY + tX * (targetGY - cornerY);
         }
 
-        // ボール本体
+        // ボール本体（黄色/白色）
         ctx.fillStyle = this.ball.inFlight ? "#ffff00" : "#ffffff";
         ctx.beginPath();
-        ctx.arc(mbx, mby, 3.8, 0, Math.PI*2);
+        ctx.arc(mbx, mby, 3.8, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = "rgba(0,0,0,0.8)";
+        ctx.strokeStyle = "rgba(0,0,0,0.85)";
         ctx.lineWidth = 1;
         ctx.stroke();
 
@@ -6021,7 +6103,7 @@ const bCntGreen=Math.min(bunkerCount,5);
           ctx.stroke();
           ctx.fillStyle = ctx.strokeStyle;
           ctx.beginPath();
-          ctx.arc(ex, ey, 2.5, 0, Math.PI*2);
+          ctx.arc(ex, ey, 2.5, 0, Math.PI * 2);
           ctx.fill();
         }
       }
@@ -6507,37 +6589,49 @@ const bCntGreen=Math.min(bunkerCount,5);
     if(wa)wa.textContent=" "+arrows[Math.round(w.windDirection/45)%8];
   }
   _updateHUDStrokes(){
+    // 完了ホールのスコア集計（打数 - パー）
     let totalCompletedStrokes = 0;
-    let completedPars = 0;
-    
-    // Calculate stats ONLY for fully completed holes
+    let totalCompletedPars = 0;
+    let completedRelativeScore = 0;
+
     for(let i=0; i<this.currentHoleIdx; i++){
       const sc = this.scores[i] || 0;
-      if (sc > 0) { // Only count if actually played
-          totalCompletedStrokes += sc;
-          if (this.currentCourse && this.currentCourse.holes[i]) {
-              completedPars += this.currentCourse.holes[i].par;
-          }
+      if (sc > 0 && this.currentCourse && this.currentCourse.holes[i]) {
+        const hPar = this.currentCourse.holes[i].par;
+        totalCompletedStrokes += sc;
+        totalCompletedPars += hPar;
+        completedRelativeScore += (sc - hPar);
       }
     }
-    
-    // Absolute total strokes = completed holes + strokes taken so far on current hole
-    const absoluteTotalStrokes = totalCompletedStrokes + this.strokes;
-    
-    // Relative score (trel) is strictly for COMPLETED holes.
-    // If no holes are completed, you are Even par (E).
-    const trel = totalCompletedStrokes - completedPars;
-    const relStr = trel === 0 ? "E" : (trel > 0 ? `+${trel}` : String(trel));
-    
-    const hudStrokes = document.getElementById("hudStrokes");
-    if(hudStrokes) hudStrokes.textContent = `${this.strokes}打`;
-    
+
+    // 現在プレイ中ホールのパー
+    const curHole = (this.currentCourse && this.currentCourse.holes) ? this.currentCourse.holes[this.currentHoleIdx] : null;
+    const curPar = curHole ? curHole.par : 4;
+
+    // 現在ホールでの打数
+    const curStrokes = this.strokes || 0;
+
+    // 【ユーザー公式準拠スコア表示】
+    // まだホールアウトしていない場合でも、現在ホールで打った分も含めた現時点の通算スコア（または完了ホール通算）
+    // 通算スコア（完了ホール合計）
+    // 0の場合は "0", マイナスは "-1", プラスは "+1"
+    const relScore = completedRelativeScore;
+    let relScoreStr = relScore === 0 ? "0" : (relScore > 0 ? `+${relScore}` : `${relScore}`);
+    let relColor = relScore === 0 ? "#ffffff" : (relScore < 0 ? "#00ff88" : "#ff8855");
+
+    // HUD上部中央パネル
     const hudScore = document.getElementById("hudScore");
     if(hudScore) {
-       // Display "TotalStrokes (RelativeScore)" e.g., "0打 (E)" at start, "4打 (-1)" on hole 2
-       hudScore.innerHTML = `<span style="font-size:1.1em">${absoluteTotalStrokes}打</span> <span style="font-size:0.65em; color:#ddd">(${relStr})</span>`;
+      hudScore.innerHTML = `<span style="font-size:1.3rem;font-weight:900;color:${relColor};">${relScoreStr}</span>`;
+    }
+
+    const hudStrokes = document.getElementById("hudStrokes");
+    if(hudStrokes) {
+      const totalStrokesAll = totalCompletedStrokes + curStrokes;
+      hudStrokes.innerHTML = `<span style="font-size:0.75rem;color:#cceeff;">${totalStrokesAll}打</span> <span style="font-size:0.6rem;color:#8ab;">(今H: ${curStrokes}打/P${curPar})</span>`;
     }
   }
+
   _autoSelectClub(yards){
     if(this.gameMode==="putt"){this.currentClubIdx=CLUBS.length-1;this._highlightClub();return;}
     // 残り距離に最も適したクラブを選択（NS想定の実飛距離で比較）
@@ -6585,6 +6679,7 @@ const bCntGreen=Math.min(bunkerCount,5);
     const hole=this.currentCourse&&this.currentCourse.holes[this.currentHoleIdx];
     if(!hole){console.warn("_holeComplete: hole undefined");return;}
     this.scores[this.currentHoleIdx]=this.strokes;
+    this._updateHUDStrokes(); // ★ 即時HUDスコア更新
     // ★ スタッツ集計
     this._stats.putts.push(this._holePutts);
     if(this._firstShotDist){
@@ -6601,15 +6696,16 @@ const bCntGreen=Math.min(bunkerCount,5);
       const girStrokes=this.strokes-this._holePutts;
       if(this.greenOnShown&&girStrokes<=hole.par-2)this._stats.gir++;
     }
-    const rel=this.strokes-hole.par;
-    // スコア名・色
+    const rel = this.strokes - hole.par;
+    const relStr = rel === 0 ? "0" : (rel > 0 ? `+${rel}` : `${rel}`);
+    // スコア名・色（打数 - パー）
     const scoreMap={
-      "-3":["🦅🦅 アルバトロス！","#ff44ff"],
-      "-2":["🦅 イーグル！","#ff88ff"],
-      "-1":["🐦 バーディ！","#00ff88"],
-      "0": ["⛳ パー","#88ccff"],
-      "1": ["📉 ボギー","#ff9966"],
-      "2": ["❌ ダブルボギー","#ff4444"],
+      "-3":["🦅🦅 アルバトロス！ (-3)","#ff44ff"],
+      "-2":["🦅 イーグル！ (-2)","#ff88ff"],
+      "-1":["🐦 バーディ！ (-1)","#00ff88"],
+      "0": ["⛳ パー (0)","#88ccff"],
+      "1": ["📉 ボギー (+1)","#ff9966"],
+      "2": ["❌ ダブルボギー (+2)","#ff4444"],
     };
     const row=scoreMap[String(rel)]||[rel<=-3?"🔥 アルバトロス！":"💔 トリプル以上","#ff0000"];
     // ハプティクス
