@@ -1,0 +1,1854 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>感情AIボイス - ネオ・サイバーAIホログラムHUD (v2.7 Vercel Serverless)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #030712;
+      --bg-panel: rgba(8, 14, 30, 0.85);
+      --bg-panel-solid: #0b1120;
+      --border-cyan: rgba(6, 182, 212, 0.4);
+      --border-cyan-glow: #06b6d4;
+      --cyan-neon: #22d3ee;
+      --blue-neon: #3b82f6;
+      --magenta-neon: #f43f5e;
+      --text-main: #f8fafc;
+      --text-dim: #94a3b8;
+      
+      --joy-color: #fbbf24;
+      --joy-glow: rgba(251, 191, 36, 0.5);
+      --anger-color: #ef4444;
+      --anger-glow: rgba(239, 68, 68, 0.5);
+      --sadness-color: #38bdf8;
+      --sadness-glow: rgba(56, 189, 248, 0.5);
+      --fun-color: #c084fc;
+      --fun-glow: rgba(192, 132, 252, 0.5);
+      
+      --theme-active: var(--cyan-neon);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background-color: var(--bg-deep);
+      background-image: 
+        radial-gradient(circle at 50% 10%, rgba(6, 182, 212, 0.15) 0%, transparent 60%),
+        radial-gradient(circle at 10% 90%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 90% 90%, rgba(244, 63, 94, 0.12) 0%, transparent 50%),
+        linear-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+      color: var(--text-main);
+      font-family: 'Rajdhani', 'Zen Kaku Gothic New', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* ヘッダー */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 24px;
+      background: rgba(3, 7, 18, 0.9);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-cyan);
+      box-shadow: 0 4px 24px rgba(6, 182, 212, 0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+
+    .brand-logo-hex {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.3));
+      border: 2px solid var(--cyan-neon);
+      border-radius: 8px;
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.5);
+    }
+    .brand-logo-hex svg { width: 24px; height: 24px; fill: var(--cyan-neon); }
+
+    .brand-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #22d3ee, #60a5fa, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+    }
+
+    .hud-telemetry {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+    }
+
+    .telemetry-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #64748b;
+      box-shadow: 0 0 6px #64748b;
+      transition: all 0.3s;
+    }
+
+    .status-indicator.ready { background: #10b981; box-shadow: 0 0 12px #10b981; }
+    .status-indicator.transmitting { background: #22d3ee; box-shadow: 0 0 14px #22d3ee; animation: blink 0.6s infinite alternate; }
+    .status-indicator.receiving { background: #f43f5e; box-shadow: 0 0 14px #f43f5e; animation: blink 0.6s infinite alternate; }
+    @keyframes blink { 0% { opacity: 0.4; } 100% { opacity: 1; } }
+
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+
+    .btn-cyber-ghost {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-cyan);
+      color: #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s;
+    }
+    .btn-cyber-ghost:hover {
+      background: rgba(6, 182, 212, 0.2);
+      border-color: var(--cyan-neon);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+    }
+
+    /* メイン */
+    main {
+      flex: 1;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 310px 1fr 340px;
+      gap: 16px;
+    }
+
+    @media (max-width: 1150px) {
+      main { grid-template-columns: 1fr; max-width: 760px; }
+    }
+
+    .cyber-panel {
+      background: var(--bg-panel);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border-cyan);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 10px 36px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(6, 182, 212, 0.05);
+      position: relative;
+    }
+
+    .cyber-panel::before {
+      content: ''; position: absolute; top: -1px; left: 12px; width: 24px; height: 2px;
+      background: var(--cyan-neon); box-shadow: 0 0 8px var(--cyan-neon);
+    }
+    .cyber-panel::after {
+      content: ''; position: absolute; bottom: -1px; right: 12px; width: 24px; height: 2px;
+      background: var(--cyan-neon); box-shadow: 0 0 8px var(--cyan-neon);
+    }
+
+    .panel-headline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+      padding-bottom: 6px;
+    }
+
+    .panel-tag {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--cyan-neon);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .char-card-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .char-select-btn {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      color: var(--text-dim);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      transition: all 0.25s;
+    }
+    .char-select-btn .c-icon { font-size: 1.3rem; }
+    .char-select-btn:hover { border-color: rgba(6, 182, 212, 0.5); color: #ffffff; }
+    .char-select-btn.active {
+      border-color: var(--cyan-neon);
+      background: rgba(6, 182, 212, 0.15);
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.4);
+    }
+
+    .emotion-hud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .emo-hud-btn {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .emo-hud-btn:hover { transform: translateY(-1px); }
+    .emo-hud-btn.active-joy {
+      border-color: var(--joy-color);
+      background: rgba(251, 191, 36, 0.18);
+      color: #fef08a;
+      box-shadow: 0 0 14px var(--joy-glow);
+    }
+    .emo-hud-btn.active-anger {
+      border-color: var(--anger-color);
+      background: rgba(239, 68, 68, 0.18);
+      color: #fca5a5;
+      box-shadow: 0 0 14px var(--anger-glow);
+    }
+    .emo-hud-btn.active-sadness {
+      border-color: var(--sadness-color);
+      background: rgba(56, 189, 248, 0.18);
+      color: #bae6fd;
+      box-shadow: 0 0 14px var(--sadness-glow);
+    }
+    .emo-hud-btn.active-fun {
+      border-color: var(--fun-color);
+      background: rgba(192, 132, 252, 0.18);
+      color: #f3e8ff;
+      box-shadow: 0 0 14px var(--fun-glow);
+    }
+
+    .param-box { display: flex; flex-direction: column; gap: 4px; }
+    .param-label-row { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700; color: var(--text-dim); }
+    .param-val { font-family: 'Orbitron', monospace; color: var(--cyan-neon); font-weight: 800; }
+
+    input[type="range"] {
+      -webkit-appearance: none; width: 100%; height: 5px; border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1); outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%;
+      background: var(--cyan-neon); cursor: pointer; box-shadow: 0 0 10px var(--cyan-neon);
+      border: 2px solid #ffffff; transition: transform 0.1s;
+    }
+
+    .speed-btn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .spd-btn {
+      background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px; padding: 6px 0; font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem; font-weight: 700; color: var(--text-dim); cursor: pointer;
+    }
+    .spd-btn.active {
+      background: var(--blue-neon); border-color: #93c5fd; color: #ffffff;
+      box-shadow: 0 0 14px rgba(59, 130, 246, 0.6);
+    }
+
+    /* 中央HUD */
+    .cyber-stage {
+      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+      gap: 12px; position: relative;
+    }
+
+    .hologram-hud-viewport {
+      position: relative; width: 100%; max-width: 520px; aspect-ratio: 1 / 1;
+      border-radius: 20px; background: #000000; border: 2px solid var(--border-cyan);
+      box-shadow: 0 0 40px rgba(6, 182, 212, 0.25), inset 0 0 60px rgba(0, 0, 0, 0.9);
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+    }
+
+    #avatar-image {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.4));
+    }
+
+    .scanlines-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0, 0, 0, 0.35) 50%, rgba(0, 0, 0, 0.35));
+      background-size: 100% 4px; pointer-events: none; z-index: 5;
+    }
+
+    .hud-corner {
+      position: absolute; width: 32px; height: 32px; border: 3px solid var(--cyan-neon);
+      pointer-events: none; z-index: 10; box-shadow: 0 0 10px var(--cyan-neon);
+    }
+    .hud-corner.tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+    .hud-corner.tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
+    .hud-corner.bl { bottom: 12px; left: 12px; border-right: none; border-top: none; }
+    .hud-corner.br { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+    .hud-ring-reticle {
+      position: absolute; width: 78%; height: 78%; border-radius: 50%;
+      border: 1px dashed rgba(34, 211, 238, 0.35); animation: spin-reticle 28s linear infinite;
+      pointer-events: none; z-index: 6;
+    }
+    @keyframes spin-reticle { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    #spectrum-canvas {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 140px;
+      z-index: 8; pointer-events: none;
+    }
+
+    /* マイクVUメーター */
+    .mic-vu-container {
+      width: 100%; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-cyan);
+      border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;
+    }
+
+    .mic-vu-header {
+      display: flex; justify-content: space-between; font-size: 0.75rem;
+      font-family: 'Orbitron', monospace; font-weight: 700; color: var(--cyan-neon);
+    }
+
+    .mic-vu-bar-track {
+      width: 100%; height: 10px; background: rgba(255, 255, 255, 0.08);
+      border-radius: 5px; overflow: hidden; display: flex;
+    }
+
+    .mic-vu-bar-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #10b981 0%, #fbbf24 70%, #ef4444 100%);
+      transition: width 0.06s ease-out; box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+    }
+
+    /* 感情メーター */
+    .emotion-hud-panel {
+      width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-cyan);
+      border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px;
+    }
+
+    .emo-meter-line {
+      display: grid; grid-template-columns: 60px 1fr 40px; align-items: center;
+      gap: 8px; font-size: 0.8rem; font-weight: 700;
+    }
+
+    .emo-track { height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 3px; overflow: hidden; }
+    .emo-fill { height: 100%; border-radius: 3px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .emo-fill.joy { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .emo-fill.fun { background: linear-gradient(90deg, #9333ea, #c084fc); }
+    .emo-fill.sadness { background: linear-gradient(90deg, #0284c7, #38bdf8); }
+    .emo-fill.anger { background: linear-gradient(90deg, #dc2626, #ef4444); }
+
+    /* 操作ボタン */
+    .action-hud-bar { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+    .btn-action-main {
+      padding: 11px 18px; border-radius: 10px; font-family: 'Orbitron', sans-serif;
+      font-size: 0.88rem; font-weight: 800; letter-spacing: 0.5px; border: none;
+      cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.25s;
+    }
+
+    .btn-connect {
+      background: linear-gradient(135deg, #06b6d4, #3b82f6); color: #ffffff;
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+    }
+    .btn-connect:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(6, 182, 212, 0.8); }
+
+    .btn-disconnect {
+      background: linear-gradient(135deg, #ef4444, #b91c1c); color: #ffffff;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-talk-done {
+      background: linear-gradient(135deg, #10b981, #059669); color: #ffffff;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-interrupt-hud {
+      background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-sub-hud {
+      background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-cyan);
+      color: #e2e8f0; padding: 9px 12px; border-radius: 10px;
+      font-family: 'Orbitron', sans-serif; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+    }
+
+    .text-chat-input-bar { width: 100%; display: flex; gap: 6px; margin-top: 4px; }
+    .text-chat-input {
+      flex: 1; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-cyan);
+      border-radius: 8px; padding: 8px 12px; color: #ffffff; font-size: 0.85rem; outline: none;
+    }
+    .btn-send-text {
+      background: rgba(6, 182, 212, 0.2); border: 1px solid var(--border-cyan);
+      color: var(--cyan-neon); border-radius: 8px; padding: 0 14px;
+      font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+    }
+
+    /* チャット & ログ */
+    .chat-tab-nav { display: flex; gap: 8px; border-bottom: 1px solid rgba(6, 182, 212, 0.2); padding-bottom: 6px; }
+    .tab-pill {
+      background: transparent; border: none; color: var(--text-dim);
+      font-family: 'Orbitron', sans-serif; font-size: 0.78rem; font-weight: 700;
+      padding: 5px 10px; border-radius: 6px; cursor: pointer;
+    }
+    .tab-pill.active { color: #ffffff; background: rgba(6, 182, 212, 0.2); border-bottom: 2px solid var(--cyan-neon); }
+
+    .chat-scroll-view {
+      flex: 1; height: 380px; overflow-y: auto; display: flex; flex-direction: column;
+      gap: 10px; padding-right: 4px;
+    }
+    .chat-scroll-view::-webkit-scrollbar { width: 4px; }
+    .chat-scroll-view::-webkit-scrollbar-thumb { background: rgba(6, 182, 212, 0.3); border-radius: 2px; }
+
+    .chat-bubble {
+      padding: 10px 12px; border-radius: 10px; font-size: 0.88rem; line-height: 1.4;
+      display: flex; flex-direction: column; gap: 4px; animation: msg-in 0.2s ease;
+    }
+    @keyframes msg-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .chat-bubble.user {
+      align-self: flex-end; background: rgba(6, 182, 212, 0.2);
+      border: 1px solid rgba(6, 182, 212, 0.5); max-width: 85%;
+    }
+    .chat-bubble.ai {
+      align-self: flex-start; background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15); max-width: 90%;
+    }
+
+    .bubble-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.7rem; font-family: 'Orbitron', monospace; color: var(--text-dim);
+    }
+    .emo-chip { font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); }
+
+    .diag-scroll-view {
+      flex: 1; height: 380px; overflow-y: auto; background: rgba(3, 7, 18, 0.95);
+      border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 6px; padding: 8px;
+      font-family: 'Consolas', monospace; font-size: 0.72rem; color: #94a3b8;
+      display: none; flex-direction: column; gap: 3px;
+    }
+    .d-line.info { color: #38bdf8; }
+    .d-line.success { color: #34d399; }
+    .d-line.warn { color: #fbbf24; }
+    .d-line.error { color: #f87171; }
+
+    /* モーダル */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px); display: none; align-items: center;
+      justify-content: center; z-index: 1000; padding: 16px;
+    }
+
+    .cyber-modal {
+      background: var(--bg-panel-solid); border: 2px solid var(--border-cyan);
+      border-radius: 16px; width: 100%; max-width: 520px; padding: 24px;
+      display: flex; flex-direction: column; gap: 16px; box-shadow: 0 0 40px rgba(6, 182, 212, 0.3);
+    }
+
+    .modal-header-row {
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(6, 182, 212, 0.3); padding-bottom: 10px;
+    }
+
+    .modal-title {
+      font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 800;
+      color: var(--cyan-neon); letter-spacing: 1px;
+    }
+
+    .form-item { display: flex; flex-direction: column; gap: 6px; }
+    .form-item label { font-size: 0.85rem; font-weight: 700; color: #e2e8f0; }
+
+    .form-ctrl {
+      background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-cyan);
+      border-radius: 8px; padding: 9px 12px; color: #ffffff;
+      font-family: 'Rajdhani', sans-serif; font-size: 0.95rem; outline: none;
+    }
+
+    .toast-shelf {
+      position: fixed; bottom: 20px; right: 20px; z-index: 2000;
+      display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+    }
+
+    .toast-card {
+      background: rgba(8, 14, 30, 0.95); backdrop-filter: blur(14px);
+      border: 1px solid var(--border-cyan); border-left: 4px solid var(--cyan-neon);
+      border-radius: 8px; padding: 10px 16px; font-size: 0.85rem; color: #ffffff;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6); animation: slide-toast 0.25s ease;
+      pointer-events: auto; max-width: 360px;
+    }
+    @keyframes slide-toast { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo-hex">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+      </div>
+      <div>
+        <div class="brand-title">EMOTION AI // LIVE HUD</div>
+        <div style="font-size: 0.68rem; font-family: 'Orbitron', monospace; color: var(--cyan-neon);">
+          BIDI-STREAM // gemini-2.5-flash-native-audio (v2.6)
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-telemetry">
+      <div class="telemetry-item">
+        <span id="stat-indicator" class="status-indicator"></span>
+        <span id="stat-label">STANDBY</span>
+      </div>
+      <div class="telemetry-item" title="マイク音声の送信パケット数">
+        <span>TX:</span>
+        <span id="stat-tx" style="color: #22d3ee;">0</span>
+      </div>
+      <div class="telemetry-item" title="AI音声の受信パケット数">
+        <span>RX:</span>
+        <span id="stat-rx" style="color: #f43f5e;">0</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button id="btn-open-settings" class="btn-cyber-ghost"><span>⚙️</span> CONFIG</button>
+      <button id="btn-save-log" class="btn-cyber-ghost"><span>💾</span> EXPORT</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="cyber-panel">
+      <div class="panel-headline"><div class="panel-tag"><span>[01]</span> CHARACTER MODEL</div></div>
+      <div class="char-card-selector">
+        <button id="btn-char-holo" class="char-select-btn active" data-char="holo">
+          <span class="c-icon">🌐</span><span>HOLO-AI</span><span style="font-size: 0.65rem; opacity: 0.7;">ホログラム</span>
+        </button>
+        <button id="btn-char-luna" class="char-select-btn" data-char="luna">
+          <span class="c-icon">👩</span><span>LUNA</span><span style="font-size: 0.65rem; opacity: 0.7;">サイバーヒロイン</span>
+        </button>
+        <button id="btn-char-ren" class="char-select-btn" data-char="ren">
+          <span class="c-icon">👨</span><span>REN</span><span style="font-size: 0.65rem; opacity: 0.7;">青年エージェント</span>
+        </button>
+      </div>
+
+      <div class="panel-headline" style="margin-top: 4px;"><div class="panel-tag"><span>[02]</span> EMOTION PRESETS</div></div>
+      <div class="emotion-hud-grid">
+        <button id="emo-joy" class="emo-hud-btn active-joy" data-emotion="joy"><span>😊</span> 喜び (JOY)</button>
+        <button id="emo-anger" class="emo-hud-btn" data-emotion="anger"><span>💢</span> 怒り (ANGER)</button>
+        <button id="emo-sadness" class="emo-hud-btn" data-emotion="sadness"><span>😢</span> 悲しみ (SAD)</button>
+        <button id="emo-fun" class="emo-hud-btn" data-emotion="fun"><span>✨</span> 楽しさ (FUN)</button>
+      </div>
+
+      <div class="param-box">
+        <div class="param-label-row"><span>EMOTION INTENSITY</span><span id="intensity-val" class="param-val">80%</span></div>
+        <input type="range" id="intensity-slider" min="0" max="100" value="80">
+      </div>
+
+      <div class="panel-headline" style="margin-top: 4px;"><div class="panel-tag"><span>[03]</span> SPEECH PARAMETERS</div></div>
+
+      <div class="param-box">
+        <div class="param-label-row"><span>MIC GAIN BOOST (感度増幅)</span><span id="gain-val" class="param-val">2.5x</span></div>
+        <input type="range" id="gain-slider" min="1.0" max="5.0" step="0.5" value="2.5">
+      </div>
+
+      <div class="param-box">
+        <div class="param-label-row"><span>PLAYBACK SPEED</span><span id="speed-val" class="param-val">1.0x</span></div>
+        <div class="speed-btn-row">
+          <button class="spd-btn active" data-speed="1.0">1.0x</button>
+          <button class="spd-btn" data-speed="2.0">2.0x</button>
+          <button class="spd-btn" data-speed="3.0">3.0x</button>
+        </div>
+        <input type="range" id="speed-slider" min="0.5" max="3.0" step="0.1" value="1.0" style="margin-top: 4px;">
+      </div>
+
+      <div class="param-box">
+        <div class="param-label-row"><span>VOICE PITCH / TONE</span><span id="pitch-val" class="param-val">±0 cents</span></div>
+        <input type="range" id="pitch-slider" min="-600" max="600" step="50" value="0">
+      </div>
+    </section>
+
+    <!-- 中央HUD -->
+    <section class="cyber-panel cyber-stage">
+      <div class="hologram-hud-viewport" id="viewport">
+        <div class="hud-corner tl"></div><div class="hud-corner tr"></div>
+        <div class="hud-corner bl"></div><div class="hud-corner br"></div>
+        <div class="scanlines-overlay"></div>
+        <div class="hud-ring-reticle"></div>
+        <img id="avatar-image" src="./assets/cyber_holo_face.jpg" alt="Cyber Holo Avatar">
+        <canvas id="spectrum-canvas"></canvas>
+      </div>
+
+      <div class="mic-vu-container">
+        <div class="mic-vu-header">
+          <span>🎙️ MIC INPUT LEVEL (VU METER)</span>
+          <span id="vu-val">0 dB</span>
+        </div>
+        <div class="mic-vu-bar-track">
+          <div id="mic-vu-fill" class="mic-vu-bar-fill"></div>
+        </div>
+      </div>
+
+      <div class="emotion-hud-panel">
+        <div style="font-size: 0.78rem; font-family: 'Orbitron', monospace; font-weight: 700; color: var(--cyan-neon); display: flex; justify-content: space-between;">
+          <span>EMOTION SPECTRUM ANALYSIS</span>
+          <span id="top-emotion-label" style="color: #67e8f9;">通常 (NEUTRAL)</span>
+        </div>
+        <div class="emo-meter-line">
+          <span style="color: var(--joy-color);">😊 喜び</span>
+          <div class="emo-track"><div id="meter-joy" class="emo-fill joy" style="width: 30%;"></div></div>
+          <span id="txt-meter-joy" class="param-val">30%</span>
+        </div>
+        <div class="emo-meter-line">
+          <span style="color: var(--fun-color);">✨ 楽しさ</span>
+          <div class="emo-track"><div id="meter-fun" class="emo-fill fun" style="width: 25%;"></div></div>
+          <span id="txt-meter-fun" class="param-val">25%</span>
+        </div>
+        <div class="emo-meter-line">
+          <span style="color: var(--sadness-color);">😢 悲しみ</span>
+          <div class="emo-track"><div id="meter-sadness" class="emo-fill sadness" style="width: 10%;"></div></div>
+          <span id="txt-meter-sadness" class="param-val">10%</span>
+        </div>
+        <div class="emo-meter-line">
+          <span style="color: var(--anger-color);">💢 怒り</span>
+          <div class="emo-track"><div id="meter-anger" class="emo-fill anger" style="width: 5%;"></div></div>
+          <span id="txt-meter-anger" class="param-val">5%</span>
+        </div>
+      </div>
+
+      <!-- 操作ボタン -->
+      <div class="action-hud-bar">
+        <button id="btn-start-session" class="btn-action-main btn-connect"><span>🎙️</span> 会話開始 (CONNECT)</button>
+        <button id="btn-stop-session" class="btn-action-main btn-disconnect" style="display: none;"><span>⏹️</span> 終了 (DISCONNECT)</button>
+        <button id="btn-talk-done" class="btn-action-main btn-talk-done" style="display: none;"><span>💬</span> 発話完了 / 応答を促す</button>
+        <button id="btn-interrupt" class="btn-action-main btn-interrupt-hud"><span>⚡</span> 割り込み (BARGE-IN)</button>
+        <button id="btn-mute" class="btn-sub-hud"><span id="mute-icon">🎤</span> <span id="mute-txt">マイクON</span></button>
+        <button id="btn-pause" class="btn-sub-hud" style="display: none;"><span>⏸️</span> 一時停止</button>
+      </div>
+
+      <!-- テキスト簡易チャット入力欄 -->
+      <div class="text-chat-input-bar">
+        <input type="text" id="text-chat-input" class="text-chat-input" placeholder="テキストで話しかけることも可能です（Enterで送信）...">
+        <button id="btn-send-text" class="btn-send-text">SEND</button>
+      </div>
+    </section>
+
+    <!-- 右パネル -->
+    <section class="cyber-panel">
+      <div class="chat-tab-nav">
+        <button id="tab-chat" class="tab-pill active">💬 CONVERSATION</button>
+        <button id="tab-diag" class="tab-pill">🛠️ DIAGNOSTICS</button>
+        <button id="btn-clear-chat" class="btn-cyber-ghost" style="margin-left: auto; padding: 2px 8px; font-size: 0.7rem;">CLEAR</button>
+      </div>
+
+      <div id="chat-view" class="chat-scroll-view">
+        <div class="chat-bubble ai">
+          <div class="bubble-meta"><span>HOLO-AI</span><span class="emo-chip" style="color: #fbbf24;">喜び 80%</span></div>
+          <div>システムオンライン。マイクを接続して「会話開始」を押してください！リアルタイムにお話ししましょう！</div>
+        </div>
+      </div>
+
+      <div id="diag-view" class="diag-scroll-view">
+        <div class="d-line info">[INIT] システム初期化完了。</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 設定モーダル -->
+  <div id="settings-modal" class="modal-overlay">
+    <div class="cyber-modal">
+      <div class="modal-header-row">
+        <div class="modal-title">⚙️ SYSTEM CONFIGURATION</div>
+        <button id="btn-close-modal" class="btn-cyber-ghost">✕</button>
+      </div>
+      <div class="form-item">
+        <label>Vercel サーバーAPI連携 / キー取得状態</label>
+        <div id="env-badge" style="padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-family: 'Orbitron', monospace; background: rgba(6, 182, 212, 0.15); border: 1px solid var(--border-cyan); color: #22d3ee;">バックエンドAPI接続中...</div>
+      </div>
+      <div class="form-item">
+        <label for="cfg-api-key">Gemini API Key</label>
+        <input type="password" id="cfg-api-key" class="form-ctrl" placeholder="AIzaSy...">
+      </div>
+      <div class="form-item">
+        <label for="cfg-mic">マイク入力デバイス</label>
+        <select id="cfg-mic" class="form-ctrl"><option value="default">既定のマイク (Default)</option></select>
+      </div>
+      <div class="form-item">
+        <label for="cfg-fallback" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="cfg-fallback" checked style="width: 18px; height: 18px;">
+          <span>Live API切断時のスマート・フォールバック (自動でREST音声対話に切替)</span>
+        </label>
+      </div>
+      <div class="form-item">
+        <label for="cfg-mock" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="cfg-mock" style="width: 18px; height: 18px;">
+          <span>テスト体験モード (APIキー不要でUIと音声合成を体験)</span>
+        </label>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+        <button id="btn-save-cfg" class="btn-action-main btn-connect" style="padding: 8px 18px; font-size: 0.85rem;">保存して閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-shelf" class="toast-shelf"></div>
+
+  <script>
+    /**
+     * 天才プロゲームプロダクター & プログラマ設計
+     * 感情AIボイス - v2.6 (単一AudioContext・非同期アンロック・フォールバック堅牢化版)
+     */
+    const LIVE_MODEL_NAME = 'models/gemini-2.5-flash-native-audio-latest';
+    const REST_MODEL_NAME = 'models/gemini-2.5-flash';
+
+    const appState = {
+      apiKey: '',
+      isMockMode: false,
+      enableSmartFallback: true,
+      
+      isConnected: false,
+      isSessionReady: false,
+      isPaused: false,
+      isMuted: false,
+      isAiSpeaking: false,
+      
+      txChunks: 0,
+      rxChunks: 0,
+
+      micGain: 2.5,
+
+      selectedChar: 'holo',
+      characters: {
+        holo: {
+          name: 'HOLO-AI',
+          image: './assets/cyber_holo_face.jpg',
+          voice: 'Aoede',
+          personality: '高度な知性と感情を備えたサイバーホログラムAI。理知的かつ共感豊かに日本語でテンポよく話す。',
+          systemPrompt: 'あなたは高度な知性と豊かな感情を備えたサイバーホログラムAI「HOLO-AI」です。ユーザーと日本語でリアルタイムにテンポよく音声会話してください。短く生き生きと返答してください。'
+        },
+        luna: {
+          name: 'LUNA',
+          image: './assets/cyber_luna_female.jpg',
+          voice: 'Aoede',
+          personality: '明るく元気で感情豊かなサイバーヒロイン。親しみやすいタメ口口調（「〜だよ！」「〜ね！」）でテンポよく話す。',
+          systemPrompt: 'あなたは明るく元気なサイバーヒロイン「ルナ」です。ユーザーと日本語でリアルタイムに楽しく音声会話してください。親しみやすく短く返答してください。'
+        },
+        ren: {
+          name: 'REN',
+          image: './assets/cyber_ren_male.jpg',
+          voice: 'Fenrir',
+          personality: '知的でクール、頼れる青年エージェント。自然な口調（「〜だよ」「〜だな」「任せてくれ」）で誠実に応対する。',
+          systemPrompt: 'あなたは知的で頼れるサイバーエージェント「レン」です。ユーザーと日本語でリアルタイムに落ち着いて音声会話してください。短く自然に応答してください。'
+        }
+      },
+
+      emotion: 'joy',
+      intensity: 80,
+      playbackSpeed: 1.0,
+      pitchDetune: 0,
+
+      detectedEmotions: { joy: 30, fun: 25, sadness: 10, anger: 5 },
+
+      audioCtx: null,
+      micStream: null,
+      micSource: null,
+      processorNode: null,
+      zeroGainNode: null,
+      analyserNode: null,
+      
+      isUserSpeaking: false,
+      lastVoiceTimestamp: 0,
+
+      scheduledSources: [],
+      nextStartTime: 0,
+      
+      ws: null,
+      history: []
+    };
+
+    const UI = {
+      statIndicator: document.getElementById('stat-indicator'),
+      statLabel: document.getElementById('stat-label'),
+      statTx: document.getElementById('stat-tx'),
+      statRx: document.getElementById('stat-rx'),
+      
+      btnCharHolo: document.getElementById('btn-char-holo'),
+      btnCharLuna: document.getElementById('btn-char-luna'),
+      btnCharRen: document.getElementById('btn-char-ren'),
+      avatarImage: document.getElementById('avatar-image'),
+      spectrumCanvas: document.getElementById('spectrum-canvas'),
+      
+      emoBtns: document.querySelectorAll('.emo-hud-btn'),
+      intensitySlider: document.getElementById('intensity-slider'),
+      intensityVal: document.getElementById('intensity-val'),
+      gainSlider: document.getElementById('gain-slider'),
+      gainVal: document.getElementById('gain-val'),
+      speedBtns: document.querySelectorAll('.spd-btn'),
+      speedSlider: document.getElementById('speed-slider'),
+      speedVal: document.getElementById('speed-val'),
+      pitchSlider: document.getElementById('pitch-slider'),
+      pitchVal: document.getElementById('pitch-val'),
+      
+      micVuFill: document.getElementById('mic-vu-fill'),
+      vuVal: document.getElementById('vu-val'),
+      
+      topEmotionLabel: document.getElementById('top-emotion-label'),
+      meterJoy: document.getElementById('meter-joy'),
+      meterFun: document.getElementById('meter-fun'),
+      meterSadness: document.getElementById('meter-sadness'),
+      meterAnger: document.getElementById('meter-anger'),
+      txtJoy: document.getElementById('txt-meter-joy'),
+      txtFun: document.getElementById('txt-meter-fun'),
+      txtSadness: document.getElementById('txt-meter-sadness'),
+      txtAnger: document.getElementById('txt-meter-anger'),
+      
+      btnStart: document.getElementById('btn-start-session'),
+      btnStop: document.getElementById('btn-stop-session'),
+      btnTalkDone: document.getElementById('btn-talk-done'),
+      btnInterrupt: document.getElementById('btn-interrupt'),
+      btnMute: document.getElementById('btn-mute'),
+      muteIcon: document.getElementById('mute-icon'),
+      muteTxt: document.getElementById('mute-txt'),
+      btnPause: document.getElementById('btn-pause'),
+      
+      textChatInput: document.getElementById('text-chat-input'),
+      btnSendText: document.getElementById('btn-send-text'),
+      
+      tabChat: document.getElementById('tab-chat'),
+      tabDiag: document.getElementById('tab-diag'),
+      chatView: document.getElementById('chat-view'),
+      diagView: document.getElementById('diag-view'),
+      btnClearChat: document.getElementById('btn-clear-chat'),
+      btnSaveLog: document.getElementById('btn-save-log'),
+      
+      btnOpenSettings: document.getElementById('btn-open-settings'),
+      btnCloseModal: document.getElementById('btn-close-modal'),
+      settingsModal: document.getElementById('settings-modal'),
+      envBadge: document.getElementById('env-badge'),
+      cfgApiKey: document.getElementById('cfg-api-key'),
+      cfgMic: document.getElementById('cfg-mic'),
+      cfgFallback: document.getElementById('cfg-fallback'),
+      cfgMock: document.getElementById('cfg-mock'),
+      btnSaveCfg: document.getElementById('btn-save-cfg'),
+      toastShelf: document.getElementById('toast-shelf')
+    };
+
+    function logMessage(text, type = 'info') {
+      const now = new Date().toLocaleTimeString();
+      const line = document.createElement('div');
+      line.className = `d-line ${type}`;
+      line.textContent = `[${now}] ${text}`;
+      UI.diagView.appendChild(line);
+      UI.diagView.scrollTop = UI.diagView.scrollHeight;
+      console.log(`[${type.toUpperCase()}] ${text}`);
+    }
+
+    function popToast(msg, type = 'info') {
+      const t = document.createElement('div');
+      t.className = 'toast-card';
+      if (type === 'warn') t.style.borderLeftColor = '#fbbf24';
+      if (type === 'error') t.style.borderLeftColor = '#ef4444';
+      t.textContent = msg;
+      UI.toastShelf.appendChild(t);
+      setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transform = 'translateY(10px)';
+        t.style.transition = 'all 0.3s';
+        setTimeout(() => t.remove(), 300);
+      }, 4000);
+    }
+
+    async function initEnvConfig() {
+      // Vercel サーバーレスエンドポイント (JS: /api/key, Python: /api/server) を順次探索
+      const endpoints = ['/api/key', '/api/server', '/api/get-key'];
+      for (const ep of endpoints) {
+        try {
+          logMessage(`Vercel サーバーレスAPI (${ep}) へキー要求を送信中...`, 'info');
+          const res = await fetch(ep);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.success && data.apiKey) {
+              appState.apiKey = data.apiKey.trim();
+              UI.cfgApiKey.value = appState.apiKey;
+              UI.envBadge.textContent = '✅ Vercel サーバーキー連携成功 (ACTIVE)';
+              UI.envBadge.style.color = '#34d399';
+              logMessage(`✅ Vercel サーバーレスAPI (${ep}) から Live API キーを自動ロード完了 (登録元: ${data.source || 'Vercel Env'}, Runtime: ${data.runtime || 'node'})`, 'success');
+              return true;
+            } else if (data && data.error) {
+              logMessage(`Vercel API (${ep}) 応答: ${data.error}`, 'warn');
+            }
+          }
+        } catch (err) {
+          logMessage(`サーバーレスAPI (${ep}) 接続スキップ: ${err.message}`, 'warn');
+        }
+      }
+
+      // ローカルストレージ（設定モーダル保存済みキー）からの復元フォールバック
+      const localKey = localStorage.getItem('GEMINI_API_KEY');
+      if (localKey) {
+        appState.apiKey = localKey;
+        UI.cfgApiKey.value = localKey;
+        UI.envBadge.textContent = '💾 ローカル保存キー適用中';
+        UI.envBadge.style.color = '#38bdf8';
+        logMessage('ローカルストレージからAPIキーを復元しました', 'info');
+        return true;
+      }
+
+      UI.envBadge.textContent = '⚠️ APIキー未設定 (Vercel環境変数または設定モーダル)';
+      UI.envBadge.style.color = '#fbbf24';
+      return false;
+    }
+
+    async function fetchAudioDevices() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        UI.cfgMic.innerHTML = '';
+        let micCount = 0;
+        devices.forEach(d => {
+          if (d.kind === 'audioinput') {
+            micCount++;
+            const opt = document.createElement('option');
+            opt.value = d.deviceId;
+            opt.text = d.label || `マイク入力 ${micCount}`;
+            UI.cfgMic.appendChild(opt);
+          }
+        });
+        if (micCount === 0) {
+          UI.cfgMic.innerHTML = '<option value="default">既定のマイク (Default)</option>';
+        }
+      } catch (e) {
+        logMessage(`デバイス列挙スキップ: ${e.message}`, 'warn');
+      }
+    }
+
+    function selectCharacter(charKey) {
+      appState.selectedChar = charKey;
+      const char = appState.characters[charKey];
+      [UI.btnCharHolo, UI.btnCharLuna, UI.btnCharRen].forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.char === charKey);
+      });
+      UI.avatarImage.style.opacity = '0';
+      setTimeout(() => {
+        UI.avatarImage.src = char.image;
+        UI.avatarImage.style.opacity = '1';
+      }, 200);
+      popToast(`キャラクター: ${char.name}`);
+      if (appState.isConnected && appState.isSessionReady) sendInstructionPatch();
+    }
+
+    function setEmotion(emoKey) {
+      appState.emotion = emoKey;
+      UI.emoBtns.forEach(btn => {
+        btn.className = `emo-hud-btn ${btn.dataset.emotion === emoKey ? `active-${emoKey}` : ''}`;
+      });
+      updateEmotionMeters(emoKey);
+      popToast(`感情: ${emoKey.toUpperCase()} (${appState.intensity}%)`);
+      if (appState.isConnected && appState.isSessionReady) sendInstructionPatch();
+    }
+
+    function updateEmotionMeters(targetEmo) {
+      const peak = appState.intensity;
+      const rem = Math.max(0, 100 - peak);
+      appState.detectedEmotions = {
+        joy: targetEmo === 'joy' ? peak : Math.round(rem * 0.4),
+        fun: targetEmo === 'fun' ? peak : Math.round(rem * 0.3),
+        sadness: targetEmo === 'sadness' ? peak : Math.round(rem * 0.2),
+        anger: targetEmo === 'anger' ? peak : Math.round(rem * 0.1)
+      };
+
+      UI.meterJoy.style.width = `${appState.detectedEmotions.joy}%`;
+      UI.txtJoy.textContent = `${appState.detectedEmotions.joy}%`;
+      UI.meterFun.style.width = `${appState.detectedEmotions.fun}%`;
+      UI.txtFun.textContent = `${appState.detectedEmotions.fun}%`;
+      UI.meterSadness.style.width = `${appState.detectedEmotions.sadness}%`;
+      UI.txtSadness.textContent = `${appState.detectedEmotions.sadness}%`;
+      UI.meterAnger.style.width = `${appState.detectedEmotions.anger}%`;
+      UI.txtAnger.textContent = `${appState.detectedEmotions.anger}%`;
+
+      const names = { joy: '喜び (JOY)', fun: '楽しさ (FUN)', sadness: '悲しみ (SAD)', anger: '怒り (ANGER)' };
+      UI.topEmotionLabel.textContent = `${names[targetEmo]} (${peak}%)`;
+    }
+
+    function startSpectrumVisualizer() {
+      const canvas = UI.spectrumCanvas;
+      const ctx = canvas.getContext('2d');
+      function resize() {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = 140;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      const freqData = new Uint8Array(64);
+
+      function draw() {
+        requestAnimationFrame(draw);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (appState.analyserNode && (appState.isAiSpeaking || !appState.isMuted)) {
+          appState.analyserNode.getByteFrequencyData(freqData);
+        } else {
+          const t = performance.now() * 0.003;
+          for (let i = 0; i < freqData.length; i++) {
+            freqData[i] = Math.sin(t + i * 0.2) * 12 + 16;
+          }
+        }
+
+        const barCount = 36;
+        const barWidth = (canvas.width / barCount) * 0.65;
+        const gap = (canvas.width / barCount) * 0.35;
+
+        for (let i = 0; i < barCount; i++) {
+          const distFromCenter = Math.abs(i - barCount / 2) / (barCount / 2);
+          const rawVal = freqData[Math.floor(i * (freqData.length / barCount))] || 0;
+          const weight = Math.cos(distFromCenter * Math.PI * 0.45);
+          const barHeight = Math.max(4, (rawVal / 255) * canvas.height * 0.95 * weight);
+
+          const x = i * (barWidth + gap);
+          const y = canvas.height - barHeight;
+
+          const grad = ctx.createLinearGradient(0, y, 0, canvas.height);
+          grad.addColorStop(0, '#22d3ee');
+          grad.addColorStop(0.6, '#0284c7');
+          grad.addColorStop(1, 'rgba(6, 182, 212, 0.1)');
+
+          ctx.fillStyle = grad;
+          ctx.shadowColor = '#22d3ee';
+          ctx.shadowBlur = barHeight > 30 ? 12 : 4;
+          
+          ctx.beginPath();
+          ctx.roundRect(x, y, barWidth, barHeight, [3, 3, 0, 0]);
+          ctx.fill();
+        }
+      }
+      draw();
+    }
+
+    function resampleAndGain(input, inRate, outRate, gain) {
+      const ratio = inRate / outRate;
+      const outLength = Math.floor(input.length / ratio);
+      const output = new Int16Array(outLength);
+
+      for (let i = 0; i < outLength; i++) {
+        const srcPos = i * ratio;
+        const idx = Math.floor(srcPos);
+        const frac = srcPos - idx;
+        const nextIdx = Math.min(idx + 1, input.length - 1);
+
+        let val = (input[idx] * (1 - frac) + input[nextIdx] * frac) * gain;
+        val = Math.max(-1.0, Math.min(1.0, val));
+        output[i] = val < 0 ? val * 0x8000 : val * 0x7FFF;
+      }
+      return output;
+    }
+
+    function int16ArrayToBase64(int16) {
+      let binary = '';
+      const bytes = new Uint8Array(int16.buffer, int16.byteOffset, int16.byteLength);
+      const len = bytes.byteLength;
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return window.btoa(binary);
+    }
+
+    function base64ToArrayBuffer(base64) {
+      const binary = window.atob(base64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    /**
+     * 単一 AudioContext による堅牢なマイク＆再生パイプライン
+     */
+    async function startMicrophoneEngine() {
+      // 単一 AudioContext の初期化
+      if (!appState.audioCtx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        appState.audioCtx = new AudioCtx();
+      }
+
+      // 非同期 resume ハング防止 (300ms タイムアウト)
+      if (appState.audioCtx.state === 'suspended') {
+        try {
+          await Promise.race([
+            appState.audioCtx.resume(),
+            new Promise(r => setTimeout(r, 300))
+          ]);
+        } catch (e) {}
+      }
+
+      const inSampleRate = appState.audioCtx.sampleRate || 48000;
+      logMessage(`AudioContext 準備完了 (SampleRate: ${inSampleRate}Hz, State: ${appState.audioCtx.state})`, 'info');
+
+      // マイク取得 (エラー発生時の確実な日本語トースト & フォールバック)
+      let stream = null;
+      try {
+        const selectedId = UI.cfgMic.value;
+        const constraints = {
+          audio: selectedId && selectedId !== 'default' ? { deviceId: { exact: selectedId } } : true
+        };
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (err) {
+        logMessage(`デバイス指定マイク取得に失敗 (${err.name})。汎用マイクで再試行中...`, 'warn');
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (mErr) {
+          logMessage(`マイク取得が完全に拒否されました: ${mErr.name} - ${mErr.message}`, 'error');
+          popToast('マイクの使用が許可されていません。ブラウザのアドレスバー横でマイクを「許可」してください', 'error');
+          throw mErr;
+        }
+      }
+
+      appState.micStream = stream;
+      logMessage('マイクストリームの取得に成功しました！', 'success');
+
+      appState.micSource = appState.audioCtx.createMediaStreamSource(appState.micStream);
+      appState.processorNode = appState.audioCtx.createScriptProcessor(4096, 1, 1);
+      
+      appState.zeroGainNode = appState.audioCtx.createGain();
+      appState.zeroGainNode.gain.value = 0;
+
+      appState.micSource.connect(appState.processorNode);
+      appState.processorNode.connect(appState.zeroGainNode);
+      appState.zeroGainNode.connect(appState.audioCtx.destination);
+
+      const targetChunkSize = Math.round(inSampleRate * 0.1); // 100ms
+      let sampleBuffer = [];
+
+      appState.processorNode.onaudioprocess = (e) => {
+        if (!appState.isConnected || appState.isPaused || appState.isMuted) {
+          UI.micVuFill.style.width = '0%';
+          UI.vuVal.textContent = '-∞ dB';
+          return;
+        }
+
+        const inputBuffer = e.inputBuffer.getChannelData(0);
+
+        let sum = 0;
+        for (let i = 0; i < inputBuffer.length; i++) {
+          sum += inputBuffer[i] * inputBuffer[i];
+        }
+        const rms = Math.sqrt(sum / inputBuffer.length);
+        const amplifiedRms = rms * appState.micGain;
+
+        const vuPercent = Math.min(100, Math.round(amplifiedRms * 350));
+        UI.micVuFill.style.width = `${vuPercent}%`;
+        const db = rms > 0 ? (20 * Math.log10(rms)).toFixed(1) : '-∞';
+        UI.vuVal.textContent = `${db} dB`;
+
+        if (amplifiedRms > 0.035) {
+          appState.isUserSpeaking = true;
+          appState.lastVoiceTimestamp = performance.now();
+          setTelemetryStatus('transmitting', 'VOICE DETECTED');
+
+          if (appState.isAiSpeaking) {
+            logMessage(`⚡ Barge-in 割り込み (RMS: ${amplifiedRms.toFixed(3)})`, 'warn');
+            interruptAudio();
+          }
+        } else {
+          if (appState.isUserSpeaking && performance.now() - appState.lastVoiceTimestamp > 650) {
+            appState.isUserSpeaking = false;
+            setTelemetryStatus('ready', 'WAITING AI...');
+          }
+        }
+
+        for (let i = 0; i < inputBuffer.length; i++) {
+          sampleBuffer.push(inputBuffer[i]);
+        }
+
+        if (sampleBuffer.length >= targetChunkSize) {
+          const chunkToProcess = new Float32Array(sampleBuffer);
+          sampleBuffer = [];
+
+          if (appState.isSessionReady && appState.ws && appState.ws.readyState === WebSocket.OPEN) {
+            const pcm16 = resampleAndGain(chunkToProcess, inSampleRate, 16000, appState.micGain);
+            const base64Audio = int16ArrayToBase64(pcm16);
+
+            const payload = {
+              realtimeInput: {
+                mediaChunks: [
+                  {
+                    mimeType: 'audio/pcm;rate=16000',
+                    data: base64Audio
+                  }
+                ]
+              }
+            };
+            appState.ws.send(JSON.stringify(payload));
+            appState.txChunks++;
+            UI.statTx.textContent = appState.txChunks;
+          }
+        }
+      };
+    }
+
+    async function startLiveSession() {
+      if (appState.isMockMode) {
+        startMockMode();
+        return;
+      }
+
+      if (!appState.apiKey) {
+        const loaded = await initEnvConfig();
+        if (!loaded || !appState.apiKey) {
+          popToast('Gemini API キーを設定してください', 'warn');
+          UI.settingsModal.style.display = 'flex';
+          return;
+        }
+      }
+
+      try {
+        setTelemetryStatus('transmitting', 'INITIALIZING...');
+        logMessage('マイク＆オーディオエンジン起動中...', 'info');
+        await startMicrophoneEngine();
+
+        logMessage(`Gemini Live API (${LIVE_MODEL_NAME}) へ WebSocket 接続中...`, 'info');
+        const liveUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${appState.apiKey}`;
+        
+        appState.ws = new WebSocket(liveUrl);
+        appState.isConnected = true;
+        appState.isSessionReady = false;
+
+        appState.ws.onopen = () => {
+          logMessage('WebSocket 接続確立！ setup 送信中...', 'success');
+          const char = appState.characters[appState.selectedChar];
+          const emoNames = { joy: '喜び', anger: '怒り', sadness: '悲しみ', fun: '楽しさ' };
+
+          const setupMsg = {
+            setup: {
+              model: LIVE_MODEL_NAME,
+              generationConfig: {
+                responseModalities: ['AUDIO'],
+                speechConfig: {
+                  voiceConfig: {
+                    prebuiltVoiceConfig: {
+                      voiceName: char.voice
+                    }
+                  }
+                }
+              },
+              systemInstruction: {
+                parts: [
+                  {
+                    text: `${char.systemPrompt}\n【現在の感情設定】: ${emoNames[appState.emotion]} (強度: ${appState.intensity}%)\nユーザーの発話に対して、1〜2文で短くテンポよく生き生きと日本語で返答してください。`
+                  }
+                ]
+              }
+            }
+          };
+          appState.ws.send(JSON.stringify(setupMsg));
+        };
+
+        appState.ws.onmessage = async (e) => {
+          try {
+            let data;
+            if (e.data instanceof Blob) {
+              data = JSON.parse(await e.data.text());
+            } else {
+              data = JSON.parse(e.data);
+            }
+            handleServerMessage(data);
+          } catch (err) {
+            logMessage(`メッセージパース例外: ${err.message}`, 'error');
+          }
+        };
+
+        appState.ws.onerror = (err) => {
+          logMessage(`WebSocket 通信エラー (${err.message || '接続遮断'})`, 'error');
+
+          if (appState.enableSmartFallback && !appState.isSessionReady) {
+            logMessage('🔄 自動フォールバック: REST対話モードへシームレスに切り替えます', 'warn');
+            popToast('Live APIの制限を検知。RESTフォールバック対話モードで接続します！', 'warn');
+            startSmartFallbackMode();
+          } else {
+            popToast('Live API 通信エラーが発生しました', 'error');
+          }
+        };
+
+        appState.ws.onclose = (e) => {
+          logMessage(`WebSocket 切断 (コード: ${e.code}, 理由: ${e.reason || 'None'})`, 'warn');
+          if ((e.code === 1006 || e.code === 1008 || e.code === 1005) && appState.enableSmartFallback && !appState.isSessionReady) {
+            logMessage('🔄 RESTフォールバック対話モードに自動切替して再開します', 'warn');
+            popToast('REST対話モードに切り替えました。マイクで話しかけてください！', 'success');
+            startSmartFallbackMode();
+            return;
+          }
+          disconnectSession();
+        };
+
+      } catch (err) {
+        logMessage(`セッション起動エラー: ${err.name} - ${err.message}`, 'error');
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          popToast('マイクの使用許可がブロックされています。ブラウザの鍵アイコンから許可してください', 'error');
+        } else {
+          popToast(`接続エラー: ${err.message}`, 'error');
+        }
+        disconnectSession();
+      }
+    }
+
+    function handleServerMessage(data) {
+      if (data.setupComplete) {
+        appState.isSessionReady = true;
+        setTelemetryStatus('ready', 'SESSION READY');
+        popToast('Gemini Live セッション確立！会話可能です', 'success');
+        logMessage('🚀 setupComplete 受信！音声ストリーミングを開始します', 'success');
+        
+        UI.btnStart.style.display = 'none';
+        UI.btnStop.style.display = 'inline-flex';
+        UI.btnTalkDone.style.display = 'inline-flex';
+        UI.btnPause.style.display = 'inline-flex';
+        return;
+      }
+
+      if (data.serverContent && data.serverContent.interrupted) {
+        logMessage('⚡ サーバーから割り込み (Interrupted) 通知を受信', 'warn');
+        interruptAudio();
+        return;
+      }
+
+      if (data.serverContent && data.serverContent.modelTurn) {
+        const parts = data.serverContent.modelTurn.parts;
+        for (const p of parts) {
+          if (p.inlineData && p.inlineData.data) {
+            appState.rxChunks++;
+            UI.statRx.textContent = appState.rxChunks;
+            enqueueAudio(p.inlineData.data);
+          }
+          if (p.text) {
+            appendChat('ai', p.text, appState.emotion);
+          }
+        }
+      }
+
+      if (data.serverContent && data.serverContent.turnComplete) {
+        logMessage('AI 応答ターン完了', 'info');
+      }
+    }
+
+    function enqueueAudio(base64Pcm24k) {
+      if (!appState.audioCtx) return;
+
+      const rawBuffer = base64ToArrayBuffer(base64Pcm24k);
+      const int16 = new Int16Array(rawBuffer);
+      const float32 = new Float32Array(int16.length);
+
+      for (let i = 0; i < int16.length; i++) {
+        float32[i] = int16[i] / 32768.0;
+      }
+
+      const outSampleRate = appState.audioCtx.sampleRate || 48000;
+      const resampledLen = Math.round(float32.length * (outSampleRate / 24000));
+      const audioBuf = appState.audioCtx.createBuffer(1, resampledLen, outSampleRate);
+      const channel = audioBuf.getChannelData(0);
+
+      const ratio = 24000 / outSampleRate;
+      for (let i = 0; i < resampledLen; i++) {
+        const pos = i * ratio;
+        const idx = Math.floor(pos);
+        const frac = pos - idx;
+        const next = Math.min(idx + 1, float32.length - 1);
+        channel[i] = float32[idx] * (1 - frac) + float32[next] * frac;
+      }
+
+      const source = appState.audioCtx.createBufferSource();
+      source.buffer = audioBuf;
+      source.playbackRate.value = appState.playbackSpeed;
+      source.detune.value = appState.pitchDetune;
+
+      if (!appState.analyserNode) {
+        appState.analyserNode = appState.audioCtx.createAnalyser();
+        appState.analyserNode.fftSize = 128;
+      }
+      source.connect(appState.analyserNode);
+      appState.analyserNode.connect(appState.audioCtx.destination);
+
+      const now = appState.audioCtx.currentTime;
+      if (appState.nextStartTime < now) {
+        appState.nextStartTime = now;
+      }
+
+      source.start(appState.nextStartTime);
+      const dur = audioBuf.duration / appState.playbackSpeed;
+      appState.nextStartTime += dur;
+
+      appState.scheduledSources.push(source);
+      appState.isAiSpeaking = true;
+      setTelemetryStatus('receiving', 'AI SPEAKING');
+
+      source.onended = () => {
+        const i = appState.scheduledSources.indexOf(source);
+        if (i !== -1) appState.scheduledSources.splice(i, 1);
+        if (appState.scheduledSources.length === 0) {
+          appState.isAiSpeaking = false;
+          if (appState.isConnected) {
+            setTelemetryStatus('ready', 'READY');
+          }
+        }
+      };
+    }
+
+    function interruptAudio() {
+      for (const s of appState.scheduledSources) {
+        try { s.stop(); } catch (e) {}
+      }
+      appState.scheduledSources = [];
+      if (appState.audioCtx) {
+        appState.nextStartTime = appState.audioCtx.currentTime;
+      }
+      appState.isAiSpeaking = false;
+      popToast('割り込みました (発話を中断)', 'info');
+      logMessage('オーディオ再生キューを強制クリア (割り込み)', 'info');
+    }
+
+    function triggerTurnCommit() {
+      if (!appState.ws || appState.ws.readyState !== WebSocket.OPEN) {
+        if (speechRecognition) {
+          speechRecognition.stop();
+          popToast('発話を完了してAIに送信中...');
+        }
+        return;
+      }
+      logMessage('💬 手動トリガー: 発話完了シグナルを送信してAIの即時返答を要求', 'info');
+      popToast('AIに応答をリクエストしました');
+
+      const commitMsg = {
+        clientContent: {
+          turns: [
+            {
+              role: 'user',
+              parts: [{ text: '（どうぞ答えてください）' }]
+            }
+          ],
+          turnComplete: true
+        }
+      };
+      appState.ws.send(JSON.stringify(commitMsg));
+    }
+
+    function sendTextPrompt(text) {
+      if (!text.trim()) return;
+      appendChat('user', text);
+      UI.textChatInput.value = '';
+
+      if (appState.isConnected && appState.ws && appState.ws.readyState === WebSocket.OPEN) {
+        logMessage(`テキストメッセージ送信: "${text}"`, 'info');
+        const msg = {
+          clientContent: {
+            turns: [
+              {
+                role: 'user',
+                parts: [{ text }]
+              }
+            ],
+            turnComplete: true
+          }
+        };
+        appState.ws.send(JSON.stringify(msg));
+        setTelemetryStatus('transmitting', 'SENDING TEXT');
+      } else {
+        queryGeminiRest(text);
+      }
+    }
+
+    function sendInstructionPatch() {
+      if (!appState.ws || appState.ws.readyState !== WebSocket.OPEN) return;
+      const emoNames = { joy: '喜び', anger: '怒り', sadness: '悲しみ', fun: '楽しさ' };
+      const msg = {
+        clientContent: {
+          turns: [
+            {
+              role: 'user',
+              parts: [{ text: `【感情更新指示】現在のあなたの感情を「${emoNames[appState.emotion]}」、感情強度「${appState.intensity}%」に切り替えて会話を続けてください。` }]
+            }
+          ],
+          turnComplete: true
+        }
+      };
+      appState.ws.send(JSON.stringify(msg));
+      logMessage(`感情パッチ送信: ${emoNames[appState.emotion]} (${appState.intensity}%)`, 'info');
+    }
+
+    function disconnectSession() {
+      if (appState.ws) {
+        appState.ws.close();
+        appState.ws = null;
+      }
+      if (appState.micStream) {
+        appState.micStream.getTracks().forEach(t => t.stop());
+        appState.micStream = null;
+      }
+      interruptAudio();
+
+      appState.isConnected = false;
+      appState.isSessionReady = false;
+      appState.isAiSpeaking = false;
+      
+      UI.btnStart.style.display = 'inline-flex';
+      UI.btnStop.style.display = 'none';
+      UI.btnTalkDone.style.display = 'none';
+      UI.btnPause.style.display = 'none';
+      setTelemetryStatus('standby', 'STANDBY');
+      logMessage('セッション終了', 'info');
+    }
+
+    function setTelemetryStatus(type, label) {
+      UI.statIndicator.className = `status-indicator ${type}`;
+      UI.statLabel.textContent = label;
+    }
+
+    let speechRecognition = null;
+    function startSmartFallbackMode() {
+      appState.isConnected = true;
+      appState.isSessionReady = true;
+      UI.btnStart.style.display = 'none';
+      UI.btnStop.style.display = 'inline-flex';
+      UI.btnTalkDone.style.display = 'inline-flex';
+      UI.btnPause.style.display = 'inline-flex';
+      setTelemetryStatus('ready', 'REST FALLBACK');
+      popToast('REST音声対話モードで接続しました！マイクで話しかけてください', 'success');
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        speechRecognition = new SpeechRecognition();
+        speechRecognition.lang = 'ja-JP';
+        speechRecognition.continuous = true;
+        speechRecognition.interimResults = false;
+
+        speechRecognition.onresult = async (e) => {
+          const text = e.results[e.results.length - 1][0].transcript.trim();
+          if (text) {
+            logMessage(`ユーザー音声認識: "${text}"`, 'info');
+            appendChat('user', text);
+            await queryGeminiRest(text);
+          }
+        };
+
+        speechRecognition.onerror = (err) => {
+          logMessage(`音声認識ステータス: ${err.error}`, 'warn');
+        };
+
+        try { speechRecognition.start(); } catch (e) {}
+      }
+    }
+
+    async function queryGeminiRest(userPrompt) {
+      try {
+        setTelemetryStatus('transmitting', 'AI GENERATING');
+        const char = appState.characters[appState.selectedChar];
+        const emoNames = { joy: '喜び', anger: '怒り', sadness: '悲しみ', fun: '楽しさ' };
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/${REST_MODEL_NAME}:generateContent?key=${appState.apiKey}`;
+        const body = {
+          contents: [{ parts: [{ text: userPrompt }] }],
+          systemInstruction: {
+            parts: [{ text: `${char.systemPrompt}\n現在の感情: ${emoNames[appState.emotion]} (強度: ${appState.intensity}%)\n1〜2文で短く日本語で返答してください。` }]
+          }
+        };
+
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'うまく聞き取れませんでした。もう一度お願いします。';
+        
+        appendChat('ai', reply, appState.emotion);
+        speakWithBrowserSynthesis(reply);
+      } catch (err) {
+        logMessage(`REST問い合わせ失敗: ${err.message}`, 'error');
+      }
+    }
+
+    function startMockMode() {
+      appState.isConnected = true;
+      appState.isSessionReady = true;
+      UI.btnStart.style.display = 'none';
+      UI.btnStop.style.display = 'inline-flex';
+      UI.btnTalkDone.style.display = 'inline-flex';
+      UI.btnPause.style.display = 'inline-flex';
+      setTelemetryStatus('ready', 'MOCK MODE');
+      popToast('テスト体験モードを開始しました！', 'success');
+
+      const char = appState.characters[appState.selectedChar];
+      const intro = `やあ！${char.name} だよ！テスト体験モードが有効です。どんな機能でも自由に試してみてね！`;
+      appendChat('ai', intro, appState.emotion);
+      speakWithBrowserSynthesis(intro);
+    }
+
+    function speakWithBrowserSynthesis(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'ja-JP';
+      utter.rate = appState.playbackSpeed;
+      utter.pitch = appState.selectedChar === 'ren' ? 0.9 : 1.2;
+
+      utter.onstart = () => {
+        appState.isAiSpeaking = true;
+        setTelemetryStatus('receiving', 'AI SPEAKING');
+      };
+      utter.onend = () => {
+        appState.isAiSpeaking = false;
+        if (appState.isConnected) setTelemetryStatus('ready', 'READY');
+      };
+      window.speechSynthesis.speak(utter);
+    }
+
+    function appendChat(role, text, emo) {
+      const char = appState.characters[appState.selectedChar];
+      const item = {
+        role,
+        text,
+        time: new Date().toLocaleTimeString(),
+        emotion: emo || appState.emotion,
+        intensity: appState.intensity
+      };
+      appState.history.push(item);
+
+      const div = document.createElement('div');
+      div.className = `chat-bubble ${role === 'user' ? 'user' : 'ai'}`;
+      const name = role === 'user' ? 'YOU (YOU)' : char.name;
+      const emoChip = role === 'user' ? 'INPUT' : `${(emo || appState.emotion).toUpperCase()} ${appState.intensity}%`;
+
+      div.innerHTML = `
+        <div class="bubble-meta">
+          <span>${name}</span>
+          <span class="emo-chip">${emoChip}</span>
+        </div>
+        <div>${escapeHtml(text)}</div>
+      `;
+      UI.chatView.appendChild(div);
+      UI.chatView.scrollTop = UI.chatView.scrollHeight;
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>'"]/g, t => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[t] || t));
+    }
+
+    UI.btnCharHolo.addEventListener('click', () => selectCharacter('holo'));
+    UI.btnCharLuna.addEventListener('click', () => selectCharacter('luna'));
+    UI.btnCharRen.addEventListener('click', () => selectCharacter('ren'));
+
+    UI.emoBtns.forEach(btn => {
+      btn.addEventListener('click', () => setEmotion(btn.dataset.emotion));
+    });
+
+    UI.intensitySlider.addEventListener('input', (e) => {
+      appState.intensity = parseInt(e.target.value, 10);
+      UI.intensityVal.textContent = `${appState.intensity}%`;
+      updateEmotionMeters(appState.emotion);
+    });
+    UI.intensitySlider.addEventListener('change', () => {
+      if (appState.isConnected && appState.isSessionReady) sendInstructionPatch();
+    });
+
+    UI.gainSlider.addEventListener('input', (e) => {
+      appState.micGain = parseFloat(e.target.value);
+      UI.gainVal.textContent = `${appState.micGain.toFixed(1)}x`;
+    });
+
+    UI.speedBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        UI.speedBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const spd = parseFloat(btn.dataset.speed);
+        appState.playbackSpeed = spd;
+        UI.speedSlider.value = spd;
+        UI.speedVal.textContent = `${spd.toFixed(1)}x`;
+        popToast(`再生速度を ${spd}倍 に変更`);
+      });
+    });
+
+    UI.speedSlider.addEventListener('input', (e) => {
+      const spd = parseFloat(e.target.value);
+      appState.playbackSpeed = spd;
+      UI.speedVal.textContent = `${spd.toFixed(1)}x`;
+      UI.speedBtns.forEach(b => {
+        b.classList.toggle('active', parseFloat(b.dataset.speed) === spd);
+      });
+    });
+
+    UI.pitchSlider.addEventListener('input', (e) => {
+      appState.pitchDetune = parseInt(e.target.value, 10);
+      UI.pitchVal.textContent = appState.pitchDetune > 0 ? `+${appState.pitchDetune} cents` : `${appState.pitchDetune} cents`;
+    });
+
+    UI.btnStart.addEventListener('click', () => startLiveSession());
+    UI.btnStop.addEventListener('click', () => disconnectSession());
+    UI.btnTalkDone.addEventListener('click', () => triggerTurnCommit());
+    UI.btnInterrupt.addEventListener('click', () => interruptAudio());
+
+    UI.btnSendText.addEventListener('click', () => sendTextPrompt(UI.textChatInput.value));
+    UI.textChatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendTextPrompt(UI.textChatInput.value);
+    });
+
+    UI.btnMute.addEventListener('click', () => {
+      appState.isMuted = !appState.isMuted;
+      if (appState.isMuted) {
+        UI.muteIcon.textContent = '🔇';
+        UI.muteTxt.textContent = 'ミュート中';
+        popToast('マイクをミュートしました');
+      } else {
+        UI.muteIcon.textContent = '🎤';
+        UI.muteTxt.textContent = 'マイクON';
+        popToast('マイクミュートを解除しました');
+      }
+    });
+
+    UI.btnPause.addEventListener('click', () => {
+      appState.isPaused = !appState.isPaused;
+      if (appState.isPaused) {
+        UI.btnPause.innerHTML = '<span>▶️</span> 再開';
+        setTelemetryStatus('standby', 'PAUSED');
+        popToast('対話を一時停止しました');
+      } else {
+        UI.btnPause.innerHTML = '<span>⏸️</span> 一時停止';
+        setTelemetryStatus('ready', 'READY');
+        popToast('対話を再開しました');
+      }
+    });
+
+    UI.tabChat.addEventListener('click', () => {
+      UI.tabChat.classList.add('active');
+      UI.tabDiag.classList.remove('active');
+      UI.chatView.style.display = 'flex';
+      UI.diagView.style.display = 'none';
+    });
+
+    UI.tabDiag.addEventListener('click', () => {
+      UI.tabDiag.classList.add('active');
+      UI.tabChat.classList.remove('active');
+      UI.chatView.style.display = 'none';
+      UI.diagView.style.display = 'flex';
+    });
+
+    UI.btnClearChat.addEventListener('click', () => {
+      UI.chatView.innerHTML = '';
+      appState.history = [];
+      popToast('会話履歴を消去しました');
+    });
+
+    UI.btnSaveLog.addEventListener('click', () => {
+      if (appState.history.length === 0) {
+        popToast('保存する会話履歴がありません', 'warn');
+        return;
+      }
+      const lines = [
+        `# EMOTION AI LIVE HUD - CONVERSATION LOG`,
+        `Exported: ${new Date().toLocaleString()}`,
+        `Character: ${appState.characters[appState.selectedChar].name}`,
+        `----------------------------------------\n`
+      ];
+      appState.history.forEach(h => {
+        lines.push(`[${h.time}] ${h.role === 'user' ? 'YOU' : 'AI'} (${h.emotion} ${h.intensity}%):`);
+        lines.push(`${h.text}\n`);
+      });
+      const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cyber_voice_chat_${Date.now()}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+      popToast('会話ログを保存しました (Markdown)', 'success');
+    });
+
+    UI.btnOpenSettings.addEventListener('click', () => {
+      fetchAudioDevices();
+      UI.settingsModal.style.display = 'flex';
+    });
+
+    UI.btnCloseModal.addEventListener('click', () => {
+      UI.settingsModal.style.display = 'none';
+    });
+
+    UI.btnSaveCfg.addEventListener('click', () => {
+      const k = UI.cfgApiKey.value.trim();
+      if (k) {
+        appState.apiKey = k;
+        localStorage.setItem('GEMINI_API_KEY', k);
+        UI.envBadge.textContent = '💾 保存済みキー適用中';
+        UI.envBadge.style.color = '#38bdf8';
+        logMessage('設定画面からAPIキーを保存しました', 'success');
+      }
+      appState.isMockMode = UI.cfgMock.checked;
+      appState.enableSmartFallback = UI.cfgFallback.checked;
+      UI.settingsModal.style.display = 'none';
+      popToast('設定を保存しました', 'success');
+    });
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      logMessage('🚀 ネオ・サイバーAIホログラムHUD 起動 (v2.7 Vercel Serverless)', 'info');
+      startSpectrumVisualizer();
+      updateEmotionMeters('joy');
+      await initEnvConfig();
+      await fetchAudioDevices();
+    });
+  </script>
+</body>
+</html>

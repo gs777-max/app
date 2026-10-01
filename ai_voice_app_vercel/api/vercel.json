@@ -1,0 +1,5 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "description": "Vercel serverless function configuration resource"
+}
