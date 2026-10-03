@@ -1,0 +1,18 @@
+{
+  "name": "index-weathersearch-vercel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "⛅ SmartWeather TV PRO - Vercel Ready",
+  "scripts": {
+    "start": "python -m http.server 8080"
+  },
+  "keywords": [
+    "weather",
+    "golf",
+    "forecast",
+    "vercel",
+    "pwa"
+  ],
+  "author": "",
+  "license": "MIT"
+}
