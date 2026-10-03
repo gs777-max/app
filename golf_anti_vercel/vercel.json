@@ -1,9 +1,15 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
+  "framework": null,
+  "buildCommand": null,
+  "installCommand": null,
+  "outputDirectory": ".",
   "cleanUrls": true,
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
-    { "source": "/golf", "destination": "/golf_3d_game.html" }
+    { "source": "/golf", "destination": "/index.html" },
+    { "source": "/golf_3d_game", "destination": "/index.html" }
   ],
   "headers": [
     {

@@ -1,12 +1,10 @@
 {
-  "name": "golf-3d-game-vercel",
+  "name": "golf-anti-vercel",
   "version": "1.0.0",
+  "private": true,
   "description": "⛳ Ultimate 3D Golf Simulation Game - Vercel Ready",
-  "main": "index.html",
   "scripts": {
-    "start": "python -m http.server 8080",
-    "dev": "python -m http.server 8080",
-    "build": "echo 'Build complete'"
+    "start": "python -m http.server 8080"
   },
   "keywords": [
     "golf",
