@@ -1,0 +1,21 @@
+{
+  "name": "golf-3d-game-vercel",
+  "version": "1.0.0",
+  "description": "⛳ Ultimate 3D Golf Simulation Game - Vercel Ready",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "dev": "python -m http.server 8080",
+    "build": "echo 'Build complete'"
+  },
+  "keywords": [
+    "golf",
+    "threejs",
+    "webgl",
+    "game",
+    "pwa",
+    "vercel"
+  ],
+  "author": "",
+  "license": "MIT"
+}
