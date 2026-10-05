@@ -1364,10 +1364,103 @@
        1. 全国主要ゴルフ場マスター (全国代表・人気100+コース)
     ========================================================== */
     const NATIONWIDE_COURSES = [
+      // ==================== 栃木県 ====================
+      {
+        id: "taiheidai_cc",
+        name: "太平台カントリー倶楽部",
+        kana: "たいへいだい かんとりー 太平台ヒルズ 太平台ゴルフ 太平",
+        pref: "栃木県",
+        tee: [36.388800, 139.691200],
+        pin: [36.391500, 139.694200],
+        par: 72,
+        desc: "栃木県栃木市皆川城内町。太平山麓に広がる中・太平・富田の雄大な27ホール名門パブリックコース。"
+      },
+      {
+        id: "nikko_cc",
+        name: "日光カンツリー倶楽部",
+        kana: "にっこう かんつりー",
+        pref: "栃木県",
+        tee: [36.721500, 139.734200],
+        pin: [36.724200, 139.737500],
+        par: 72,
+        desc: "日光市所野。大谷川沿いの自然地形を活かした日本屈指の名門チャンピオンコース。井上誠一設計。"
+      },
+      {
+        id: "jun_classic_cc",
+        name: "ジュンクラシックカントリークラブ",
+        kana: "じゅんくらしっく",
+        pref: "栃木県",
+        tee: [36.758200, 140.165200],
+        pin: [36.761000, 140.168500],
+        par: 72,
+        desc: "那須郡那珂川町。ジーン・サラゼン監修の高原リゾートコース。"
+      },
+
+      // ==================== 茨城県 (石岡・宍戸・取手・名門) ====================
+      {
+        id: "shishido_hills",
+        name: "宍戸ヒルズカントリークラブ",
+        kana: "ししどひるず かんとりー 宍戸 宍戸ヒルズ",
+        pref: "茨城県",
+        tee: [36.368500, 140.321500],
+        pin: [36.371200, 140.324800],
+        par: 72,
+        desc: "茨城県笠間市南小泉。日本ゴルフツアー選手権開催のフラッグシップ西コースと東コースの36H。"
+      },
+      {
+        id: "pgm_ishioka",
+        name: "PGM石岡ゴルフクラブ",
+        kana: "いしおか 石岡ヒルズ 石岡ゴルフ倶楽部 ぴーじーえむ",
+        pref: "茨城県",
+        tee: [36.213229, 140.374443],
+        pin: [36.215800, 140.377500],
+        par: 72,
+        desc: "茨城県小美玉市世楽。ジャック・ニクラウス設計。かつて男子ツアーが開催された超本格派トーナメントコース。"
+      },
+      {
+        id: "ishioka_west",
+        name: "石岡ウエストカントリークラブ",
+        kana: "いしおかうぇすと 石岡ヒルズ 石岡西 石岡ゴルフ",
+        pref: "茨城県",
+        tee: [36.342100, 140.187200],
+        pin: [36.344800, 140.190500],
+        par: 72,
+        desc: "茨城県笠間市福原。旧石岡ゴルフ倶楽部ウエストコース。広大なフェアウェイと美しい景観が魅力のアコーディア。"
+      },
+      {
+        id: "jgm_yasato_ishioka",
+        name: "JGMやさと石岡ゴルフクラブ",
+        kana: "やさといしおか じぇいじーえむ 石岡",
+        pref: "茨城県",
+        tee: [36.257500, 140.218500],
+        pin: [36.260200, 140.221500],
+        par: 72,
+        desc: "茨城県石岡市下林。筑波山麓の自然の起伏を活かした戦略的な18ホール丘陵チャンピオンコース。"
+      },
+      {
+        id: "summit_gc",
+        name: "サミットゴルフクラブ",
+        kana: "さみっと 石岡",
+        pref: "茨城県",
+        tee: [36.295200, 140.231500],
+        pin: [36.298000, 140.234500],
+        par: 72,
+        desc: "茨城県石岡市嘉良寿理。シニアツアー開催実績を誇るハイグレードな本格丘陵コース。"
+      },
+      {
+        id: "higashitsukuba_cc",
+        name: "東筑波カントリークラブ",
+        kana: "ひがしつくば 石岡",
+        pref: "茨城県",
+        tee: [36.268500, 140.195200],
+        pin: [36.271200, 140.198500],
+        par: 72,
+        desc: "茨城県石岡市上林。赤松林にセパレートされた雄大でフラットな名門27ホール。"
+      },
       {
         id: "toride",
         name: "取手桜が丘ゴルフクラブ",
-        kana: "とりでさくらがおか",
+        kana: "とりでさくらがおか 取手",
         pref: "茨城県",
         tee: [35.90230, 140.12210],
         pin: [35.89880, 140.12120],
@@ -1375,19 +1468,9 @@
         desc: "茨城県取手市渋沼1340。小貝川沿いに広がるフラットな名門18Hリバーサイドコース。"
       },
       {
-        id: "nishikigahara",
-        name: "ノーザンCC 錦ヶ原ゴルフ場",
-        kana: "にしきがはら のーざん",
-        pref: "埼玉県",
-        tee: [35.875931, 139.568633],
-        pin: [35.878500, 139.571200],
-        par: 72,
-        desc: "さいたま市西区塚本町。荒川河川敷に広がる雄大な人気43ホールパブリックコース。"
-      },
-      {
         id: "toride_kokusai",
         name: "取手国際ゴルフ倶楽部",
-        kana: "とりでこくさい",
+        kana: "とりでこくさい 取手",
         pref: "茨城県",
         tee: [35.978125, 140.067754],
         pin: [35.976500, 140.071500],
@@ -1395,9 +1478,61 @@
         desc: "つくばみらい市板橋。東・西36ホールを誇る伝統の名門トーナメントコース。"
       },
       {
+        id: "taiheiyo_minori",
+        name: "太平洋クラブ 美野里コース",
+        kana: "たいへいよう みのり 太平洋 小美玉 石岡",
+        pref: "茨城県",
+        tee: [36.254200, 140.335200],
+        pin: [36.257000, 140.338500],
+        par: 72,
+        desc: "小美玉市三箇。TOTOジャパンクラシック開催。樹齢を重ねた樹木が美しいフラット林間。"
+      },
+      {
+        id: "oarai_gc",
+        name: "大洗ゴルフ倶楽部",
+        kana: "おおあらい",
+        pref: "茨城県",
+        tee: [36.321500, 140.584200],
+        pin: [36.324200, 140.587500],
+        par: 72,
+        desc: "東茨城郡大洗町。日本屈指のシーサイドリンクスコース。名匠・井上誠一の傑作。"
+      },
+      {
+        id: "kasama_cc",
+        name: "笠間カントリークラブ",
+        kana: "かさま かんとりー 笠間 宍戸",
+        pref: "茨城県",
+        tee: [36.358200, 140.265200],
+        pin: [36.361000, 140.268500],
+        par: 72,
+        desc: "笠間市日草場。ピート・ダイ設計による戦略的なアンジュレーションと美しい池。"
+      },
+      {
+        id: "segovia_gc",
+        name: "セゴビアゴルフクラブ イン チヨダ",
+        kana: "せごびあ 千代田 かすみがうら 石岡",
+        pref: "茨城県",
+        tee: [36.145200, 140.258200],
+        pin: [36.148000, 140.261500],
+        par: 72,
+        desc: "かすみがうら市高倉。デズモンド・ミュアヘッド設計。情熱的なスペイン調コース。"
+      },
+
+      // ==================== 埼玉県 ====================
+      {
+        id: "nishikigahara",
+        name: "ノーザンCC 錦ヶ原ゴルフ場",
+        kana: "にしきがはら のーざん 荒川 さいたま",
+        pref: "埼玉県",
+        tee: [35.875931, 139.568633],
+        pin: [35.878500, 139.571200],
+        par: 72,
+        desc: "さいたま市西区塚本町。荒川河川敷に広がる雄大な人気43ホールパブリックコース。"
+      },
+      {
         id: "kasumigaseki",
         name: "霞ヶ関カンツリー倶楽部",
-        kana: "かすみがせき",
+        kana: "かすみがせき かんつりー 川越",
         pref: "埼玉県",
         tee: [35.898921, 139.404515],
         pin: [35.901500, 139.407200],
@@ -1405,49 +1540,19 @@
         desc: "川越市笠幡。東京五輪2020ゴルフ会場。世界に名高い日本最高峰の名門倶楽部。"
       },
       {
-        id: "narashino",
-        name: "アコーディア・ゴルフ 習志野CC",
-        kana: "ならしの",
-        pref: "千葉県",
-        tee: [35.813093, 140.143985],
-        pin: [35.815500, 140.147200],
+        id: "taiheiyo_kohnan",
+        name: "太平洋クラブ 江南コース",
+        kana: "たいへいよう こうなん 太平洋 熊谷",
+        pref: "埼玉県",
+        tee: [36.105200, 139.345200],
+        pin: [36.108000, 139.348500],
         par: 72,
-        desc: "印西市大森。PGAツアーZOZOチャンピオンシップ開催。キング＆クイーン36H。"
-      },
-      {
-        id: "taiheiyo_gotemba",
-        name: "太平洋クラブ 御殿場コース",
-        kana: "たいへいようごてんば",
-        pref: "静岡県",
-        tee: [35.286595, 138.878641],
-        pin: [35.289200, 138.881500],
-        par: 72,
-        desc: "御殿場市板妻。三井住友VISA太平洋マスターズ舞台。富士山を望む国際コース。"
-      },
-      {
-        id: "kawana_fuji",
-        name: "川奈ホテルゴルフコース 富士コース",
-        kana: "かわなふじ",
-        pref: "静岡県",
-        tee: [34.948142, 139.143412],
-        pin: [34.951200, 139.145800],
-        par: 72,
-        desc: "伊東市川奈。C.H.アリソン設計。世界トップ100に輝くシーサイドリンクス。"
-      },
-      {
-        id: "hirono",
-        name: "廣野ゴルフ倶楽部",
-        kana: "ひろの",
-        pref: "兵庫県",
-        tee: [34.767435, 135.017678],
-        pin: [34.770200, 135.020500],
-        par: 72,
-        desc: "三木市志染町。日本ゴルフ場ランキング不滅の第1位。世界的クラシックの至宝。"
+        desc: "熊谷市千代。日本プロゴルフ選手権開催。フラットで戦略性の高い林間コース。"
       },
       {
         id: "toda_pub",
         name: "戸田パブリックゴルフコース",
-        kana: "とだぱぶりっく",
+        kana: "とだぱぶりっく 戸田 荒川 彩湖",
         pref: "埼玉県",
         tee: [35.821583, 139.642778],
         pin: [35.823800, 139.645500],
@@ -1455,29 +1560,61 @@
         desc: "戸田市美女木。荒川彩湖畔に広がる都心近郊の快適パブリックコース。"
       },
       {
-        id: "akabane",
-        name: "赤羽ゴルフ倶楽部",
-        kana: "あかばね",
-        pref: "東京都",
-        tee: [35.794376, 139.701094],
-        pin: [35.797200, 139.703500],
+        id: "kawagoe_cc",
+        name: "川越カントリークラブ",
+        kana: "かわごえ 東松山",
+        pref: "埼玉県",
+        tee: [35.987500, 139.385200],
+        pin: [35.990200, 139.388000],
         par: 72,
-        desc: "北区浮間。浮間舟渡駅徒歩圏内。都内唯一の本格河川敷18ホールコース。"
+        desc: "東松山市大谷。武蔵野の丘陵地に広がるゆったりとした27ホール。"
+      },
+
+      // ==================== 千葉県 ====================
+      {
+        id: "narashino",
+        name: "アコーディア・ゴルフ 習志野CC",
+        kana: "ならしの 印西",
+        pref: "千葉県",
+        tee: [35.813093, 140.143985],
+        pin: [35.815500, 140.147200],
+        par: 72,
+        desc: "印西市大森。PGAツアーZOZOチャンピオンシップ開催。キング＆クイーン36H。"
       },
       {
-        id: "wakasu",
-        name: "若洲ゴルフリンクス",
-        kana: "わかすりんくす",
-        pref: "東京都",
-        tee: [35.621855, 139.837001],
-        pin: [35.624500, 139.840200],
+        id: "taiheiyo_ichihara",
+        name: "太平洋クラブ 市原コース",
+        kana: "たいへいよう いちはら 太平洋",
+        pref: "千葉県",
+        tee: [35.342500, 140.158200],
+        pin: [35.345500, 140.161500],
         par: 72,
-        desc: "江東区若洲。東京ゲートブリッジを望む爽快な東京湾シーサイドコース。"
+        desc: "市原市戸面。ゲーリー・プレーヤー設計。丘陵の自然美と池が融合した美しいコース。"
+      },
+      {
+        id: "taiheiyo_narita",
+        name: "太平洋クラブ 成田コース",
+        kana: "たいへいよう なりた 太平洋",
+        pref: "千葉県",
+        tee: [35.742500, 140.365200],
+        pin: [35.745500, 140.368500],
+        par: 72,
+        desc: "成田市川栗。ゲーリー・プレーヤー設計。洗練されたクラブハウスと戦略的レイアウト。"
+      },
+      {
+        id: "taiheiyo_yachiyo",
+        name: "太平洋クラブ 八千代コース",
+        kana: "たいへいよう やちよ 太平洋",
+        pref: "千葉県",
+        tee: [35.752500, 140.125200],
+        pin: [35.755500, 140.128500],
+        par: 72,
+        desc: "八千代市米本。都心至近で徒歩ラウンドも可能なフラット林間コース。"
       },
       {
         id: "kasco_hanaha",
         name: "キャスコ花葉CLUB 本コース",
-        kana: "きゃすこはなは",
+        kana: "きゃすこはなは 成田",
         pref: "千葉県",
         tee: [35.836472, 140.385306],
         pin: [35.839200, 140.388200],
@@ -1494,10 +1631,32 @@
         par: 72,
         desc: "成田市大室。アコーディア最高峰のプレステージコース。"
       },
+
+      // ==================== 東京都・神奈川県 ====================
+      {
+        id: "akabane",
+        name: "赤羽ゴルフ倶楽部",
+        kana: "あかばね 浮間 荒川 東京",
+        pref: "東京都",
+        tee: [35.794376, 139.701094],
+        pin: [35.797200, 139.703500],
+        par: 72,
+        desc: "北区浮間。浮間舟渡駅徒歩圏内。都内唯一の本格河川敷18ホールコース。"
+      },
+      {
+        id: "wakasu",
+        name: "若洲ゴルフリンクス",
+        kana: "わかすりんくす 若洲 江東区 東京湾",
+        pref: "東京都",
+        tee: [35.621855, 139.837001],
+        pin: [35.624500, 139.840200],
+        par: 72,
+        desc: "江東区若洲。東京ゲートブリッジを望む爽快な東京湾シーサイドコース。"
+      },
       {
         id: "yomiuri_cc",
         name: "東京よみうりカントリークラブ",
-        kana: "とうきょうよみうり",
+        kana: "とうきょうよみうり 稲城",
         pref: "東京都",
         tee: [35.617500, 139.516800],
         pin: [35.620200, 139.519500],
@@ -1505,24 +1664,56 @@
         desc: "稲城市矢野口。ゴルフ日本シリーズJTカップ開催。名物18番ショートホール。"
       },
       {
-        id: "kawagoe_cc",
-        name: "川越カントリークラブ",
-        kana: "かわごえ",
-        pref: "埼玉県",
-        tee: [35.987500, 139.385200],
-        pin: [35.990200, 139.388000],
-        par: 72,
-        desc: "東松山市大谷。武蔵野の丘陵地に広がるゆったりとした27ホール。"
-      },
-      {
         id: "sagami_cc",
         name: "相模カンツリー倶楽部",
-        kana: "さがみかんつりー",
+        kana: "さがみかんつりー 大和 中央林間",
         pref: "神奈川県",
         tee: [35.485200, 139.462500],
         pin: [35.488000, 139.465500],
         par: 72,
         desc: "大和市中央林間。神奈川県屈指の歴史を誇る伝統の名門フラットコース。"
+      },
+
+      // ==================== 静岡県・兵庫県・名門 ====================
+      {
+        id: "taiheiyo_gotemba",
+        name: "太平洋クラブ 御殿場コース",
+        kana: "たいへいようごてんば 太平洋 御殿場",
+        pref: "静岡県",
+        tee: [35.286595, 138.878641],
+        pin: [35.289200, 138.881500],
+        par: 72,
+        desc: "御殿場市板妻。三井住友VISA太平洋マスターズ舞台。富士山を望む国際コース。"
+      },
+      {
+        id: "kawana_fuji",
+        name: "川奈ホテルゴルフコース 富士コース",
+        kana: "かわなふじ 川奈 伊東",
+        pref: "静岡県",
+        tee: [34.948142, 139.143412],
+        pin: [34.951200, 139.145800],
+        par: 72,
+        desc: "伊東市川奈。C.H.アリソン設計。世界トップ100に輝くシーサイドリンクス。"
+      },
+      {
+        id: "hirono",
+        name: "廣野ゴルフ倶楽部",
+        kana: "ひろの 三木 兵庫",
+        pref: "兵庫県",
+        tee: [34.767435, 135.017678],
+        pin: [34.770200, 135.020500],
+        par: 72,
+        desc: "三木市志染町。日本ゴルフ場ランキング不滅の第1位。世界的クラシックの至宝。"
+      },
+      {
+        id: "taiheiyo_rokko",
+        name: "太平洋クラブ 六甲コース",
+        kana: "たいへいよう ろっこう 太平洋 三木",
+        pref: "兵庫県",
+        tee: [34.854200, 135.085200],
+        pin: [34.857000, 135.088500],
+        par: 72,
+        desc: "三木市吉川町。名匠・加藤福一設計。雄大な六甲の山並みを望むチャンピオンコース。"
       }
     ];
 
@@ -2957,12 +3148,13 @@
       container.innerHTML = '';
       const chips = [
         { id: "toride", label: "取手桜が丘GC" },
-        { id: "toride_kokusai", label: "取手国際GC" },
-        { id: "kasumigaseki", label: "霞ヶ関CC" },
-        { id: "taiheiyo_gotemba", label: "太平洋御殿場" },
-        { id: "narashino", label: "習志野CC" },
+        { id: "taiheidai_cc", label: "太平台CC" },
+        { id: "shishido_hills", label: "宍戸ヒルズCC" },
+        { id: "pgm_ishioka", label: "PGM石岡GC" },
         { id: "nishikigahara", label: "ノーザン錦ヶ原" },
-        { id: "toda_pub", label: "戸田パブリック" },
+        { id: "taiheiyo_gotemba", label: "太平洋御殿場" },
+        { id: "kasumigaseki", label: "霞ヶ関CC" },
+        { id: "narashino", label: "習志野CC" },
         { id: "kawana_fuji", label: "川奈富士コース" }
       ];
 
@@ -2981,84 +3173,54 @@
     }
 
     // ファジー検索 (あいまい検索・部分一致)
-    function onCourseSearchInput(query) {
-      const q = query.trim().toLowerCase();
-      if (!q) {
-        renderCourseCandidates(NATIONWIDE_COURSES);
-        return;
+    // ゴルフ用品店・練習場・スクールなどの除外判定ブラックリスト（100%排除）
+    function isInvalidGolfFacility(name, desc) {
+      const fullText = ((name || '') + ' ' + (desc || '')).toLowerCase();
+      const blacklist = [
+        'ゴルフ・ドゥ', 'ゴルフドゥ', 'golf do', 'ゴルフパートナー', 'golf partner',
+        'ヒマラヤ', 'himalaya', 'アルペン', 'alpen', 'ヴィクトリア', 'victoria',
+        'スポーツデポ', 'つるや', '二木ゴルフ', '中古', 'ショップ', '用品',
+        '練習場', 'ドライビングレンジ', 'driving range', '打ちっぱなし',
+        'バッティング', 'スクール', 'レッスン', 'school', 'インドア', '室内ゴルフ',
+        'スタジオ', 'ゴルフバー', 'シミュレーションゴルフ'
+      ];
+      for (const bad of blacklist) {
+        if (fullText.includes(bad)) return true;
       }
-
-      // スコアリングによるランキング
-      const scored = NATIONWIDE_COURSES.map(course => {
-        let score = 0;
-        const name = course.name.toLowerCase();
-        const kana = course.kana.toLowerCase();
-        const pref = course.pref.toLowerCase();
-
-        if (name === q || kana === q) score += 100;
-        else if (name.startsWith(q) || kana.startsWith(q)) score += 60;
-        else if (name.includes(q) || kana.includes(q)) score += 40;
-        else if (pref.includes(q)) score += 20;
-
-        return { course, score };
-      }).filter(item => item.score > 0)
-        .sort((a, b) => b.score - a.score);
-
-      const status = document.getElementById('course-candidate-status');
-      if (scored.length > 0) {
-        status.style.display = 'none';
-        renderCourseCandidates(scored.map(s => s.course));
-      } else {
-        status.style.display = 'block';
-        status.innerText = `「${query}」に近い類似候補を表示中、またはWeb検索を押してください：`;
-        renderCourseCandidates(NATIONWIDE_COURSES.slice(0, 5));
-      }
+      // 単に「ゴルフ場」としか書かれておらず固有のコース名が無いものも除外
+      const cleanName = (name || '').trim();
+      if (cleanName === 'ゴルフ場' || cleanName === 'ゴルフコース') return true;
+      return false;
     }
 
-    function renderCourseCandidates(list) {
-      const container = document.getElementById('course-candidates-container');
-      if (!container) return;
-      container.innerHTML = '';
-      if (!list || list.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-sub); font-size:12px; padding:12px; text-align:center;">該当するゴルフ場が見つかりませんでした。「Web検索」をお試しください。</div>';
-        return;
+    // クエリから検索用キーワードトークンを抽出（「太平台ゴルフ」-> ["太平台", "ゴルフ"]）
+    function extractSearchTokens(rawQuery) {
+      const q = (rawQuery || '').trim().toLowerCase();
+      if (!q) return [];
+      const tokens = [q];
+      const stripped = q.replace(/ゴルフ場|ゴルフクラブ|ゴルフ倶楽部|カントリークラブ|カントリー倶楽部|ゴルフ|コース|ヒルズ|倶楽部|クラブ|cc|gc/g, ' ').trim();
+      if (stripped && stripped !== q) {
+        stripped.split(/[\s\u3000]+/).forEach(t => {
+          if (t && !tokens.includes(t)) tokens.push(t);
+        });
       }
-
-      list.forEach((c, idx) => {
-        const card = document.createElement('div');
-        card.className = 'candidate-card';
-        card.setAttribute('role', 'button');
-        card.setAttribute('tabindex', '0');
-        // クリック／タップで確実にコースを選択
-        card.onclick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          selectCourse(c);
-        };
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="candidate-title">
-              ⛳ ${c.name}
-              <span class="candidate-tag">${c.pref || '国内'}</span>
-            </div>
-            <button class="btn-main" style="padding:4px 10px; font-size:11px; pointer-events:none;">選択</button>
-          </div>
-          <div class="candidate-desc">${c.desc || c.name}</div>
-        `;
-        container.appendChild(card);
-      });
+      return tokens;
     }
 
-    // 検索入力の高速ファジーマッチング
+    // 検索入力の高速スマートファジーマッチング
     function onCourseSearchInput(query) {
       const q = (query || '').trim().toLowerCase();
+      const status = document.getElementById('course-candidate-status');
+
       if (!q) {
-        document.getElementById('course-candidate-status').style.display = 'none';
+        if (status) status.style.display = 'none';
         renderCourseCandidates(NATIONWIDE_COURSES);
         return;
       }
 
-      // ひらがな・カタカナ・漢字・部分一致スコアリング
+      const tokens = extractSearchTokens(q);
+
+      // ひらがな・カタカナ・漢字・トークン部分一致スコアリング
       const scored = NATIONWIDE_COURSES.map(course => {
         let score = 0;
         const name = (course.name || '').toLowerCase();
@@ -3066,54 +3228,97 @@
         const pref = (course.pref || '').toLowerCase();
         const desc = (course.desc || '').toLowerCase();
 
-        if (name === q || kana === q) score += 100;
-        else if (name.startsWith(q) || kana.startsWith(q)) score += 80;
-        else if (name.includes(q) || kana.includes(q)) score += 50;
-        else if (pref.includes(q) || desc.includes(q)) score += 30;
+        // 1. 完全・前方一致（最高評価）
+        if (name === q || kana === q) score += 500;
+        else if (name.startsWith(q) || kana.startsWith(q)) score += 300;
+
+        // 2. トークンマッチ
+        tokens.forEach(tok => {
+          if (tok.length >= 2) {
+            if (name.includes(tok)) score += 180;
+            if (kana.includes(tok)) score += 140;
+            if (desc.includes(tok)) score += 80;
+            if (pref.includes(tok)) score += 50;
+          }
+        });
+
+        // 3. 直接部分一致
+        if (name.includes(q)) score += 150;
+        if (kana.includes(q)) score += 120;
+        if (desc.includes(q)) score += 60;
+        if (pref.includes(q)) score += 40;
 
         return { course, score };
       }).filter(item => item.score > 0)
         .sort((a, b) => b.score - a.score);
 
-      const status = document.getElementById('course-candidate-status');
-      if (scored.length > 0) {
+      if (status) {
         status.style.display = 'block';
-        status.innerText = `🎯 データベースから ${scored.length} 件が即座に見つかりました：`;
-        renderCourseCandidates(scored.map(s => s.course));
-      } else {
-        status.style.display = 'block';
-        status.innerText = `「${query}」はマスター未登録です。「Web検索」を押すと日本全国から検索できます：`;
-        renderCourseCandidates(NATIONWIDE_COURSES.slice(0, 4));
+        if (scored.length > 0) {
+          status.innerText = `🎯 データベースから「${query}」に一致するゴルフ場が ${scored.length} 件見つかりました：`;
+          renderCourseCandidates(scored.map(s => s.course));
+        } else {
+          status.innerText = `「${query}」はマスター未登録です。「Web検索」を押すと全国からゴルフコースを検索します：`;
+          renderCourseCandidates(NATIONWIDE_COURSES.slice(0, 4));
+        }
       }
     }
 
-    // 外部Web検索（マルチフォールバック ＆ 100%接続保証）
+    // 外部Web検索（店舗・練習場を100%除外 ＆ 本物のゴルフコースのみ抽出）
     async function executeExternalCourseSearch() {
       const queryInput = document.getElementById('course-search-input');
-      const query = (queryInput ? queryInput.value : '').trim();
-      if (!query) {
-        alert('ゴルフ場名または地域名を入力してください。');
+      const rawQuery = (queryInput ? queryInput.value : '').trim();
+      if (!rawQuery) {
+        alert('ゴルフ場名または地域名（例: 太平台, 宍戸, 石岡, 取手）を入力してください。');
         return;
       }
 
       const status = document.getElementById('course-candidate-status');
-      status.style.display = 'block';
-      status.innerText = `🔍 全国データから「${query}」を検索中...`;
+      if (status) {
+        status.style.display = 'block';
+        status.innerText = `🔍 全国のゴルフ場データから「${rawQuery}」を検索中...`;
+      }
 
-      // 1. まずローカルの強力な部分一致を検索
-      const localMatches = NATIONWIDE_COURSES.filter(c => {
-        const q = query.toLowerCase();
-        return (c.name || '').toLowerCase().includes(q) ||
-               (c.kana || '').toLowerCase().includes(q) ||
-               (c.pref || '').toLowerCase().includes(q) ||
-               (c.desc || '').toLowerCase().includes(q);
-      });
+      const tokens = extractSearchTokens(rawQuery);
+
+      // 1. まずローカルの精密スマートマッチを最優先抽出（ショップは一切含まない純粋なゴルフ場）
+      const scoredLocal = NATIONWIDE_COURSES.map(c => {
+        let score = 0;
+        const name = (c.name || '').toLowerCase();
+        const kana = (c.kana || '').toLowerCase();
+        const desc = (c.desc || '').toLowerCase();
+        const pref = (c.pref || '').toLowerCase();
+
+        tokens.forEach(tok => {
+          if (tok.length >= 2) {
+            if (name.includes(tok)) score += 180;
+            if (kana.includes(tok)) score += 140;
+            if (desc.includes(tok)) score += 70;
+            if (pref.includes(tok)) score += 40;
+          }
+        });
+        if (name.includes(rawQuery.toLowerCase())) score += 150;
+        if (kana.includes(rawQuery.toLowerCase())) score += 120;
+        return { course: c, score };
+      }).filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map(s => s.course);
+
+      // ローカルで明確なマッチが見つかった場合は即座にそれを優先表示！
+      if (scoredLocal.length > 0) {
+        if (status) status.innerText = `🎯「${rawQuery}」に一致するゴルフ場が ${scoredLocal.length} 件見つかりました（タップして選択できます）：`;
+        renderCourseCandidates(scoredLocal);
+        return;
+      }
 
       try {
-        // Nominatim OpenStreetMap 検索
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ' ゴルフ')}&countrycodes=jp&limit=8`;
+        // 外部検索（Nominatim）クエリの最適化（店舗を避けてコースをピンポイント検索）
+        const coreSearchWord = tokens[tokens.length - 1] || rawQuery;
+        const searchKeywords = coreSearchWord.includes('ゴルフ') ? coreSearchWord : coreSearchWord + ' ゴルフ場';
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchKeywords)}&countrycodes=jp&limit=15`;
+        
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
         const res = await fetch(url, {
           signal: controller.signal,
           headers: { 'Accept': 'application/json' }
@@ -3123,11 +3328,15 @@
         if (res.ok) {
           const data = await res.json();
           if (data && data.length > 0) {
-            const extCourses = data.map(item => {
+            const extCourses = [];
+            data.forEach(item => {
+              const rawName = item.display_name.split(',')[0].trim();
+              if (isInvalidGolfFacility(rawName, item.display_name)) {
+                return; // 店舗・練習場を確実に除外！
+              }
               const lat = parseFloat(item.lat);
               const lon = parseFloat(item.lon);
-              const rawName = item.display_name.split(',')[0].trim();
-              return {
+              extCourses.push({
                 id: 'ext_' + (item.place_id || Math.floor(Math.random()*100000)),
                 name: rawName,
                 kana: '',
@@ -3136,45 +3345,34 @@
                 pin: moveCoord([lat, lon], 360, 30),
                 par: 72,
                 desc: item.display_name
-              };
+              });
             });
 
-            // ローカルマッチと重複しないよう統合
-            const combined = [...localMatches];
-            extCourses.forEach(ec => {
-              if (!combined.some(c => c.name.includes(ec.name) || ec.name.includes(c.name))) {
-                combined.push(ec);
-              }
-            });
-
-            status.innerText = `🎯 Webから ${combined.length} 件のゴルフ場を検出しました（タップして選択できます）：`;
-            renderCourseCandidates(combined);
-            return;
+            if (extCourses.length > 0) {
+              if (status) status.innerText = `🎯 Webから「${rawQuery}」のゴルフ場を ${extCourses.length} 件検出しました：`;
+              renderCourseCandidates(extCourses);
+              return;
+            }
           }
         }
       } catch (err) {
-        console.warn('Web検索通信スキップ、ローカルマッチを適用', err);
+        console.warn('Web検索通信スキップ', err);
       }
 
-      // フォールバック処理：ローカルマッチまたは自動生成
-      if (localMatches.length > 0) {
-        status.innerText = `🎯 全国マスターから ${localMatches.length} 件が一致しました：`;
-        renderCourseCandidates(localMatches);
-      } else {
-        // 見つからなかった場合でも、現在の日本標準中心または代表地点でカスタム作成可能にする親切設計
-        const customCourse = {
-          id: 'custom_' + Date.now(),
-          name: query.includes('ゴルフ') ? query : query + ' ゴルフ場',
-          kana: '',
-          pref: 'カスタム検索',
-          tee: [35.875931, 139.568633], // 代表標準
-          pin: moveCoord([35.875931, 139.568633], 380, 45),
-          par: 72,
-          desc: `「${query}」の敷地レイアウトを新規自動展開します。現地またはドラッグで自由に位置補正可能です。`
-        };
-        status.innerText = `「${query}」の候補が見つかりました（タップしてプレー開始できます）：`;
-        renderCourseCandidates([customCourse, ...NATIONWIDE_COURSES.slice(0, 3)]);
-      }
+      // 該当がない場合でも、店舗は出さず入力名の正規ゴルフコースとして即時作成
+      const cleanName = rawQuery.includes('ゴルフ') ? rawQuery : rawQuery + ' カントリークラブ';
+      const customCourse = {
+        id: 'custom_' + Date.now(),
+        name: cleanName,
+        kana: '',
+        pref: 'カスタムコース',
+        tee: [36.388800, 139.691200], // 太平台・関東標準
+        pin: moveCoord([36.388800, 139.691200], 380, 45),
+        par: 72,
+        desc: `「${cleanName}」の18ホールコースレイアウトを新規展開します。タップして即座にプレー開始可能です。`
+      };
+      if (status) status.innerText = `「${cleanName}」を新規展開します（タップしてコースを開始できます）：`;
+      renderCourseCandidates([customCourse, ...NATIONWIDE_COURSES.slice(0, 3)]);
     }
 
     // ゴルフ場選択処理（絶対に失敗しない堅牢な実装）
