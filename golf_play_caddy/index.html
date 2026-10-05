@@ -1189,11 +1189,15 @@
       { id: "hirono_gc", name: "廣野ゴルフ倶楽部", pref: "兵庫県", lat: 34.7723, lon: 135.0112, par: 72, desc: "日本ゴルフの殿堂。C.H.アリソン設計の東洋一の名コース" },
       { id: "toda_public", name: "戸田パブリックゴルフコース", pref: "埼玉県", lat: 35.8109362, lon: 139.6289402, par: 72, desc: "荒川河川敷に広がるフラットで戦略性の高い本格パブリックコース（戸田ゴルフ場）" },
       { id: "kasco_hanaha", name: "キャスコ花葉CLUB 本コース・花葉コース", pref: "千葉県", lat: 35.8634273, lon: 140.3459359, par: 72, desc: "総面積約160万平米、全45ホールを誇る東日本屈指の本格チャンピオンコース" },
-      { id: "kawaguchi_public", name: "川口パブリックゴルフ場", pref: "埼玉県", lat: 35.7895892, lon: 139.7323596, par: 72, desc: "荒川の自然美を満喫できる、都心からアクセス抜群の名門パブリックコース" },
+      { id: "kawaguchi_public", name: "K.P.G 川口パブリックゴルフ場", pref: "埼玉県", lat: 35.7895892, lon: 139.7323596, par: 72, desc: "K.P.G (Kawaguchi Public Golf) 荒川の自然美を満喫できる都心近郊の名門パブリックコース" },
       { id: "asaka_public", name: "朝霞パブリックゴルフ場", pref: "埼玉県", lat: 35.8220118, lon: 139.6172027, par: 72, desc: "フラットながら自然のアンジュレーションと池が巧みに配置された人気パブリックコース" },
       { id: "koshigaya_gc", name: "KOSHIGAYA GOLF CLUB (越谷ゴルフクラブ)", pref: "埼玉県", lat: 35.8872663, lon: 139.887391, par: 72, desc: "江戸川沿いのアメリカンリゾートスタイル。開放感溢れる都市型ゴルフクラブ" },
       { id: "akabane_gc", name: "赤羽ゴルフ倶楽部", pref: "東京都", lat: 35.7943683, lon: 139.7019307, par: 72, desc: "JR浮間舟渡駅から徒歩圏。荒川河川敷の伝統あるチャンピオンコース" },
-      { id: "oomiya_cc", name: "大宮カントリークラブ", pref: "埼玉県", lat: 35.8983798, lon: 139.5564301, par: 72, desc: "荒川の雄大な自然に囲まれた27ホールの伝統あるパブリックコース" }
+      { id: "oomiya_cc", name: "大宮カントリークラブ", pref: "埼玉県", lat: 35.8983798, lon: 139.5564301, par: 72, desc: "荒川の雄大な自然に囲まれた27ホールの伝統あるパブリックコース" },
+      { id: "urawa_gc", name: "浦和ゴルフ倶楽部", pref: "埼玉県", lat: 35.8441200, lon: 139.6127423, par: 72, desc: "都心から至近。荒川河川敷に隣接する戦略的な池と樹木が美しいフラットコース" },
+      { id: "oomiya_gc_course", name: "大宮ゴルフコース (大宮ゴルフ倶楽部)", pref: "埼玉県", lat: 35.9833498, lon: 139.5544596, par: 72, desc: "赤松林にセパレートされた歴史と伝統を誇る本格的な林間名門コース" },
+      { id: "kounosu_cc", name: "鴻巣カントリークラブ (鴻巣ゴルフクラブ)", pref: "埼玉県", lat: 36.0841941, lon: 139.5287829, par: 72, desc: "雄大なフェアウェイと美しい池が絡む、本格的トーナメント仕様の丘陵・フラットコース" },
+      { id: "little_green_valley", name: "リトルグリーンヴァレー船橋", pref: "千葉県", lat: 35.8052000, lon: 140.0785000, par: 54, desc: "白井市神々廻に位置する人気パブリック。パー4や池越えを備えた本格ショートコース" }
     ];
 
     // 取手桜が丘 基準18ホールデータ
@@ -2677,22 +2681,23 @@
       container.innerHTML = '';
       const chips = [
         { id: "toride", label: "取手桜が丘GC" },
+        { id: "urawa_gc", label: "浦和GC" },
+        { id: "oomiya_cc", label: "大宮CC" },
+        { id: "oomiya_gc_course", label: "大宮ゴルフ" },
+        { id: "kounosu_cc", label: "鴻巣GC" },
+        { id: "kawaguchi_public", label: "KPG川口パブリック" },
+        { id: "little_green_valley", label: "リトルグリーンV船橋" },
         { id: "toda_public", label: "戸田パブリック" },
-        { id: "kasco_hanaha", label: "キャスコ花葉CLUB" },
-        { id: "kawaguchi_public", label: "川口パブリック" },
         { id: "asaka_public", label: "朝霞パブリック" },
         { id: "koshigaya_gc", label: "越谷GC" },
-        { id: "taiheidai_cc", label: "太平台CC" },
+        { id: "kasco_hanaha", label: "キャスコ花葉CLUB" },
         { id: "shishido_hills", label: "宍戸ヒルズCC" },
         { id: "pgm_ishioka", label: "PGM石岡GC" },
+        { id: "taiheidai_cc", label: "太平台CC" },
         { id: "taiheiyo_gotemba", label: "太平洋御殿場" },
-        { id: "taiheiyo_minori", label: "太平洋美野里" },
         { id: "kasumigaseki", label: "霞ヶ関CC" },
-        { id: "narashino", label: "習志野CC" },
         { id: "kawana_fuji", label: "川奈富士コース" },
-        { id: "phoenix_cc", label: "フェニックスCC" },
-        { id: "karuizawa_72", label: "軽井沢72北" },
-        { id: "hakone_cc", label: "箱根CC" }
+        { id: "phoenix_cc", label: "フェニックスCC" }
       ];
 
       chips.forEach(c => {
