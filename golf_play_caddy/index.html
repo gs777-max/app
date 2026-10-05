@@ -1,0 +1,2610 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Smart Golf Caddie Pro+ | 楽天スコアハイグレード版</title>
+  
+  <!-- Google Fonts: Inter & Outfit & Noto Sans JP -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <style>
+    :root {
+      --bg-dark: #080d1a;
+      --bg-surface: #0f172a;
+      --bg-card: rgba(15, 23, 42, 0.94);
+      --bg-glass: rgba(15, 23, 42, 0.82);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --card-border-glow: rgba(16, 185, 129, 0.4);
+      --accent-green: #10b981;
+      --accent-green-bright: #34d399;
+      --accent-blue: #38bdf8;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-purple: #a855f7;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --text-muted: #64748b;
+      --font-num: 'Outfit', sans-serif;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", 'Noto Sans JP', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ========================================================
+       トップバー (コース名, プロトタイプ切替タブ, 検索)
+    ======================================================== */
+    #top-bar {
+      background: rgba(15, 23, 42, 0.98);
+      backdrop-filter: blur(12px);
+      padding: 6px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      border-bottom: 1px solid var(--card-border);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    .course-badge-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+      max-width: 62%;
+    }
+    #current-course-display {
+      font-size: 13px;
+      font-weight: 800;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    #current-course-display span.tag {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent-green);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .top-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* プロトタイプ切り替えタブバー */
+    #proto-tab-bar {
+      background: #090e1d;
+      padding: 4px 8px;
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--card-border);
+      z-index: 999;
+    }
+    .proto-tab-btn {
+      flex: 1;
+      padding: 6px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      border-radius: 6px;
+      color: var(--text-sub);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .proto-tab-btn.active {
+      background: rgba(16, 185, 129, 0.18);
+      color: var(--accent-green-bright);
+      border-color: rgba(16, 185, 129, 0.4);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+    }
+
+    /* ホールナビゲーションセレクターバー */
+    #hole-nav-bar {
+      background: #111827;
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      z-index: 998;
+      font-size: 12px;
+    }
+    .hole-selector-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hole-badge {
+      background: var(--accent-blue);
+      color: #042940;
+      font-family: var(--font-num);
+      font-weight: 900;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .hole-par-badge {
+      color: var(--text-sub);
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    /* ========================================================
+       メインビューコンテナ（各プロトタイプで切替）
+    ======================================================== */
+    #main-content {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ========================================================
+       PROTO 1: PRO CADDIE HUD VIEW
+    ======================================================== */
+    #view-caddie {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* メインHUDタイル (PGAツアー仕様) */
+    #hud-grid {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      padding: 6px 8px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      z-index: 900;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .hud-tile {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+      padding: 5px 2px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+    .hud-tile.highlight {
+      background: rgba(16, 185, 129, 0.08);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    .hud-label {
+      font-size: 9px;
+      color: var(--text-sub);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .hud-val {
+      font-family: var(--font-num);
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-top: 2px;
+    }
+    .hud-val.green { color: var(--accent-green-bright); text-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
+    .hud-val.blue { color: var(--accent-blue); text-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+    .hud-val.amber { color: var(--accent-amber); text-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+    .hud-sub-label {
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    /* マップコンテナ */
+    #map-wrapper {
+      flex: 1;
+      position: relative;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+      background: #090e17;
+    }
+
+    /* マップ上フローティング情報バッジ */
+    .map-badge {
+      position: absolute;
+      background: var(--bg-glass);
+      backdrop-filter: blur(10px);
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 800;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+    }
+    #wind-badge {
+      top: 10px;
+      right: 10px;
+    }
+    #wind-arrow {
+      display: inline-block;
+      font-size: 14px;
+      color: var(--accent-blue);
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #wind-relative-detail {
+      font-size: 9px;
+      color: var(--accent-amber);
+      font-weight: 600;
+      margin-left: 2px;
+    }
+
+    #elevation-badge {
+      top: 10px;
+      left: 10px;
+    }
+
+    #map-style-toggle {
+      bottom: 20px;
+      left: 10px;
+      padding: 6px 10px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    #test-sim-walk-btn {
+      bottom: 20px;
+      right: 10px;
+      padding: 6px 12px;
+      font-size: 11px;
+      background: rgba(56, 189, 248, 0.2);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: var(--accent-blue);
+      cursor: pointer;
+    }
+
+    /* 幅計測進行中バナーHUD */
+    #measure-active-banner {
+      display: none;
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #1e1102;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 800;
+      z-index: 1200;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+    }
+
+    /* キャディ操作ボトムコントロール */
+    #caddie-controls {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--card-border);
+      padding: 8px 10px calc(8px + var(--safe-bottom));
+      z-index: 900;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .ctrl-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    select, button, input[type="text"], input[type="number"] {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    .select-styled {
+      background: #1e293b;
+      color: #fff;
+      border: 1px solid var(--card-border);
+    }
+    .btn-main {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #02261b;
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+    .btn-main:active { transform: scale(0.97); }
+    .btn-sub {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .btn-sub:hover, .btn-sub:active {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .btn-accent-blue {
+      background: rgba(56, 189, 248, 0.18);
+      color: var(--accent-blue);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .btn-accent-amber {
+      background: rgba(245, 158, 11, 0.18);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .btn-active-glow {
+      background: var(--accent-amber) !important;
+      color: #3f1900 !important;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.6) !important;
+    }
+
+    /* ========================================================
+       PROTO 2: RAKUTEN SCORE PLUS VIEW (スコア＆スタッツ)
+    ======================================================== */
+    #view-score {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      background: #0b1120;
+      overflow-y: auto;
+      padding: 10px 10px calc(14px + var(--safe-bottom));
+      gap: 12px;
+    }
+
+    .score-summary-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .score-total-num {
+      font-family: var(--font-num);
+      font-size: 32px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+    }
+    .score-diff-badge {
+      font-size: 13px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-left: 6px;
+    }
+    .score-diff-badge.over { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .score-diff-badge.even { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+    .score-diff-badge.under { background: rgba(56, 189, 248, 0.2); color: var(--accent-blue); }
+
+    /* クイックホールスコア入力（片手特化） */
+    .quick-input-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .quick-input-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .hole-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .counter-control-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .counter-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+    }
+    .counter-box label {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: 700;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .counter-btns {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-step {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: #1e293b;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--card-border);
+    }
+    .step-val {
+      font-family: var(--font-num);
+      font-size: 24px;
+      font-weight: 900;
+      min-width: 36px;
+      text-align: center;
+      color: var(--accent-green-bright);
+    }
+
+    /* FWキープ・パーオン・ペナルティスイッチ */
+    .stat-toggles {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .btn-toggle-option {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-sub);
+      padding: 8px 4px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .btn-toggle-option.selected {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--accent-green);
+      color: var(--accent-green-bright);
+    }
+
+    /* 18ホール一覧スコアテーブル */
+    .table-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .score-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: center;
+    }
+    .score-table th {
+      background: #1e293b;
+      color: var(--text-sub);
+      padding: 6px 4px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .score-table td {
+      padding: 6px 3px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .score-table tr.active-row {
+      background: rgba(16, 185, 129, 0.1);
+    }
+    .score-badge-circle {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      line-height: 22px;
+      border-radius: 50%;
+      font-weight: 800;
+      font-family: var(--font-num);
+      font-size: 12px;
+    }
+    .score-eagle { background: #eab308; color: #000; }
+    .score-birdie { background: #ef4444; color: #fff; }
+    .score-par { background: transparent; color: #fff; }
+    .score-bogey { background: rgba(56, 189, 248, 0.2); border: 1px solid var(--accent-blue); color: var(--accent-blue); border-radius: 4px; }
+    .score-double { background: rgba(148, 163, 184, 0.2); border: 1px solid #94a3b8; color: #cbd5e1; border-radius: 4px; }
+
+    /* スタッツ集計セクション */
+    .stats-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .stat-metric-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 8px 4px;
+      text-align: center;
+    }
+    .stat-metric-val {
+      font-family: var(--font-num);
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--accent-green);
+    }
+    .stat-metric-title {
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+
+    /* ========================================================
+       PROTO 3: TACTICAL COURSE GUIDE VIEW (ホール別空撮ガイド)
+    ======================================================== */
+    #view-guide {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      background: #080d1a;
+      overflow-y: auto;
+      padding: 10px 10px calc(14px + var(--safe-bottom));
+      gap: 10px;
+    }
+    .guide-hero-card {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      padding: 14px;
+    }
+    .guide-hole-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 8px;
+    }
+    .guide-hole-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .guide-hole-card:hover, .guide-hole-card.selected {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--accent-green);
+      transform: translateY(-2px);
+    }
+    .guide-advice-box {
+      background: rgba(56, 189, 248, 0.08);
+      border-left: 3px solid var(--accent-blue);
+      padding: 10px;
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #e2e8f0;
+      margin-top: 8px;
+    }
+
+    /* ========================================================
+       モーダル群 (検索, クラブ管理, コース幅計測, エクスポート)
+    ======================================================== */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-window {
+      background: #111827;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+      animation: modalFadeIn 0.2s ease;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .modal-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      font-size: 15px;
+    }
+    .modal-close-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .modal-body {
+      padding: 14px 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .modal-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 検索候補リストアイテム */
+    .candidate-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .candidate-card:hover, .candidate-card:active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--accent-green);
+    }
+    .candidate-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--accent-green-bright);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .candidate-desc {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+    .candidate-tag {
+      font-size: 10px;
+      background: #1e293b;
+      color: var(--accent-blue);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    /* マップ上マーカーデザイン */
+    .custom-tee-marker {
+      background: #0284c7;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      white-space: nowrap;
+    }
+    .custom-pin-marker {
+      background: #ef4444;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 3px 7px;
+      border-radius: 6px;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+      white-space: nowrap;
+    }
+    .custom-shot-badge {
+      background: #10b981;
+      color: #022c22;
+      font-family: var(--font-num);
+      font-size: 11px;
+      font-weight: 900;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    }
+    .custom-width-badge {
+      background: #f59e0b;
+      color: #000;
+      font-family: var(--font-num);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1.5px solid #fff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================== 1. トップバー ======================== -->
+  <div id="top-bar">
+    <div class="course-badge-group">
+      <div id="current-course-display">
+        ⛳ 取手桜が丘ゴルフクラブ
+        <span class="tag">Par 72</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn-sub" style="font-size:11px; padding:5px 9px;" onclick="openCourseSearchModal()">🔍 コース検索</button>
+      <button class="btn-accent-blue" style="font-size:11px; padding:5px 9px;" onclick="openSimToolModal()">⚙️ ツール</button>
+    </div>
+  </div>
+
+  <!-- ======================== 2. プロトタイプ提案 切替タブ ======================== -->
+  <div id="proto-tab-bar">
+    <button id="tab-btn-caddie" class="proto-tab-btn active" onclick="switchProtoView('caddie')">
+      🏌️ A: ツアーキャディHUD
+    </button>
+    <button id="tab-btn-score" class="proto-tab-btn" onclick="switchProtoView('score')">
+      📝 B: 楽天スコアPlus
+    </button>
+    <button id="tab-btn-guide" class="proto-tab-btn" onclick="switchProtoView('guide')">
+      🗺️ C: 空撮コース戦略
+    </button>
+  </div>
+
+  <!-- ======================== 3. ホール切替バー ======================== -->
+  <div id="hole-nav-bar">
+    <div class="hole-selector-group">
+      <button class="btn-sub" style="padding:3px 8px;" onclick="prevHole()">◀</button>
+      <div class="hole-badge" id="hud-current-hole-num">1H</div>
+      <div class="hole-par-badge" id="hud-current-hole-par">Par 4 / 385y</div>
+      <button class="btn-sub" style="padding:3px 8px;" onclick="nextHole()">▶</button>
+    </div>
+    <select id="hole-quick-select" class="select-styled" style="padding:3px 6px; font-size:11px;" onchange="onHoleSelectChange(this.value)">
+      <!-- 1H〜18H 動的生成 -->
+    </select>
+  </div>
+
+  <!-- ======================== 4. メインビュー領域 ======================== -->
+  <div id="main-content">
+
+    <!-- ==================== VIEW 1: ツアーキャディHUD ==================== -->
+    <div id="view-caddie">
+      <!-- HUDタイル (実距離 / 高低差 / PlaysLike / 前回飛距離) -->
+      <div id="hud-grid">
+        <div class="hud-tile highlight">
+          <div class="hud-label">ピン実距離</div>
+          <div class="hud-val green" id="hud-raw-dist">-- y</div>
+          <div class="hud-sub-label">直線距離</div>
+        </div>
+        <div class="hud-tile">
+          <div class="hud-label">高低差 (国土地理院)</div>
+          <div class="hud-val" id="hud-elev-diff">-- m</div>
+          <div class="hud-sub-label" id="hud-elev-yards">-- y</div>
+        </div>
+        <div class="hud-tile highlight">
+          <div class="hud-label">PlaysLike推奨</div>
+          <div class="hud-val amber" id="hud-playslike-dist">-- y</div>
+          <div class="hud-sub-label" id="hud-playslike-detail">風・傾斜補正済</div>
+        </div>
+        <div class="hud-tile">
+          <div class="hud-label">前回打球飛距離</div>
+          <div class="hud-val blue" id="hud-last-shot-dist">-- y</div>
+          <div class="hud-sub-label" id="hud-shot-status">GPSリアルタイム</div>
+        </div>
+      </div>
+
+      <!-- 地図マップ領域 -->
+      <div id="map-wrapper">
+        <div id="map"></div>
+
+        <!-- リアルタイム風情報バッジ (Open-Meteo API) -->
+        <div id="wind-badge" class="map-badge">
+          <span>風: <strong id="wind-spd-val" style="color:#fff;">--</strong> m/s</span>
+          <span id="wind-arrow">↑</span>
+          <span id="wind-relative-detail">計算中</span>
+        </div>
+
+        <!-- 標高バッジ (打席標高) -->
+        <div id="elevation-badge" class="map-badge" style="font-size:10px;">
+          ⛰️ 打席標高: <span id="user-elev-val" style="color:var(--accent-green);">--</span>m (海抜)
+        </div>
+
+        <!-- マップタイル切替 -->
+        <div id="map-style-toggle" class="map-badge" onclick="toggleMapLayer()">
+          🗺️ 航空写真 / 標高起伏図
+        </div>
+
+        <!-- 室内検証用 GPS歩行シミュレータボタン -->
+        <div id="test-sim-walk-btn" class="map-badge" onclick="simulateWalkToNextShot()">
+          🚶‍♂️ GPS歩行テスト (+20y)
+        </div>
+
+        <!-- 幅計測アクティブ時バナー -->
+        <div id="measure-active-banner">
+          <span id="measure-instruction-text">📍 フェアウェイ左端をタップ</span>
+          <button onclick="cancelWidthMeasurement()" style="background:#000; color:#fff; border-radius:20px; padding:3px 10px; font-size:10px;">キャンセル</button>
+        </div>
+      </div>
+
+      <!-- 下部コントロールパネル -->
+      <div id="caddie-controls">
+        <div class="ctrl-row">
+          <!-- 番手選択 -->
+          <select id="caddie-club-select" class="select-styled" style="flex:2;" onchange="onClubSelectionChange()">
+            <!-- 動的注入 -->
+          </select>
+          <button class="btn-sub" onclick="openClubModal()">🏌️ クラブ管理</button>
+          <button id="btn-measure-width" class="btn-accent-amber" onclick="openWidthMeasureModal()">📏 幅計測</button>
+        </div>
+        <div class="ctrl-row">
+          <button class="btn-main" style="flex:1.4;" onclick="recordCurrentShot()">
+            📍 この打席を記録する
+          </button>
+          <button id="btn-gps-toggle" class="btn-sub" style="flex:1;" onclick="toggleGPSWatch()">
+            📡 GPS追跡: OFF
+          </button>
+          <button class="btn-sub" style="flex:0.8;" onclick="switchProtoView('score')">
+            📝 スコア入力
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 2: 楽天スコアPlus ==================== -->
+    <div id="view-score">
+      <!-- スコアサマリーヘッダー -->
+      <div class="score-summary-card">
+        <div>
+          <div style="font-size:11px; color:var(--text-sub); font-weight:700;">TOTAL SCORE (18H)</div>
+          <div style="display:flex; align-items:baseline; margin-top:2px;">
+            <div class="score-total-num" id="sc-total-gross">--</div>
+            <div class="score-diff-badge even" id="sc-diff-badge">E</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px; color:var(--text-sub); font-weight:700;">OUT / IN / PUTTS</div>
+          <div style="font-family:var(--font-num); font-size:15px; font-weight:800; color:#cbd5e1; margin-top:4px;">
+            <span id="sc-out-subtotal">--</span> / <span id="sc-in-subtotal">--</span> (<span id="sc-total-putts" style="color:var(--accent-blue);">--</span> pt)
+          </div>
+        </div>
+      </div>
+
+      <!-- 片手でサクサク入力できるホール入力カード -->
+      <div class="quick-input-card">
+        <div class="quick-input-header">
+          <div class="hole-title">
+            <span class="hole-badge" id="sc-quick-hole-name">1H</span>
+            <span style="font-size:13px; color:var(--text-sub);" id="sc-quick-par-text">Par 4 / 385y</span>
+          </div>
+          <div style="display:flex; gap:4px;">
+            <button class="btn-sub" style="padding:4px 8px; font-size:11px;" onclick="prevScoreHole()">◀ 前H</button>
+            <button class="btn-sub" style="padding:4px 8px; font-size:11px;" onclick="nextScoreHole()">次H ▶</button>
+          </div>
+        </div>
+
+        <div class="counter-control-group">
+          <!-- スコア打数 -->
+          <div class="counter-box">
+            <label>打数 (Score)</label>
+            <div class="counter-btns">
+              <button class="btn-step" onclick="adjustQuickScore(-1)">−</button>
+              <div class="step-val" id="sc-quick-score-val">4</div>
+              <button class="btn-step" onclick="adjustQuickScore(1)">＋</button>
+            </div>
+          </div>
+          <!-- パット数 -->
+          <div class="counter-box">
+            <label>パット数 (Putt)</label>
+            <div class="counter-btns">
+              <button class="btn-step" onclick="adjustQuickPutt(-1)">−</button>
+              <div class="step-val" id="sc-quick-putt-val" style="color:var(--accent-blue);">2</div>
+              <button class="btn-step" onclick="adjustQuickPutt(1)">＋</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- フェアウェイキープ (左/キープ/右/なし) -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:11px; color:var(--text-sub); font-weight:700; margin-bottom:4px;">フェアウェイキープ (FW)</div>
+          <div class="stat-toggles">
+            <button id="fw-btn-left" class="btn-toggle-option" onclick="setQuickFW('left')">⬅️ 左ラフ</button>
+            <button id="fw-btn-center" class="btn-toggle-option selected" onclick="setQuickFW('center')">🎯 キープ</button>
+            <button id="fw-btn-right" class="btn-toggle-option" onclick="setQuickFW('right')">右ラフ ➡️</button>
+          </div>
+        </div>
+
+        <!-- バンカー・OB・ペナルティ -->
+        <div class="stat-toggles">
+          <button id="hazard-btn-gir" class="btn-toggle-option selected" onclick="toggleGIR()">🟢 パーオン(GIR)</button>
+          <button id="hazard-btn-bunker" class="btn-toggle-option" onclick="toggleBunker()">🏖️ バンカー</button>
+          <button id="hazard-btn-penalty" class="btn-toggle-option" onclick="togglePenalty()">⚠️ OB/ペナ</button>
+        </div>
+      </div>
+
+      <!-- 18ホール全スコアカード一覧 -->
+      <div class="table-container">
+        <table class="score-table">
+          <thead>
+            <tr>
+              <th>Hole</th>
+              <th>Par</th>
+              <th>Score</th>
+              <th>Putt</th>
+              <th>FW</th>
+              <th>GIR</th>
+            </tr>
+          </thead>
+          <tbody id="score-table-body">
+            <!-- 18ホール一覧動的レンダリング -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- アドバンスドスタッツ (楽天ゴルフスコア超え分析) -->
+      <div class="stats-card">
+        <div style="font-size:13px; font-weight:800; color:#fff; display:flex; justify-content:space-between;">
+          <span>📊 ラウンドスタッツ分析</span>
+          <button class="btn-sub" style="font-size:10px; padding:2px 8px;" onclick="resetRoundScore()">スコアリセット</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-metric-box">
+            <div class="stat-metric-val" id="stat-fw-rate">0%</div>
+            <div class="stat-metric-title">FWキープ率</div>
+          </div>
+          <div class="stat-metric-box">
+            <div class="stat-metric-val" id="stat-gir-rate" style="color:var(--accent-blue);">0%</div>
+            <div class="stat-metric-title">パーオン率</div>
+          </div>
+          <div class="stat-metric-box">
+            <div class="stat-metric-val" id="stat-avg-putt" style="color:var(--accent-amber);">0.0</div>
+            <div class="stat-metric-title">平均パット</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 3: 空撮コース戦略ガイド ==================== -->
+    <div id="view-guide">
+      <div class="guide-hero-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <h2 style="font-size:17px; font-weight:900; color:#fff;" id="guide-course-title">取手桜が丘ゴルフクラブ</h2>
+            <p style="font-size:12px; color:var(--text-sub); margin-top:2px;">利根川・小貝川の合流付近に広がる、高低差が穏やかで戦略性の高いチャンピオンコース。</p>
+          </div>
+          <button class="btn-main" style="font-size:11px; padding:6px 12px;" onclick="focusCurrentHoleOnMap()">地図で確認</button>
+        </div>
+        
+        <div class="guide-advice-box" id="guide-current-advice">
+          <strong>💡 1H (Par 4 / 385y) 攻略メモ:</strong><br>
+          ティーショットはフェアウェイセンターやや左狙い。右サイドの立ち木奥はOBがあるため無理なスライスに注意。セカンドは受けているグリーンなのでピン手前から攻めるのが鉄則。
+        </div>
+      </div>
+
+      <!-- ホールグリッド一覧 -->
+      <div style="font-size:12px; font-weight:800; color:var(--text-sub); margin:6px 0 2px;">
+        18ホール一覧 (タップで瞬時にコースジャンプ):
+      </div>
+      <div class="guide-hole-list" id="guide-holes-container">
+        <!-- 1〜18Hカード動的注入 -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ======================== モーダル群 ======================== -->
+
+  <!-- 1. コース検索・複数候補ファジーモーダル -->
+  <div id="course-search-modal" class="modal-backdrop">
+    <div class="modal-window">
+      <div class="modal-header">
+        <span>⛳ ゴルフ場を選択・検索</span>
+        <div class="modal-close-btn" onclick="closeCourseSearchModal()">✕</div>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:11px; color:var(--text-sub); margin-bottom:8px;">
+          全国主要ゴルフ場データベースから即座に候補を表示します。平仮名・カタカナ・地名でも検索可能です。
+        </p>
+        <div style="display:flex; gap:6px; margin-bottom:12px;">
+          <input type="text" id="course-search-input" placeholder="例: 取手, 霞ヶ関, 太平洋, 成田, 錦ヶ原" style="flex:1; background:#1e293b; color:#fff;" oninput="onCourseSearchInput(this.value)" onkeydown="if(event.key==='Enter') executeExternalCourseSearch()">
+          <button class="btn-main" style="padding:8px 12px;" onclick="executeExternalCourseSearch()">Web検索</button>
+        </div>
+
+        <!-- 定番・おすすめゴルフ場ワンタップ -->
+        <div style="font-size:11px; color:var(--text-sub); margin-bottom:6px; font-weight:700;">定番・プリセットコース:</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;" id="preset-course-chips">
+          <!-- チップ動的生成 -->
+        </div>
+
+        <div id="course-candidate-status" style="font-size:11px; color:var(--accent-amber); margin-bottom:6px; display:none;"></div>
+        <div id="course-candidates-container">
+          <!-- 検索候補リスト出力 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. コース横幅計測モーダル (マップタップ & GPS実測) -->
+  <div id="width-modal" class="modal-backdrop">
+    <div class="modal-window" style="max-width:390px;">
+      <div class="modal-header">
+        <span>📏 コース横幅 (フェアウェイ幅) 計測</span>
+        <div class="modal-close-btn" onclick="closeWidthMeasureModal()">✕</div>
+      </div>
+      <div class="modal-body">
+        <!-- 方法1: タップ計測 -->
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); padding:12px; border-radius:10px; margin-bottom:12px;">
+          <div style="font-weight:800; color:var(--accent-amber); font-size:13px; display:flex; align-items:center; gap:6px;">
+            📍 方法1: マップタップ2点計測
+          </div>
+          <p style="font-size:11px; color:var(--text-sub); margin:6px 0 10px; line-height:1.4;">
+            航空写真マップ上のフェアウェイ左端と右端の2点をタップすると、ヤード数・メートル幅が自動描画されます。
+          </p>
+          <button class="btn-main" style="width:100%;" onclick="startMapTapWidthMeasurement()">
+            タップ計測を開始する
+          </button>
+        </div>
+
+        <!-- 方法2: GPS実測計測 -->
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); padding:12px; border-radius:10px;">
+          <div style="font-weight:800; color:var(--accent-blue); font-size:13px; display:flex; align-items:center; gap:6px;">
+            📡 方法2: GPS実測（実際に歩いて測る）
+          </div>
+          <p style="font-size:11px; color:var(--text-sub); margin:6px 0 10px; line-height:1.4;">
+            フェアウェイ左端で「①左端GPS」、右端まで歩いて「②右端GPS」を押すと実測幅が出ます。
+          </p>
+          <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <button class="btn-sub" style="flex:1;" onclick="recordWidthGPSPoint('p1')">① 左端を記憶</button>
+            <button class="btn-sub" style="flex:1;" onclick="recordWidthGPSPoint('p2')">② 右端を記憶</button>
+          </div>
+          <div id="gps-width-result-display" style="font-size:13px; font-weight:800; color:var(--accent-green); text-align:center; min-height:18px;"></div>
+        </div>
+
+        <button class="btn-sub" style="width:100%; margin-top:10px;" onclick="clearWidthLines()">
+          計測ラインをリセット
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. マイクラブ設定モーダル (1W〜PT完全網羅) -->
+  <div id="club-modal" class="modal-backdrop">
+    <div class="modal-window">
+      <div class="modal-header">
+        <span>🏌️‍♂️ マイクラブ設定 & 想定飛距離</span>
+        <div class="modal-close-btn" onclick="closeClubModal()">✕</div>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">
+          ご自身の番手ごとのキャリー＋ランの想定飛距離(yard)を登録してください。物理弾道シミュレータに即座に反映されます。
+        </p>
+        <table class="score-table">
+          <thead>
+            <tr><th>番手</th><th>クラブ名</th><th>設定飛距離</th></tr>
+          </thead>
+          <tbody id="club-settings-tbody">
+            <!-- クラブ行動的生成 -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sub" onclick="resetClubsToDefaultPreset()">初期値に戻す</button>
+        <button class="btn-main" onclick="saveClubSettings()">保存して適用</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. シミュレーション & 開発ツールモーダル -->
+  <div id="sim-tool-modal" class="modal-backdrop">
+    <div class="modal-window" style="max-width:380px;">
+      <div class="modal-header">
+        <span>⚙️ シミュレーション設定 & API</span>
+        <div class="modal-close-btn" onclick="closeSimToolModal()">✕</div>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:12px; margin-bottom:8px; font-weight:700;">使用中の完全無料APIステータス:</div>
+        <div style="background:rgba(255,255,255,0.03); padding:8px 10px; border-radius:8px; font-size:11px; line-height:1.6; margin-bottom:12px;">
+          ✅ 地図: 国土地理院 航空写真タイル<br>
+          ✅ 標高: 国土地理院 標高API (DEM)<br>
+          ✅ 風・気象: Open-Meteo API (リアルタイム)<br>
+          ✅ GPS: W3C Geolocation API<br>
+          ✅ 検索: 内蔵全国マスター + Nominatim
+        </div>
+
+        <div style="font-size:12px; font-weight:700; margin-bottom:6px;">仮想風速シミュレーション (テスト用):</div>
+        <div style="display:flex; gap:6px; align-items:center; margin-bottom:8px;">
+          <input type="range" id="sim-wind-speed-slider" min="0" max="15" step="0.5" value="3.0" style="flex:1;" oninput="onSimWindChange()">
+          <span id="sim-wind-label" style="font-size:12px; min-width:50px;">3.0 m/s</span>
+        </div>
+
+        <div style="font-size:12px; font-weight:700; margin-bottom:6px;">打点ショット履歴のリセット:</div>
+        <button class="btn-sub" style="width:100%;" onclick="clearShotHistory()">これまでの打球履歴マーカーを全消去</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       JAVASCRIPT ロジック
+  ======================================================== -->
+  <script>
+    /* ==========================================================
+       1. 全国主要ゴルフ場マスター (全国代表・人気100+コース)
+    ========================================================== */
+    const NATIONWIDE_COURSES = [
+      {
+        id: "toride",
+        name: "取手桜が丘ゴルフクラブ",
+        kana: "とりでさくらがおか",
+        pref: "茨城県",
+        tee: [35.88842, 140.09150],
+        pin: [35.88935, 140.09520],
+        par: 72,
+        desc: "取手市渋沼。利根川と小貝川の合流点近くに位置する、フラットで美しい18H林間・リバーサイドコース。"
+      },
+      {
+        id: "toride_kokusai",
+        name: "取手国際ゴルフ倶楽部",
+        kana: "とりでこくさい",
+        pref: "茨城県",
+        tee: [35.91850, 140.01250],
+        pin: [35.92120, 140.01620],
+        par: 72,
+        desc: "茨城県つくばみらい市。東・西の36ホールを誇る伝統の名門チャンピオンシップコース。"
+      },
+      {
+        id: "nishikigahara",
+        name: "ノーザンCC 錦ヶ原ゴルフ場",
+        kana: "にしきがはら",
+        pref: "埼玉県",
+        tee: [35.88450, 139.57820],
+        pin: [35.88580, 139.58150],
+        par: 72,
+        desc: "荒川河川敷に広がる雄大な43ホール。初心者から上級者まで愛される人気コース。"
+      },
+      {
+        id: "kasumigaseki",
+        name: "霞ヶ関カンツリー倶楽部",
+        kana: "かすみがせき",
+        pref: "埼玉県",
+        tee: [35.90820, 139.38750],
+        pin: [35.91120, 139.39150],
+        par: 72,
+        desc: "東京五輪2020ゴルフ会場。世界に誇る日本の最高峰プライベート名門コース。"
+      },
+      {
+        id: "narashino",
+        name: "アコーディア・ゴルフ 習志野CC",
+        kana: "ならしの",
+        pref: "千葉県",
+        tee: [35.77250, 140.15820],
+        pin: [35.77480, 140.16200],
+        par: 72,
+        desc: "PGAツアーZOZOチャンピオンシップ開催。キング＆クイーンの36ホール。"
+      },
+      {
+        id: "taiheiyo_gotemba",
+        name: "太平洋クラブ 御殿場コース",
+        kana: "たいへいようごてんば",
+        pref: "静岡県",
+        tee: [35.30520, 138.89550],
+        pin: [35.30850, 138.89920],
+        par: 72,
+        desc: "富士山を望む日本を代表するトーナメントコース。三井住友VISA太平洋マスターズ舞台。"
+      },
+      {
+        id: "kawana_fuji",
+        name: "川奈ホテルゴルフコース 富士コース",
+        kana: "かわなふじ",
+        pref: "静岡県",
+        tee: [34.95420, 139.14150],
+        pin: [34.95750, 139.14480],
+        par: 72,
+        desc: "C.H.アリソン設計。世界トップ100に名を連ねる名門シーサイドリンクス。"
+      },
+      {
+        id: "hirono",
+        name: "廣野ゴルフ倶楽部",
+        kana: "ひろの",
+        pref: "兵庫県",
+        tee: [34.77050, 135.00620],
+        pin: [34.77350, 135.00980],
+        par: 72,
+        desc: "日本のゴルフ場ランキング第1位の不動の名門。アリソンの最高傑作。"
+      },
+      {
+        id: "toda_pub",
+        name: "戸田パブリックゴルフコース",
+        kana: "とだぱぶりっく",
+        pref: "埼玉県",
+        tee: [35.80820, 139.64650],
+        pin: [35.81150, 139.64920],
+        par: 36,
+        desc: "荒川河川敷の都心至近パブリック。手軽に本格ラウンドが楽しめます。"
+      },
+      {
+        id: "akabane",
+        name: "赤羽ゴルフ倶楽部",
+        kana: "あかばね",
+        pref: "東京都",
+        tee: [35.79580, 139.69750],
+        pin: [35.79850, 139.70120],
+        par: 72,
+        desc: "浮間舟渡駅から徒歩圏内。都内で唯一の河川敷18ホールコース。"
+      },
+      {
+        id: "wakasu",
+        name: "若洲ゴルフリンクス",
+        kana: "わかすりんくす",
+        pref: "東京都",
+        tee: [35.61780, 139.84520],
+        pin: [35.62050, 139.84850],
+        par: 72,
+        desc: "東京ベイエリア。ゲートブリッジを望む爽快なシーサイドコース。"
+      },
+      {
+        id: "kasco_hanaha",
+        name: "キャスコ花葉CLUB 本コース",
+        kana: "きゃすこはなは",
+        pref: "千葉県",
+        tee: [35.79250, 140.38120],
+        pin: [35.79520, 140.38450],
+        par: 72,
+        desc: "成田近郊に広がる広大でハイグレードな45ホール複合リゾートコース。"
+      }
+    ];
+
+    /* ==========================================================
+       2. 取手桜が丘ゴルフクラブ 全18ホール精密データ
+    ========================================================== */
+    const TORIDE_SAKURAGAOKA_18HOLES = [
+      {
+        h: 1, par: 4, yard: 385,
+        tee: [35.88842, 140.09150], pin: [35.88935, 140.09520],
+        advice: "1H (Par 4): 伸びやかなスターティングホール。ティーショットはFW中央やや左狙い。右の林帯に注意。"
+      },
+      {
+        h: 2, par: 5, yard: 510,
+        tee: [35.88940, 140.09580], pin: [35.89280, 140.09820],
+        advice: "2H (Par 5): ロングホール。2打目は無理せずレイアップ。グリーン手前50yのバンカーを避けて手前から。"
+      },
+      {
+        h: 3, par: 3, yard: 160,
+        tee: [35.89310, 140.09880], pin: [35.89420, 140.09950],
+        advice: "3H (Par 3): ショートホール。風の計算が鍵。左サイドのバンカーは深いため右花道方向がセーフティ。"
+      },
+      {
+        h: 4, par: 4, yard: 395,
+        tee: [35.89400, 140.09900], pin: [35.89150, 140.09550],
+        advice: "4H (Par 4): 左ドッグレッグ。ショートカットを狙いすぎず、正面の吹き流し方向へ確実に運ぶ。"
+      },
+      {
+        h: 5, par: 4, yard: 370,
+        tee: [35.89120, 140.09500], pin: [35.88900, 140.09250],
+        advice: "5H (Par 4): 比較的フラットなミドル。距離は短めなので2打目はショートアイアンでピンデッドに狙える。"
+      },
+      {
+        h: 6, par: 3, yard: 175,
+        tee: [35.88880, 140.09200], pin: [35.88780, 140.09050],
+        advice: "6H (Par 3): 横長のグリーン。ピンポジションに合わせたクラブ選択が必須。アゲンストに注意。"
+      },
+      {
+        h: 7, par: 4, yard: 410,
+        tee: [35.88750, 140.09000], pin: [35.88500, 140.08700],
+        advice: "7H (Par 4): 距離の長いタフなミドル。無理に2オンを狙わず手前から寄せワン狙いも有効。"
+      },
+      {
+        h: 8, par: 5, yard: 525,
+        tee: [35.88480, 140.08650], pin: [35.88820, 140.08950],
+        advice: "8H (Par 5): 直線的なロング。フェアウェイ幅が広く豪快なティーショットが打てるチャンスホール。"
+      },
+      {
+        h: 9, par: 4, yard: 380,
+        tee: [35.88840, 140.09000], pin: [35.88830, 140.09130],
+        advice: "9H (Par 4): クラブハウスへ戻るミドル。グリーン奥は下りなので手前からの攻めが基本。"
+      },
+      {
+        h: 10, par: 4, yard: 390,
+        tee: [35.88860, 140.09220], pin: [35.89050, 140.09450],
+        advice: "10H (Par 4): 後半スタート。フェアウェイ中央へまっすぐ。2打目はグリーン左のガードバンカーに注意。"
+      },
+      {
+        h: 11, par: 4, yard: 365,
+        tee: [35.89080, 140.09480], pin: [35.89320, 140.09650],
+        advice: "11H (Par 4): 距離は控えめだが正確性が求められる。刻みも視野に入れて好位置をキープ。"
+      },
+      {
+        h: 12, par: 3, yard: 155,
+        tee: [35.89350, 140.09700], pin: [35.89450, 140.09780],
+        advice: "12H (Par 3): 池が絡む美しいショート。風に翻弄されずピン奥の受けている面を落ち着いて狙う。"
+      },
+      {
+        h: 13, par: 5, yard: 530,
+        tee: [35.89460, 140.09750], pin: [35.89120, 140.09350],
+        advice: "13H (Par 5): 右サイドにクリークが沿うロング。3打目のアプローチ勝負に徹するのがスコアメイクのコツ。"
+      },
+      {
+        h: 14, par: 4, yard: 405,
+        tee: [35.89100, 140.09300], pin: [35.88850, 140.08980],
+        advice: "14H (Par 4): アゲンストが多いホール。低めのライナーで風の影響を抑えたティーショットを。"
+      },
+      {
+        h: 15, par: 4, yard: 375,
+        tee: [35.88830, 140.08950], pin: [35.88600, 140.08680],
+        advice: "15H (Par 4): フェアウェイアンジュレーションがあるホール。平らなライを見つけてセカンドを打つ。"
+      },
+      {
+        h: 16, par: 3, yard: 170,
+        tee: [35.88580, 140.08650], pin: [35.88450, 140.08550],
+        advice: "16H (Par 3): 距離のあるショート。手前花道が広いのでワンクラブ大きめで軽く打つのが定石。"
+      },
+      {
+        h: 17, par: 5, yard: 520,
+        tee: [35.88430, 140.08580], pin: [35.88750, 140.08880],
+        advice: "17H (Par 5): ドラコン推奨ロング。右OBに注意しながらフェアウェイ左サイドを広く使う。"
+      },
+      {
+        h: 18, par: 4, yard: 415,
+        tee: [35.88780, 140.08920], pin: [35.88850, 140.09140],
+        advice: "18H (Par 4): 最終名物ホール。クラブハウスを正面に見据えて、花道を使ってパーセーブを狙う。"
+      }
+    ];
+
+    /* ==========================================================
+       3. クラブマスター (1W〜PT完全網羅)
+    ========================================================== */
+    const DEFAULT_CLUBS = [
+      { id: "1W", name: "1W (ドライバー)", dist: 235, type: "wood" },
+      { id: "3W", name: "3W (スプーン)", dist: 215, type: "wood" },
+      { id: "5W", name: "5W (クリーク)", dist: 195, type: "wood" },
+      { id: "7W", name: "7W (ヘブン)", dist: 185, type: "wood" },
+      { id: "2U", name: "2U (ユーティリティ)", dist: 205, type: "ut" },
+      { id: "3U", name: "3U (ユーティリティ)", dist: 195, type: "ut" },
+      { id: "4U", name: "4U (ユーティリティ)", dist: 185, type: "ut" },
+      { id: "5U", name: "5U (ユーティリティ)", dist: 175, type: "ut" },
+      { id: "4I", name: "4I (アイアン)", dist: 180, type: "iron" },
+      { id: "5I", name: "5I (アイアン)", dist: 170, type: "iron" },
+      { id: "6I", name: "6I (アイアン)", dist: 160, type: "iron" },
+      { id: "7I", name: "7I (アイアン)", dist: 150, type: "iron" },
+      { id: "8I", name: "8I (アイアン)", dist: 140, type: "iron" },
+      { id: "9I", name: "9I (アイアン)", dist: 130, type: "iron" },
+      { id: "PW", name: "PW (ピッチング)", dist: 115, type: "wedge" },
+      { id: "48", name: "48° (ウェッジ)", dist: 105, type: "wedge" },
+      { id: "52", name: "52° (アプローチ)", dist: 95, type: "wedge" },
+      { id: "56", name: "56° (サンド)", dist: 80, type: "wedge" },
+      { id: "58", name: "58° (ロブ)", dist: 70, type: "wedge" },
+      { id: "PT", name: "PT (パター)", dist: 15, type: "putter" }
+    ];
+    let userClubs = JSON.parse(localStorage.getItem('smart_caddie_pro_clubs_v4')) || DEFAULT_CLUBS;
+
+    /* ==========================================================
+       4. アプリケーション共通状態
+    ========================================================== */
+    let currentCourse = { ...NATIONWIDE_COURSES[0] };
+    let currentHoleIndex = 0; // 0 = 1H, 17 = 18H
+    let holeList = [...TORIDE_SAKURAGAOKA_18HOLES];
+
+    // マップ上の座標
+    let currentTeeCoord = [...holeList[0].tee];
+    let currentPinCoord = [...holeList[0].pin];
+    let userCoord = [...currentTeeCoord];
+    let lastShotCoord = null;
+    let shotHistoryList = []; // { shotNum, club, coord, dist }
+
+    // 気象データ
+    let windInfo = { speed: 2.5, direction: 60, gust: 4.0, temp: 21.0 };
+    let userElevation = 7.0;
+    let pinElevation = 8.0;
+
+    // GPSトラッキング
+    let isGPSTracking = false;
+    let gpsWatchId = null;
+
+    // コース幅計測
+    let isWidthMeasuring = false;
+    let widthTapCoords = [];
+    let widthMapMarkers = [];
+    let widthPolyline = null;
+    let widthLabelMarker = null;
+    let gpsWidthP1 = null;
+    let gpsWidthP2 = null;
+
+    // マップレイヤー
+    let map = null;
+    let tileLayerPhoto = null;
+    let tileLayerRelief = null;
+    let currentMapLayerType = 'photo'; // 'photo' or 'relief'
+
+    let teeMarker = null;
+    let pinMarker = null;
+    let userMarker = null;
+    let targetGuideLine = null;
+    let simArcPolyline = null;
+    let simCircleLayer = null;
+    let yardCircles = [];
+
+    // スコアカードデータ
+    let scoreCardData = JSON.parse(localStorage.getItem('smart_caddie_scorecard_v4')) || {};
+    // 初期化（未入力ホールにデフォルト設定）
+    for (let h = 1; h <= 18; h++) {
+      if (!scoreCardData[h]) {
+        const parVal = (h <= holeList.length) ? holeList[h-1].par : 4;
+        scoreCardData[h] = { par: parVal, score: parVal, putts: 2, fw: 'center', gir: true, bunker: 0, penalty: 0 };
+      }
+    }
+
+    /* ==========================================================
+       5. 初期化 & 地図セットアップ (国土地理院 航空写真タイル)
+    ========================================================== */
+    function initMap() {
+      map = L.map('map', {
+        zoomControl: false,
+        maxZoom: 18,
+        minZoom: 14
+      }).setView(currentTeeCoord, 17);
+
+      // 国土地理院 シームレス写真タイル (完全無料・最高解像度)
+      tileLayerPhoto = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+        attribution: '© 国土地理院 シームレス写真',
+        maxZoom: 18
+      }).addTo(map);
+
+      // 国土地理院 色別標高図タイル (起伏・アンジュレーション確認用)
+      tileLayerRelief = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/relief/{z}/{x}/{y}.png', {
+        attribution: '© 国土地理院 色別標高図',
+        maxZoom: 18,
+        opacity: 0.65
+      });
+
+      // マーカー定義
+      teeMarker = L.marker(currentTeeCoord, {
+        draggable: true,
+        icon: L.divIcon({
+          className: '',
+          html: '<div class="custom-tee-marker">📍 TEE</div>',
+          iconAnchor: [20, 12]
+        })
+      }).addTo(map);
+
+      pinMarker = L.marker(currentPinCoord, {
+        draggable: true,
+        icon: L.divIcon({
+          className: '',
+          html: '<div class="custom-pin-marker">🚩 PIN</div>',
+          iconAnchor: [22, 14]
+        })
+      }).addTo(map);
+
+      userMarker = L.circleMarker(userCoord, {
+        color: '#10b981',
+        radius: 9,
+        fillColor: '#10b981',
+        fillOpacity: 1,
+        weight: 3
+      }).addTo(map);
+
+      // ターゲットガイドライン
+      targetGuideLine = L.polyline([userCoord, currentPinCoord], {
+        color: '#facc15',
+        dashArray: '6, 8',
+        weight: 2,
+        opacity: 0.85
+      }).addTo(map);
+
+      // シミュレーション着弾サークル
+      simCircleLayer = L.circle(userCoord, {
+        color: '#10b981',
+        weight: 2,
+        fillColor: '#10b981',
+        fillOpacity: 0.25,
+        radius: 15
+      }).addTo(map);
+
+      // ドラッグ終了イベント
+      teeMarker.on('dragend', (e) => {
+        currentTeeCoord = [e.target.getLatLng().lat, e.target.getLatLng().lng];
+        updateHUDAndSimulation();
+      });
+      pinMarker.on('dragend', (e) => {
+        currentPinCoord = [e.target.getLatLng().lat, e.target.getLatLng().lng];
+        updateHUDAndSimulation();
+      });
+
+      // マップタップイベント
+      map.on('click', (e) => {
+        if (isWidthMeasuring) {
+          handleMapWidthTap(e.latlng);
+          return;
+        }
+        // 通常タップ：現在打席を移動
+        userCoord = [e.latlng.lat, e.latlng.lng];
+        userMarker.setLatLng(userCoord);
+
+        if (lastShotCoord) {
+          const shotDist = calcDistanceYards(lastShotCoord, userCoord);
+          document.getElementById('hud-last-shot-dist').innerText = `${shotDist}y`;
+        }
+        updateHUDAndSimulation();
+      });
+
+      // ピン周辺のヤードサークル (50y, 100y, 150y) 描画
+      drawYardArcs();
+    }
+
+    /* ピン周囲のヤーデージリング (50y, 100y, 150y) */
+    function drawYardArcs() {
+      yardCircles.forEach(c => map.removeLayer(c));
+      yardCircles = [];
+
+      const rings = [
+        { yd: 50, color: '#f59e0b', dash: '3, 6' },
+        { yd: 100, color: '#ef4444', dash: '4, 8' },
+        { yd: 150, color: '#38bdf8', dash: '4, 8' }
+      ];
+
+      rings.forEach(r => {
+        const radiusM = r.yd / 1.09361;
+        const circle = L.circle(currentPinCoord, {
+          radius: radiusM,
+          color: r.color,
+          weight: 1.2,
+          fillOpacity: 0.03,
+          dashArray: r.dash
+        }).addTo(map);
+        yardCircles.push(circle);
+      });
+    }
+
+    function toggleMapLayer() {
+      if (currentMapLayerType === 'photo') {
+        map.removeLayer(tileLayerPhoto);
+        tileLayerRelief.addTo(map);
+        currentMapLayerType = 'relief';
+        document.getElementById('map-style-toggle').innerHTML = '🗺️ 航空写真に切替';
+      } else {
+        map.removeLayer(tileLayerRelief);
+        tileLayerPhoto.addTo(map);
+        currentMapLayerType = 'photo';
+        document.getElementById('map-style-toggle').innerHTML = '🗺️ 色別標高図に切替';
+      }
+    }
+
+    /* ==========================================================
+       6. 幾何学・物理弾道計算 (球面三角法 & 風・高低差物理シミュレーション)
+    ========================================================== */
+    function calcDistanceYards(c1, c2) {
+      const R = 6371000;
+      const dLat = (c2[0] - c1[0]) * Math.PI / 180;
+      const dLon = (c2[1] - c1[1]) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(c1[0]*Math.PI/180) * Math.cos(c2[0]*Math.PI/180) * Math.sin(dLon/2)**2;
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 1.09361);
+    }
+
+    function calcDistanceMeters(c1, c2) {
+      const R = 6371000;
+      const dLat = (c2[0] - c1[0]) * Math.PI / 180;
+      const dLon = (c2[1] - c1[1]) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(c1[0]*Math.PI/180) * Math.cos(c2[0]*Math.PI/180) * Math.sin(dLon/2)**2;
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    }
+
+    function calcBearing(c1, c2) {
+      const y = Math.sin((c2[1]-c1[1])*Math.PI/180) * Math.cos(c2[0]*Math.PI/180);
+      const x = Math.cos(c1[0]*Math.PI/180)*Math.sin(c2[0]*Math.PI/180) - Math.sin(c1[0]*Math.PI/180)*Math.cos(c2[0]*Math.PI/180)*Math.cos((c2[1]-c1[1])*Math.PI/180);
+      return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    }
+
+    function moveCoord(coord, distMeters, brngDeg) {
+      const R = 6371000;
+      const lat1 = coord[0] * Math.PI / 180;
+      const lon1 = coord[1] * Math.PI / 180;
+      const brngRad = brngDeg * Math.PI / 180;
+      const lat2 = Math.asin(Math.sin(lat1) * Math.cos(distMeters / R) + Math.cos(lat1) * Math.sin(distMeters / R) * Math.cos(brngRad));
+      const lon2 = lon1 + Math.atan2(Math.sin(brngRad) * Math.sin(distMeters / R) * Math.cos(lat1), Math.cos(distMeters / R) - Math.sin(lat1) * Math.sin(lat2));
+      return [lat2 * 180 / Math.PI, lon2 * 180 / Math.PI];
+    }
+
+    /* ==========================================================
+       7. 標高・気象API呼び出し (国土地理院 標高API ＆ Open-Meteo)
+    ========================================================== */
+    async function fetchElevation(lat, lon) {
+      try {
+        // 1. 国土地理院 標高API (無料・国内最高精度DEM5A/10B)
+        const url = `https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=${lon}&lat=${lat}&outtype=JSON`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.elevation !== "-----") {
+          return parseFloat(data.elevation);
+        }
+      } catch (e) {
+        // fallback: Open-Meteo Elevation
+        try {
+          const res2 = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`);
+          const data2 = await res2.json();
+          if (data2 && data2.elevation) return parseFloat(data2.elevation[0]);
+        } catch (err) {}
+      }
+      return 7.5;
+    }
+
+    async function fetchRealWeather(lat, lon) {
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=ms&timezone=Asia%2FTokyo`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.current) {
+          windInfo.speed = parseFloat(data.current.wind_speed_10m) || 2.0;
+          windInfo.direction = parseFloat(data.current.wind_direction_10m) || 0;
+          windInfo.gust = parseFloat(data.current.wind_gusts_10m) || 3.0;
+          windInfo.temp = parseFloat(data.current.temperature_2m) || 20.0;
+          updateHUDAndSimulation();
+        }
+      } catch (e) {
+        console.warn("Open-Meteo取得失敗", e);
+      }
+    }
+
+    /* ==========================================================
+       8. HUD更新 & PlaysLike ＆ 弾道シミュレーション
+    ========================================================== */
+    async function updateHUDAndSimulation() {
+      // 1. ピン実距離
+      const rawDistYards = calcDistanceYards(userCoord, currentPinCoord);
+      document.getElementById('hud-raw-dist').innerText = `${rawDistYards}y`;
+
+      // 2. 標高差取得
+      const [uElev, pElev] = await Promise.all([
+        fetchElevation(userCoord[0], userCoord[1]),
+        fetchElevation(currentPinCoord[0], currentPinCoord[1])
+      ]);
+      userElevation = uElev;
+      pinElevation = pElev;
+      document.getElementById('user-elev-val').innerText = userElevation.toFixed(1);
+
+      const diffElevM = pinElevation - userElevation;
+      const diffElevY = (diffElevM * 1.09361).toFixed(1);
+      const sign = diffElevM >= 0 ? '+' : '';
+      
+      const elevEl = document.getElementById('hud-elev-diff');
+      elevEl.innerText = `${sign}${diffElevM.toFixed(1)}m`;
+      elevEl.style.color = diffElevM > 0.5 ? '#ef4444' : (diffElevM < -0.5 ? '#38bdf8' : '#fff');
+      document.getElementById('hud-elev-yards').innerText = `(${sign}${diffElevY}y)`;
+
+      // 3. 風向相対分解 (アゲンスト/フォロー/横風)
+      const targetBearing = calcBearing(userCoord, currentPinCoord);
+      // 風が向かう角度 = (windInfo.direction + 180) % 360
+      const relativeAngle = ((windInfo.direction - targetBearing + 540) % 360) - 180;
+      const rad = relativeAngle * Math.PI / 180;
+      
+      // headwind > 0 = アゲンスト(向かい風), headwind < 0 = フォロー(追い風)
+      const headwindComponent = Math.cos(rad) * windInfo.speed;
+      // crosswind > 0 = 右からの風, crosswind < 0 = 左からの風
+      const crosswindComponent = Math.sin(rad) * windInfo.speed;
+
+      // HUD風バッジ更新
+      document.getElementById('wind-spd-val').innerText = windInfo.speed.toFixed(1);
+      document.getElementById('wind-arrow').style.transform = `rotate(${windInfo.direction}deg)`;
+      
+      let windText = "";
+      if (Math.abs(headwindComponent) < 0.5 && Math.abs(crosswindComponent) < 0.5) {
+        windText = "穏やか";
+      } else {
+        if (headwindComponent > 0.8) {
+          windText = `向かい風 ${headwindComponent.toFixed(1)}m`;
+        } else if (headwindComponent < -0.8) {
+          windText = `追い風 ${Math.abs(headwindComponent).toFixed(1)}m`;
+        } else {
+          windText = `横風 ${Math.abs(crosswindComponent).toFixed(1)}m`;
+        }
+      }
+      document.getElementById('wind-relative-detail').innerText = `(${windText})`;
+
+      // 4. PlaysLike推奨距離計算 (PGAツアースタイル物理補正)
+      // 高低差補正: 打ち上げ1mにつき約+1.15y、打ち下ろし約-0.95y
+      const elevFactor = diffElevM >= 0 ? diffElevM * 1.15 : diffElevM * 0.95;
+      // 風補正: アゲンスト1m/sにつき約+2.0y、フォローは約-1.4y
+      const windFactor = headwindComponent >= 0 ? headwindComponent * 2.0 : headwindComponent * 1.4;
+      const playsLike = Math.round(rawDistYards + elevFactor + windFactor);
+
+      const plEl = document.getElementById('hud-playslike-dist');
+      plEl.innerText = `${playsLike}y`;
+      const plDiff = playsLike - rawDistYards;
+      const plSign = plDiff >= 0 ? '+' : '';
+      document.getElementById('hud-playslike-detail').innerText = `実距離 ${plSign}${plDiff}y 補正`;
+
+      // 5. ガイドライン更新
+      targetGuideLine.setLatLngs([userCoord, currentPinCoord]);
+
+      // 6. クラブ着弾シミュレーションの更新
+      renderShotSimulation(targetBearing, headwindComponent, crosswindComponent);
+    }
+
+    /* 物理補正に基づく着弾予測サークルと弾道放物線の描画 */
+    function renderShotSimulation(targetBearing, headwind, crosswind) {
+      const select = document.getElementById('caddie-club-select');
+      const standardDistYards = parseFloat(select.value) || 150;
+
+      // 風と高低差によるキャリー変化の計算
+      const windCarryEffect = headwind * -1.8; // アゲンストで短くなる
+      const elevCarryEffect = (pinElevation - userElevation) * -0.9;
+      const simulatedDistYards = Math.max(20, standardDistYards + windCarryEffect + elevCarryEffect);
+      const simulatedDistMeters = simulatedDistYards / 1.09361;
+
+      // 横風による左右ブレ角
+      const driftMeters = crosswind * 1.2; // 横風で流される距離
+      const driftAngle = (Math.atan2(driftMeters, simulatedDistMeters) * 180 / Math.PI);
+      const finalBearing = (targetBearing + driftAngle + 360) % 360;
+
+      // 予想着弾地点の座標
+      const landingCoord = moveCoord(userCoord, simulatedDistMeters, finalBearing);
+
+      // 着弾サークルの位置とばらつき半径
+      simCircleLayer.setLatLng(landingCoord);
+      const spreadRadius = Math.max(10, simulatedDistYards * 0.07); // 飛距離の約7%の散布界
+      simCircleLayer.setRadius(spreadRadius);
+
+      // 放物線弾道ラインの描画
+      if (simArcPolyline) map.removeLayer(simArcPolyline);
+      const arcPoints = generateArcPoints(userCoord, landingCoord, 12);
+      simArcPolyline = L.polyline(arcPoints, {
+        color: '#10b981',
+        weight: 3.5,
+        opacity: 0.9,
+        lineCap: 'round'
+      }).addTo(map);
+    }
+
+    // 擬似的な弾道放物線座標の生成
+    function generateArcPoints(p1, p2, segments) {
+      const points = [];
+      for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        const lat = p1[0] + (p2[0] - p1[0]) * t;
+        const lon = p1[1] + (p2[1] - p1[1]) * t;
+        points.push([lat, lon]);
+      }
+      return points;
+    }
+
+    /* ==========================================================
+       9. ホール切り替え制御 (1H〜18H)
+    ========================================================== */
+    function populateHoleSelect() {
+      const select = document.getElementById('hole-quick-select');
+      select.innerHTML = '';
+      holeList.forEach((hole, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.innerText = `${hole.h}H (Par ${hole.par} / ${hole.yard}y)`;
+        if (idx === currentHoleIndex) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function applyHole(idx) {
+      currentHoleIndex = idx;
+      const hole = holeList[idx];
+      currentTeeCoord = [...hole.tee];
+      currentPinCoord = [...hole.pin];
+      userCoord = [...currentTeeCoord];
+      lastShotCoord = null;
+
+      document.getElementById('hud-current-hole-num').innerText = `${hole.h}H`;
+      document.getElementById('hud-current-hole-par').innerText = `Par ${hole.par} / ${hole.yard}y`;
+      document.getElementById('hole-quick-select').value = idx;
+      document.getElementById('hud-last-shot-dist').innerText = "-- y";
+
+      // マップマーカー更新
+      teeMarker.setLatLng(currentTeeCoord);
+      pinMarker.setLatLng(currentPinCoord);
+      userMarker.setLatLng(userCoord);
+
+      // マップカメラをホール全体が見えるように自動移動
+      map.flyToBounds([currentTeeCoord, currentPinCoord], {
+        padding: [60, 60],
+        maxZoom: 17,
+        duration: 1.0
+      });
+
+      drawYardArcs();
+      updateHUDAndSimulation();
+      updateScoreQuickInput();
+      updateGuideHoleInfo();
+    }
+
+    function prevHole() {
+      if (currentHoleIndex > 0) applyHole(currentHoleIndex - 1);
+    }
+    function nextHole() {
+      if (currentHoleIndex < holeList.length - 1) applyHole(currentHoleIndex + 1);
+    }
+    function onHoleSelectChange(val) {
+      applyHole(parseInt(val, 10));
+    }
+
+    /* ==========================================================
+       10. GPS追跡 ＆ 室内シミュレーション機能
+    ========================================================== */
+    function toggleGPSWatch() {
+      const btn = document.getElementById('btn-gps-toggle');
+      if (!isGPSTracking) {
+        if (!navigator.geolocation) {
+          alert("お使いの端末またはブラウザはGPS(Geolocation)に対応していません。");
+          return;
+        }
+        gpsWatchId = navigator.geolocation.watchPosition(pos => {
+          userCoord = [pos.coords.latitude, pos.coords.longitude];
+          userMarker.setLatLng(userCoord);
+
+          if (lastShotCoord) {
+            const distYd = calcDistanceYards(lastShotCoord, userCoord);
+            document.getElementById('hud-last-shot-dist').innerText = `${distYd}y`;
+          }
+          updateHUDAndSimulation();
+        }, err => {
+          alert("GPS測位エラー: " + err.message);
+        }, {
+          enableHighAccuracy: true,
+          maximumAge: 1000,
+          timeout: 10000
+        });
+
+        isGPSTracking = true;
+        btn.innerText = "📡 GPS作動中 (高精度)";
+        btn.classList.add('btn-active-glow');
+      } else {
+        if (gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
+        isGPSTracking = false;
+        btn.innerText = "📡 GPS追跡: OFF";
+        btn.classList.remove('btn-active-glow');
+      }
+    }
+
+    // 室内検証用：ピン方向に20ヤード歩いたシミュレーション
+    function simulateWalkToNextShot() {
+      const brng = calcBearing(userCoord, currentPinCoord);
+      userCoord = moveCoord(userCoord, 18.288, brng); // 20ヤード前進
+      userMarker.setLatLng(userCoord);
+
+      if (lastShotCoord) {
+        const dist = calcDistanceYards(lastShotCoord, userCoord);
+        document.getElementById('hud-last-shot-dist').innerText = `${dist}y`;
+      }
+      updateHUDAndSimulation();
+    }
+
+    /* ==========================================================
+       11. 打席記録 ＆ 飛距離リアルタイム追跡
+    ========================================================== */
+    function recordCurrentShot() {
+      const select = document.getElementById('caddie-club-select');
+      const clubName = select.options[select.selectedIndex].text.split(' ')[0];
+      lastShotCoord = [...userCoord];
+
+      const shotNum = shotHistoryList.length + 1;
+      shotHistoryList.push({
+        num: shotNum,
+        club: clubName,
+        coord: lastShotCoord
+      });
+
+      // マップ上に打順マーカーを打刻
+      L.marker(lastShotCoord, {
+        icon: L.divIcon({
+          className: '',
+          html: `<div class="custom-shot-badge">${shotNum}</div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        })
+      }).addTo(map).bindPopup(`第${shotNum}打 [${clubName}]`).openPopup();
+
+      document.getElementById('hud-last-shot-dist').innerText = "0y";
+      alert(`第${shotNum}打 (${clubName}) の打席を記録しました！\nボール地点まで歩くと「前回打球飛距離」がリアルタイムにカウントアップされます。`);
+    }
+
+    function clearShotHistory() {
+      shotHistoryList = [];
+      lastShotCoord = null;
+      document.getElementById('hud-last-shot-dist').innerText = "-- y";
+      alert("ショット履歴をリセットしました。");
+      closeSimToolModal();
+    }
+
+    /* ==========================================================
+       12. コース横幅 (フェアウェイ幅) 計測機能
+    ========================================================== */
+    function openWidthMeasureModal() {
+      document.getElementById('width-modal').style.display = 'flex';
+    }
+    function closeWidthMeasureModal() {
+      document.getElementById('width-modal').style.display = 'none';
+    }
+
+    function startMapTapWidthMeasurement() {
+      closeWidthMeasureModal();
+      clearWidthLines();
+      isWidthMeasuring = true;
+      widthTapCoords = [];
+
+      const banner = document.getElementById('measure-active-banner');
+      banner.style.display = 'flex';
+      document.getElementById('measure-instruction-text').innerText = '📍 1点目（フェアウェイ左端など）をタップ';
+      document.getElementById('btn-measure-width').classList.add('btn-active-glow');
+    }
+
+    function cancelWidthMeasurement() {
+      isWidthMeasuring = false;
+      widthTapCoords = [];
+      document.getElementById('measure-active-banner').style.display = 'none';
+      document.getElementById('btn-measure-width').classList.remove('btn-active-glow');
+    }
+
+    function clearWidthLines() {
+      widthMapMarkers.forEach(m => map.removeLayer(m));
+      widthMapMarkers = [];
+      if (widthPolyline) { map.removeLayer(widthPolyline); widthPolyline = null; }
+      if (widthLabelMarker) { map.removeLayer(widthLabelMarker); widthLabelMarker = null; }
+      document.getElementById('gps-width-result-display').innerText = '';
+    }
+
+    function handleMapWidthTap(latlng) {
+      widthTapCoords.push([latlng.lat, latlng.lng]);
+
+      const marker = L.circleMarker([latlng.lat, latlng.lng], {
+        color: '#f59e0b',
+        radius: 7,
+        fillColor: '#f59e0b',
+        fillOpacity: 1
+      }).addTo(map);
+      widthMapMarkers.push(marker);
+
+      if (widthTapCoords.length === 1) {
+        document.getElementById('measure-instruction-text').innerText = '📍 2点目（右端）をタップして確定';
+      } else if (widthTapCoords.length === 2) {
+        const p1 = widthTapCoords[0];
+        const p2 = widthTapCoords[1];
+        const yd = calcDistanceYards(p1, p2);
+        const m = calcDistanceMeters(p1, p2);
+
+        // 破線描画
+        widthPolyline = L.polyline([p1, p2], {
+          color: '#f59e0b',
+          weight: 3.5,
+          dashArray: '6, 6'
+        }).addTo(map);
+
+        // 中心にヤード表示
+        const midPoint = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+        widthLabelMarker = L.marker(midPoint, {
+          icon: L.divIcon({
+            className: '',
+            html: `<div class="custom-width-badge">幅: ${yd}y (${m}m)</div>`,
+            iconAnchor: [45, 12]
+          })
+        }).addTo(map);
+
+        document.getElementById('measure-instruction-text').innerText = `✅ コース横幅: ${yd} yard (${m}m)`;
+        setTimeout(() => {
+          cancelWidthMeasurement();
+        }, 3500);
+      }
+    }
+
+    // GPS実測計測
+    function recordWidthGPSPoint(ptKey) {
+      if (!navigator.geolocation) {
+        alert("GPSが使用できません。");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(pos => {
+        const c = [pos.coords.latitude, pos.coords.longitude];
+        if (ptKey === 'p1') {
+          gpsWidthP1 = c;
+          alert("【左端】のGPS位置を記憶しました。右端へ歩いて移動してください。");
+        } else {
+          gpsWidthP2 = c;
+          alert("【右端】のGPS位置を記憶しました。");
+        }
+
+        if (gpsWidthP1 && gpsWidthP2) {
+          const yd = calcDistanceYards(gpsWidthP1, gpsWidthP2);
+          const m = calcDistanceMeters(gpsWidthP1, gpsWidthP2);
+          document.getElementById('gps-width-result-display').innerText = `実測コース横幅: ${yd} yard (${m}m)`;
+
+          clearWidthLines();
+          widthPolyline = L.polyline([gpsWidthP1, gpsWidthP2], {
+            color: '#38bdf8', weight: 3, dashArray: '6, 6'
+          }).addTo(map);
+          const mid = [(gpsWidthP1[0] + gpsWidthP2[0]) / 2, (gpsWidthP1[1] + gpsWidthP2[1]) / 2];
+          widthLabelMarker = L.marker(mid, {
+            icon: L.divIcon({
+              className: '',
+              html: `<div class="custom-width-badge" style="background:#38bdf8;color:#000;">実測幅: ${yd}y</div>`,
+              iconAnchor: [40, 12]
+            })
+          }).addTo(map);
+        }
+      }, err => alert("GPS取得エラー: " + err.message), { enableHighAccuracy: true });
+    }
+
+    /* ==========================================================
+       13. マイクラブ設定 (1W〜PT)
+    ========================================================== */
+    function populateClubSelect() {
+      const select = document.getElementById('caddie-club-select');
+      select.innerHTML = '';
+      userClubs.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.dist;
+        opt.innerText = `${c.name} [${c.dist}y]`;
+        if (c.id === "2U") opt.selected = true;
+        select.appendChild(opt);
+      });
+      updateHUDAndSimulation();
+    }
+
+    function onClubSelectionChange() {
+      updateHUDAndSimulation();
+    }
+
+    function openClubModal() {
+      const tbody = document.getElementById('club-settings-tbody');
+      tbody.innerHTML = '';
+      userClubs.forEach((c, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${c.id}</strong></td>
+          <td style="text-align:left;">${c.name}</td>
+          <td><input type="number" id="club-dist-input-${idx}" value="${c.dist}" style="width:55px; background:#1e293b; color:#fff; text-align:right;"> yd</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('club-modal').style.display = 'flex';
+    }
+    function closeClubModal() {
+      document.getElementById('club-modal').style.display = 'none';
+    }
+
+    function saveClubSettings() {
+      userClubs.forEach((c, idx) => {
+        const val = parseInt(document.getElementById(`club-dist-input-${idx}`).value, 10);
+        if (!isNaN(val)) c.dist = val;
+      });
+      localStorage.setItem('smart_caddie_pro_clubs_v4', JSON.stringify(userClubs));
+      populateClubSelect();
+      closeClubModal();
+      alert("クラブ設定を保存・適用しました。");
+    }
+
+    function resetClubsToDefaultPreset() {
+      if (confirm("クラブ飛距離を標準設定に戻しますか？")) {
+        userClubs = JSON.parse(JSON.stringify(DEFAULT_CLUBS));
+        localStorage.removeItem('smart_caddie_pro_clubs_v4');
+        openClubModal();
+      }
+    }
+
+    /* ==========================================================
+       14. 楽天スコアPlus (片手入力 & スタッツ分析)
+    ========================================================== */
+    let currentScoreHole = 1;
+
+    function renderScoreTable() {
+      const tbody = document.getElementById('score-table-body');
+      tbody.innerHTML = '';
+      let totalGross = 0;
+      let totalPutts = 0;
+      let outScore = 0;
+      let inScore = 0;
+      let totalPar = 0;
+
+      let fwHits = 0;
+      let fwOpportunities = 0;
+      let girHits = 0;
+
+      for (let h = 1; h <= 18; h++) {
+        const row = scoreCardData[h] || { par: 4, score: 4, putts: 2, fw: 'center', gir: true };
+        totalGross += row.score;
+        totalPutts += row.putts;
+        totalPar += row.par;
+
+        if (h <= 9) outScore += row.score;
+        else inScore += row.score;
+
+        if (row.par >= 4) {
+          fwOpportunities++;
+          if (row.fw === 'center') fwHits++;
+        }
+        if (row.gir) girHits++;
+
+        // スコア装飾クラス
+        const diff = row.score - row.par;
+        let badgeClass = 'score-par';
+        if (diff <= -2) badgeClass = 'score-eagle';
+        else if (diff === -1) badgeClass = 'score-birdie';
+        else if (diff === 0) badgeClass = 'score-par';
+        else if (diff === 1) badgeClass = 'score-bogey';
+        else if (diff >= 2) badgeClass = 'score-double';
+
+        const tr = document.createElement('tr');
+        if (h === currentScoreHole) tr.className = 'active-row';
+        tr.style.cursor = 'pointer';
+        tr.onclick = () => selectScoreHole(h);
+
+        tr.innerHTML = `
+          <td><strong>${h}H</strong></td>
+          <td style="color:var(--text-sub);">${row.par}</td>
+          <td><span class="score-badge-circle ${badgeClass}">${row.score}</span></td>
+          <td style="color:var(--accent-blue);">${row.putts}</td>
+          <td>${row.fw === 'center' ? '⭕' : (row.fw === 'left' ? '⬅️' : '➡️')}</td>
+          <td>${row.gir ? '🟢' : '⚪'}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      // サマリー更新
+      document.getElementById('sc-total-gross').innerText = totalGross;
+      document.getElementById('sc-total-putts').innerText = totalPutts;
+      document.getElementById('sc-out-subtotal').innerText = outScore;
+      document.getElementById('sc-in-subtotal').innerText = inScore;
+
+      const diffTotal = totalGross - totalPar;
+      const diffBadge = document.getElementById('sc-diff-badge');
+      if (diffTotal > 0) {
+        diffBadge.innerText = `+${diffTotal}`;
+        diffBadge.className = 'score-diff-badge over';
+      } else if (diffTotal < 0) {
+        diffBadge.innerText = `${diffTotal}`;
+        diffBadge.className = 'score-diff-badge under';
+      } else {
+        diffBadge.innerText = 'E';
+        diffBadge.className = 'score-diff-badge even';
+      }
+
+      // スタッツ計算
+      const fwRate = fwOpportunities > 0 ? Math.round((fwHits / fwOpportunities) * 100) : 0;
+      const girRate = Math.round((girHits / 18) * 100);
+      const avgPutt = (totalPutts / 18).toFixed(1);
+
+      document.getElementById('stat-fw-rate').innerText = `${fwRate}%`;
+      document.getElementById('stat-gir-rate').innerText = `${girRate}%`;
+      document.getElementById('stat-avg-putt').innerText = avgPutt;
+    }
+
+    function selectScoreHole(h) {
+      currentScoreHole = h;
+      updateScoreQuickInput();
+      renderScoreTable();
+    }
+
+    function updateScoreQuickInput() {
+      const h = currentScoreHole;
+      const row = scoreCardData[h] || { par: 4, score: 4, putts: 2, fw: 'center', gir: true, bunker: 0, penalty: 0 };
+      const holeInfo = (h <= holeList.length) ? holeList[h-1] : { par: 4, yard: 380 };
+
+      document.getElementById('sc-quick-hole-name').innerText = `${h}H`;
+      document.getElementById('sc-quick-par-text').innerText = `Par ${holeInfo.par} / ${holeInfo.yard}y`;
+      document.getElementById('sc-quick-score-val').innerText = row.score;
+      document.getElementById('sc-quick-putt-val').innerText = row.putts;
+
+      // FWボタントグル
+      ['left', 'center', 'right'].forEach(dir => {
+        const btn = document.getElementById(`fw-btn-${dir}`);
+        if (row.fw === dir) btn.classList.add('selected');
+        else btn.classList.remove('selected');
+      });
+
+      // ハザードトグル
+      const girBtn = document.getElementById('hazard-btn-gir');
+      if (row.gir) girBtn.classList.add('selected');
+      else girBtn.classList.remove('selected');
+
+      const bnkBtn = document.getElementById('hazard-btn-bunker');
+      if (row.bunker > 0) bnkBtn.classList.add('selected');
+      else bnkBtn.classList.remove('selected');
+
+      const penBtn = document.getElementById('hazard-btn-penalty');
+      if (row.penalty > 0) penBtn.classList.add('selected');
+      else penBtn.classList.remove('selected');
+    }
+
+    function adjustQuickScore(delta) {
+      const h = currentScoreHole;
+      if (!scoreCardData[h]) return;
+      scoreCardData[h].score = Math.max(1, scoreCardData[h].score + delta);
+      // パーオン自動判定: (打数 - パット数) <= (Par - 2)
+      scoreCardData[h].gir = (scoreCardData[h].score - scoreCardData[h].putts) <= (scoreCardData[h].par - 2);
+      saveScoreData();
+      updateScoreQuickInput();
+      renderScoreTable();
+    }
+
+    function adjustQuickPutt(delta) {
+      const h = currentScoreHole;
+      if (!scoreCardData[h]) return;
+      scoreCardData[h].putts = Math.max(0, scoreCardData[h].putts + delta);
+      scoreCardData[h].gir = (scoreCardData[h].score - scoreCardData[h].putts) <= (scoreCardData[h].par - 2);
+      saveScoreData();
+      updateScoreQuickInput();
+      renderScoreTable();
+    }
+
+    function setQuickFW(dir) {
+      scoreCardData[currentScoreHole].fw = dir;
+      saveScoreData();
+      updateScoreQuickInput();
+      renderScoreTable();
+    }
+
+    function toggleGIR() {
+      scoreCardData[currentScoreHole].gir = !scoreCardData[currentScoreHole].gir;
+      saveScoreData();
+      updateScoreQuickInput();
+      renderScoreTable();
+    }
+
+    function toggleBunker() {
+      scoreCardData[currentScoreHole].bunker = scoreCardData[currentScoreHole].bunker > 0 ? 0 : 1;
+      saveScoreData();
+      updateScoreQuickInput();
+    }
+
+    function togglePenalty() {
+      scoreCardData[currentScoreHole].penalty = scoreCardData[currentScoreHole].penalty > 0 ? 0 : 1;
+      saveScoreData();
+      updateScoreQuickInput();
+    }
+
+    function prevScoreHole() {
+      if (currentScoreHole > 1) selectScoreHole(currentScoreHole - 1);
+    }
+    function nextScoreHole() {
+      if (currentScoreHole < 18) selectScoreHole(currentScoreHole + 1);
+    }
+
+    function saveScoreData() {
+      localStorage.setItem('smart_caddie_scorecard_v4', JSON.stringify(scoreCardData));
+    }
+
+    function resetRoundScore() {
+      if (confirm("本日のラウンドスコアを初期化しますか？")) {
+        for (let h = 1; h <= 18; h++) {
+          const p = (h <= holeList.length) ? holeList[h-1].par : 4;
+          scoreCardData[h] = { par: p, score: p, putts: 2, fw: 'center', gir: true, bunker: 0, penalty: 0 };
+        }
+        saveScoreData();
+        updateScoreQuickInput();
+        renderScoreTable();
+      }
+    }
+
+    /* ==========================================================
+       15. プロトタイプ表示切り替え
+    ========================================================== */
+    function switchProtoView(mode) {
+      const vCaddie = document.getElementById('view-caddie');
+      const vScore = document.getElementById('view-score');
+      const vGuide = document.getElementById('view-guide');
+
+      const bCaddie = document.getElementById('tab-btn-caddie');
+      const bScore = document.getElementById('tab-btn-score');
+      const bGuide = document.getElementById('tab-btn-guide');
+
+      [bCaddie, bScore, bGuide].forEach(b => b.classList.remove('active'));
+
+      if (mode === 'caddie') {
+        vCaddie.style.display = 'flex';
+        vScore.style.display = 'none';
+        vGuide.style.display = 'none';
+        bCaddie.classList.add('active');
+        setTimeout(() => map.invalidateSize(), 50);
+      } else if (mode === 'score') {
+        vCaddie.style.display = 'none';
+        vScore.style.display = 'flex';
+        vGuide.style.display = 'none';
+        bScore.classList.add('active');
+        renderScoreTable();
+        updateScoreQuickInput();
+      } else if (mode === 'guide') {
+        vCaddie.style.display = 'none';
+        vScore.style.display = 'none';
+        vGuide.style.display = 'flex';
+        bGuide.classList.add('active');
+        renderGuideHoles();
+        updateGuideHoleInfo();
+      }
+    }
+
+    /* ==========================================================
+       16. 空撮コース戦略ガイド (View 3)
+    ========================================================== */
+    function renderGuideHoles() {
+      const container = document.getElementById('guide-holes-container');
+      container.innerHTML = '';
+      holeList.forEach((h, idx) => {
+        const div = document.createElement('div');
+        div.className = `guide-hole-card ${idx === currentHoleIndex ? 'selected' : ''}`;
+        div.onclick = () => {
+          applyHole(idx);
+          renderGuideHoles();
+        };
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="font-size:14px; color:#fff;">${h.h}H</strong>
+            <span style="font-size:11px; background:#1e293b; padding:2px 6px; border-radius:4px; color:var(--accent-blue);">Par ${h.par}</span>
+          </div>
+          <div style="font-size:12px; color:var(--accent-green); margin-top:4px; font-weight:700;">${h.yard} yard</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateGuideHoleInfo() {
+      const h = holeList[currentHoleIndex];
+      document.getElementById('guide-course-title').innerText = currentCourse.name;
+      document.getElementById('guide-current-advice').innerHTML = `
+        <strong>💡 ${h.h}H (Par ${h.par} / ${h.yard}y) 攻略メモ:</strong><br>
+        ${h.advice}
+      `;
+    }
+
+    function focusCurrentHoleOnMap() {
+      switchProtoView('caddie');
+    }
+
+    /* ==========================================================
+       17. ゴルフ場選択・ファジー検索モーダル
+    ========================================================== */
+    function openCourseSearchModal() {
+      document.getElementById('course-search-modal').style.display = 'flex';
+      renderPresetChips();
+      renderCourseCandidates(NATIONWIDE_COURSES);
+    }
+    function closeCourseSearchModal() {
+      document.getElementById('course-search-modal').style.display = 'none';
+    }
+
+    function renderPresetChips() {
+      const container = document.getElementById('preset-course-chips');
+      container.innerHTML = '';
+      const chips = [
+        { id: "toride", label: "取手桜が丘GC" },
+        { id: "toride_kokusai", label: "取手国際GC" },
+        { id: "kasumigaseki", label: "霞ヶ関CC" },
+        { id: "taiheiyo_gotemba", label: "太平洋御殿場" },
+        { id: "narashino", label: "習志野CC" },
+        { id: "nishikigahara", label: "ノーザン錦ヶ原" },
+        { id: "toda_pub", label: "戸田パブリック" },
+        { id: "kawana_fuji", label: "川奈富士コース" }
+      ];
+
+      chips.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-sub';
+        btn.style.fontSize = '11px';
+        btn.style.padding = '4px 8px';
+        btn.innerText = c.label;
+        btn.onclick = () => {
+          const found = NATIONWIDE_COURSES.find(item => item.id === c.id);
+          if (found) selectCourse(found);
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    // ファジー検索 (あいまい検索・部分一致)
+    function onCourseSearchInput(query) {
+      const q = query.trim().toLowerCase();
+      if (!q) {
+        renderCourseCandidates(NATIONWIDE_COURSES);
+        return;
+      }
+
+      // スコアリングによるランキング
+      const scored = NATIONWIDE_COURSES.map(course => {
+        let score = 0;
+        const name = course.name.toLowerCase();
+        const kana = course.kana.toLowerCase();
+        const pref = course.pref.toLowerCase();
+
+        if (name === q || kana === q) score += 100;
+        else if (name.startsWith(q) || kana.startsWith(q)) score += 60;
+        else if (name.includes(q) || kana.includes(q)) score += 40;
+        else if (pref.includes(q)) score += 20;
+
+        return { course, score };
+      }).filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score);
+
+      const status = document.getElementById('course-candidate-status');
+      if (scored.length > 0) {
+        status.style.display = 'none';
+        renderCourseCandidates(scored.map(s => s.course));
+      } else {
+        status.style.display = 'block';
+        status.innerText = `「${query}」に近い類似候補を表示中、またはWeb検索を押してください：`;
+        // 類似候補として全件または先頭候補をフォールバック
+        renderCourseCandidates(NATIONWIDE_COURSES.slice(0, 5));
+      }
+    }
+
+    function renderCourseCandidates(list) {
+      const container = document.getElementById('course-candidates-container');
+      container.innerHTML = '';
+      list.forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'candidate-card';
+        card.onclick = () => selectCourse(c);
+        card.innerHTML = `
+          <div class="candidate-title">
+            ⛳ ${c.name}
+            <span class="candidate-tag">${c.pref}</span>
+          </div>
+          <div class="candidate-desc">${c.desc}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function executeExternalCourseSearch() {
+      const query = document.getElementById('course-search-input').value.trim();
+      if (!query) return;
+      const status = document.getElementById('course-candidate-status');
+      status.style.display = 'block';
+      status.innerText = `🔍 国土・自治体データから「${query}」を検索中...`;
+
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ' ゴルフ')}&countrycodes=jp&limit=6`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const extCourses = data.map(item => ({
+            id: 'ext_' + item.place_id,
+            name: item.display_name.split(',')[0],
+            kana: '',
+            pref: '日本国内',
+            tee: [parseFloat(item.lat), parseFloat(item.lon)],
+            pin: moveCoord([parseFloat(item.lat), parseFloat(item.lon)], 360, 45),
+            par: 72,
+            desc: item.display_name
+          }));
+          status.innerText = `🎯 Webから ${extCourses.length} 件のゴルフ場を検出しました：`;
+          renderCourseCandidates(extCourses);
+        } else {
+          status.innerText = `該当するゴルフ場が見つかりませんでした。「取手」「霞ヶ関」「成田」等でお試しください。`;
+        }
+      } catch (e) {
+        status.innerText = '検索通信エラーが発生しました。';
+      }
+    }
+
+    function selectCourse(c) {
+      currentCourse = c;
+      document.getElementById('current-course-display').innerHTML = `
+        ⛳ ${c.name}
+        <span class="tag">Par ${c.par}</span>
+      `;
+
+      if (c.id === 'toride') {
+        holeList = [...TORIDE_SAKURAGAOKA_18HOLES];
+      } else {
+        // 他のゴルフ場選択時は代表ティー・ピンから18ホールを生成
+        holeList = Array.from({ length: 18 }, (_, i) => ({
+          h: i + 1,
+          par: [4, 5, 3, 4, 4, 3, 4, 5, 4, 4, 4, 3, 5, 4, 4, 3, 5, 4][i],
+          yard: [380, 510, 160, 390, 370, 175, 410, 520, 385, 395, 365, 155, 530, 400, 375, 170, 515, 410][i],
+          tee: moveCoord(c.tee, i * 60, (i * 20) % 360),
+          pin: moveCoord(c.pin, i * 60, (i * 20 + 45) % 360),
+          advice: `${i+1}H: ${c.name} の戦略的なホール。風向と高低差を考慮した手前からの攻めがおすすめ。`
+        }));
+      }
+
+      populateHoleSelect();
+      applyHole(0);
+      fetchRealWeather(c.tee[0], c.tee[1]);
+      closeCourseSearchModal();
+    }
+
+    /* ==========================================================
+       18. 開発・シミュレーションツールモーダル
+    ========================================================== */
+    function openSimToolModal() {
+      document.getElementById('sim-tool-modal').style.display = 'flex';
+    }
+    function closeSimToolModal() {
+      document.getElementById('sim-tool-modal').style.display = 'none';
+    }
+    function onSimWindChange() {
+      const val = parseFloat(document.getElementById('sim-wind-speed-slider').value);
+      windInfo.speed = val;
+      document.getElementById('sim-wind-label').innerText = `${val.toFixed(1)} m/s`;
+      updateHUDAndSimulation();
+    }
+
+    /* ==========================================================
+       19. 起動時セットアップ
+    ========================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      populateClubSelect();
+      populateHoleSelect();
+      applyHole(0);
+      renderScoreTable();
+      renderGuideHoles();
+
+      // 天気・標高の初期取得
+      fetchRealWeather(currentCourse.tee[0], currentCourse.tee[1]);
+
+      // 起動直後に「ゴルフ場選択モーダル」を自動提示 (条件1対応)
+      setTimeout(() => {
+        openCourseSearchModal();
+      }, 500);
+    });
+  </script>
+</body>
+</html>
