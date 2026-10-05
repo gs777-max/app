@@ -43,7 +43,6 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", 'Noto Sans JP', Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
-      touch-action: manipulation;
     }
 
     body {
@@ -62,7 +61,7 @@
     #top-bar {
       background: rgba(15, 23, 42, 0.98);
       backdrop-filter: blur(12px);
-      padding: 6px 12px;
+      padding: 6px 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -73,9 +72,9 @@
     .course-badge-group {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       overflow: hidden;
-      max-width: 62%;
+      max-width: 60%;
     }
     #current-course-display {
       font-size: 13px;
@@ -86,26 +85,26 @@
       text-overflow: ellipsis;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
     }
     #current-course-display span.tag {
       background: rgba(16, 185, 129, 0.2);
       color: var(--accent-green);
       font-size: 10px;
-      padding: 2px 6px;
+      padding: 2px 5px;
       border-radius: 4px;
       border: 1px solid rgba(16, 185, 129, 0.4);
     }
     .top-actions {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       align-items: center;
     }
 
     /* プロトタイプ切り替えタブバー */
     #proto-tab-bar {
       background: #090e1d;
-      padding: 4px 8px;
+      padding: 4px 6px;
       display: flex;
       gap: 4px;
       border-bottom: 1px solid var(--card-border);
@@ -113,7 +112,7 @@
     }
     .proto-tab-btn {
       flex: 1;
-      padding: 6px 4px;
+      padding: 6px 2px;
       font-size: 11px;
       font-weight: 700;
       text-align: center;
@@ -125,8 +124,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 3px;
       transition: all 0.2s ease;
+      white-space: nowrap;
     }
     .proto-tab-btn.active {
       background: rgba(16, 185, 129, 0.18);
@@ -138,7 +138,7 @@
     /* ホールナビゲーションセレクターバー */
     #hole-nav-bar {
       background: #111827;
-      padding: 4px 10px;
+      padding: 4px 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -149,21 +149,22 @@
     .hole-selector-group {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
     .hole-badge {
       background: var(--accent-blue);
       color: #042940;
       font-family: var(--font-num);
       font-weight: 900;
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 6px;
       font-size: 13px;
     }
     .hole-par-badge {
       color: var(--text-sub);
       font-weight: 700;
-      font-size: 12px;
+      font-size: 11px;
+      white-space: nowrap;
     }
 
     /* ========================================================
@@ -192,17 +193,17 @@
     #hud-grid {
       background: var(--bg-card);
       backdrop-filter: blur(16px);
-      padding: 6px 8px;
+      padding: 5px 6px;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
+      gap: 5px;
       z-index: 900;
       border-bottom: 1px solid var(--card-border);
     }
     .hud-tile {
       background: rgba(255, 255, 255, 0.04);
       border-radius: 8px;
-      padding: 5px 2px;
+      padding: 4px 2px;
       text-align: center;
       border: 1px solid rgba(255, 255, 255, 0.06);
       display: flex;
@@ -215,26 +216,29 @@
       border-color: rgba(16, 185, 129, 0.3);
     }
     .hud-label {
-      font-size: 9px;
+      font-size: 8.5px;
       color: var(--text-sub);
       font-weight: 700;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
       text-transform: uppercase;
+      white-space: nowrap;
     }
     .hud-val {
       font-family: var(--font-num);
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 900;
       line-height: 1.1;
-      margin-top: 2px;
+      margin-top: 1px;
+      white-space: nowrap;
     }
     .hud-val.green { color: var(--accent-green-bright); text-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
     .hud-val.blue { color: var(--accent-blue); text-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
     .hud-val.amber { color: var(--accent-amber); text-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
     .hud-sub-label {
-      font-size: 9px;
+      font-size: 8.5px;
       color: var(--text-muted);
       margin-top: 1px;
+      white-space: nowrap;
     }
 
     /* マップコンテナ */
@@ -246,6 +250,8 @@
       width: 100%;
       height: 100%;
       background: #090e17;
+      /* Leafletのタッチ判定を阻害しない */
+      touch-action: pan-x pan-y;
     }
 
     /* マップ上フローティング情報バッジ */
@@ -253,11 +259,11 @@
       position: absolute;
       background: var(--bg-glass);
       backdrop-filter: blur(10px);
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: 20px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       z-index: 800;
       font-size: 11px;
       font-weight: 700;
@@ -297,7 +303,7 @@
     #test-sim-walk-btn {
       bottom: 20px;
       right: 10px;
-      padding: 6px 12px;
+      padding: 6px 10px;
       font-size: 11px;
       background: rgba(56, 189, 248, 0.2);
       border-color: rgba(56, 189, 248, 0.4);
@@ -305,60 +311,90 @@
       cursor: pointer;
     }
 
-    /* 幅計測アクティブ時バナーHUD (画面上部に大きく表示) */
+    /* ★ マップ上フローティング即効消去ボタン (iPhoneでも絶対に隠れず親指で即タップ可能) ★ */
+    #map-clear-width-badge {
+      display: none;
+      position: absolute;
+      bottom: 60px;
+      right: 10px;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #fff;
+      border: 1.5px solid #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      z-index: 850;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.7), 0 0 10px rgba(239, 68, 68, 0.5);
+      align-items: center;
+      gap: 5px;
+      animation: badgePop 0.2s ease;
+    }
+    @keyframes badgePop {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* ★ 幅計測アクティブ時バナーHUD (iPhoneの画面幅でも絶対に溢れないコンパクト設計) ★ */
     #measure-active-banner {
       display: none;
       position: absolute;
-      top: 12px;
+      top: 8px;
       left: 50%;
       transform: translateX(-50%);
-      background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.98));
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98));
       color: #fff;
-      padding: 8px 16px;
-      border-radius: 30px;
-      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 24px;
+      font-size: 11px;
       font-weight: 800;
       z-index: 1200;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.7), 0 0 14px rgba(245, 158, 11, 0.4);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.8), 0 0 14px rgba(245, 158, 11, 0.5);
       align-items: center;
-      gap: 10px;
-      white-space: nowrap;
+      gap: 6px;
+      max-width: 94%;
       border: 1.5px solid var(--accent-amber);
     }
     #measure-instruction-text {
       color: #fef08a;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    /* キャディ操作ボトムコントロール */
+    /* キャディ操作ボトムコントロール (iPhoneの375px幅でも絶対に要素がはみ出さないレスポンシブ設計) */
     #caddie-controls {
       background: var(--bg-surface);
       border-top: 1px solid var(--card-border);
-      padding: 8px 10px calc(8px + var(--safe-bottom));
+      padding: 6px 8px calc(6px + var(--safe-bottom));
       z-index: 900;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
     .ctrl-row {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       align-items: center;
+      width: 100%;
     }
 
     select, button, input[type="text"], input[type="number"] {
       border: none;
       border-radius: 8px;
-      padding: 8px 10px;
+      padding: 7px 8px;
       font-size: 12px;
       font-weight: 700;
       cursor: pointer;
       outline: none;
       transition: all 0.15s ease;
+      touch-action: manipulation;
     }
     .select-styled {
       background: #1e293b;
@@ -398,13 +434,13 @@
       box-shadow: 0 0 16px rgba(245, 158, 11, 0.7) !important;
     }
     .btn-danger-front {
-      background: rgba(239, 68, 68, 0.2);
-      color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.25);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.5);
       font-weight: 800;
     }
     .btn-danger-front:hover, .btn-danger-front:active {
-      background: rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.45);
       color: #fff;
     }
 
@@ -542,7 +578,7 @@
       color: var(--accent-green-bright);
     }
 
-    /* 18ホール一覧スコアテーブル */
+    /* 18ホール全スコアカード一覧 */
     .table-container {
       background: var(--bg-surface);
       border: 1px solid var(--card-border);
@@ -800,7 +836,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.6);
     }
 
-    /* ★ 横幅計測ラベル (極大・高視認性バッジデザイン) ★ */
+    /* ★ 横幅計測ラベル (極大・高視認性バッジデザイン & タップ透過) ★ */
     .custom-width-badge {
       background: linear-gradient(135deg, #f59e0b, #d97706);
       color: #0b1120;
@@ -816,12 +852,8 @@
       align-items: center;
       gap: 6px;
       letter-spacing: 0.5px;
-      cursor: pointer;
-      transition: transform 0.15s ease;
       line-height: 1.2;
-    }
-    .custom-width-badge:hover {
-      transform: scale(1.06);
+      pointer-events: none !important; /* ★ タップ判定を透過させ、iPhoneでの連続タップを一切妨害しない！ */
     }
     .custom-width-badge .badge-tag {
       background: #0b1120;
@@ -854,33 +886,33 @@
       </div>
     </div>
     <div class="top-actions">
-      <button class="btn-sub" style="font-size:11px; padding:5px 9px;" onclick="openCourseSearchModal()">🔍 コース検索</button>
-      <button class="btn-accent-blue" style="font-size:11px; padding:5px 9px;" onclick="openSimToolModal()">⚙️ ツール</button>
+      <button class="btn-sub" style="font-size:11px; padding:5px 8px;" onclick="openCourseSearchModal()">🔍 検索</button>
+      <button class="btn-accent-blue" style="font-size:11px; padding:5px 8px;" onclick="openSimToolModal()">⚙️ ツール</button>
     </div>
   </div>
 
   <!-- ======================== 2. プロトタイプ提案 切替タブ ======================== -->
   <div id="proto-tab-bar">
     <button id="tab-btn-caddie" class="proto-tab-btn active" onclick="switchProtoView('caddie')">
-      🏌️ A: ツアーキャディHUD
+      🏌️ A: キャディHUD
     </button>
     <button id="tab-btn-score" class="proto-tab-btn" onclick="switchProtoView('score')">
-      📝 B: 楽天スコアPlus
+      📝 B: 楽天スコア+
     </button>
     <button id="tab-btn-guide" class="proto-tab-btn" onclick="switchProtoView('guide')">
-      🗺️ C: 空撮コース戦略
+      🗺️ C: 空撮戦略
     </button>
   </div>
 
   <!-- ======================== 3. ホール切替バー ======================== -->
   <div id="hole-nav-bar">
     <div class="hole-selector-group">
-      <button class="btn-sub" style="padding:3px 8px;" onclick="prevHole()">◀</button>
+      <button class="btn-sub" style="padding:3px 7px;" onclick="prevHole()">◀</button>
       <div class="hole-badge" id="hud-current-hole-num">1H</div>
       <div class="hole-par-badge" id="hud-current-hole-par">Par 4 / 385y</div>
-      <button class="btn-sub" style="padding:3px 8px;" onclick="nextHole()">▶</button>
+      <button class="btn-sub" style="padding:3px 7px;" onclick="nextHole()">▶</button>
     </div>
-    <select id="hole-quick-select" class="select-styled" style="padding:3px 6px; font-size:11px;" onchange="onHoleSelectChange(this.value)">
+    <select id="hole-quick-select" class="select-styled" style="padding:3px 5px; font-size:11px; max-width:140px;" onchange="onHoleSelectChange(this.value)">
       <!-- 1H〜18H 動的生成 -->
     </select>
   </div>
@@ -905,7 +937,7 @@
         <div class="hud-tile highlight">
           <div class="hud-label">PlaysLike推奨</div>
           <div class="hud-val amber" id="hud-playslike-dist">-- y</div>
-          <div class="hud-sub-label" id="hud-playslike-detail">風・傾斜補正済</div>
+          <div class="hud-sub-label" id="hud-playslike-detail">風・傾斜補正</div>
         </div>
         <div class="hud-tile">
           <div class="hud-label">前回打球飛距離</div>
@@ -927,51 +959,56 @@
 
         <!-- 標高バッジ (打席標高) -->
         <div id="elevation-badge" class="map-badge" style="font-size:10px;">
-          ⛰️ 打席標高: <span id="user-elev-val" style="color:var(--accent-green);">--</span>m (海抜)
+          ⛰️ 標高: <span id="user-elev-val" style="color:var(--accent-green);">--</span>m
         </div>
 
         <!-- マップタイル切替 -->
         <div id="map-style-toggle" class="map-badge" onclick="toggleMapLayer()">
-          🗺️ 航空写真 / 標高起伏図
+          🗺️ 写真/起伏
         </div>
 
         <!-- 室内検証用 GPS歩行シミュレータボタン -->
         <div id="test-sim-walk-btn" class="map-badge" onclick="simulateWalkToNextShot()">
-          🚶‍♂️ GPS歩行テスト (+20y)
+          🚶‍♂️ 歩行(+20y)
+        </div>
+
+        <!-- ★ マップ上フローティング即効消去ボタン (iPhoneでも絶対に隠れず親指で即座に消去できる！) ★ -->
+        <div id="map-clear-width-badge" onclick="clearWidthLines()">
+          🗑️ 計測線を消去 (<span id="map-clear-count">0</span>)
         </div>
 
         <!-- ★ 幅計測アクティブ時バナー (連続計測案内 & 即効全消去ボタン) ★ -->
         <div id="measure-active-banner">
-          <span id="measure-instruction-text">📍 1点目（左端等）をタップ</span>
-          <div style="display:flex; gap:6px; align-items:center;">
-            <button class="btn-sub" style="background:#0f172a; color:#fff; border-radius:20px; padding:3px 10px; font-size:11px;" onclick="finishWidthMeasurement()">完了</button>
-            <button class="btn-sub" style="background:rgba(239,68,68,0.25); border:1px solid #ef4444; color:#fca5a5; border-radius:20px; padding:3px 10px; font-size:11px;" onclick="clearWidthLines()">🗑️ 全消去</button>
+          <span id="measure-instruction-text">📍 1点目をタップ</span>
+          <div style="display:flex; gap:5px; align-items:center;">
+            <button class="btn-sub" style="background:#0f172a; color:#fff; border-radius:20px; padding:3px 9px; font-size:11px;" onclick="finishWidthMeasurement()">完了</button>
+            <button class="btn-sub" style="background:rgba(239,68,68,0.3); border:1px solid #ef4444; color:#fca5a5; border-radius:20px; padding:3px 9px; font-size:11px;" onclick="clearWidthLines()">🗑️ 消去</button>
           </div>
         </div>
       </div>
 
-      <!-- 下部コントロールパネル -->
+      <!-- 下部コントロールパネル (iPhone 375px幅でも絶対に画面外へ溢れない配置) -->
       <div id="caddie-controls">
         <div class="ctrl-row">
           <!-- 番手選択 -->
-          <select id="caddie-club-select" class="select-styled" style="flex:2;" onchange="onClubSelectionChange()">
+          <select id="caddie-club-select" class="select-styled" style="flex: 1.4; min-width: 0;" onchange="onClubSelectionChange()">
             <!-- 動的注入 -->
           </select>
-          <button class="btn-sub" onclick="openClubModal()">🏌️ クラブ管理</button>
+          <button class="btn-sub" style="flex: 0.85; min-width: 0; padding: 7px 4px; font-size: 11px; white-space: nowrap;" onclick="openClubModal()">🏌️ クラブ</button>
           <!-- ★ 幅計測ボタン (トグル式で直接連続計測開始) ★ -->
-          <button id="btn-measure-width" class="btn-accent-amber" onclick="toggleDirectWidthMeasurement()">📏 幅計測</button>
-          <!-- ★ フロント画面の即効全リセットボタン ★ -->
-          <button id="btn-clear-width-front" class="btn-danger-front" style="display:none;" onclick="clearWidthLines()">🗑️ 幅消去</button>
+          <button id="btn-measure-width" class="btn-accent-amber" style="flex: 1.1; min-width: 0; padding: 7px 4px; font-size: 11px; white-space: nowrap;" onclick="toggleDirectWidthMeasurement()">📏 幅計測</button>
+          <!-- ★ フロント画面の即効全リセットボタン (iPhoneでも確実に表示) ★ -->
+          <button id="btn-clear-width-front" class="btn-danger-front" style="display: none; flex: 1.1; min-width: 0; padding: 7px 4px; font-size: 11px; white-space: nowrap;" onclick="clearWidthLines()">🗑️ 幅消去</button>
         </div>
         <div class="ctrl-row">
-          <button class="btn-main" style="flex:1.4;" onclick="recordCurrentShot()">
-            📍 この打席を記録する
+          <button class="btn-main" style="flex:1.4; font-size: 12px; padding: 8px 6px;" onclick="recordCurrentShot()">
+            📍 この打席を記録
           </button>
-          <button id="btn-gps-toggle" class="btn-sub" style="flex:1;" onclick="toggleGPSWatch()">
-            📡 GPS追跡: OFF
+          <button id="btn-gps-toggle" class="btn-sub" style="flex:1; font-size: 11px; padding: 8px 4px;" onclick="toggleGPSWatch()">
+            📡 GPS: OFF
           </button>
-          <button class="btn-sub" style="flex:0.8;" onclick="switchProtoView('score')">
-            📝 スコア入力
+          <button class="btn-sub" style="flex:0.8; font-size: 11px; padding: 8px 4px;" onclick="switchProtoView('score')">
+            📝 スコア
           </button>
         </div>
       </div>
@@ -1561,10 +1598,13 @@
        5. 初期化 & 地図セットアップ (国土地理院 航空写真タイル)
     ========================================================== */
     function initMap() {
+      // ★ tap: false を指定して iOS Safari でのクリック不発・多重発火・座標ブレを完全防止 ★
       map = L.map('map', {
         zoomControl: false,
         maxZoom: 18,
-        minZoom: 14
+        minZoom: 14,
+        tap: false,
+        tapTolerance: 15
       }).setView(currentTeeCoord, 17);
 
       // 国土地理院 シームレス写真タイル (完全無料・最高解像度)
@@ -1612,7 +1652,8 @@
         color: '#facc15',
         dashArray: '6, 8',
         weight: 2,
-        opacity: 0.85
+        opacity: 0.85,
+        interactive: false
       }).addTo(map);
 
       // シミュレーション着弾サークル
@@ -1621,7 +1662,8 @@
         weight: 2,
         fillColor: '#10b981',
         fillOpacity: 0.25,
-        radius: 15
+        radius: 15,
+        interactive: false
       }).addTo(map);
 
       // ドラッグ終了イベント
@@ -1634,7 +1676,7 @@
         updateHUDAndSimulation();
       });
 
-      // マップタップイベント
+      // ★ マップタップイベント (iPhoneでもPCでも確実に発火) ★
       map.on('click', (e) => {
         if (isWidthMeasuring) {
           handleMapWidthTap(e.latlng);
@@ -1673,7 +1715,8 @@
           color: r.color,
           weight: 1.2,
           fillOpacity: 0.03,
-          dashArray: r.dash
+          dashArray: r.dash,
+          interactive: false
         }).addTo(map);
         yardCircles.push(circle);
       });
@@ -1684,12 +1727,12 @@
         map.removeLayer(tileLayerPhoto);
         tileLayerRelief.addTo(map);
         currentMapLayerType = 'relief';
-        document.getElementById('map-style-toggle').innerHTML = '🗺️ 航空写真に切替';
+        document.getElementById('map-style-toggle').innerHTML = '🗺️ 写真に切替';
       } else {
         map.removeLayer(tileLayerRelief);
         tileLayerPhoto.addTo(map);
         currentMapLayerType = 'photo';
-        document.getElementById('map-style-toggle').innerHTML = '🗺️ 色別標高図に切替';
+        document.getElementById('map-style-toggle').innerHTML = '🗺️ 起伏図に切替';
       }
     }
 
@@ -1733,7 +1776,6 @@
     ========================================================== */
     async function fetchElevation(lat, lon) {
       try {
-        // 1. 国土地理院 標高API (無料・国内最高精度DEM5A/10B)
         const url = `https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=${lon}&lat=${lat}&outtype=JSON`;
         const res = await fetch(url);
         const data = await res.json();
@@ -1741,7 +1783,6 @@
           return parseFloat(data.elevation);
         }
       } catch (e) {
-        // fallback: Open-Meteo Elevation
         try {
           const res2 = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`);
           const data2 = await res2.json();
@@ -1869,7 +1910,8 @@
         color: '#10b981',
         weight: 3.5,
         opacity: 0.9,
-        lineCap: 'round'
+        lineCap: 'round',
+        interactive: false
       }).addTo(map);
     }
 
@@ -1968,12 +2010,12 @@
         });
 
         isGPSTracking = true;
-        btn.innerText = "📡 GPS作動中 (高精度)";
+        btn.innerText = "📡 GPS作動中";
         btn.classList.add('btn-active-glow');
       } else {
         if (gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
         isGPSTracking = false;
-        btn.innerText = "📡 GPS追跡: OFF";
+        btn.innerText = "📡 GPS: OFF";
         btn.classList.remove('btn-active-glow');
       }
     }
@@ -2057,12 +2099,12 @@
       banner.style.display = 'flex';
       const count = widthHistory.length;
       document.getElementById('measure-instruction-text').innerHTML = count === 0
-        ? '📍 1点目（フェアウェイ左端等）をタップ'
-        : `📍 次の幅を計測: 1点目をタップ (現在 ${count}本記録済)`;
+        ? '📍 1点目（左端等）をタップ'
+        : `📍 次の幅を計測: 1点目タップ (${count}本記録済)`;
 
       const btn = document.getElementById('btn-measure-width');
       btn.classList.add('btn-active-glow');
-      btn.innerText = "📏 幅計測中 (タップ)";
+      btn.innerText = "📏 幅計測中";
     }
 
     // 計測モードの完了（計測線・ラベルは画面上に固定保持）
@@ -2103,34 +2145,45 @@
       updateWidthClearButton();
 
       if (isWidthMeasuring) {
-        document.getElementById('measure-instruction-text').innerHTML = '📍 1点目（フェアウェイ左端等）をタップ';
+        document.getElementById('measure-instruction-text').innerHTML = '📍 1点目（左端等）をタップ';
       }
     }
 
-    // フロント画面のリセットボタン更新
+    // フロント画面のリセットボタン更新 (iPhoneでも絶対に見えるよう2箇所のUIを連動更新)
     function updateWidthClearButton() {
       const clearBtn = document.getElementById('btn-clear-width-front');
+      const mapClearBadge = document.getElementById('map-clear-width-badge');
+      const mapClearCount = document.getElementById('map-clear-count');
+
       if (widthHistory.length > 0) {
-        clearBtn.style.display = 'inline-block';
-        clearBtn.innerText = `🗑️ 幅消去 (${widthHistory.length})`;
+        if (clearBtn) {
+          clearBtn.style.display = 'inline-block';
+          clearBtn.innerText = `🗑️ 幅消去 (${widthHistory.length})`;
+        }
+        if (mapClearBadge) {
+          mapClearBadge.style.display = 'flex';
+          if (mapClearCount) mapClearCount.innerText = widthHistory.length;
+        }
       } else {
-        clearBtn.style.display = 'none';
+        if (clearBtn) clearBtn.style.display = 'none';
+        if (mapClearBadge) mapClearBadge.style.display = 'none';
       }
     }
 
-    // ★ マップタップ処理（何本でも何箇所でも連続計測可能）★
+    // ★ マップタップ処理（iPhoneでの連続タップ完全保証：interactive: false 徹底）★
     function handleMapWidthTap(latlng) {
       widthTapCoords.push([latlng.lat, latlng.lng]);
 
       if (widthTapCoords.length === 1) {
-        // 1点目タップ時：仮マーカーを設置
+        // 1点目タップ時：仮マーカーを設置（interactive: false で指の次のタップを妨害しない）
         if (tempTapMarker) map.removeLayer(tempTapMarker);
         tempTapMarker = L.circleMarker([latlng.lat, latlng.lng], {
           color: '#f59e0b',
-          radius: 7,
+          radius: 8,
           fillColor: '#f59e0b',
           fillOpacity: 1,
-          weight: 2
+          weight: 2,
+          interactive: false // ★ 次のタップ判定を一切奪わない！
         }).addTo(map);
 
         document.getElementById('measure-instruction-text').innerHTML = `📍 2点目（右端）をタップして確定`;
@@ -2141,26 +2194,28 @@
         const yd = calcDistanceYards(p1, p2);
         const m = calcDistanceMeters(p1, p2);
 
-        // 両端点マーカー
-        const m1 = L.circleMarker(p1, { color: '#f59e0b', radius: 5, fillColor: '#f59e0b', fillOpacity: 1 }).addTo(map);
-        const m2 = L.circleMarker(p2, { color: '#f59e0b', radius: 5, fillColor: '#f59e0b', fillOpacity: 1 }).addTo(map);
+        // 両端点マーカー (interactive: false)
+        const m1 = L.circleMarker(p1, { color: '#f59e0b', radius: 5, fillColor: '#f59e0b', fillOpacity: 1, interactive: false }).addTo(map);
+        const m2 = L.circleMarker(p2, { color: '#f59e0b', radius: 5, fillColor: '#f59e0b', fillOpacity: 1, interactive: false }).addTo(map);
         if (tempTapMarker) {
           map.removeLayer(tempTapMarker);
           tempTapMarker = null;
         }
 
-        // 高視認性 破線ポリライン
+        // 高視認性 破線ポリライン (interactive: false で画面タップを透過)
         const polyline = L.polyline([p1, p2], {
           color: '#f59e0b',
           weight: 4,
           dashArray: '6, 6',
-          opacity: 0.95
+          opacity: 0.95,
+          interactive: false
         }).addTo(map);
 
-        // ★ 極大・超視認性バッジ（#1: 42y (38m)）★
+        // ★ 極大・超視認性バッジ（#1: 42y (38m)）(interactive: false でタップを透過) ★
         const lineNum = widthHistory.length + 1;
         const midPoint = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
         const badge = L.marker(midPoint, {
+          interactive: false,
           icon: L.divIcon({
             className: '',
             html: `
@@ -2186,7 +2241,7 @@
           markers: [m1, m2]
         });
 
-        // タップバッファのみリセットして、モードは維持（連続計測！）
+        // タップバッファのみリセットして、モードは維持（何度でも連続計測可能！）
         widthTapCoords = [];
         updateWidthClearButton();
 
@@ -2218,10 +2273,11 @@
 
           const lineNum = widthHistory.length + 1;
           const polyline = L.polyline([gpsWidthP1, gpsWidthP2], {
-            color: '#38bdf8', weight: 4, dashArray: '6, 6'
+            color: '#38bdf8', weight: 4, dashArray: '6, 6', interactive: false
           }).addTo(map);
           const mid = [(gpsWidthP1[0] + gpsWidthP2[0]) / 2, (gpsWidthP1[1] + gpsWidthP2[1]) / 2];
           const badge = L.marker(mid, {
+            interactive: false,
             icon: L.divIcon({
               className: '',
               html: `
