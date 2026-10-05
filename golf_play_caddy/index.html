@@ -19,13 +19,14 @@
       --bg-dark: #080d1a;
       --bg-surface: #0f172a;
       --bg-card: rgba(15, 23, 42, 0.94);
-      --bg-glass: rgba(15, 23, 42, 0.82);
+      --bg-glass: rgba(15, 23, 42, 0.85);
       --card-border: rgba(255, 255, 255, 0.12);
       --card-border-glow: rgba(16, 185, 129, 0.4);
       --accent-green: #10b981;
       --accent-green-bright: #34d399;
       --accent-blue: #38bdf8;
       --accent-amber: #f59e0b;
+      --accent-amber-glow: rgba(245, 158, 11, 0.5);
       --accent-red: #ef4444;
       --accent-purple: #a855f7;
       --text-main: #f8fafc;
@@ -42,12 +43,14 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", 'Noto Sans JP', Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+      touch-action: manipulation;
     }
 
     body {
       background: var(--bg-dark);
       color: var(--text-main);
       height: 100vh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -302,24 +305,33 @@
       cursor: pointer;
     }
 
-    /* 幅計測進行中バナーHUD */
+    /* 幅計測アクティブ時バナーHUD (画面上部に大きく表示) */
     #measure-active-banner {
       display: none;
       position: absolute;
-      top: 14px;
+      top: 12px;
       left: 50%;
       transform: translateX(-50%);
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: #1e1102;
-      padding: 8px 18px;
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.98));
+      color: #fff;
+      padding: 8px 16px;
       border-radius: 30px;
       font-size: 12px;
       font-weight: 800;
       z-index: 1200;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.7), 0 0 14px rgba(245, 158, 11, 0.4);
       align-items: center;
       gap: 10px;
       white-space: nowrap;
+      border: 1.5px solid var(--accent-amber);
+    }
+    #measure-instruction-text {
+      color: #fef08a;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     /* キャディ操作ボトムコントロール */
@@ -374,14 +386,26 @@
       border: 1px solid rgba(56, 189, 248, 0.3);
     }
     .btn-accent-amber {
-      background: rgba(245, 158, 11, 0.18);
-      color: var(--accent-amber);
-      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
     }
     .btn-active-glow {
-      background: var(--accent-amber) !important;
-      color: #3f1900 !important;
-      box-shadow: 0 0 12px rgba(245, 158, 11, 0.6) !important;
+      background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+      color: #0b1120 !important;
+      font-weight: 900 !important;
+      border-color: #fff !important;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.7) !important;
+    }
+    .btn-danger-front {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      font-weight: 800;
+    }
+    .btn-danger-front:hover, .btn-danger-front:active {
+      background: rgba(239, 68, 68, 0.35);
+      color: #fff;
     }
 
     /* ========================================================
@@ -775,17 +799,47 @@
       border: 2px solid #ffffff;
       box-shadow: 0 2px 6px rgba(0,0,0,0.6);
     }
+
+    /* ★ 横幅計測ラベル (極大・高視認性バッジデザイン) ★ */
     .custom-width-badge {
-      background: #f59e0b;
-      color: #000;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0b1120;
       font-family: var(--font-num);
-      font-size: 11px;
-      font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 12px;
-      border: 1.5px solid #fff;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+      font-size: 14px;
+      font-weight: 900;
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75), 0 0 12px rgba(245, 158, 11, 0.6);
       white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+      line-height: 1.2;
+    }
+    .custom-width-badge:hover {
+      transform: scale(1.06);
+    }
+    .custom-width-badge .badge-tag {
+      background: #0b1120;
+      color: #fbbf24;
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-weight: 800;
+    }
+    .custom-width-badge .badge-val {
+      font-size: 16px;
+      font-weight: 900;
+      color: #0b1120;
+    }
+    .custom-width-badge .badge-unit {
+      font-size: 12px;
+      color: #3f1900;
+      font-weight: 800;
     }
   </style>
 </head>
@@ -886,10 +940,13 @@
           🚶‍♂️ GPS歩行テスト (+20y)
         </div>
 
-        <!-- 幅計測アクティブ時バナー -->
+        <!-- ★ 幅計測アクティブ時バナー (連続計測案内 & 即効全消去ボタン) ★ -->
         <div id="measure-active-banner">
-          <span id="measure-instruction-text">📍 フェアウェイ左端をタップ</span>
-          <button onclick="cancelWidthMeasurement()" style="background:#000; color:#fff; border-radius:20px; padding:3px 10px; font-size:10px;">キャンセル</button>
+          <span id="measure-instruction-text">📍 1点目（左端等）をタップ</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button class="btn-sub" style="background:#0f172a; color:#fff; border-radius:20px; padding:3px 10px; font-size:11px;" onclick="finishWidthMeasurement()">完了</button>
+            <button class="btn-sub" style="background:rgba(239,68,68,0.25); border:1px solid #ef4444; color:#fca5a5; border-radius:20px; padding:3px 10px; font-size:11px;" onclick="clearWidthLines()">🗑️ 全消去</button>
+          </div>
         </div>
       </div>
 
@@ -901,7 +958,10 @@
             <!-- 動的注入 -->
           </select>
           <button class="btn-sub" onclick="openClubModal()">🏌️ クラブ管理</button>
-          <button id="btn-measure-width" class="btn-accent-amber" onclick="openWidthMeasureModal()">📏 幅計測</button>
+          <!-- ★ 幅計測ボタン (トグル式で直接連続計測開始) ★ -->
+          <button id="btn-measure-width" class="btn-accent-amber" onclick="toggleDirectWidthMeasurement()">📏 幅計測</button>
+          <!-- ★ フロント画面の即効全リセットボタン ★ -->
+          <button id="btn-clear-width-front" class="btn-danger-front" style="display:none;" onclick="clearWidthLines()">🗑️ 幅消去</button>
         </div>
         <div class="ctrl-row">
           <button class="btn-main" style="flex:1.4;" onclick="recordCurrentShot()">
@@ -1101,13 +1161,13 @@
         <!-- 方法1: タップ計測 -->
         <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); padding:12px; border-radius:10px; margin-bottom:12px;">
           <div style="font-weight:800; color:var(--accent-amber); font-size:13px; display:flex; align-items:center; gap:6px;">
-            📍 方法1: マップタップ2点計測
+            📍 方法1: マップ連続タップ計測 (何本でも計測可能)
           </div>
           <p style="font-size:11px; color:var(--text-sub); margin:6px 0 10px; line-height:1.4;">
-            航空写真マップ上のフェアウェイ左端と右端の2点をタップすると、ヤード数・メートル幅が自動描画されます。
+            画面上のフェアウェイ左端と右端の2点をタップすると、ヤード・メートルが大きく描画されます。消去せずに何本でも続けて計測できます。
           </p>
           <button class="btn-main" style="width:100%;" onclick="startMapTapWidthMeasurement()">
-            タップ計測を開始する
+            連続タップ計測を開始する
           </button>
         </div>
 
@@ -1127,7 +1187,7 @@
         </div>
 
         <button class="btn-sub" style="width:100%; margin-top:10px;" onclick="clearWidthLines()">
-          計測ラインをリセット
+          計測ラインをすべて消去・リセット
         </button>
       </div>
     </div>
@@ -1465,12 +1525,11 @@
     let isGPSTracking = false;
     let gpsWatchId = null;
 
-    // コース幅計測
+    // ★ コース幅計測（何度でも連続計測可能なマルチ履歴管理）★
     let isWidthMeasuring = false;
-    let widthTapCoords = [];
-    let widthMapMarkers = [];
-    let widthPolyline = null;
-    let widthLabelMarker = null;
+    let widthTapCoords = [];       // 現在タップ中の2点
+    let widthHistory = [];         // [{ id, p1, p2, yd, m, line, badge, markers: [m1, m2] }]
+    let tempTapMarker = null;      // 1点目タップ時の仮マーカー
     let gpsWidthP1 = null;
     let gpsWidthP2 = null;
 
@@ -1737,13 +1796,10 @@
 
       // 3. 風向相対分解 (アゲンスト/フォロー/横風)
       const targetBearing = calcBearing(userCoord, currentPinCoord);
-      // 風が向かう角度 = (windInfo.direction + 180) % 360
       const relativeAngle = ((windInfo.direction - targetBearing + 540) % 360) - 180;
       const rad = relativeAngle * Math.PI / 180;
       
-      // headwind > 0 = アゲンスト(向かい風), headwind < 0 = フォロー(追い風)
       const headwindComponent = Math.cos(rad) * windInfo.speed;
-      // crosswind > 0 = 右からの風, crosswind < 0 = 左からの風
       const crosswindComponent = Math.sin(rad) * windInfo.speed;
 
       // HUD風バッジ更新
@@ -1765,9 +1821,7 @@
       document.getElementById('wind-relative-detail').innerText = `(${windText})`;
 
       // 4. PlaysLike推奨距離計算 (PGAツアースタイル物理補正)
-      // 高低差補正: 打ち上げ1mにつき約+1.15y、打ち下ろし約-0.95y
       const elevFactor = diffElevM >= 0 ? diffElevM * 1.15 : diffElevM * 0.95;
-      // 風補正: アゲンスト1m/sにつき約+2.0y、フォローは約-1.4y
       const windFactor = headwindComponent >= 0 ? headwindComponent * 2.0 : headwindComponent * 1.4;
       const playsLike = Math.round(rawDistYards + elevFactor + windFactor);
 
@@ -1790,13 +1844,13 @@
       const standardDistYards = parseFloat(select.value) || 150;
 
       // 風と高低差によるキャリー変化の計算
-      const windCarryEffect = headwind * -1.8; // アゲンストで短くなる
+      const windCarryEffect = headwind * -1.8;
       const elevCarryEffect = (pinElevation - userElevation) * -0.9;
       const simulatedDistYards = Math.max(20, standardDistYards + windCarryEffect + elevCarryEffect);
       const simulatedDistMeters = simulatedDistYards / 1.09361;
 
       // 横風による左右ブレ角
-      const driftMeters = crosswind * 1.2; // 横風で流される距離
+      const driftMeters = crosswind * 1.2;
       const driftAngle = (Math.atan2(driftMeters, simulatedDistMeters) * 180 / Math.PI);
       const finalBearing = (targetBearing + driftAngle + 360) % 360;
 
@@ -1805,7 +1859,7 @@
 
       // 着弾サークルの位置とばらつき半径
       simCircleLayer.setLatLng(landingCoord);
-      const spreadRadius = Math.max(10, simulatedDistYards * 0.07); // 飛距離の約7%の散布界
+      const spreadRadius = Math.max(10, simulatedDistYards * 0.07);
       simCircleLayer.setRadius(spreadRadius);
 
       // 放物線弾道ラインの描画
@@ -1819,7 +1873,6 @@
       }).addTo(map);
     }
 
-    // 擬似的な弾道放物線座標の生成
     function generateArcPoints(p1, p2, segments) {
       const points = [];
       for (let i = 0; i <= segments; i++) {
@@ -1976,8 +2029,17 @@
     }
 
     /* ==========================================================
-       12. コース横幅 (フェアウェイ幅) 計測機能
+       12. コース横幅 (フェアウェイ幅) 連続計測 & 即効リセット機能
     ========================================================== */
+    // フロント画面の幅計測ボタントグル
+    function toggleDirectWidthMeasurement() {
+      if (!isWidthMeasuring) {
+        startMapTapWidthMeasurement();
+      } else {
+        finishWidthMeasurement();
+      }
+    }
+
     function openWidthMeasureModal() {
       document.getElementById('width-modal').style.display = 'flex';
     }
@@ -1985,73 +2047,151 @@
       document.getElementById('width-modal').style.display = 'none';
     }
 
+    // ★ 連続タップ計測の開始（既存ラインはリセットせずそのまま保持・追加可能）★
     function startMapTapWidthMeasurement() {
       closeWidthMeasureModal();
-      clearWidthLines();
       isWidthMeasuring = true;
       widthTapCoords = [];
 
       const banner = document.getElementById('measure-active-banner');
       banner.style.display = 'flex';
-      document.getElementById('measure-instruction-text').innerText = '📍 1点目（フェアウェイ左端など）をタップ';
-      document.getElementById('btn-measure-width').classList.add('btn-active-glow');
+      const count = widthHistory.length;
+      document.getElementById('measure-instruction-text').innerHTML = count === 0
+        ? '📍 1点目（フェアウェイ左端等）をタップ'
+        : `📍 次の幅を計測: 1点目をタップ (現在 ${count}本記録済)`;
+
+      const btn = document.getElementById('btn-measure-width');
+      btn.classList.add('btn-active-glow');
+      btn.innerText = "📏 幅計測中 (タップ)";
     }
 
-    function cancelWidthMeasurement() {
+    // 計測モードの完了（計測線・ラベルは画面上に固定保持）
+    function finishWidthMeasurement() {
       isWidthMeasuring = false;
       widthTapCoords = [];
+      if (tempTapMarker) {
+        map.removeLayer(tempTapMarker);
+        tempTapMarker = null;
+      }
+
       document.getElementById('measure-active-banner').style.display = 'none';
-      document.getElementById('btn-measure-width').classList.remove('btn-active-glow');
+      const btn = document.getElementById('btn-measure-width');
+      btn.classList.remove('btn-active-glow');
+      btn.innerText = "📏 幅計測";
+      updateWidthClearButton();
     }
 
+    // ★ フロント画面およびバナーの即効全消去・リセット ★
     function clearWidthLines() {
-      widthMapMarkers.forEach(m => map.removeLayer(m));
-      widthMapMarkers = [];
-      if (widthPolyline) { map.removeLayer(widthPolyline); widthPolyline = null; }
-      if (widthLabelMarker) { map.removeLayer(widthLabelMarker); widthLabelMarker = null; }
+      // 過去に描画された全てのライン・バッジ・マーカーをマップから消去
+      widthHistory.forEach(item => {
+        if (item.line) map.removeLayer(item.line);
+        if (item.badge) map.removeLayer(item.badge);
+        if (item.markers && Array.isArray(item.markers)) {
+          item.markers.forEach(m => map.removeLayer(m));
+        }
+      });
+      widthHistory = [];
+      widthTapCoords = [];
+
+      if (tempTapMarker) {
+        map.removeLayer(tempTapMarker);
+        tempTapMarker = null;
+      }
+
       document.getElementById('gps-width-result-display').innerText = '';
+      updateWidthClearButton();
+
+      if (isWidthMeasuring) {
+        document.getElementById('measure-instruction-text').innerHTML = '📍 1点目（フェアウェイ左端等）をタップ';
+      }
     }
 
+    // フロント画面のリセットボタン更新
+    function updateWidthClearButton() {
+      const clearBtn = document.getElementById('btn-clear-width-front');
+      if (widthHistory.length > 0) {
+        clearBtn.style.display = 'inline-block';
+        clearBtn.innerText = `🗑️ 幅消去 (${widthHistory.length})`;
+      } else {
+        clearBtn.style.display = 'none';
+      }
+    }
+
+    // ★ マップタップ処理（何本でも何箇所でも連続計測可能）★
     function handleMapWidthTap(latlng) {
       widthTapCoords.push([latlng.lat, latlng.lng]);
 
-      const marker = L.circleMarker([latlng.lat, latlng.lng], {
-        color: '#f59e0b',
-        radius: 7,
-        fillColor: '#f59e0b',
-        fillOpacity: 1
-      }).addTo(map);
-      widthMapMarkers.push(marker);
-
       if (widthTapCoords.length === 1) {
-        document.getElementById('measure-instruction-text').innerText = '📍 2点目（右端）をタップして確定';
+        // 1点目タップ時：仮マーカーを設置
+        if (tempTapMarker) map.removeLayer(tempTapMarker);
+        tempTapMarker = L.circleMarker([latlng.lat, latlng.lng], {
+          color: '#f59e0b',
+          radius: 7,
+          fillColor: '#f59e0b',
+          fillOpacity: 1,
+          weight: 2
+        }).addTo(map);
+
+        document.getElementById('measure-instruction-text').innerHTML = `📍 2点目（右端）をタップして確定`;
       } else if (widthTapCoords.length === 2) {
+        // 2点目タップ時：ラインと大型バッジを確定描画
         const p1 = widthTapCoords[0];
         const p2 = widthTapCoords[1];
         const yd = calcDistanceYards(p1, p2);
         const m = calcDistanceMeters(p1, p2);
 
-        // 破線描画
-        widthPolyline = L.polyline([p1, p2], {
+        // 両端点マーカー
+        const m1 = L.circleMarker(p1, { color: '#f59e0b', radius: 5, fillColor: '#f59e0b', fillOpacity: 1 }).addTo(map);
+        const m2 = L.circleMarker(p2, { color: '#f59e0b', radius: 5, fillColor: '#f59e0b', fillOpacity: 1 }).addTo(map);
+        if (tempTapMarker) {
+          map.removeLayer(tempTapMarker);
+          tempTapMarker = null;
+        }
+
+        // 高視認性 破線ポリライン
+        const polyline = L.polyline([p1, p2], {
           color: '#f59e0b',
-          weight: 3.5,
-          dashArray: '6, 6'
+          weight: 4,
+          dashArray: '6, 6',
+          opacity: 0.95
         }).addTo(map);
 
-        // 中心にヤード表示
+        // ★ 極大・超視認性バッジ（#1: 42y (38m)）★
+        const lineNum = widthHistory.length + 1;
         const midPoint = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
-        widthLabelMarker = L.marker(midPoint, {
+        const badge = L.marker(midPoint, {
           icon: L.divIcon({
             className: '',
-            html: `<div class="custom-width-badge">幅: ${yd}y (${m}m)</div>`,
-            iconAnchor: [45, 12]
+            html: `
+              <div class="custom-width-badge">
+                <span class="badge-tag">#${lineNum}</span>
+                <span class="badge-val">${yd}y</span>
+                <span class="badge-unit">(${m}m)</span>
+              </div>
+            `,
+            iconAnchor: [55, 14]
           })
         }).addTo(map);
 
-        document.getElementById('measure-instruction-text').innerText = `✅ コース横幅: ${yd} yard (${m}m)`;
-        setTimeout(() => {
-          cancelWidthMeasurement();
-        }, 3500);
+        // 履歴オブジェクトに保存（消去せずに保持）
+        widthHistory.push({
+          id: lineNum,
+          p1: p1,
+          p2: p2,
+          yd: yd,
+          m: m,
+          line: polyline,
+          badge: badge,
+          markers: [m1, m2]
+        });
+
+        // タップバッファのみリセットして、モードは維持（連続計測！）
+        widthTapCoords = [];
+        updateWidthClearButton();
+
+        // 案内を更新：続けて次の2点をタップ可能！
+        document.getElementById('measure-instruction-text').innerHTML = `✅ #${lineNum}幅: <strong>${yd}y</strong> 記録！続けて次の2点をタップ可能`;
       }
     }
 
@@ -2076,18 +2216,36 @@
           const m = calcDistanceMeters(gpsWidthP1, gpsWidthP2);
           document.getElementById('gps-width-result-display').innerText = `実測コース横幅: ${yd} yard (${m}m)`;
 
-          clearWidthLines();
-          widthPolyline = L.polyline([gpsWidthP1, gpsWidthP2], {
-            color: '#38bdf8', weight: 3, dashArray: '6, 6'
+          const lineNum = widthHistory.length + 1;
+          const polyline = L.polyline([gpsWidthP1, gpsWidthP2], {
+            color: '#38bdf8', weight: 4, dashArray: '6, 6'
           }).addTo(map);
           const mid = [(gpsWidthP1[0] + gpsWidthP2[0]) / 2, (gpsWidthP1[1] + gpsWidthP2[1]) / 2];
-          widthLabelMarker = L.marker(mid, {
+          const badge = L.marker(mid, {
             icon: L.divIcon({
               className: '',
-              html: `<div class="custom-width-badge" style="background:#38bdf8;color:#000;">実測幅: ${yd}y</div>`,
-              iconAnchor: [40, 12]
+              html: `
+                <div class="custom-width-badge" style="background:linear-gradient(135deg, #38bdf8, #0284c7); color:#042940;">
+                  <span class="badge-tag" style="background:#042940; color:#38bdf8;">GPS #${lineNum}</span>
+                  <span class="badge-val">${yd}y</span>
+                  <span class="badge-unit">(${m}m)</span>
+                </div>
+              `,
+              iconAnchor: [55, 14]
             })
           }).addTo(map);
+
+          widthHistory.push({
+            id: lineNum,
+            p1: gpsWidthP1,
+            p2: gpsWidthP2,
+            yd: yd,
+            m: m,
+            line: polyline,
+            badge: badge,
+            markers: []
+          });
+          updateWidthClearButton();
         }
       }, err => alert("GPS取得エラー: " + err.message), { enableHighAccuracy: true });
     }
@@ -2488,7 +2646,6 @@
       } else {
         status.style.display = 'block';
         status.innerText = `「${query}」に近い類似候補を表示中、またはWeb検索を押してください：`;
-        // 類似候補として全件または先頭候補をフォールバック
         renderCourseCandidates(NATIONWIDE_COURSES.slice(0, 5));
       }
     }
