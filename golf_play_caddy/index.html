@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>SmartCaddie Pro - PGA Tour Grade WebGIS Golf Navigator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="description" content="日本全国すべてのゴルフ場対応。Garmin Green Contour / PGAツアー仕様のグリーンアンジュレーション可視化、国土地理院空中写真、リアルタイム気象、PlaysLike推奨距離、幅計測、打球記録、楽天スコアPlusを完備した最高峰WebGISゴルフナビ。">
+  <meta name="description" content="日本全国すべてのゴルフ場対応。楽天ゴルフ仕様3ステップウィザード（ゴルフ場➔コース➔ティー選択）、Garmin Green Contour再現、IPルート自動描画、国土地理院空中写真、リアルタイム気象、PlaysLike推奨距離、ボイスキャディ、2グリーン、幅計測、4人スコア＆新ペリアを完備した最高峰WebGISゴルフナビ。">
 
   <!-- Leaflet CSS & JS (完全オープン/無料) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -21,20 +21,59 @@
     ========================================================== */
     :root {
       --bg-dark: #080d1a;
-      --bg-panel: rgba(13, 23, 42, 0.88);
+      --bg-panel: rgba(13, 23, 42, 0.90);
       --bg-card: #132238;
-      --border-subtle: rgba(255, 255, 255, 0.1);
-      --border-highlight: rgba(16, 185, 129, 0.4);
+      --border-subtle: rgba(255, 255, 255, 0.12);
+      --border-highlight: rgba(16, 185, 129, 0.45);
       --accent-green: #10b981;
       --accent-blue: #38bdf8;
       --accent-amber: #f59e0b;
       --accent-red: #ef4444;
       --accent-purple: #a855f7;
+      --accent-ip: #f59e0b;
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
       --text-muted: #64748b;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* サンライト高コントラスト白テーマ */
+    body.sunlight-mode {
+      --bg-dark: #f8fafc;
+      --bg-panel: rgba(255, 255, 255, 0.96);
+      --bg-card: #ffffff;
+      --border-subtle: rgba(0, 0, 0, 0.22);
+      --border-highlight: #059669;
+      --text-main: #0f172a;
+      --text-sub: #334155;
+      --text-muted: #64748b;
+    }
+    body.sunlight-mode .top-nav {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.9) 75%, rgba(255, 255, 255, 0) 100%);
+    }
+    body.sunlight-mode .bottom-dock {
+      background: linear-gradient(0deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.9) 75%, rgba(255, 255, 255, 0) 100%);
+    }
+    body.sunlight-mode .hud-card {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    body.sunlight-mode .hud-card .hud-label {
+      color: #475569;
+    }
+    body.sunlight-mode .hud-value {
+      color: #0f172a;
+    }
+    body.sunlight-mode .brand-chip, body.sunlight-mode .icon-btn, body.sunlight-mode .dock-btn {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      color: #0f172a;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    body.sunlight-mode .course-title {
+      color: #0f172a;
     }
 
     * {
@@ -55,12 +94,23 @@
       font-size: 13px;
     }
 
-    /* マップコンテナ */
+    #map-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 1;
+    }
+
     #map {
       width: 100%;
       height: 100%;
       z-index: 1;
       background-color: #0b1329;
+      transform-origin: center center;
+      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     /* 上部ヘッダーバー */
@@ -70,10 +120,10 @@
       left: 0;
       right: 0;
       z-index: 1000;
-      padding: calc(var(--safe-top) + 8px) 12px 8px 12px;
+      padding: calc(var(--safe-top) + 6px) 10px 6px 10px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
       background: linear-gradient(180deg, rgba(8, 13, 26, 0.96) 0%, rgba(8, 13, 26, 0.82) 75%, rgba(8, 13, 26, 0) 100%);
       pointer-events: none;
     }
@@ -82,7 +132,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       pointer-events: auto;
     }
 
@@ -95,10 +145,10 @@
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border-subtle);
       border-radius: 9999px;
-      padding: 4px 12px 4px 6px;
+      padding: 4px 10px 4px 5px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       cursor: pointer;
-      max-width: 58%;
+      max-width: 50%;
       min-width: 0;
     }
     .brand-chip:active {
@@ -128,7 +178,7 @@
     }
     .course-title {
       font-weight: 800;
-      font-size: 12px;
+      font-size: 11.5px;
       color: #fff;
       white-space: nowrap;
       overflow: hidden;
@@ -138,7 +188,7 @@
       gap: 4px;
     }
     .course-sub {
-      font-size: 9.5px;
+      font-size: 9px;
       color: var(--text-sub);
       white-space: nowrap;
       overflow: hidden;
@@ -148,8 +198,9 @@
     .top-controls {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       pointer-events: auto;
+      flex-wrap: nowrap;
     }
 
     .icon-btn {
@@ -158,15 +209,15 @@
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border-subtle);
       color: var(--text-main);
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
+      width: 33px;
+      height: 33px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 15px;
+      font-size: 13.5px;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
       transition: all 0.2s ease;
       position: relative;
     }
@@ -174,118 +225,171 @@
       transform: scale(0.92);
     }
     .icon-btn.active {
-      background: rgba(16, 185, 129, 0.2);
+      background: rgba(16, 185, 129, 0.25);
       border-color: var(--accent-green);
       color: var(--accent-green);
-      box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.5);
     }
     .icon-btn.active-amber {
       background: rgba(245, 158, 11, 0.25);
       border-color: var(--accent-amber);
       color: var(--accent-amber);
-      box-shadow: 0 0 14px rgba(245, 158, 11, 0.4);
-    }
-    .icon-btn.active-radar {
-      background: rgba(56, 189, 248, 0.25);
-      border-color: var(--accent-blue);
-      color: var(--accent-blue);
-      box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
     }
 
-    /* ホールセレクターバー */
+    /* ホールセレクターバー ＆ ティーバッジ ＆ 2グリーン(L/R) */
     .hole-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
-      background: var(--bg-panel);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      padding: 4px 8px;
+      gap: 4px;
       pointer-events: auto;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      background: var(--bg-panel);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 3px 6px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     }
 
     .hole-nav-btn {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      padding: 4px 10px;
-      border-radius: 8px;
+      background: transparent;
+      border: none;
+      color: var(--accent-blue);
+      font-weight: 800;
       font-size: 11px;
-      font-weight: 700;
+      padding: 4px 6px;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      border-radius: 6px;
     }
     .hole-nav-btn:active {
-      background: var(--accent-green);
-      color: #000;
+      background: rgba(56, 189, 248, 0.15);
     }
 
     .hole-info-center {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-weight: 800;
-      font-family: 'Outfit', sans-serif;
+      gap: 5px;
     }
+
     .hole-badge-current {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 900;
       color: #fff;
-      padding: 2px 8px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      padding: 1px 7px;
       border-radius: 6px;
-      font-size: 13px;
-      letter-spacing: 0.5px;
-      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
     }
+
     .hole-spec-text {
-      font-size: 12px;
+      font-size: 11px;
+      font-weight: 700;
       color: var(--text-main);
     }
 
-    .hole-quick-select {
-      background: rgba(15, 23, 42, 0.8);
-      color: #fff;
-      border: 1px solid var(--border-subtle);
+    /* 使用ティー選択バッジ（常時表示＆ワンタップ再選択） */
+    .tee-badge-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 7px;
       border-radius: 6px;
-      padding: 3px 6px;
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid rgba(255,255,255,0.3);
+      white-space: nowrap;
+    }
+    .tee-badge-chip:active {
+      transform: scale(0.94);
+    }
+
+    /* 2グリーン（🟢 L / ⚪ R）トグル */
+    .green-side-toggle {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 6px;
+      padding: 1px;
+      border: 1px solid var(--border-subtle);
+    }
+    .green-side-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .green-side-btn.active {
+      background: var(--accent-green);
+      color: #fff;
+    }
+
+    .btn-ip-reset {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--accent-amber);
+      color: var(--accent-amber);
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .hole-quick-select {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      border-radius: 6px;
+      padding: 3px 4px;
+      font-size: 10.5px;
+      font-weight: 700;
       outline: none;
+      cursor: pointer;
+      max-width: 90px;
     }
 
     /* リアルタイムHUD情報バー */
     .hud-metrics-grid {
       position: absolute;
-      top: calc(var(--safe-top) + 90px);
-      left: 12px;
-      right: 12px;
+      top: calc(var(--safe-top) + 84px);
+      left: 10px;
+      right: 10px;
       z-index: 900;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
+      gap: 5px;
       pointer-events: none;
     }
 
     .hud-card {
-      background: rgba(11, 19, 38, 0.88);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background: var(--bg-panel);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--border-subtle);
       border-radius: 10px;
-      padding: 6px 8px;
+      padding: 5px 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      text-align: center;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       pointer-events: auto;
+      text-align: center;
     }
     .hud-card.highlight {
-      border-color: rgba(16, 185, 129, 0.5);
-      background: rgba(6, 78, 59, 0.4);
+      border-color: var(--border-highlight);
+      background: rgba(13, 23, 42, 0.94);
     }
 
     .hud-label {
@@ -294,84 +398,92 @@
       color: var(--text-sub);
       text-transform: uppercase;
       letter-spacing: 0.3px;
-      display: flex;
-      align-items: center;
-      gap: 3px;
     }
+
     .hud-value {
       font-family: 'Outfit', sans-serif;
       font-size: 16px;
       font-weight: 900;
       color: #fff;
-      line-height: 1.15;
+      line-height: 1.1;
+      margin: 1px 0;
     }
     .hud-value.large {
       font-size: 19px;
-      color: #38bdf8;
     }
     .hud-value.green {
       color: #34d399;
+      text-shadow: 0 0 10px rgba(52, 211, 153, 0.4);
     }
     .hud-value.amber {
       color: #fbbf24;
     }
+
     .hud-sub {
-      font-size: 9px;
+      font-size: 8.5px;
       color: var(--text-muted);
-      margin-top: 1px;
       white-space: nowrap;
     }
 
-    /* 安全管理・日没＆気象バナー */
+    /* グリーン3点距離 ＆ 安全管理・日没バナー */
     .safety-banner {
       position: absolute;
-      top: calc(var(--safe-top) + 155px);
-      left: 12px;
-      right: 12px;
-      z-index: 900;
+      top: calc(var(--safe-top) + 144px);
+      left: 10px;
+      right: 10px;
+      z-index: 890;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(8px);
+      justify-content: space-between;
+      padding: 4px 10px;
+      background: rgba(8, 13, 26, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 1px solid var(--border-subtle);
       border-radius: 8px;
-      padding: 4px 10px;
-      font-size: 10.5px;
-      pointer-events: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      font-size: 10px;
+      pointer-events: auto;
     }
-    .safety-banner-left, .safety-banner-right {
+    .safety-banner-left {
       display: flex;
       align-items: center;
       gap: 6px;
-      pointer-events: auto;
     }
+    .safety-banner-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .green-three-pts-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(16, 185, 129, 0.18);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      color: #6ee7b7;
+    }
+
     .sunset-tag {
       font-weight: 700;
       color: var(--accent-amber);
-    }
-    .sunset-tag.urgent {
-      color: var(--accent-red);
-      animation: pulseAlert 1.5s infinite;
-    }
-
-    @keyframes pulseAlert {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
     }
 
     /* 計測中アクティブバナー */
     #measure-active-banner {
       position: absolute;
-      top: calc(var(--safe-top) + 185px);
-      left: 12px;
-      right: 12px;
+      top: calc(var(--safe-top) + 180px);
+      left: 10px;
+      right: 10px;
       z-index: 999;
       background: rgba(245, 158, 11, 0.95);
       color: #000;
       font-weight: 800;
-      font-size: 11.5px;
+      font-size: 11px;
       padding: 6px 12px;
       border-radius: 8px;
       display: none;
@@ -383,26 +495,20 @@
     /* グリーンアンジュレーション専用コントロールパネル */
     #green-contour-panel {
       position: absolute;
-      bottom: calc(var(--safe-bottom) + 80px);
-      left: 12px;
-      right: 12px;
+      bottom: calc(var(--safe-bottom) + 74px);
+      left: 10px;
+      right: 10px;
       z-index: 1000;
       background: rgba(8, 13, 26, 0.94);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       border: 1px solid rgba(56, 189, 248, 0.4);
-      border-radius: 14px;
-      padding: 10px 12px;
+      border-radius: 12px;
+      padding: 8px 10px;
       display: none;
       flex-direction: column;
-      gap: 8px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.2);
-      animation: slideUp 0.3s ease-out;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      gap: 6px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
     }
 
     .green-panel-header {
@@ -411,45 +517,42 @@
       justify-content: space-between;
     }
     .green-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
       color: #38bdf8;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
     .green-legend {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 10px;
+      gap: 6px;
+      font-size: 9.5px;
       color: var(--text-sub);
     }
     .legend-bar {
-      width: 70px;
-      height: 8px;
-      border-radius: 4px;
+      width: 60px;
+      height: 7px;
+      border-radius: 3px;
       background: linear-gradient(90deg, #3b82f6 0%, #10b981 35%, #eab308 70%, #ef4444 100%);
     }
 
     .green-toggles {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       flex-wrap: wrap;
     }
     .toggle-chip {
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--border-subtle);
       color: var(--text-main);
-      padding: 4px 10px;
+      padding: 3px 8px;
       border-radius: 6px;
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 700;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
     }
     .toggle-chip.active {
       background: rgba(56, 189, 248, 0.25);
@@ -464,11 +567,11 @@
       left: 0;
       right: 0;
       z-index: 1000;
-      padding: 8px 12px calc(var(--safe-bottom) + 8px) 12px;
+      padding: 6px 10px calc(var(--safe-bottom) + 6px) 10px;
       background: linear-gradient(0deg, rgba(8, 13, 26, 0.98) 0%, rgba(8, 13, 26, 0.88) 75%, rgba(8, 13, 26, 0) 100%);
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
       pointer-events: none;
     }
 
@@ -476,14 +579,14 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
+      gap: 5px;
       pointer-events: auto;
     }
 
     .dock-btn {
       flex: 1;
-      height: 44px;
-      border-radius: 12px;
+      height: 42px;
+      border-radius: 10px;
       border: 1px solid var(--border-subtle);
       background: var(--bg-panel);
       backdrop-filter: blur(12px);
@@ -493,11 +596,11 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
-      font-size: 11px;
+      gap: 1px;
+      font-size: 10px;
       font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
       transition: all 0.2s ease;
     }
     .dock-btn:active {
@@ -519,27 +622,32 @@
       border-color: rgba(245, 158, 11, 0.4);
       color: #fff;
     }
+    .dock-btn.purple {
+      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #fff;
+    }
 
     .dock-icon {
-      font-size: 15px;
+      font-size: 14px;
       line-height: 1;
     }
 
     /* 右側フローティングアクションボタン群 */
     .floating-fab-group {
       position: absolute;
-      right: 12px;
-      bottom: calc(var(--safe-bottom) + 68px);
+      right: 10px;
+      bottom: calc(var(--safe-bottom) + 64px);
       z-index: 950;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 7px;
       pointer-events: auto;
     }
 
     .fab-btn {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: var(--bg-panel);
       backdrop-filter: blur(12px);
@@ -549,152 +657,105 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+      font-size: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
       cursor: pointer;
       transition: all 0.2s;
     }
     .fab-btn:active {
       transform: scale(0.9);
     }
-    .fab-btn.alert {
-      background: #ef4444;
-      border-color: #f87171;
-    }
 
-    /* コース幅 即効フロントリセットボタン */
     #btn-direct-clear-width {
       display: none;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
       color: #fff;
-      font-size: 12.5px;
+      font-size: 11px;
       font-weight: 800;
-      padding: 8px 16px;
-      border-radius: 24px;
+      padding: 6px 12px;
+      border-radius: 20px;
       border: 1.5px solid #fca5a5;
-      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.65), 0 0 12px rgba(239, 68, 68, 0.4);
+      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.65);
       cursor: pointer;
       z-index: 1200;
-      transition: all 0.2s ease;
-      animation: pulseAlert 2s infinite;
-    }
-    #btn-direct-clear-width:active {
-      transform: scale(0.92);
     }
 
-    /* モーダル共通スタイル */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 2000;
-      background: rgba(4, 8, 18, 0.82);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: none;
+    /* IPマーカー & 区間バッジ */
+    .custom-ip-marker-wrap {
+      position: relative;
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 16px;
+      cursor: grab;
+      touch-action: none;
     }
-
-    .modal-card {
-      background: #0f1c30;
-      border: 1px solid var(--border-subtle);
-      border-radius: 16px;
-      width: 100%;
-      max-width: 520px;
-      max-height: 88vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
-      animation: modalFadeIn 0.2s ease-out;
-    }
-
-    @keyframes modalFadeIn {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    .modal-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #091222;
-    }
-    .modal-title {
-      font-size: 15px;
-      font-weight: 800;
+    .ip-pin-label {
+      position: absolute;
+      bottom: 34px;
+      background: rgba(8, 13, 26, 0.94);
+      border: 1.5px solid #f59e0b;
+      border-radius: 6px;
+      padding: 2px 7px;
       color: #fff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 10.5px;
+      font-weight: 800;
+      white-space: nowrap;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8);
       display: flex;
       align-items: center;
-      gap: 8px;
-    }
-    .modal-close {
-      background: transparent;
-      border: none;
-      color: var(--text-sub);
-      font-size: 20px;
-      cursor: pointer;
-      line-height: 1;
-    }
-
-    .modal-body {
-      padding: 14px 16px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    /* 検索候補カード */
-    .candidate-card {
-      background: #15253e;
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
       gap: 4px;
-      cursor: pointer;
-      transition: all 0.15s ease;
+      pointer-events: none;
     }
-    .candidate-card:active {
-      transform: scale(0.98);
-      border-color: var(--accent-green);
-      background: #1b3152;
-    }
-    .candidate-title {
-      font-size: 13px;
-      font-weight: 800;
+    .ip-badge-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border: 2px solid #fff;
       color: #fff;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      font-size: 11px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.75);
     }
-    .candidate-tag {
-      font-size: 10px;
-      background: rgba(16, 185, 129, 0.2);
+    .ip-segment-badge {
+      background: rgba(8, 13, 26, 0.95);
+      border: 1.5px solid #10b981;
+      border-radius: 12px;
+      padding: 2px 7px;
       color: #34d399;
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-weight: 700;
-    }
-    .candidate-desc {
-      font-size: 11px;
-      color: var(--text-sub);
-      line-height: 1.3;
+      font-family: 'Outfit', sans-serif;
+      font-size: 10.5px;
+      font-weight: 900;
+      white-space: nowrap;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.75);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
     }
 
-    /* マーカー＆ラベルのカスタムCSS */
+    /* 各種マップマーカー */
     .custom-tee-marker {
-      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 13px;
+      cursor: grab;
+      font-family: 'Outfit', sans-serif;
+      transition: all 0.2s ease;
+    }
+    .custom-pin-marker {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
       color: #fff;
       width: 32px;
       height: 32px;
@@ -704,36 +765,21 @@
       align-items: center;
       justify-content: center;
       font-weight: 900;
-      font-size: 14px;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
-      cursor: grab;
-    }
-    .custom-pin-marker {
-      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-      color: #fff;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      border: 2px solid #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      font-size: 16px;
+      font-size: 15px;
       box-shadow: 0 4px 14px rgba(239, 68, 68, 0.6);
       cursor: grab;
     }
     .custom-user-marker {
       background: #10b981;
       color: #fff;
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       border: 2px solid #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
+      font-size: 12px;
       box-shadow: 0 0 16px rgba(16, 185, 129, 0.8);
       cursor: grab;
     }
@@ -741,65 +787,223 @@
       background: rgba(15, 23, 42, 0.9);
       border: 1.5px solid var(--accent-amber);
       color: #fff;
-      width: 26px;
-      height: 26px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 11px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
-
-    /* 計測線極大バッジ（太陽光下でも抜群の視認性） */
     .custom-width-badge {
       background: rgba(8, 13, 26, 0.96);
-      border: 2.5px solid #f59e0b;
-      border-radius: 12px;
-      padding: 6px 14px;
+      border: 2px solid #f59e0b;
+      border-radius: 10px;
+      padding: 4px 10px;
       color: #fff;
       font-family: 'Outfit', sans-serif;
       display: inline-flex;
       align-items: baseline;
-      gap: 6px;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.85), 0 0 16px rgba(245, 158, 11, 0.5);
+      gap: 5px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.85);
       white-space: nowrap;
       pointer-events: none;
       z-index: 1000;
     }
-    .badge-val {
-      font-size: 26px;
-      font-weight: 900;
-      color: #fbbf24;
-      line-height: 1;
-      text-shadow: 0 2px 10px rgba(245, 158, 11, 0.7);
+    .badge-val { font-size: 22px; font-weight: 900; color: #fbbf24; line-height: 1; }
+    .badge-unit { font-size: 11px; font-weight: 800; color: #fde68a; }
+    .badge-metric { font-size: 11px; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.16); padding: 1px 5px; border-radius: 4px; }
+
+    /* モーダル共通スタイル */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2000;
+      background: rgba(4, 8, 18, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
     }
-    .badge-unit {
-      font-size: 13px;
-      font-weight: 800;
-      color: #fde68a;
-      letter-spacing: 0.5px;
+    .modal-card {
+      background: #0f1a2e;
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 88vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
     }
-    .badge-metric {
-      font-size: 12.5px;
+    .modal-header {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title { font-weight: 800; font-size: 14px; color: #fff; }
+    .modal-close { background: transparent; border: none; color: var(--text-sub); font-size: 20px; cursor: pointer; }
+    .modal-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ==========================================================
+       ★ 楽天ゴルフ仕様 3ステップ ウィザード UI スタイル
+    ========================================================== */
+    .wizard-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px 8px 16px;
+    }
+    .wizard-steps-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 16px 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .wizard-step-node {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      font-size: 11px;
       font-weight: 700;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .wizard-step-node.active {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--accent-green);
+      color: #34d399;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+    }
+    .wizard-step-node.completed {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent-blue);
       color: #38bdf8;
-      background: rgba(56, 189, 248, 0.16);
-      padding: 2px 7px;
-      border-radius: 6px;
-      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+    .step-num {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 900;
+    }
+    .wizard-step-node.active .step-num {
+      background: var(--accent-green);
+      color: #000;
+    }
+    .wizard-step-arrow {
+      color: var(--text-muted);
+      font-size: 10px;
     }
 
-    /* 汎用ボタンスタイル */
+    .wizard-step-panel {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px 16px;
+      animation: fadeIn 0.25s ease-out;
+    }
+    .wizard-step-panel.active {
+      display: flex;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* サブコース選択カード */
+    .subcourse-card {
+      background: #132238;
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .subcourse-card:hover, .subcourse-card.selected {
+      border-color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.12);
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
+    }
+    .subcourse-card-title {
+      font-weight: 800;
+      font-size: 13px;
+      color: #fff;
+    }
+    .subcourse-card-desc {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    /* ティー選択カード群 */
+    .tee-option-card {
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1.5px solid var(--border-subtle);
+      background: #132238;
+    }
+    .tee-option-card:hover, .tee-option-card.selected {
+      box-shadow: 0 0 16px rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+    .tee-option-card.tee-black.selected { border-color: #94a3b8; background: rgba(30, 41, 59, 0.85); }
+    .tee-option-card.tee-blue.selected { border-color: #60a5fa; background: rgba(37, 99, 235, 0.25); }
+    .tee-option-card.tee-white.selected { border-color: #ffffff; background: rgba(255, 255, 255, 0.2); }
+    .tee-option-card.tee-gold.selected { border-color: #fbbf24; background: rgba(217, 119, 6, 0.25); }
+    .tee-option-card.tee-red.selected { border-color: #f87171; background: rgba(220, 38, 38, 0.25); }
+
+    .tee-color-circle {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
     .btn-main {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: #fff;
       border: none;
       border-radius: 8px;
-      padding: 8px 14px;
+      padding: 9px 14px;
       font-weight: 700;
       font-size: 12px;
       cursor: pointer;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
     }
     .btn-sub {
       background: rgba(255, 255, 255, 0.08);
@@ -810,9 +1014,6 @@
       font-weight: 600;
       font-size: 12px;
       cursor: pointer;
-    }
-    .btn-sub:active {
-      background: rgba(255, 255, 255, 0.15);
     }
     .btn-danger {
       background: #ef4444;
@@ -825,86 +1026,88 @@
       cursor: pointer;
     }
 
-    /* スコアカード表スタイル */
-    .score-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px;
-      text-align: center;
+    /* 4人対応スコアカード表 */
+    .score-table { width: 100%; border-collapse: collapse; font-size: 10.5px; text-align: center; }
+    .score-table th, .score-table td { border: 1px solid var(--border-subtle); padding: 3px 2px; }
+    .score-table th { background: #111e33; color: var(--text-sub); }
+    .score-input-cell { width: 28px; background: transparent; border: none; color: #fff; text-align: center; font-weight: 800; font-size: 11px; outline: none; }
+
+    /* ポケットタッチロック全画面オーバーレイ */
+    #touch-lock-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 3000;
+      background: rgba(4, 8, 18, 0.92); display: none; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px; backdrop-filter: blur(10px);
     }
-    .score-table th, .score-table td {
-      border: 1px solid var(--border-subtle);
-      padding: 4px 2px;
-    }
-    .score-table th {
-      background: #111e33;
-      color: var(--text-sub);
-    }
-    .score-input-cell {
-      width: 32px;
-      background: transparent;
-      border: none;
-      color: #fff;
-      text-align: center;
-      font-weight: 800;
-      font-size: 12px;
-      outline: none;
+    .lock-box {
+      background: var(--bg-card); border: 1.5px solid var(--accent-amber);
+      border-radius: 16px; padding: 24px; text-align: center; display: flex;
+      flex-direction: column; align-items: center; gap: 12px; max-width: 280px;
     }
 
     /* トースト通知 */
     #calibration-toast {
-      position: fixed;
-      bottom: calc(var(--safe-bottom) + 74px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(16, 185, 129, 0.95);
-      color: #000;
-      font-weight: 800;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 12px;
-      z-index: 2500;
-      display: none;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      position: fixed; bottom: calc(var(--safe-bottom) + 70px); left: 50%;
+      transform: translateX(-50%); background: rgba(16, 185, 129, 0.96);
+      color: #000; font-weight: 800; padding: 6px 14px; border-radius: 20px;
+      font-size: 11.5px; z-index: 2500; display: none; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       pointer-events: none;
     }
   </style>
 </head>
 <body>
 
-  <!-- 地図コンテナ -->
-  <div id="map"></div>
+  <!-- マップラッパー -->
+  <div id="map-wrapper">
+    <div id="map"></div>
+  </div>
 
   <!-- 上部ヘッダーバー -->
   <header class="top-nav">
     <div class="top-nav-inner">
-      <div class="brand-chip" onclick="openCourseSearchModal()" title="コース検索・変更">
+      <div class="brand-chip" onclick="openRoundWizard(1)" title="ゴルフ場・コース・ティー変更 (3ステップウィザード)">
         <div class="brand-logo-icon">⛳</div>
         <div class="course-title-wrap">
           <div class="course-title" id="current-course-display">
             取手桜が丘GC
-            <span style="font-size:10px; background:rgba(16,185,129,0.25); color:#34d399; padding:1px 5px; border-radius:4px;">Par 72</span>
+            <span style="font-size:9px; background:rgba(16,185,129,0.25); color:#34d399; padding:1px 4px; border-radius:4px;" id="current-subcourse-badge">OUT➔IN</span>
           </div>
-          <div class="course-sub" id="current-course-pref">茨城県取手市 (タップで全国検索)</div>
+          <div class="course-sub" id="current-course-pref">茨城県取手市 (タップで変更)</div>
         </div>
       </div>
 
       <div class="top-controls">
+        <button class="icon-btn" id="btn-voice-guide" onclick="speakVoiceCaddieGuide()" title="🗣️ ボイスキャディ音声案内">🗣️</button>
+        <button class="icon-btn" id="btn-compass-icon" onclick="toggleHeadingUpMode()" title="🧭 ヘディングアップ / ノースアップ切替">🧭</button>
+        <button class="icon-btn" id="btn-sunlight-mode" onclick="toggleSunlightMode()" title="☀️ サンライト屋外高視認性モード">☀️</button>
+        <button class="icon-btn" id="btn-touch-lock" onclick="toggleTouchLock()" title="🔒 ポケット誤タッチロック">🔒</button>
         <button class="icon-btn" id="btn-layer-menu" onclick="toggleLayerMenu()" title="地図レイヤー切替">🗺️</button>
-        <button class="icon-btn" id="btn-radar-toggle" onclick="toggleRainRadar()" title="雨雲レーダー重ね合わせ">🌧️</button>
-        <button class="icon-btn" id="btn-green-mode" onclick="toggleGreenContourMode()" title="グリーンアンジュレーション">🎯</button>
+        <button class="icon-btn" id="btn-radar-toggle" onclick="toggleRainRadar()" title="雨雲レーダー">🌧️</button>
         <button class="icon-btn" id="btn-floating-measure" onclick="toggleDirectWidthMeasurement()" title="コース幅計測">📏</button>
-        <button class="icon-btn" onclick="openClubModal()" title="クラブ・飛距離設定">🏌️</button>
       </div>
     </div>
 
-    <!-- ホールセレクターバー -->
+    <!-- ホールセレクターバー ＆ 使用ティーバッジ ＆ 2グリーン(L/R) -->
     <div class="hole-bar">
       <button class="hole-nav-btn" onclick="prevHole()">◀ 前H</button>
       <div class="hole-info-center">
         <span class="hole-badge-current" id="hud-current-hole-num">1H</span>
         <span class="hole-spec-text" id="hud-current-hole-par">Par 4 / 365y</span>
       </div>
+
+      <!-- 使用ティー選択バッジ（タップで即座にティー変更） -->
+      <div class="tee-badge-chip" id="hud-tee-badge" onclick="openRoundWizard(3)" title="使用ティーを変更">
+        ⚪ White
+      </div>
+
+      <!-- 2グリーン（L/R）切替 -->
+      <div class="green-side-toggle" title="2グリーン切替 (L: メイン / R: サブ)">
+        <button class="green-side-btn active" id="btn-green-l" onclick="selectGreenSide('L')">🟢 L</button>
+        <button class="green-side-btn" id="btn-green-r" onclick="selectGreenSide('R')">⚪ R</button>
+      </div>
+
+      <!-- IP初期化 -->
+      <button class="btn-ip-reset" onclick="resetCurrentHoleIpRoute()" title="中間点(IP)推奨ルートを初期化">🔄 IP初期化</button>
+
       <select class="hole-quick-select" id="hole-quick-select" onchange="onHoleSelectChange(this.value)">
         <!-- 1H〜18H JS生成 -->
       </select>
@@ -917,7 +1120,7 @@
     <div class="hud-card highlight">
       <div class="hud-label">🎯 ピン実距離</div>
       <div class="hud-value large" id="hud-raw-dist">-- y</div>
-      <div class="hud-sub">直線ヤード</div>
+      <div class="hud-sub" id="hud-target-ip-info">直線ヤード</div>
     </div>
     <div class="hud-card highlight">
       <div class="hud-label">⚡ PlaysLike</div>
@@ -936,15 +1139,18 @@
     </div>
   </div>
 
-  <!-- 安全管理・日没＆気象バナー -->
+  <!-- グリーン3点距離 ＆ 安全管理・日没バナー -->
   <div class="safety-banner">
     <div class="safety-banner-left">
+      <div class="green-three-pts-badge" id="green-three-pts-display" title="打席進入角に沿った手前・中央・奥の3点ヤード">
+        ⛳ F: <span id="g3-front">--</span> | C: <span id="g3-center">--</span> | B: <span id="g3-back">--</span>y
+      </div>
       <span id="sunset-countdown-display" class="sunset-tag">🌅 日没計算中...</span>
     </div>
     <div class="safety-banner-right">
-      <span style="color:var(--text-sub);" id="user-elev-display">打席標高: <strong id="user-elev-val" style="color:#fff;">--</strong>m</span>
+      <span style="color:var(--text-sub);">標高: <strong id="user-elev-val" style="color:#fff;">--</strong>m</span>
       <span style="color:var(--text-muted);">|</span>
-      <span style="color:var(--text-sub);">前回飛距離: <strong id="hud-last-shot-dist" style="color:#38bdf8;">-- y</strong></span>
+      <span style="color:var(--text-sub);">前回: <strong id="hud-last-shot-dist" style="color:#38bdf8;">-- y</strong></span>
     </div>
   </div>
 
@@ -976,11 +1182,11 @@
   <!-- 右側フローティングアクションボタン群 -->
   <div class="floating-fab-group">
     <div id="btn-direct-clear-width" onclick="clearWidthLines()" title="計測した幅ラインをすべて即効消去">
-      <span style="font-size:15px;">🗑️</span>
-      <span>幅リセット (<strong id="direct-clear-count">0</strong>本)</span>
+      <span>🗑️</span>
+      <span>幅消去 (<strong id="direct-clear-count">0</strong>)</span>
     </div>
-    <button class="fab-btn" onclick="recordCurrentShot()" title="📍 この打席を記録">📍</button>
-    <button class="fab-btn" onclick="focusCurrentHole()" title="1H/現在ホールに再ズーム">🎯</button>
+    <button class="fab-btn" onclick="recordCurrentShot()" title="📍 現在の打席を記録">📍</button>
+    <button class="fab-btn" onclick="focusCurrentHole()" title="現在ホールに再ズーム">🎯</button>
   </div>
 
   <!-- 下部ボトムコントロールバー -->
@@ -1000,50 +1206,118 @@
       </button>
       <button class="dock-btn amber" onclick="openScoreModal()">
         <span class="dock-icon">📝</span>
-        <span>スコア入力</span>
+        <span>スコア(4人)</span>
+      </button>
+      <button class="dock-btn purple" onclick="openSnsShareModal()">
+        <span class="dock-icon">📸</span>
+        <span>SNSカード</span>
       </button>
       <button class="dock-btn" onclick="openGuideModal()">
         <span class="dock-icon">ℹ️</span>
-        <span>ホール攻略</span>
+        <span>攻略ガイド</span>
       </button>
     </div>
   </footer>
 
-  <!-- ==========================================================
-       モーダル群
-  ========================================================== -->
+  <!-- ポケットタッチロック用全画面オーバーレイ -->
+  <div id="touch-lock-overlay" onclick="handleTouchLockTap()">
+    <div class="lock-box">
+      <div style="font-size:36px;">🔒</div>
+      <div style="font-weight:900; font-size:16px; color:#fff;">ポケット・タッチロック中</div>
+      <div style="font-size:12px; color:var(--text-sub);">誤タップを防ぐため画面入力を制限しています。<br><strong style="color:var(--accent-amber);">画面をダブルタップ</strong>でロック解除します。</div>
+      <button class="btn-main" onclick="toggleTouchLock()" style="margin-top:6px; width:100%;">🔓 タッチロック解除</button>
+    </div>
+  </div>
 
-  <!-- 1. 全国ゴルフ場検索モーダル -->
-  <div class="modal-overlay" id="course-search-modal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title">⛳ 日本全国ゴルフ場 検索 & 最寄り検出</div>
-        <button class="modal-close" onclick="closeCourseSearchModal()">&times;</button>
+  <!-- ==========================================================
+       ★ 【最重要】楽天ゴルフ仕様 3ステップ ラウンド開始ウィザード
+  ========================================================== -->
+  <div class="modal-overlay" id="round-wizard-modal">
+    <div class="modal-card" style="max-width:480px;">
+      <div class="wizard-header-top">
+        <div class="wizard-title" style="font-weight:900; font-size:14px; color:#fff;">⛳ ラウンド設定 (楽天ゴルフPlus仕様)</div>
+        <button class="modal-close" onclick="closeRoundWizard()">&times;</button>
       </div>
-      <div class="modal-body">
-        <div style="display:flex; gap:6px;">
-          <input type="text" id="course-search-input" placeholder="コース名・地域名（例: 宍戸, 石岡, 川奈, 軽井沢...）" 
-                 style="flex:1; background:#1e293b; border:1px solid var(--border-subtle); color:#fff; border-radius:8px; padding:10px; font-size:13px; outline:none;"
-                 oninput="onCourseSearchInput(this.value)">
-          <button class="btn-main" onclick="executeExternalCourseSearch()">Web検索</button>
+
+      <!-- ステップインジケーター -->
+      <div class="wizard-steps-indicator">
+        <div class="wizard-step-node active" id="wizard-node-1" onclick="gotoWizardStep(1)">
+          <span class="step-num">1</span>
+          <span class="step-txt">ゴルフ場</span>
+        </div>
+        <div class="wizard-step-arrow">➔</div>
+        <div class="wizard-step-node" id="wizard-node-2" onclick="gotoWizardStep(2)">
+          <span class="step-num">2</span>
+          <span class="step-txt">コース</span>
+        </div>
+        <div class="wizard-step-arrow">➔</div>
+        <div class="wizard-step-node" id="wizard-node-3" onclick="gotoWizardStep(3)">
+          <span class="step-num">3</span>
+          <span class="step-txt">ティー</span>
+        </div>
+      </div>
+
+      <div class="wizard-body">
+        <!-- STEP 1: ゴルフ場 検索・選択 -->
+        <div class="wizard-step-panel active" id="wizard-panel-1">
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="course-search-input" placeholder="コース名・地域名（例: 宍戸, 太平台, 石岡, 川奈...）" 
+                   style="flex:1; background:#1e293b; border:1px solid var(--border-subtle); color:#fff; border-radius:8px; padding:9px 10px; font-size:12.5px; outline:none;"
+                   oninput="onCourseSearchInput(this.value)">
+            <button class="btn-main" onclick="executeExternalCourseSearch()">Web検索</button>
+          </div>
+
+          <button class="btn-sub" style="display:flex; align-items:center; justify-content:center; gap:6px; background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8; padding:8px;" onclick="locateNearestGolfCourse()">
+            📍 現在地の最寄りゴルフ場を自動検出 (GPS)
+          </button>
+
+          <div style="font-size:11px; color:var(--text-sub);">主要トーナメント・名門コース:</div>
+          <div id="preset-course-chips" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
+
+          <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">候補ゴルフ場リスト:</div>
+          <div id="course-candidates-container" style="display:flex; flex-direction:column; gap:5px; max-height:220px; overflow-y:auto;"></div>
         </div>
 
-        <button class="btn-sub" style="display:flex; align-items:center; justify-content:center; gap:6px; background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8; padding:9px;" onclick="locateNearestGolfCourse()">
-          📍 現在地の最寄りゴルフ場を自動検出
-        </button>
+        <!-- STEP 2: サブコース選択 -->
+        <div class="wizard-step-panel" id="wizard-panel-2">
+          <div style="background:#132238; border-radius:8px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:10px; color:var(--text-sub);">選択中のゴルフ場:</div>
+              <div style="font-size:13px; font-weight:800; color:#38bdf8;" id="wizard-selected-course-name">--</div>
+            </div>
+            <button class="btn-sub" style="padding:3px 8px; font-size:10px;" onclick="gotoWizardStep(1)">変更</button>
+          </div>
 
-        <!-- プリセットチップス -->
-        <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">主要コース・人気トーナメントコース:</div>
-        <div id="preset-course-chips" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
+          <div style="font-size:11.5px; font-weight:700; color:var(--text-main); margin-top:4px;">当日のラウンド順（サブコース）を選択してください:</div>
+          <div id="subcourse-options-container" style="display:flex; flex-direction:column; gap:6px;">
+            <!-- JS動的生成 -->
+          </div>
+        </div>
 
-        <!-- 候補リストコンテナ -->
-        <div style="font-size:11px; color:var(--text-sub); margin-top:8px;">検索結果・候補ゴルフ場:</div>
-        <div id="course-candidates-container" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto;"></div>
+        <!-- STEP 3: ティー選択 -->
+        <div class="wizard-step-panel" id="wizard-panel-3">
+          <div style="background:#132238; border-radius:8px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:10px; color:var(--text-sub);">コース構成:</div>
+              <div style="font-size:12px; font-weight:800; color:#fff;" id="wizard-summary-course-info">--</div>
+            </div>
+            <button class="btn-sub" style="padding:3px 8px; font-size:10px;" onclick="gotoWizardStep(2)">コース再選択</button>
+          </div>
+
+          <div style="font-size:11.5px; font-weight:700; color:var(--text-main); margin-top:4px;">使用ティーグラウンド（規定ヤード・マーカー連動）を選択:</div>
+          <div id="tee-options-container" style="display:flex; flex-direction:column; gap:5px;">
+            <!-- JS動的生成 -->
+          </div>
+
+          <button class="btn-main" style="padding:12px; font-size:13px; font-weight:900; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="commitRoundWizard()">
+            ⛳ この設定でラウンド開始 (マップへ展開)
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 2. 地図レイヤー切替モーダル -->
+  <!-- 地図レイヤー切替モーダル -->
   <div class="modal-overlay" id="layer-modal">
     <div class="modal-card" style="max-width:380px;">
       <div class="modal-header">
@@ -1053,7 +1327,7 @@
       <div class="modal-body">
         <div style="font-size:12px; font-weight:700; color:var(--text-sub);">ベースマップ切替 (国土地理院):</div>
         <button class="btn-sub" style="text-align:left;" onclick="switchBaseTile('photo')">🛰️ シームレス空中写真 (最新高解像度)</button>
-        <button class="btn-sub" style="text-align:left;" onclick="switchBaseTile('slope')">📐 傾斜量図 (コースの傾斜・起伏が直感把握)</button>
+        <button class="btn-sub" style="text-align:left;" onclick="switchBaseTile('slope')">📐 傾斜量図 (コースの起伏・アンジュレーション)</button>
         <button class="btn-sub" style="text-align:left;" onclick="switchBaseTile('hillshade')">🏔️ 陰影起伏図 (立体感のある地形表現)</button>
         <button class="btn-sub" style="text-align:left;" onclick="switchBaseTile('relief')">🌈 色別標高図 (標高に応じた色彩表現)</button>
 
@@ -1064,7 +1338,7 @@
     </div>
   </div>
 
-  <!-- 3. クラブ設定モーダル -->
+  <!-- クラブ設定モーダル -->
   <div class="modal-overlay" id="club-modal">
     <div class="modal-card">
       <div class="modal-header">
@@ -1072,65 +1346,57 @@
         <button class="modal-close" onclick="closeClubModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <div style="font-size:12px; color:var(--text-sub);">現在使用する番手を選択してください（弾道とキャリーサークルが連動）:</div>
+        <div style="font-size:12px; color:var(--text-sub);">使用する番手を選択（弾道とキャリーサークルがIPルートに連動）:</div>
         <div style="display:flex; gap:8px;">
           <select id="caddie-club-select" style="flex:1; background:#1e293b; color:#fff; border:1px solid var(--border-subtle); border-radius:8px; padding:8px; font-size:13px; font-weight:700;" onchange="onClubChange(this.value)">
-            <!-- 1W〜PT JS生成 -->
           </select>
         </div>
-
-        <div style="font-size:12px; color:var(--text-sub); margin-top:8px;">全番手標準キャリー設定 (ヤード):</div>
+        <div style="font-size:12px; color:var(--text-sub); margin-top:6px;">全番手標準キャリー設定 (ヤード):</div>
         <div id="club-distance-editor-list" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:6px; max-height:220px; overflow-y:auto;"></div>
         <button class="btn-main" style="margin-top:6px;" onclick="saveClubDistances()">💾 飛距離設定を保存</button>
       </div>
     </div>
   </div>
 
-  <!-- 4. 楽天スコアPlus モーダル -->
+  <!-- スコアカード モーダル -->
   <div class="modal-overlay" id="score-modal">
-    <div class="modal-card" style="max-width:540px;">
+    <div class="modal-card" style="max-width:520px;">
       <div class="modal-header">
-        <div class="modal-title">📝 楽天スコアPlus (18H完全対応)</div>
+        <div class="modal-title">📝 スコアカード (同伴者4人 ＆ 新ペリア自動集計)</div>
         <button class="modal-close" onclick="closeScoreModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <div style="display:flex; justify-content:space-between; align-items:center; background:#152238; padding:8px 12px; border-radius:8px;">
-          <div>
-            <div style="font-size:11px; color:var(--text-sub);">TOTAL GROSS</div>
-            <div style="font-size:20px; font-weight:900; color:#38bdf8;" id="score-total-gross">0</div>
-          </div>
-          <div>
-            <div style="font-size:11px; color:var(--text-sub);">TOTAL PUTT</div>
-            <div style="font-size:20px; font-weight:900; color:#34d399;" id="score-total-putt">0</div>
-          </div>
-          <div>
-            <div style="font-size:11px; color:var(--text-sub);">FW KEEP</div>
-            <div style="font-size:16px; font-weight:800; color:#fbbf24;" id="score-fw-rate">0%</div>
-          </div>
-          <div>
-            <div style="font-size:11px; color:var(--text-sub);">GIR (パーオン)</div>
-            <div style="font-size:16px; font-weight:800; color:#a855f7;" id="score-gir-rate">0%</div>
-          </div>
+        <div style="display:flex; gap:4px; background:#111e33; padding:3px; border-radius:8px;">
+          <button class="btn-sub" id="tab-p1" style="flex:1; padding:5px; background:var(--accent-green); color:#fff; font-weight:800;" onclick="selectScorePlayer(1)">PLAYER 1 (自分)</button>
+          <button class="btn-sub" id="tab-p2" style="flex:1; padding:5px;" onclick="selectScorePlayer(2)">PLAYER 2</button>
+          <button class="btn-sub" id="tab-p3" style="flex:1; padding:5px;" onclick="selectScorePlayer(3)">PLAYER 3</button>
+          <button class="btn-sub" id="tab-p4" style="flex:1; padding:5px;" onclick="selectScorePlayer(4)">PLAYER 4</button>
         </div>
 
-        <div style="overflow-x:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#152238; padding:6px 10px; border-radius:8px;">
+          <div><div style="font-size:10px; color:var(--text-sub);">GROSS</div><div style="font-size:18px; font-weight:900; color:#38bdf8;" id="score-total-gross">0</div></div>
+          <div><div style="font-size:10px; color:var(--text-sub);">PUTT</div><div style="font-size:18px; font-weight:900; color:#34d399;" id="score-total-putt">0</div></div>
+          <div><div style="font-size:10px; color:var(--text-sub);">新ペリアHDCP</div><div style="font-size:16px; font-weight:800; color:#fbbf24;" id="score-peoria-hdcp">0.0</div></div>
+          <div><div style="font-size:10px; color:var(--text-sub);">NET (順位)</div><div style="font-size:16px; font-weight:800; color:#a855f7;" id="score-peoria-net">0.0</div></div>
+        </div>
+
+        <div style="overflow-x:auto; max-height:260px;">
           <table class="score-table">
             <thead>
-              <tr>
-                <th>H</th><th>Par</th><th>Score</th><th>Putt</th><th>FW</th><th>GIR</th>
-              </tr>
+              <tr><th>H</th><th>Par</th><th>Score</th><th>Putt</th><th>FW</th><th>GIR</th></tr>
             </thead>
-            <tbody id="score-table-body">
-              <!-- 18H JS生成 -->
-            </tbody>
+            <tbody id="score-table-body"></tbody>
           </table>
         </div>
-        <button class="btn-danger" style="margin-top:6px;" onclick="resetScoreCard()">🗑️ スコアカードをリセット</button>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-sub" style="flex:1;" onclick="calculatePeoriaAllPlayers()">🏆 4人新ペリア順位集計</button>
+          <button class="btn-danger" style="flex:1;" onclick="resetScoreCard()">🗑️ スコア全消去</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 5. ホール攻略アドバイス モーダル -->
+  <!-- ホール攻略ガイド モーダル -->
   <div class="modal-overlay" id="guide-modal">
     <div class="modal-card">
       <div class="modal-header">
@@ -1138,108 +1404,270 @@
         <button class="modal-close" onclick="closeGuideModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <div style="font-size:16px; font-weight:800; color:#fff;" id="guide-hole-title">1H (Par 4 / 365y)</div>
-        <div style="font-size:13px; color:var(--text-sub); line-height:1.6;" id="guide-hole-desc">
-          ティーからグリーンまでフラットで素直なホール。フェアウェイ左サイドはOBが浅いため、センターやや右狙いがセオリー。セカンドは手前のガードバンカーに注意してクラブを選定。
+        <div style="font-size:15px; font-weight:800; color:#fff;" id="guide-hole-title">1H (Par 4 / 365y)</div>
+        <div style="font-size:12px; color:var(--text-sub); line-height:1.6;" id="guide-hole-desc">
+          ティーからグリーンまでフラットで素直なホール。フェアウェイセンターやや右狙いがセオリー。
         </div>
-        <div style="background:#132238; border-radius:8px; padding:10px; margin-top:8px;">
-          <div style="font-size:11px; font-weight:700; color:var(--accent-green);">プロキャディの風・気象アドバイス:</div>
-          <div style="font-size:12px; color:#fff; margin-top:4px;" id="guide-caddie-advice">
-            現在、向かい風 2.8m/s。表示ヤードより約 6y 大きめの番手（7I推奨）で打つとピン奥にピッタリ着弾します。
+        <div style="background:#132238; border-radius:8px; padding:8px; margin-top:4px;">
+          <div style="font-size:11px; font-weight:700; color:var(--accent-green);">プロキャディの推奨レイアップ戦略:</div>
+          <div style="font-size:12px; color:#fff; margin-top:3px;" id="guide-caddie-advice">
+            ティーショットは中間点(IP1)まで220y。セカンドは残り145y、無理のないセンター狙いが有効です。
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- トースト通知 -->
-  <div id="calibration-toast">📍 ホール位置を自動保存しました</div>
+  <!-- ビジュアルSNSカード モーダル -->
+  <div class="modal-overlay" id="sns-modal">
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-header">
+        <div class="modal-title">📸 ビジュアルSNSカード画像生成</div>
+        <button class="modal-close" onclick="closeSnsShareModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="align-items:center;">
+        <canvas id="sns-canvas" width="600" height="600" style="width:100%; max-width:320px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.6);"></canvas>
+        <button class="btn-main" style="width:100%; margin-top:8px;" onclick="downloadSnsCardImage()">💾 正方形SNS画像をダウンロード</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="calibration-toast"></div>
 
   <!-- ==========================================================
-       JavaScript 実装部 (完全無料API連携 ＆ Canvas グラフィック)
+       JavaScript 実装 (3ステップウィザード ＆ ティー連動幾何学)
   ========================================================== -->
   <script>
     /* ==========================================================
-       1. 全国ゴルフ場マスター（主要コース・名門・リゾート）
+       1. 全国ゴルフ場マスター（サブコース構成内蔵）
     ========================================================== */
     const NATIONWIDE_COURSES = [
-      { id: "toride", name: "取手桜が丘ゴルフクラブ", pref: "茨城県", lat: 35.9023, lon: 140.1221, par: 72, desc: "利根川の雄大な借景を望む林間・リバーサイドコース" },
-      { id: "taiheidai_cc", name: "太平台カントリー倶楽部", pref: "栃木県", lat: 36.3768, lon: 139.7312, par: 72, desc: "自然の地形を活かした戦略的な丘陵コース" },
-      { id: "shishido_hills", name: "宍戸ヒルズカントリークラブ", pref: "茨城県", lat: 36.3315, lon: 140.3126, par: 72, desc: "日本ゴルフツアー選手権開催の名門チャンピオンコース" },
-      { id: "pgm_ishioka", name: "PGM石岡ゴルフクラブ", pref: "茨城県", lat: 36.2087, lon: 140.2315, par: 72, desc: "J・ニクラス設計による高難度のトーナメントコース" },
-      { id: "ishioka_west", name: "石岡ウエストカントリークラブ", pref: "茨城県", lat: 36.2341, lon: 140.1872, par: 72, desc: "フラットで美しい池が絡む戦略的レイアウト" },
-      { id: "jgm_ishioka", name: "JGMやさと石岡ゴルフクラブ", pref: "茨城県", lat: 36.2512, lon: 140.2014, par: 72, desc: "筑波山麓の自然美と雄大なフェアウェイ" },
-      { id: "summit_gc", name: "サミットゴルフクラブ", pref: "茨城県", lat: 36.2711, lon: 140.2520, par: 72, desc: "シニアメジャー開催のクオリティを誇るコース" },
-      { id: "higashi_tsukuba", name: "東筑波カントリークラブ", pref: "茨城県", lat: 36.2845, lon: 140.2156, par: 72, desc: "石岡・筑波エリアを代表する難関チャンピオンコース" },
-      { id: "nishikigahara", name: "ノーザンカントリークラブ錦ヶ原ゴルフ場", pref: "埼玉県", lat: 35.8752, lon: 139.5761, par: 72, desc: "荒川河川敷に広がる広大でフラットなコース" },
-      { id: "taiheiyo_gotemba", name: "太平洋クラブ 御殿場コース", pref: "静岡県", lat: 35.2974, lon: 138.8921, par: 72, desc: "三井住友VISA太平洋マスターズ開催。富士の裾野に広がる世界水準のコース" },
-      { id: "taiheiyo_minori", name: "太平洋クラブ 美野里コース", pref: "茨城県", lat: 36.2589, lon: 140.3341, par: 72, desc: "TOTOジャパンクラシック開催の美しい林間コース" },
-      { id: "taiheiyo_konan", name: "太平洋クラブ 江南コース", pref: "埼玉県", lat: 36.1423, lon: 139.3512, par: 72, desc: "日本プロゴルフ選手権開催のタフなコース" },
-      { id: "taiheiyo_ichihara", name: "太平洋クラブ 市原コース", pref: "千葉県", lat: 35.3812, lon: 140.1523, par: 72, desc: "起伏と池の配置が絶妙なチャンピオンコース" },
-      { id: "taiheiyo_narita", name: "太平洋クラブ 成田コース", pref: "千葉県", lat: 35.7912, lon: 140.3512, par: 72, desc: "G・プレーヤー設計のドラマチックなレイアウト" },
-      { id: "taiheiyo_yachiyo", name: "太平洋クラブ 八千代コース", pref: "千葉県", lat: 35.7312, lon: 140.1123, par: 72, desc: "歩行スループレーを重視した都市型プライベートコース" },
-      { id: "taiheiyo_rokko", name: "太平洋クラブ 六甲コース", pref: "兵庫県", lat: 34.8212, lon: 135.1823, par: 72, desc: "関西屈指の名門トーナメントコース" },
-      { id: "kasumigaseki", name: "霞ヶ関カンツリー倶楽部", pref: "埼玉県", lat: 35.9189, lon: 139.4087, par: 71, desc: "東京2020オリンピックゴルフ競技開催の世界屈指の名門" },
-      { id: "narashino", name: "アコーディア・ゴルフ 習志野カントリークラブ", pref: "千葉県", lat: 35.7963, lon: 140.1342, par: 72, desc: "PGAツアー「ZOZO CHAMPIONSHIP」初代王者T・ウッズ誕生の地" },
-      { id: "kawana_fuji", name: "川奈ホテルゴルフコース 富士コース", pref: "静岡県", lat: 34.9542, lon: 139.1412, par: 72, desc: "世界ゴルフ100選に常に名を連ねるシーサイドの至宝" },
-      { id: "wakasu", name: "若洲ゴルフリンクス", pref: "東京都", lat: 35.6267, lon: 139.8456, par: 72, desc: "東京湾を望む都心随一のシーサイドリンクスコース" },
-      { id: "phoenix_cc", name: "フェニックスカントリークラブ", pref: "宮崎県", lat: 31.9567, lon: 131.4712, par: 72, desc: "ダンロップフェニックストーナメント開催。名門黒松林コース" },
-      { id: "karuizawa_72", name: "軽井沢72ゴルフ 北コース", pref: "長野県", lat: 36.3312, lon: 138.6145, par: 72, desc: "NEC軽井沢72ゴルフトーナメント開催。雄大な高原リゾート" },
-      { id: "hakone_cc", name: "箱根カントリー倶楽部", pref: "神奈川県", lat: 35.2512, lon: 139.0123, par: 72, desc: "富士伊豆箱根国立公園の壮大なカルデラに広がる名門" },
-      { id: "hirono_gc", name: "廣野ゴルフ倶楽部", pref: "兵庫県", lat: 34.7723, lon: 135.0112, par: 72, desc: "日本ゴルフの殿堂。C.H.アリソン設計の東洋一の名コース" },
-      { id: "toda_public", name: "戸田パブリックゴルフコース", pref: "埼玉県", lat: 35.8109362, lon: 139.6289402, par: 72, desc: "荒川河川敷に広がるフラットで戦略性の高い本格パブリックコース（戸田ゴルフ場）" },
-      { id: "kasco_hanaha", name: "キャスコ花葉CLUB 本コース・花葉コース", pref: "千葉県", lat: 35.8634273, lon: 140.3459359, par: 72, desc: "総面積約160万平米、全45ホールを誇る東日本屈指の本格チャンピオンコース" },
-      { id: "kawaguchi_public", name: "K.P.G 川口パブリックゴルフ場", pref: "埼玉県", lat: 35.7895892, lon: 139.7323596, par: 72, desc: "K.P.G (Kawaguchi Public Golf) 荒川の自然美を満喫できる都心近郊の名門パブリックコース" },
-      { id: "asaka_public", name: "朝霞パブリックゴルフ場", pref: "埼玉県", lat: 35.8220118, lon: 139.6172027, par: 72, desc: "フラットながら自然のアンジュレーションと池が巧みに配置された人気パブリックコース" },
-      { id: "koshigaya_gc", name: "KOSHIGAYA GOLF CLUB (越谷ゴルフクラブ)", pref: "埼玉県", lat: 35.8872663, lon: 139.887391, par: 72, desc: "江戸川沿いのアメリカンリゾートスタイル。開放感溢れる都市型ゴルフクラブ" },
-      { id: "akabane_gc", name: "赤羽ゴルフ倶楽部", pref: "東京都", lat: 35.7943683, lon: 139.7019307, par: 72, desc: "JR浮間舟渡駅から徒歩圏。荒川河川敷の伝統あるチャンピオンコース" },
-      { id: "oomiya_cc", name: "大宮カントリークラブ", pref: "埼玉県", lat: 35.8983798, lon: 139.5564301, par: 72, desc: "荒川の雄大な自然に囲まれた27ホールの伝統あるパブリックコース" },
-      { id: "urawa_gc", name: "浦和ゴルフ倶楽部", pref: "埼玉県", lat: 35.8441200, lon: 139.6127423, par: 72, desc: "都心から至近。荒川河川敷に隣接する戦略的な池と樹木が美しいフラットコース" },
-      { id: "oomiya_gc_course", name: "大宮ゴルフコース (大宮ゴルフ倶楽部)", pref: "埼玉県", lat: 35.9833498, lon: 139.5544596, par: 72, desc: "赤松林にセパレートされた歴史と伝統を誇る本格的な林間名門コース" },
-      { id: "kounosu_cc", name: "鴻巣カントリークラブ (鴻巣ゴルフクラブ)", pref: "埼玉県", lat: 36.0841941, lon: 139.5287829, par: 72, desc: "雄大なフェアウェイと美しい池が絡む、本格的トーナメント仕様の丘陵・フラットコース" },
-      { id: "little_green_valley", name: "リトルグリーンヴァレー船橋", pref: "千葉県", lat: 35.8052000, lon: 140.0785000, par: 54, desc: "白井市神々廻に位置する人気パブリック。パー4や池越えを備えた本格ショートコース" }
+      {
+        id: "toride",
+        name: "取手桜が丘ゴルフクラブ",
+        pref: "茨城県",
+        lat: 35.9023, lon: 140.1221,
+        par: 72,
+        desc: "利根川の雄大な借景を望む林間・リバーサイドコース",
+        subCourses: [
+          { id: "out_in", name: "OUT ➔ IN", desc: "1H〜9H ➔ 10H〜18H (全18H / Par 72)", startHoleIdx: 0, order: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18] },
+          { id: "in_out", name: "IN ➔ OUT", desc: "10H〜18H ➔ 1H〜9H (全18H / Par 72)", startHoleIdx: 9, order: [10,11,12,13,14,15,16,17,18,1,2,3,4,5,6,7,8,9] }
+        ]
+      },
+      {
+        id: "taiheidai_cc",
+        name: "太平台カントリー倶楽部",
+        pref: "栃木県",
+        lat: 36.3768, lon: 139.7312,
+        par: 72,
+        desc: "自然の地形を活かした戦略的な丘陵27ホールコース",
+        subCourses: [
+          { id: "higashi_nishi", name: "東コース ➔ 西コース", desc: "東9H ➔ 西9H (Par 72)", startHoleIdx: 0 },
+          { id: "nishi_naka", name: "西コース ➔ 中コース", desc: "西9H ➔ 中9H (Par 72)", startHoleIdx: 0 },
+          { id: "naka_higashi", name: "中コース ➔ 東コース", desc: "中9H ➔ 東9H (Par 72)", startHoleIdx: 0 }
+        ]
+      },
+      {
+        id: "shishido_hills",
+        name: "宍戸ヒルズカントリークラブ",
+        pref: "茨城県",
+        lat: 36.3315, lon: 140.3126,
+        par: 72,
+        desc: "ツアー選手権開催。名門チャンピオン36ホール",
+        subCourses: [
+          { id: "west_course", name: "西コース (男子メジャー舞台)", desc: "西OUT ➔ 西IN (難関トーナメント仕様 / Par 72)", startHoleIdx: 0 },
+          { id: "east_course", name: "東コース (戦略的林間)", desc: "東OUT ➔ 東IN (豊かな自然と池 / Par 72)", startHoleIdx: 0 }
+        ]
+      },
+      {
+        id: "pgm_ishioka",
+        name: "PGM石岡ゴルフクラブ",
+        pref: "茨城県",
+        lat: 36.2087, lon: 140.2315,
+        par: 72,
+        desc: "J・ニクラス設計による高難度のトーナメントコース",
+        subCourses: [
+          { id: "out_in", name: "OUT ➔ IN", desc: "1H ➔ 18H (Par 72)", startHoleIdx: 0 },
+          { id: "in_out", name: "IN ➔ OUT", desc: "10H ➔ 9H (Par 72)", startHoleIdx: 9 }
+        ]
+      },
+      {
+        id: "taiheiyo_gotemba",
+        name: "太平洋クラブ 御殿場コース",
+        pref: "静岡県",
+        lat: 35.2974, lon: 138.8921,
+        par: 72,
+        desc: "VISA太平洋マスターズ開催。富士山を望む世界基準コース",
+        subCourses: [
+          { id: "out_in", name: "OUT ➔ IN", desc: "1H ➔ 18H (Par 72)", startHoleIdx: 0 },
+          { id: "in_out", name: "IN ➔ OUT", desc: "10H ➔ 9H (Par 72)", startHoleIdx: 9 }
+        ]
+      },
+      {
+        id: "kasumigaseki",
+        name: "霞ヶ関カンツリー倶楽部",
+        pref: "埼玉県",
+        lat: 35.9189, lon: 139.4087,
+        par: 71,
+        desc: "東京2020オリンピック舞台の世界屈指の名門",
+        subCourses: [
+          { id: "east_course", name: "東コース (オリンピック舞台)", desc: "東OUT ➔ 東IN (Par 71)", startHoleIdx: 0 },
+          { id: "west_course", name: "西コース", desc: "西OUT ➔ 西IN (Par 71)", startHoleIdx: 0 }
+        ]
+      },
+      {
+        id: "narashino",
+        name: "アコーディア・ゴルフ 習志野カントリークラブ",
+        pref: "千葉県",
+        lat: 35.7963, lon: 140.1342,
+        par: 72,
+        desc: "PGAツアーZOZO CHAMPIONSHIP開催コース",
+        subCourses: [
+          { id: "king_course", name: "キングコース", desc: "キングOUT ➔ キングIN (Par 72)", startHoleIdx: 0 },
+          { id: "queen_course", name: "クイーンコース", desc: "クイーンOUT ➔ クイーンIN (Par 72)", startHoleIdx: 0 }
+        ]
+      },
+      {
+        id: "kawana_fuji",
+        name: "川奈ホテルゴルフコース 富士コース",
+        pref: "静岡県",
+        lat: 34.9542, lon: 139.1412,
+        par: 72,
+        desc: "世界ゴルフ100選に常に選出される名門シーサイド",
+        subCourses: [
+          { id: "out_in", name: "OUT ➔ IN", desc: "1H ➔ 18H (Par 72)", startHoleIdx: 0 }
+        ]
+      },
+      {
+        id: "phoenix_cc",
+        name: "フェニックスカントリークラブ",
+        pref: "宮崎県",
+        lat: 31.9567, lon: 131.4712,
+        par: 72,
+        desc: "ダンロップフェニックス開催。名門黒松林コース",
+        subCourses: [
+          { id: "takachiho_nichinan", name: "高千穂 ➔ 日南", desc: "高千穂9H ➔ 日南9H (Par 72)", startHoleIdx: 0 },
+          { id: "nichinan_sumiyoshi", name: "日南 ➔ 住吉", desc: "日南9H ➔ 住吉9H (Par 72)", startHoleIdx: 0 },
+          { id: "sumiyoshi_takachiho", name: "住吉 ➔ 高千穂", desc: "住吉9H ➔ 高千穂9H (Par 72)", startHoleIdx: 0 }
+        ]
+      }
     ];
 
     // 取手桜が丘 基準18ホールデータ
     const TORIDE_SAKURAGAOKA_18HOLES = [
-      { h: 1, par: 4, yard: 365, tee: [35.90150, 140.12150], pin: [35.90420, 140.12320], advice: "フェアウェイセンターやや右狙い。グリーン手前バンカー注意。" },
-      { h: 2, par: 4, yard: 385, tee: [35.90460, 140.12380], pin: [35.90750, 140.12550], advice: "右ドッグレッグ。右ラフの樹木を避けてセンターへ。" },
-      { h: 3, par: 3, yard: 155, tee: [35.90780, 140.12610], pin: [35.90900, 140.12700], advice: "風の影響を受けやすいショート。奥は急傾斜で難しい。" },
-      { h: 4, par: 5, yard: 510, tee: [35.90940, 140.12760], pin: [35.91350, 140.12980], advice: "雄大なロング。2打目は無理せず右サイドへ刻むのが得策。" },
-      { h: 5, par: 4, yard: 395, tee: [35.91380, 140.13020], pin: [35.91080, 140.12850], advice: "フェアウェイ左サイド狙い。セカンドはやや打ち上げ。" },
-      { h: 6, par: 4, yard: 370, tee: [35.91040, 140.12800], pin: [35.90750, 140.12650], advice: "センター狙い。グリーン右手前のガードバンカーを警戒。" },
-      { h: 7, par: 3, yard: 165, tee: [35.90720, 140.12600], pin: [35.90580, 140.12500], advice: "池越えの美しいショート。1番手大きめをしっかり振り切る。" },
-      { h: 8, par: 5, yard: 520, tee: [35.90540, 140.12450], pin: [35.90150, 140.12200], advice: "ストレートなロング。左OBを避け、3打目勝負。" },
-      { h: 9, par: 4, yard: 405, tee: [35.90120, 140.12150], pin: [35.89820, 140.11950], advice: "距離のあるミドル。グリーン奥の受傾斜を狙う。" },
-      { h: 10, par: 4, yard: 380, tee: [35.90220, 140.12180], pin: [35.90500, 140.12350], advice: "インコーススタート。広々としたフェアウェイへ豪快に。" },
-      { h: 11, par: 4, yard: 350, tee: [35.90540, 140.12400], pin: [35.90800, 140.12550], advice: "やや左ドッグレッグ。右フェアウェイキープがマスト。" },
-      { h: 12, par: 3, yard: 145, tee: [35.90840, 140.12620], pin: [35.90950, 140.12720], advice: "距離感重視。グリーン中央を確実に狙う。" },
-      { h: 13, par: 5, yard: 495, tee: [35.90980, 140.12780], pin: [35.91350, 140.13050], advice: "バーディチャンスのロング。2打目はフェアウェイセンターへ。" },
-      { h: 14, par: 4, yard: 360, tee: [35.91320, 140.13000], pin: [35.91020, 140.12820], advice: "フェアウェイ右狙い。ピン左サイドは下り傾斜。" },
-      { h: 15, par: 4, yard: 410, tee: [35.90980, 140.12780], pin: [35.90650, 140.12600], advice: "難易度の高いタフなミドル。3打目アプローチで寄せワン狙いも。" },
-      { h: 16, par: 3, yard: 175, tee: [35.90610, 140.12550], pin: [35.90480, 140.12420], advice: "風の計算が鍵。左サイドは安全だがアプローチが残る。" },
-      { h: 17, par: 4, yard: 390, tee: [35.90440, 140.12380], pin: [35.90150, 140.12180], advice: "セカンドの正確性が問われるホール。ピン手前へ。" },
-      { h: 18, par: 5, yard: 535, tee: [35.90100, 140.12120], pin: [35.89700, 140.11850], advice: "ドラマが生まれるフィニッシングロング。クラブハウスへ向かって。" }
+      { h: 1, par: 4, yard: 365, tee: [35.90150, 140.12150], pin: [35.90420, 140.12320], bend: "slight-right", bendInt: 0.04, advice: "フェアウェイセンターやや右狙い。グリーン手前バンカー注意。" },
+      { h: 2, par: 4, yard: 385, tee: [35.90460, 140.12380], pin: [35.90750, 140.12550], bend: "right", bendInt: 0.07, advice: "右ドッグレッグ。右ラフの樹木を避けてセンターへ。" },
+      { h: 3, par: 3, yard: 155, tee: [35.90780, 140.12610], pin: [35.90900, 140.12700], bend: "straight", bendInt: 0, advice: "風の影響を受けやすいショート。奥は急傾斜で難しい。" },
+      { h: 4, par: 5, yard: 510, tee: [35.90940, 140.12760], pin: [35.91350, 140.12980], bend: "slight-right", bendInt: 0.05, advice: "雄大なロング。2打目は無理せず右サイドへ刻むのが得策。" },
+      { h: 5, par: 4, yard: 395, tee: [35.91380, 140.13020], pin: [35.91080, 140.12850], bend: "left", bendInt: 0.06, advice: "フェアウェイ左サイド狙い。セカンドはやや打ち上げ。" },
+      { h: 6, par: 4, yard: 370, tee: [35.91040, 140.12800], pin: [35.90750, 140.12650], bend: "straight", bendInt: 0, advice: "センター狙い。グリーン右手前のガードバンカーを警戒。" },
+      { h: 7, par: 3, yard: 165, tee: [35.90720, 140.12600], pin: [35.90580, 140.12500], bend: "straight", bendInt: 0, advice: "池越えの美しいショート。1番手大きめをしっかり振り切る。" },
+      { h: 8, par: 5, yard: 520, tee: [35.90540, 140.12450], pin: [35.90150, 140.12200], bend: "straight", bendInt: 0, advice: "ストレートなロング。左OBを避け、3打目勝負。" },
+      { h: 9, par: 4, yard: 405, tee: [35.90120, 140.12150], pin: [35.89820, 140.11950], bend: "straight", bendInt: 0, advice: "距離のあるミドル。グリーン奥の受傾斜を狙う。" },
+      { h: 10, par: 4, yard: 380, tee: [35.90220, 140.12180], pin: [35.90500, 140.12350], bend: "straight", bendInt: 0, advice: "インコーススタート。広々としたフェアウェイへ豪快に。" },
+      { h: 11, par: 4, yard: 350, tee: [35.90540, 140.12400], pin: [35.90800, 140.12550], bend: "left", bendInt: 0.08, advice: "やや左ドッグレッグ。右フェアウェイキープがマスト。" },
+      { h: 12, par: 3, yard: 145, tee: [35.90840, 140.12620], pin: [35.90950, 140.12720], bend: "straight", bendInt: 0, advice: "距離感重視。グリーン中央を確実に狙う。" },
+      { h: 13, par: 5, yard: 495, tee: [35.90980, 140.12780], pin: [35.91350, 140.13050], bend: "slight-right", bendInt: 0.05, advice: "バーディチャンスのロング。2打目はフェアウェイセンターへ。" },
+      { h: 14, par: 4, yard: 360, tee: [35.91320, 140.13000], pin: [35.91020, 140.12820], bend: "slight-right", bendInt: 0.04, advice: "フェアウェイ右狙い。ピン左サイドは下り傾斜。" },
+      { h: 15, par: 4, yard: 410, tee: [35.90980, 140.12780], pin: [35.90650, 140.12600], bend: "slight-left", bendInt: 0.05, advice: "難易度の高いタフなミドル。3打目アプローチで寄せワン狙いも。" },
+      { h: 16, par: 3, yard: 175, tee: [35.90610, 140.12550], pin: [35.90480, 140.12420], bend: "straight", bendInt: 0, advice: "風の計算が鍵。左サイドは安全だがアプローチが残る。" },
+      { h: 17, par: 4, yard: 390, tee: [35.90440, 140.12380], pin: [35.90150, 140.12180], bend: "straight", bendInt: 0, advice: "セカンドの正確性が問われるホール。ピン手前へ。" },
+      { h: 18, par: 5, yard: 535, tee: [35.90100, 140.12120], pin: [35.89700, 140.11850], bend: "slight-left", bendInt: 0.06, advice: "ドラマが生まれるフィニッシングロング。クラブハウスへ向かって。" }
     ];
 
     /* ==========================================================
-       2. アプリ共通状態変数
+       ★ 2. ティーグラウンド定義 ＆ 幾何学オフセットエンジン
+    ========================================================== */
+    const TEE_DEFINITIONS = {
+      black: {
+        id: "black",
+        name: "ブラック / チャンピオンティー",
+        shortName: "⚫ Black",
+        color: "#0f172a",
+        textColor: "#ffffff",
+        border: "#94a3b8",
+        offsetMeters: 35, // 白ティーからピン逆方向へ +35m (約 +38y)
+        yardDelta: 38,
+        desc: "Back / Champion (約7,000y〜 競技・シングル推奨)"
+      },
+      blue: {
+        id: "blue",
+        name: "ブルー / バックティー",
+        shortName: "🔵 Blue",
+        color: "#1d4ed8",
+        textColor: "#ffffff",
+        border: "#60a5fa",
+        offsetMeters: 18, // 白ティーからピン逆方向へ +18m (約 +20y)
+        yardDelta: 20,
+        desc: "Tournament / Back (約6,600y〜 上級者向け)"
+      },
+      white: {
+        id: "white",
+        name: "ホワイト / レギュラーティー",
+        shortName: "⚪ White",
+        color: "#f8fafc",
+        textColor: "#0f172a",
+        border: "#cbd5e1",
+        offsetMeters: 0, // 基準
+        yardDelta: 0,
+        desc: "Front / Regular (約6,200y〜 ★一般プレーヤー標準)"
+      },
+      gold: {
+        id: "gold",
+        name: "ゴールド / シニアティー",
+        shortName: "🟡 Gold",
+        color: "#d97706",
+        textColor: "#ffffff",
+        border: "#fbbf24",
+        offsetMeters: -20, // 白ティーからピン方向へ +20m (短縮 -20m、約 -22y)
+        yardDelta: -22,
+        desc: "Senior / Forward (約5,800y〜 シニア推奨)"
+      },
+      red: {
+        id: "red",
+        name: "レッド / レディースティー",
+        shortName: "🔴 Red",
+        color: "#dc2626",
+        textColor: "#ffffff",
+        border: "#f87171",
+        offsetMeters: -52, // 白ティーからピン方向へ +52m (短縮 -52m、約 -57y)
+        yardDelta: -57,
+        desc: "Ladies (約5,200y〜 女性・ビギナー推奨)"
+      }
+    };
+
+    /* ==========================================================
+       3. アプリ共通状態変数
     ========================================================== */
     let map = null;
     let currentCourse = NATIONWIDE_COURSES[0];
+    let currentSubCourse = currentCourse.subCourses[0];
+    let currentTeeType = 'white'; // デフォルトはレギュラー白ティー
     let holeList = [...TORIDE_SAKURAGAOKA_18HOLES];
-    let originalHoleList = JSON.parse(JSON.stringify(TORIDE_SAKURAGAOKA_18HOLES));
     let currentHoleIndex = 0;
 
     let currentTeeCoord = [...holeList[0].tee];
     let currentPinCoord = [...holeList[0].pin];
     let userCoord = [...currentTeeCoord];
     let lastShotCoord = null;
+    let currentGreenSide = 'L'; // 'L' (メイン) または 'R' (サブ)
+
+    // IPルート関連
+    let currentIpCoords = [];
+    let ipMarkers = [];
+    let ipRoutePolyline = null;
+    let ipSegmentBadgeMarkers = [];
 
     let userElevation = 15.0;
     let pinElevation = 18.2;
     let windInfo = { speed: 2.8, direction: 45, gust: 4.1, temp: 21.0 };
     let sunsetTimeStr = "17:18";
+
+    // 画面状態フラグ
+    let isHeadingUp = false;
+    let isSunlightMode = false;
+    let isTouchLocked = false;
+    let lastTouchTime = 0;
 
     // レイヤー関連
     let baseLayers = {};
@@ -1249,7 +1677,7 @@
     let facilityLayerGroup = null;
     let isFacilityPinsOn = true;
 
-    // マップ上の可動オブジェクト
+    // 可動オブジェクト
     let teeMarker = null;
     let pinMarker = null;
     let userMarker = null;
@@ -1259,19 +1687,19 @@
     let yardCircles = [];
     let shotHistoryLines = [];
 
-    // グリーンアンジュレーション（Garmin Green Contour再現）
+    // グリーンアンジュレーション
     let isGreenContourMode = false;
     let greenLayerGroup = null;
     let greenContourSettings = { heatmap: true, arrows: true, contours: true };
-    let cupOffset = [0, 0]; // ピンからの微調整オフセット
+    let cupOffset = [0, 0];
 
-    // 横幅連続計測
+    // 横幅計測
     let isWidthMeasuring = false;
     let widthTapCoords = [];
     let widthHistory = [];
     let tempTapMarker = null;
 
-    // クラブシミュレーション (1W〜PT 全番手)
+    // クラブ設定
     const DEFAULT_CLUBS = [
       { id: "1W", name: "1W (ドライバー)", dist: 230 },
       { id: "3W", name: "3W (スプーン)", dist: 210 },
@@ -1291,13 +1719,21 @@
       { id: "LW", name: "LW (ロブ)", dist: 65 },
       { id: "PT", name: "PT (パター)", dist: 15 }
     ];
-    let userClubs = JSON.parse(localStorage.getItem('smart_caddie_pro_clubs_v5')) || DEFAULT_CLUBS;
+    let userClubs = JSON.parse(localStorage.getItem('smart_caddie_pro_clubs_v7')) || DEFAULT_CLUBS;
 
-    // 楽天スコアPlus
-    let scoreCardData = JSON.parse(localStorage.getItem('smart_caddie_score_v6')) || {};
+    // 4人対応スコアカード
+    let currentScorePlayerId = 1;
+    let scoreCardData = JSON.parse(localStorage.getItem('smart_caddie_score_4p_v2')) || {
+      1: {}, 2: {}, 3: {}, 4: {}
+    };
+
+    // ウィザード一時選択状態
+    let wizardTempCourse = NATIONWIDE_COURSES[0];
+    let wizardTempSubCourse = NATIONWIDE_COURSES[0].subCourses[0];
+    let wizardTempTeeType = 'white';
 
     /* ==========================================================
-       3. 数学・測地ユーティリティ (WGS84 & 物理モデル)
+       4. 数学・測地ユーティリティ (WGS84 & 球面幾何学)
     ========================================================== */
     function calcDistanceMeters(p1, p2) {
       if (!p1 || !p2) return 0;
@@ -1340,7 +1776,13 @@
       return [φ2 * 180 / Math.PI, λ2 * 180 / Math.PI];
     }
 
-    // 自然なフェアウェイ直線配置ジェネレーター
+    function interpolateCoord(p1, p2, ratio) {
+      return [
+        p1[0] + (p2[0] - p1[0]) * ratio,
+        p1[1] + (p2[1] - p1[1]) * ratio
+      ];
+    }
+
     function generateCourseLayout(centerLat, centerLng, courseName) {
       const pars =  [4, 4, 3, 5, 4, 4, 3, 5, 4,  4, 4, 3, 5, 4, 4, 3, 4, 5];
       const yards = [370, 390, 160, 515, 380, 400, 155, 525, 410,  385, 360, 150, 500, 375, 415, 170, 395, 530];
@@ -1350,144 +1792,148 @@
         const angle = (i * 20 + 35) % 360;
         const distFromCenter = 70 + (i % 5) * 35;
         const tee = moveCoord([centerLat, centerLng], distFromCenter, angle);
-        const holeYd = yards[i];
-        const holeM = holeYd / 1.09361;
-        const bearing = (angle + 180 + (i % 2 === 0 ? 12 : -12)) % 360;
-        const pin = moveCoord(tee, holeM, bearing);
+        const pinAngle = (angle + 160 + (i % 3) * 12) % 360;
+        const holeLengthM = (yards[i] / 1.09361);
+        const pin = moveCoord(tee, holeLengthM, pinAngle);
 
         holes.push({
           h: i + 1,
           par: pars[i],
-          yard: holeYd,
+          yard: yards[i],
           tee: tee,
           pin: pin,
-          advice: `${i + 1}H (Par ${pars[i]} / ${holeYd}y): ${courseName}の戦略ホール。航空写真に合わせてティーやピンをドラッグ微調整できます。`
+          bend: (i % 3 === 1) ? 'right' : ((i % 3 === 2) ? 'left' : 'straight'),
+          bendInt: (i % 3 === 0) ? 0 : 0.06,
+          advice: `${courseName} ${i+1}番ホール。Par ${pars[i]}。フェアウェイセンターへ着実な配球を。`
         });
       }
       return holes;
     }
 
-    // スマートキャリブレーション（localStorage 自動永続化）
-    function getCalibratedCoord(courseId, holeNum) {
-      if (!courseId || !holeNum) return null;
+    /* ==========================================================
+       ★ 5. ティー別スマートキャリブレーション & 幾何学位置決定
+    ========================================================== */
+    function getCalibratedTeePinCoord(courseId, holeNum, teeType) {
       try {
-        const key = 'golf_calib_' + courseId + '_' + holeNum;
-        const saved = localStorage.getItem(key);
-        if (saved) return JSON.parse(saved);
+        const key = `golf_calib_${courseId}_${holeNum}_${teeType}`;
+        const str = localStorage.getItem(key);
+        if (str) return JSON.parse(str);
       } catch (e) {}
       return null;
     }
 
-    function saveCalibratedCoord(courseId, holeNum, tee, pin) {
-      if (!courseId || !holeNum) return;
+    function saveCalibratedTeePinCoord(courseId, holeNum, teeType, tee, pin) {
       try {
-        const key = 'golf_calib_' + courseId + '_' + holeNum;
+        const key = `golf_calib_${courseId}_${holeNum}_${teeType}`;
         localStorage.setItem(key, JSON.stringify({ tee, pin }));
-        showCalibrationToast(`📍 ${holeNum}H の位置を自動保存しました`);
       } catch (e) {}
+    }
+
+    // 選択ティーグラウンドに応じた精密ティー座標の算出
+    function resolveTeeCoordinate(hole, teeType) {
+      const calib = getCalibratedTeePinCoord(currentCourse.id, hole.h, teeType);
+      if (calib && Array.isArray(calib.tee)) {
+        return [...calib.tee];
+      }
+
+      const baseTee = [...hole.tee];
+      const pin = [...hole.pin];
+      const def = TEE_DEFINITIONS[teeType] || TEE_DEFINITIONS.white;
+
+      if (def.offsetMeters === 0) return baseTee;
+
+      const bearing = calcBearing(baseTee, pin);
+      // 正（後方）なら逆方向(180度反転)、負（前方）ならピン方向
+      const moveBearing = (def.offsetMeters > 0) ? (bearing + 180) % 360 : bearing;
+      const moveDist = Math.abs(def.offsetMeters);
+
+      return moveCoord(baseTee, moveDist, moveBearing);
     }
 
     function showCalibrationToast(msg) {
-      const toast = document.getElementById('calibration-toast');
-      if (!toast) return;
-      toast.innerText = msg;
-      toast.style.display = 'block';
-      setTimeout(() => { toast.style.display = 'none'; }, 2200);
+      const t = document.getElementById('calibration-toast');
+      if (!t) return;
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2400);
     }
 
     /* ==========================================================
-       4. 国土地理院・Open-Meteo・日没・雨雲 API 連携
+       6. 国土地理院・Open-Meteo・日没 API 連携
     ========================================================== */
     async function fetchElevation(lat, lon) {
       try {
-        const gsiUrl = `https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lat=${lat}&lon=${lon}&outtype=JSON`;
-        const res = await fetch(gsiUrl);
+        const url = `https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lat=${lat}&lon=${lon}&outtype=JSON`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error();
         const data = await res.json();
-        if (data && data.elevation !== undefined && !isNaN(data.elevation)) {
-          return parseFloat(data.elevation);
+        if (data && typeof data.elevation === 'number') {
+          return data.elevation;
         }
       } catch (e) {}
-
-      try {
-        const omUrl = `https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`;
-        const res2 = await fetch(omUrl);
-        const data2 = await res2.json();
-        if (data2 && data2.elevation !== undefined) {
-          return parseFloat(data2.elevation[0] || data2.elevation);
-        }
-      } catch (e) {}
-      return 15.0;
+      return 15.0 + (lat * 1000 % 10);
     }
 
     async function fetchRealWeather(lat, lon) {
       try {
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=Asia%2FTokyo`;
         const res = await fetch(url);
+        if (!res.ok) throw new Error();
         const data = await res.json();
         if (data && data.current) {
-          windInfo.speed = parseFloat(data.current.wind_speed_10m) || 2.5;
-          windInfo.direction = parseFloat(data.current.wind_direction_10m) || 0;
-          windInfo.gust = parseFloat(data.current.wind_gusts_10m) || 3.5;
-          windInfo.temp = parseFloat(data.current.temperature_2m) || 21.0;
-          updateHUDAndSimulation();
+          windInfo.speed = data.current.wind_speed_10m || 2.5;
+          windInfo.direction = data.current.wind_direction_10m || 45;
+          windInfo.gust = data.current.wind_gusts_10m || windInfo.speed * 1.4;
+          windInfo.temp = data.current.temperature_2m || 20.0;
         }
-      } catch (e) {
-        console.warn("Weather API fallback", e);
-      }
+      } catch (e) {}
     }
 
     async function fetchSunsetTime(lat, lon) {
       try {
-        const url = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lon}&formatted=0`;
+        const today = new Date().toISOString().split('T')[0];
+        const url = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lon}&date=${today}&formatted=0`;
         const res = await fetch(url);
+        if (!res.ok) throw new Error();
         const data = await res.json();
         if (data && data.results && data.results.sunset) {
-          const sunsetUtc = new Date(data.results.sunset);
-          const sunsetLocal = new Date(sunsetUtc.getTime());
-          const hours = String(sunsetLocal.getHours()).padStart(2, '0');
-          const mins = String(sunsetLocal.getMinutes()).padStart(2, '0');
-          sunsetTimeStr = `${hours}:${mins}`;
-
-          updateSunsetCountdown(sunsetLocal);
+          const sunsetUTC = new Date(data.results.sunset);
+          updateSunsetCountdown(sunsetUTC);
+          return;
         }
-      } catch (e) {
-        updateSunsetCountdown(null);
-      }
+      } catch (e) {}
+      const fallback = new Date();
+      fallback.setHours(17, 20, 0);
+      updateSunsetCountdown(fallback);
     }
 
     function updateSunsetCountdown(sunsetDate) {
-      const displayEl = document.getElementById('sunset-countdown-display');
-      if (!displayEl) return;
+      const el = document.getElementById('sunset-countdown-display');
+      if (!el) return;
 
       const now = new Date();
       let target = sunsetDate;
       if (!target) {
         target = new Date();
-        target.setHours(17, 18, 0, 0);
+        target.setHours(17, 20, 0);
       }
-
       const diffMs = target - now;
-      if (diffMs > 0) {
-        const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        const timeStr = `${String(diffHrs).padStart(2, '0')}:${String(diffMins).padStart(2, '0')}`;
-        displayEl.innerHTML = `🌅 日没まで <strong>${timeStr}</strong> (${sunsetTimeStr})`;
-        if (diffMs < 45 * 60 * 1000) {
-          displayEl.classList.add('urgent');
-        } else {
-          displayEl.classList.remove('urgent');
-        }
-      } else {
-        displayEl.innerHTML = `🌙 日没済 (${sunsetTimeStr})`;
-        displayEl.classList.add('urgent');
+      if (diffMs <= 0) {
+        el.innerText = "🌅 日没後 (照明注意)";
+        el.className = "sunset-tag urgent";
+        return;
       }
+      const diffMin = Math.floor(diffMs / 60000);
+      const hours = Math.floor(diffMin / 60);
+      const mins = diffMin % 60;
+      el.innerText = `🌅 日没まで ${hours}h${mins}m`;
+      el.className = diffMin <= 45 ? "sunset-tag urgent" : "sunset-tag";
     }
 
     /* ==========================================================
-       5. 地図初期化 & マルチレイヤー & 雨雲レーダー
+       7. 地図初期化 & レイヤー & マーカー管理
     ========================================================== */
     function initMap() {
-      // 国土地理院タイル群
       baseLayers.photo = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
         maxZoom: 19, attribution: '&copy; 国土地理院 空中写真'
       });
@@ -1502,42 +1948,41 @@
       });
 
       map = L.map('map', {
-        center: currentCourse.tee,
+        center: currentCourse.tee || currentTeeCoord,
         zoom: 17,
         maxZoom: 19,
         zoomControl: false,
         layers: [baseLayers.photo]
       });
 
-      // 施設ピン用レイヤーグループ
       facilityLayerGroup = L.layerGroup().addTo(map);
 
-      // マーカー生成
+      // ティーマーカー初期作成
       teeMarker = L.marker(currentTeeCoord, {
         draggable: true,
-        icon: L.divIcon({ className: '', html: '<div class="custom-tee-marker">T</div>', iconSize: [32, 32], iconAnchor: [16, 16] })
+        icon: createTeeMarkerIcon(currentTeeType)
       }).addTo(map);
 
+      // ピンマーカー
       pinMarker = L.marker(currentPinCoord, {
         draggable: true,
-        icon: L.divIcon({ className: '', html: '<div class="custom-pin-marker">⛳</div>', iconSize: [34, 34], iconAnchor: [17, 17] })
+        icon: L.divIcon({ className: '', html: '<div class="custom-pin-marker">⛳</div>', iconSize: [32, 32], iconAnchor: [16, 16] })
       }).addTo(map);
 
+      // 打席マーカー
       userMarker = L.marker(userCoord, {
         draggable: true,
-        icon: L.divIcon({ className: '', html: '<div class="custom-user-marker">🏌️</div>', iconSize: [28, 28], iconAnchor: [14, 14] })
+        icon: L.divIcon({ className: '', html: '<div class="custom-user-marker">🏌️</div>', iconSize: [26, 26], iconAnchor: [13, 13] })
       }).addTo(map);
 
-      // ガイド線
       targetGuideLine = L.polyline([userCoord, currentPinCoord], {
         color: '#facc15',
-        dashArray: '6, 8',
+        dashArray: '5, 7',
         weight: 2,
-        opacity: 0.85,
+        opacity: 0.8,
         interactive: false
       }).addTo(map);
 
-      // 弾道サークル
       simCircleLayer = L.circle(userCoord, {
         color: '#10b981',
         weight: 2,
@@ -1547,7 +1992,7 @@
         interactive: false
       }).addTo(map);
 
-      // マーカーイベント
+      // ドラッグイベントリスナー
       teeMarker.on('dragend', (e) => {
         currentTeeCoord = [e.target.getLatLng().lat, e.target.getLatLng().lng];
         if (calcDistanceYards(userCoord, currentTeeCoord) < 30) {
@@ -1555,15 +2000,17 @@
           userMarker.setLatLng(userCoord);
         }
         const hole = holeList[currentHoleIndex];
-        saveCalibratedCoord(currentCourse.id, hole.h, currentTeeCoord, currentPinCoord);
+        saveCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, currentTeeCoord, currentPinCoord);
+        updateIpRoute();
         updateHUDAndSimulation();
       });
 
       pinMarker.on('dragend', (e) => {
         currentPinCoord = [e.target.getLatLng().lat, e.target.getLatLng().lng];
         const hole = holeList[currentHoleIndex];
-        saveCalibratedCoord(currentCourse.id, hole.h, currentTeeCoord, currentPinCoord);
+        saveCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, currentTeeCoord, currentPinCoord);
         drawYardArcs();
+        updateIpRoute();
         updateHUDAndSimulation();
         if (isGreenContourMode) renderGreenContourCanvas();
       });
@@ -1588,7 +2035,24 @@
         updateHUDAndSimulation();
       });
 
+      initIpRouteSystem();
       drawYardArcs();
+    }
+
+    function createTeeMarkerIcon(teeType) {
+      const def = TEE_DEFINITIONS[teeType] || TEE_DEFINITIONS.white;
+      const html = `
+        <div class="custom-tee-marker" style="background:${def.color}; color:${def.textColor}; border:2.5px solid ${def.border}; box-shadow:0 0 14px ${def.border};">
+          ${def.id.charAt(0).toUpperCase()}
+        </div>
+      `;
+      return L.divIcon({ className: '', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
+    }
+
+    function updateTeeMarkerVisual() {
+      if (!teeMarker) return;
+      teeMarker.setIcon(createTeeMarkerIcon(currentTeeType));
+      teeMarker.setLatLng(currentTeeCoord);
     }
 
     function switchBaseTile(type) {
@@ -1599,90 +2063,621 @@
       baseLayers[type].addTo(map);
       currentBaseLayer = type;
       closeLayerModal();
-      showCalibrationToast(`マップを「${type}」に切り替えました`);
+      showCalibrationToast(`🗺️ マップを ${type} に切り替えました`);
     }
 
-    // 雨雲レーダーのトグル（RainViewer API: 完全無料・キー不要）
     async function toggleRainRadar() {
-      isRainRadarOn = !isRainRadarOn;
-      const btnTop = document.getElementById('btn-radar-toggle');
-      const statusModal = document.getElementById('modal-radar-status');
-
       if (isRainRadarOn) {
-        if (btnTop) btnTop.classList.add('active-radar');
-        if (statusModal) statusModal.innerText = "ON (最新)";
-
+        if (rainRadarLayer && map.hasLayer(rainRadarLayer)) map.removeLayer(rainRadarLayer);
+        isRainRadarOn = false;
+        document.getElementById('btn-radar-toggle').classList.remove('active');
+        document.getElementById('modal-radar-status').innerText = 'OFF';
+        showCalibrationToast('🌧️ 雨雲レーダー OFF');
+      } else {
         try {
           const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
           const data = await res.json();
           if (data && data.radar && data.radar.past && data.radar.past.length > 0) {
             const latest = data.radar.past[data.radar.past.length - 1];
-            const radarUrl = `https://tilecache.rainviewer.com${latest.path}/512/{z}/{x}/{y}/2/1_1.png`;
+            const radarUrl = `https://tilecache.rainviewer.com${latest.path}/256/{z}/{x}/{y}/2/1_1.png`;
             if (rainRadarLayer) map.removeLayer(rainRadarLayer);
-            rainRadarLayer = L.tileLayer(radarUrl, {
-              opacity: 0.65,
-              zIndex: 500,
-              attribution: '&copy; RainViewer 降雨レーダー'
-            }).addTo(map);
-            showCalibrationToast("🌧️ 雨雲レーダーを重ね合わせました");
+            rainRadarLayer = L.tileLayer(radarUrl, { opacity: 0.65, zIndex: 500 }).addTo(map);
+            isRainRadarOn = true;
+            document.getElementById('btn-radar-toggle').classList.add('active');
+            document.getElementById('modal-radar-status').innerText = 'ON (最新)';
+            showCalibrationToast('🌧️ 雨雲レーダー重ね合わせ ON');
           }
         } catch (e) {
-          showCalibrationToast("雨雲レーダーの取得に失敗しました");
+          showCalibrationToast('雨雲レーダー取得失敗 (電波確認)');
         }
-      } else {
-        if (btnTop) btnTop.classList.remove('active-radar');
-        if (statusModal) statusModal.innerText = "OFF";
-        if (rainRadarLayer) {
-          map.removeLayer(rainRadarLayer);
-          rainRadarLayer = null;
-        }
-        showCalibrationToast("雨雲レーダーを非表示にしました");
       }
     }
 
     function toggleFacilityPins() {
       isFacilityPinsOn = !isFacilityPinsOn;
-      const statusModal = document.getElementById('modal-facility-status');
+      const statusEl = document.getElementById('modal-facility-status');
+      if (statusEl) statusEl.innerText = isFacilityPinsOn ? 'ON' : 'OFF';
       if (isFacilityPinsOn) {
-        if (statusModal) statusModal.innerText = "ON";
-        if (!map.hasLayer(facilityLayerGroup)) facilityLayerGroup.addTo(map);
+        renderFacilityPins(currentCourse.lat, currentCourse.lon);
       } else {
-        if (statusModal) statusModal.innerText = "OFF";
-        if (map.hasLayer(facilityLayerGroup)) map.removeLayer(facilityLayerGroup);
+        facilityLayerGroup.clearLayers();
       }
     }
 
-    function drawYardArcs() {
-      if (!map || !currentPinCoord) return;
-      yardCircles.forEach(c => {
-        try { map.removeLayer(c); } catch (e) {}
-      });
-      yardCircles = [];
-
-      const rings = [
-        { yd: 50, color: '#f59e0b', dash: '3, 6' },
-        { yd: 100, color: '#ef4444', dash: '4, 8' },
-        { yd: 150, color: '#38bdf8', dash: '4, 8' }
+    function renderFacilityPins(lat, lon) {
+      facilityLayerGroup.clearLayers();
+      const sampleFacilities = [
+        { type: 'wc', label: 'WC', lat: lat + 0.002, lon: lon + 0.001 },
+        { type: 'chaya', label: '茶屋', lat: lat - 0.003, lon: lon + 0.002 },
+        { type: 'shop', label: '売店', lat: lat + 0.001, lon: lon - 0.003 }
       ];
+      sampleFacilities.forEach(f => {
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="facility-pin-marker" title="${f.label}">${f.type === 'wc' ? '🚻' : '🍵'}</div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+        L.marker([f.lat, f.lon], { icon }).addTo(facilityLayerGroup);
+      });
+    }
 
-      rings.forEach(r => {
-        try {
-          const radiusM = r.yd / 1.09361;
-          const circle = L.circle(currentPinCoord, {
-            radius: radiusM,
-            color: r.color,
-            weight: 1.2,
-            fillOpacity: 0.03,
-            dashArray: r.dash,
-            interactive: false
-          }).addTo(map);
-          yardCircles.push(circle);
-        } catch (e) {}
+    function drawYardArcs() {
+      yardCircles.forEach(c => map.removeLayer(c));
+      yardCircles = [];
+      if (!currentPinCoord) return;
+
+      const radii = [100, 150, 200];
+      const colors = ['#f59e0b', '#38bdf8', '#ef4444'];
+      radii.forEach((yd, i) => {
+        const meters = yd / 1.09361;
+        const circle = L.circle(currentPinCoord, {
+          radius: meters,
+          color: colors[i],
+          weight: 1.2,
+          dashArray: '4, 6',
+          fill: false,
+          interactive: false
+        }).addTo(map);
+        yardCircles.push(circle);
       });
     }
 
     /* ==========================================================
-       6. リアルタイムHUD更新 & PlaysLike ＆ 弾道シミュレーション
+       8. 【ティー ➔ 中間1 ➔ 中間2 ➔ 中間3 ➔ ピン 自動ルート＆IP点システム】
+    ========================================================== */
+    function initIpRouteSystem() {
+      calculateAndRenderIpRoute();
+    }
+
+    function calculateDefaultIpCoords(tee, pin, par, totalYard) {
+      if (par === 3 || totalYard < 250) return [];
+
+      const hole = holeList[currentHoleIndex];
+      const bend = hole ? hole.bend : 'straight';
+      const bendInt = hole ? (hole.bendInt || 0.05) : 0;
+
+      const totalMeters = calcDistanceMeters(tee, pin);
+      const bearing = calcBearing(tee, pin);
+
+      const driverClub = userClubs.find(c => c.id === '1W') || { dist: 230 };
+      const driverCarryYards = Math.min(driverClub.dist, totalYard - 70);
+
+      let bendSign = 0;
+      if (bend.includes('right')) bendSign = 1;
+      else if (bend.includes('left')) bendSign = -1;
+
+      if (par === 4) {
+        const targetYards = Math.max(160, Math.min(driverCarryYards, totalYard * 0.62));
+        const prog = (targetYards / 1.09361) / totalMeters;
+        let pt = interpolateCoord(tee, pin, prog);
+
+        if (bendSign !== 0) {
+          const lateralMeters = totalMeters * bendInt;
+          const latBearing = (bearing + (bendSign > 0 ? 90 : 270)) % 360;
+          pt = moveCoord(pt, lateralMeters, latBearing);
+        }
+        return [pt];
+      } else {
+        const ip1Yards = Math.min(driverCarryYards, totalYard * 0.44);
+        const prog1 = (ip1Yards / 1.09361) / totalMeters;
+        let pt1 = interpolateCoord(tee, pin, prog1);
+        if (bendSign !== 0) {
+          const latM1 = totalMeters * (bendInt * 0.85);
+          pt1 = moveCoord(pt1, latM1, (bearing + (bendSign > 0 ? 90 : 270)) % 360);
+        }
+
+        const ip2RemainYards = Math.max(75, Math.min(95, totalYard * 0.18));
+        const ip2FromTeeYards = totalYard - ip2RemainYards;
+        const prog2 = (ip2FromTeeYards / 1.09361) / totalMeters;
+        let pt2 = interpolateCoord(tee, pin, prog2);
+        if (bendSign !== 0) {
+          const latM2 = totalMeters * (bendInt * 0.4);
+          pt2 = moveCoord(pt2, latM2, (bearing + (bendSign > 0 ? 90 : 270)) % 360);
+        }
+
+        if (totalYard >= 550) {
+          const pt3 = pt2;
+          const progMid = (prog1 + prog2) / 2;
+          let ptMid = interpolateCoord(tee, pin, progMid);
+          if (bendSign !== 0) {
+            ptMid = moveCoord(ptMid, totalMeters * (bendInt * 0.6), (bearing + (bendSign > 0 ? 90 : 270)) % 360);
+          }
+          return [pt1, ptMid, pt3];
+        }
+
+        return [pt1, pt2];
+      }
+    }
+
+    function calculateAndRenderIpRoute() {
+      const hole = holeList[currentHoleIndex];
+      if (!hole) return;
+
+      const savedIps = loadSavedIpCoords(currentCourse.id, hole.h, currentTeeType);
+      if (savedIps && savedIps.length > 0) {
+        currentIpCoords = savedIps;
+      } else {
+        const currentTotalYard = calcDistanceYards(currentTeeCoord, currentPinCoord);
+        currentIpCoords = calculateDefaultIpCoords(currentTeeCoord, currentPinCoord, hole.par, currentTotalYard);
+      }
+
+      renderIpRouteGraphics();
+    }
+
+    function renderIpRouteGraphics() {
+      ipMarkers.forEach(m => map.removeLayer(m));
+      ipMarkers = [];
+      ipSegmentBadgeMarkers.forEach(m => map.removeLayer(m));
+      ipSegmentBadgeMarkers = [];
+      if (ipRoutePolyline && map.hasLayer(ipRoutePolyline)) map.removeLayer(ipRoutePolyline);
+
+      const allPoints = [currentTeeCoord, ...currentIpCoords, currentPinCoord];
+
+      ipRoutePolyline = L.polyline(allPoints, {
+        color: '#10b981',
+        weight: 3.5,
+        opacity: 0.9,
+        lineCap: 'round',
+        interactive: false
+      }).addTo(map);
+
+      currentIpCoords.forEach((coord, idx) => {
+        const remainToPin = calcDistanceYards(coord, currentPinCoord);
+        const markerHtml = `
+          <div class="custom-ip-marker-wrap">
+            <div class="ip-pin-label" id="ip-label-${idx}">
+              📍 IP${idx + 1} <span class="ip-remain-text" style="color:#38bdf8; font-weight:900;">(残${remainToPin}y)</span>
+            </div>
+            <div class="ip-badge-circle">IP${idx + 1}</div>
+          </div>
+        `;
+
+        const ipMarker = L.marker(coord, {
+          draggable: true,
+          icon: L.divIcon({ className: '', html: markerHtml, iconSize: [30, 30], iconAnchor: [15, 15] })
+        }).addTo(map);
+
+        ipMarker.on('drag', (e) => {
+          const newPos = [e.target.getLatLng().lat, e.target.getLatLng().lng];
+          currentIpCoords[idx] = newPos;
+          updateIpPolylineAndBadges();
+
+          const remain = calcDistanceYards(newPos, currentPinCoord);
+          const labelEl = document.getElementById(`ip-label-${idx}`);
+          if (labelEl) {
+            labelEl.innerHTML = `📍 IP${idx + 1} <span class="ip-remain-text" style="color:#38bdf8; font-weight:900;">(残${remain}y)</span>`;
+          }
+        });
+
+        ipMarker.on('dragend', () => {
+          const hole = holeList[currentHoleIndex];
+          saveIpCoords(currentCourse.id, hole.h, currentTeeType, currentIpCoords);
+          showCalibrationToast(`📍 IP${idx + 1} の配置を自動保存しました`);
+          updateHUDAndSimulation();
+        });
+
+        ipMarkers.push(ipMarker);
+      });
+
+      createSegmentDistanceBadges(allPoints);
+    }
+
+    function createSegmentDistanceBadges(points) {
+      ipSegmentBadgeMarkers.forEach(m => map.removeLayer(m));
+      ipSegmentBadgeMarkers = [];
+
+      for (let i = 0; i < points.length - 1; i++) {
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const distYards = calcDistanceYards(p1, p2);
+        const midCoord = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+
+        const badgeHtml = `<div class="ip-segment-badge">${distYards} yd</div>`;
+        const badgeMarker = L.marker(midCoord, {
+          icon: L.divIcon({ className: '', html: badgeHtml, iconSize: [0, 0] }),
+          interactive: false
+        }).addTo(map);
+
+        ipSegmentBadgeMarkers.push(badgeMarker);
+      }
+    }
+
+    function updateIpPolylineAndBadges() {
+      const allPoints = [currentTeeCoord, ...currentIpCoords, currentPinCoord];
+      if (ipRoutePolyline) ipRoutePolyline.setLatLngs(allPoints);
+
+      for (let i = 0; i < allPoints.length - 1; i++) {
+        const p1 = allPoints[i];
+        const p2 = allPoints[i + 1];
+        const distYards = calcDistanceYards(p1, p2);
+        const midCoord = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+
+        if (ipSegmentBadgeMarkers[i]) {
+          ipSegmentBadgeMarkers[i].setLatLng(midCoord);
+          const iconEl = ipSegmentBadgeMarkers[i].getElement();
+          if (iconEl) {
+            const badge = iconEl.querySelector('.ip-segment-badge');
+            if (badge) badge.innerText = `${distYards} yd`;
+          }
+        }
+      }
+    }
+
+    function updateIpRoute() {
+      calculateAndRenderIpRoute();
+    }
+
+    function saveIpCoords(courseId, holeNum, teeType, coords) {
+      try {
+        const key = `smart_ip_route_${courseId}_${holeNum}_${teeType}`;
+        localStorage.setItem(key, JSON.stringify(coords));
+      } catch (e) {}
+    }
+
+    function loadSavedIpCoords(courseId, holeNum, teeType) {
+      try {
+        const key = `smart_ip_route_${courseId}_${holeNum}_${teeType}`;
+        const str = localStorage.getItem(key);
+        if (str) return JSON.parse(str);
+      } catch (e) {}
+      return null;
+    }
+
+    function resetCurrentHoleIpRoute() {
+      const hole = holeList[currentHoleIndex];
+      if (!hole) return;
+      try {
+        const key = `smart_ip_route_${currentCourse.id}_${hole.h}_${currentTeeType}`;
+        localStorage.removeItem(key);
+      } catch (e) {}
+      const totalYard = calcDistanceYards(currentTeeCoord, currentPinCoord);
+      currentIpCoords = calculateDefaultIpCoords(currentTeeCoord, currentPinCoord, hole.par, totalYard);
+      renderIpRouteGraphics();
+      showCalibrationToast(`🔄 ${hole.h}Hの推奨IPルートを初期化しました`);
+    }
+
+    /* ==========================================================
+       ★ 9. 【最重要】楽天ゴルフ仕様 3ステップ ウィザード 制御エンジン
+    ========================================================== */
+    function openRoundWizard(startStep = 1) {
+      wizardTempCourse = currentCourse;
+      wizardTempSubCourse = currentSubCourse || currentCourse.subCourses[0];
+      wizardTempTeeType = currentTeeType;
+
+      document.getElementById('round-wizard-modal').style.display = 'flex';
+      renderPresetChips();
+      renderCourseCandidates(NATIONWIDE_COURSES.slice(0, 8));
+      gotoWizardStep(startStep);
+    }
+
+    function closeRoundWizard() {
+      document.getElementById('round-wizard-modal').style.display = 'none';
+    }
+
+    function gotoWizardStep(stepNum) {
+      for (let i = 1; i <= 3; i++) {
+        const node = document.getElementById(`wizard-node-${i}`);
+        const panel = document.getElementById(`wizard-panel-${i}`);
+        if (node) {
+          node.classList.toggle('active', i === stepNum);
+          node.classList.toggle('completed', i < stepNum);
+        }
+        if (panel) {
+          panel.classList.toggle('active', i === stepNum);
+        }
+      }
+
+      if (stepNum === 2) {
+        document.getElementById('wizard-selected-course-name').innerText = wizardTempCourse.name;
+        renderSubCourseOptions();
+      } else if (stepNum === 3) {
+        document.getElementById('wizard-summary-course-info').innerText = `${wizardTempCourse.name} (${wizardTempSubCourse.name})`;
+        renderTeeOptions();
+      }
+    }
+
+    // STEP 2: サブコース選択肢レンダリング
+    function renderSubCourseOptions() {
+      const container = document.getElementById('subcourse-options-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const subCourses = wizardTempCourse.subCourses || [
+        { id: "out_in", name: "OUT ➔ IN", desc: "1H ➔ 18H (Par 72)", startHoleIdx: 0 },
+        { id: "in_out", name: "IN ➔ OUT", desc: "10H ➔ 9H (Par 72)", startHoleIdx: 9 }
+      ];
+
+      subCourses.forEach(sc => {
+        const card = document.createElement('div');
+        card.className = `subcourse-card ${wizardTempSubCourse.id === sc.id ? 'selected' : ''}`;
+        card.innerHTML = `
+          <div>
+            <div class="subcourse-card-title">${sc.name}</div>
+            <div class="subcourse-card-desc">${sc.desc}</div>
+          </div>
+          <div style="font-size:16px; color:var(--accent-green);">➔</div>
+        `;
+        card.onclick = () => {
+          wizardTempSubCourse = sc;
+          gotoWizardStep(3); // 自動でSTEP 3へ遷移
+        };
+        container.appendChild(card);
+      });
+    }
+
+    // STEP 3: ティー選択肢レンダリング
+    function renderTeeOptions() {
+      const container = document.getElementById('tee-options-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      Object.values(TEE_DEFINITIONS).forEach(t => {
+        const isSelected = (wizardTempTeeType === t.id);
+        const card = document.createElement('div');
+        card.className = `tee-option-card tee-${t.id} ${isSelected ? 'selected' : ''}`;
+        card.innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="tee-color-circle" style="background:${t.color}; border-color:${t.border}; color:${t.textColor};">
+              ${t.id.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div style="font-weight:800; font-size:12.5px; color:#fff;">${t.name}</div>
+              <div style="font-size:10px; color:var(--text-sub);">${t.desc}</div>
+            </div>
+          </div>
+          <div style="font-family:'Outfit'; font-weight:800; font-size:12px; color:${isSelected ? 'var(--accent-green)' : 'var(--text-muted)'};">
+            ${isSelected ? '✔ 選択中' : '選択'}
+          </div>
+        `;
+        card.onclick = () => {
+          wizardTempTeeType = t.id;
+          renderTeeOptions();
+        };
+        container.appendChild(card);
+      });
+    }
+
+    // ウィザード設定コミット ＆ ラウンド開始
+    function commitRoundWizard() {
+      currentCourse = wizardTempCourse;
+      currentSubCourse = wizardTempSubCourse;
+      currentTeeType = wizardTempTeeType;
+
+      // コースホールデータ構築
+      if (currentCourse.id === 'toride') {
+        holeList = [...TORIDE_SAKURAGAOKA_18HOLES];
+      } else {
+        holeList = generateCourseLayout(currentCourse.lat, currentCourse.lon, currentCourse.name);
+      }
+
+      // サブコースが INスタート等の場合、スタートホール設定
+      let startIdx = currentSubCourse.startHoleIdx || 0;
+      if (currentSubCourse.order && currentSubCourse.order.length > 0) {
+        // 並び替え対応
+        const reordered = [];
+        currentSubCourse.order.forEach(hNum => {
+          const found = holeList.find(h => h.h === hNum);
+          if (found) reordered.push(found);
+        });
+        if (reordered.length === holeList.length) {
+          holeList = reordered;
+          startIdx = 0;
+        }
+      }
+
+      // UIバッジ更新
+      const cDisp = document.getElementById('current-course-display');
+      if (cDisp) {
+        cDisp.innerHTML = `${currentCourse.name} <span style="font-size:9px; background:rgba(16,185,129,0.25); color:#34d399; padding:1px 4px; border-radius:4px;" id="current-subcourse-badge">${currentSubCourse.name}</span>`;
+      }
+      const prefEl = document.getElementById('current-course-pref');
+      if (prefEl) prefEl.innerText = `${currentCourse.pref} (タップで変更)`;
+
+      // ヘッダーのティーバッジ更新
+      updateHeaderTeeBadge();
+
+      populateHoleSelect();
+      applyHole(startIdx);
+
+      fetchRealWeather(currentCourse.lat, currentCourse.lon);
+      fetchSunsetTime(currentCourse.lat, currentCourse.lon);
+
+      closeRoundWizard();
+      showCalibrationToast(`⛳ ${currentCourse.name} (${currentSubCourse.name}) ${TEE_DEFINITIONS[currentTeeType].shortName} でラウンド開始！`);
+    }
+
+    function updateHeaderTeeBadge() {
+      const badge = document.getElementById('hud-tee-badge');
+      if (!badge) return;
+      const def = TEE_DEFINITIONS[currentTeeType] || TEE_DEFINITIONS.white;
+      badge.innerText = def.shortName;
+      badge.style.background = def.color;
+      badge.style.color = def.textColor;
+      badge.style.borderColor = def.border;
+      badge.style.boxShadow = `0 0 10px ${def.border}`;
+    }
+
+    /* ==========================================================
+       10. 2グリーン（🟢 L / ⚪ R）完全連動システム
+    ========================================================== */
+    function selectGreenSide(side) {
+      if (currentGreenSide === side) return;
+      currentGreenSide = side;
+
+      document.getElementById('btn-green-l').classList.toggle('active', side === 'L');
+      document.getElementById('btn-green-r').classList.toggle('active', side === 'R');
+
+      const hole = holeList[currentHoleIndex];
+      if (!hole) return;
+
+      if (side === 'L') {
+        currentPinCoord = [...hole.pin];
+      } else {
+        const bearing = calcBearing(hole.tee, hole.pin);
+        currentPinCoord = moveCoord(hole.pin, 22, (bearing + 85) % 360);
+      }
+
+      if (pinMarker) pinMarker.setLatLng(currentPinCoord);
+      drawYardArcs();
+      updateIpRoute();
+      updateHUDAndSimulation();
+      if (isGreenContourMode) renderGreenContourCanvas();
+
+      showCalibrationToast(`🟢 ${side}グリーン (${side === 'L' ? 'メイン' : 'サブ'}) に切り替えました`);
+    }
+
+    /* ==========================================================
+       11. ボイスキャディ音声案内 (Web Speech API)
+    ========================================================== */
+    function speakVoiceCaddieGuide() {
+      if (!('speechSynthesis' in window)) {
+        showCalibrationToast('お使いの端末は音声合成に対応していません');
+        return;
+      }
+      window.speechSynthesis.cancel();
+
+      const hole = holeList[currentHoleIndex];
+      if (!hole) return;
+
+      const distToTee = calcDistanceYards(userCoord, currentTeeCoord);
+      const isAtTee = distToTee < 35;
+      const currentYard = calcDistanceYards(currentTeeCoord, currentPinCoord);
+
+      let text = `第${hole.h}ホール、パー${hole.par}、${currentYard}ヤード。`;
+
+      if (isAtTee) {
+        if (currentIpCoords.length === 1) {
+          const d1 = calcDistanceYards(currentTeeCoord, currentIpCoords[0]);
+          const dPin = calcDistanceYards(currentIpCoords[0], currentPinCoord);
+          text += `1打目は中間1まで${d1}ヤード、そこからピンまで残り${dPin}ヤードです。`;
+        } else if (currentIpCoords.length >= 2) {
+          const d1 = calcDistanceYards(currentTeeCoord, currentIpCoords[0]);
+          const d2 = calcDistanceYards(currentIpCoords[0], currentIpCoords[1]);
+          const dPin = calcDistanceYards(currentIpCoords[currentIpCoords.length - 1], currentPinCoord);
+          text += `1打目は中間1まで${d1}ヤード、2打目は中間2まで${d2}ヤード、ピンまで残り${dPin}ヤードのレイアップ推奨です。`;
+        } else {
+          text += `ピンまでダイレクトに${currentYard}ヤードです。`;
+        }
+      } else {
+        const rawDist = calcDistanceYards(userCoord, currentPinCoord);
+        text += `ピンまで残り${rawDist}ヤード。`;
+      }
+
+      const plEl = document.getElementById('hud-playslike-dist');
+      const playsLike = plEl ? plEl.innerText.replace('y', '') : '';
+      const relWind = document.getElementById('wind-relative-detail')?.innerText || '';
+      if (playsLike) {
+        text += `風は${relWind.replace(/[()]/g, '')}、PlaysLike推奨${playsLike}ヤードです。`;
+      }
+
+      const targetDist = parseInt(playsLike, 10) || 150;
+      const recClub = userClubs.find(c => Math.abs(c.dist - targetDist) <= 12) || userClubs[7];
+      if (recClub) {
+        text += `おすすめ番手は${recClub.name}です。`;
+      }
+
+      const ut = new SpeechSynthesisUtterance(text);
+      ut.lang = 'ja-JP';
+      ut.rate = 1.05;
+      ut.pitch = 1.0;
+      window.speechSynthesis.speak(ut);
+
+      const btn = document.getElementById('btn-voice-guide');
+      if (btn) {
+        btn.classList.add('active');
+        setTimeout(() => btn.classList.remove('active'), 5000);
+      }
+      showCalibrationToast(`🗣️ 音声案内中: ${text.slice(0, 24)}...`);
+    }
+
+    /* ==========================================================
+       12. ヘディングアップ自動回転 ＆ 🧭コンパス切替
+    ========================================================== */
+    function toggleHeadingUpMode() {
+      isHeadingUp = !isHeadingUp;
+      const mapEl = document.getElementById('map');
+      const compassBtn = document.getElementById('btn-compass-icon');
+
+      if (!isHeadingUp) {
+        if (mapEl) mapEl.style.transform = 'none';
+        if (compassBtn) {
+          compassBtn.classList.remove('active');
+          compassBtn.style.transform = 'none';
+        }
+        showCalibrationToast('🧭 ノースアップ (北上固定) に戻しました');
+      } else {
+        applyHeadingUpRotation();
+        if (compassBtn) compassBtn.classList.add('active');
+        showCalibrationToast('🧭 ヘディングアップ (打席進行方向を画面上に固定)');
+      }
+    }
+
+    function applyHeadingUpRotation() {
+      if (!isHeadingUp) return;
+      const mapEl = document.getElementById('map');
+      const compassBtn = document.getElementById('btn-compass-icon');
+      if (!mapEl) return;
+
+      const targetCoord = (currentIpCoords && currentIpCoords.length > 0) ? currentIpCoords[0] : currentPinCoord;
+      const bearing = calcBearing(userCoord, targetCoord);
+      const rotAngle = -bearing;
+
+      mapEl.style.transform = `rotate(${rotAngle}deg) scale(1.18)`;
+      if (compassBtn) {
+        compassBtn.style.transform = `rotate(${bearing}deg)`;
+      }
+    }
+
+    /* ==========================================================
+       13. サンライトモード ＆ ポケットタッチロック
+    ========================================================== */
+    function toggleSunlightMode() {
+      isSunlightMode = !isSunlightMode;
+      document.body.classList.toggle('sunlight-mode', isSunlightMode);
+      const btn = document.getElementById('btn-sunlight-mode');
+      if (btn) btn.classList.toggle('active-amber', isSunlightMode);
+      showCalibrationToast(isSunlightMode ? '☀️ サンライト高視認性モード ON' : '🌙 サイバーダークモード ON');
+    }
+
+    function toggleTouchLock() {
+      isTouchLocked = !isTouchLocked;
+      const overlay = document.getElementById('touch-lock-overlay');
+      if (overlay) overlay.style.display = isTouchLocked ? 'flex' : 'none';
+      const btn = document.getElementById('btn-touch-lock');
+      if (btn) btn.classList.toggle('active', isTouchLocked);
+    }
+
+    function handleTouchLockTap() {
+      const now = Date.now();
+      if (now - lastTouchTime < 350) {
+        toggleTouchLock();
+      }
+      lastTouchTime = now;
+    }
+
+    /* ==========================================================
+       14. リアルタイムHUD更新 & PlaysLike ＆ 弾道シミュレーション
     ========================================================== */
     async function updateHUDAndSimulation() {
       if (!userCoord || !currentPinCoord) return;
@@ -1690,7 +2685,22 @@
       const rawEl = document.getElementById('hud-raw-dist');
       if (rawEl) rawEl.innerText = `${rawDist}y`;
 
-      // 標高差取得
+      const targetIpEl = document.getElementById('hud-target-ip-info');
+      if (targetIpEl) {
+        if (currentIpCoords.length > 0) {
+          const dToIp = calcDistanceYards(userCoord, currentIpCoords[0]);
+          targetIpEl.innerText = `次目標IP1: ${dToIp}y`;
+        } else {
+          targetIpEl.innerText = "直線ヤード";
+        }
+      }
+
+      const frontDist = Math.max(5, rawDist - 14);
+      const backDist = rawDist + 14;
+      document.getElementById('g3-front').innerText = frontDist;
+      document.getElementById('g3-center').innerText = rawDist;
+      document.getElementById('g3-back').innerText = backDist;
+
       try {
         const [uElev, pElev] = await Promise.all([
           fetchElevation(userCoord[0], userCoord[1]),
@@ -1715,7 +2725,6 @@
         if (yardEl) yardEl.innerText = `(${sign}${diffY}y)`;
       } catch (e) {}
 
-      // 風向・風速とPlaysLike計算
       const targetBearing = calcBearing(userCoord, currentPinCoord);
       const relAngle = ((windInfo.direction - targetBearing + 540) % 360) - 180;
       const rad = relAngle * Math.PI / 180;
@@ -1746,13 +2755,19 @@
       const pldEl = document.getElementById('hud-playslike-detail');
       if (pldEl) pldEl.innerText = `実距離 ${plDiff >= 0 ? '+' : ''}${plDiff}y 補正`;
 
-      // ガイド点線
       if (targetGuideLine && typeof targetGuideLine.setLatLngs === 'function') {
-        targetGuideLine.setLatLngs([userCoord, currentPinCoord]);
+        const nextTarget = (currentIpCoords && currentIpCoords.length > 0 && calcDistanceYards(userCoord, currentTeeCoord) < 50)
+          ? currentIpCoords[0] : currentPinCoord;
+        targetGuideLine.setLatLngs([userCoord, nextTarget]);
       }
 
-      // 弾道放物線 ＆ 着弾サークル
-      renderShotSimulation(targetBearing, headwind, crosswind);
+      let shootBearing = targetBearing;
+      if (currentIpCoords.length > 0 && calcDistanceYards(userCoord, currentTeeCoord) < 50) {
+        shootBearing = calcBearing(userCoord, currentIpCoords[0]);
+      }
+      renderShotSimulation(shootBearing, headwind, crosswind);
+
+      if (isHeadingUp) applyHeadingUpRotation();
     }
 
     function renderShotSimulation(targetBearing, headwind, crosswind) {
@@ -1800,280 +2815,221 @@
     }
 
     /* ==========================================================
-       7. グリーンアンジュレーション・ビュー (Garmin Green Contour再現)
+       15. グリーンアンジュレーション (Garmin Green Contour再現)
     ========================================================== */
     function toggleGreenContourMode() {
-      if (isGreenContourMode) {
-        exitGreenContourMode();
-      } else {
-        enterGreenContourMode();
-      }
+      if (isGreenContourMode) exitGreenContourMode();
+      else enterGreenContourMode();
     }
 
     function enterGreenContourMode() {
       isGreenContourMode = true;
       document.getElementById('green-contour-panel').style.display = 'flex';
-      const btnTop = document.getElementById('btn-green-mode');
-      if (btnTop) btnTop.classList.add('active');
+      const btn = document.getElementById('btn-green-mode');
+      if (btn) btn.classList.add('active');
 
-      // ピン中心に高倍率ズーム (Zoom 19)
       if (map && currentPinCoord) {
         map.setView(currentPinCoord, 19, { animate: true, duration: 0.8 });
       }
-
       renderGreenContourCanvas();
-      showCalibrationToast("🎯 グリーンアンジュレーションを展開しました");
+      showCalibrationToast('🎯 グリーンアンジュレーション高密度解析中...');
     }
 
     function exitGreenContourMode() {
       isGreenContourMode = false;
       document.getElementById('green-contour-panel').style.display = 'none';
-      const btnTop = document.getElementById('btn-green-mode');
-      if (btnTop) btnTop.classList.remove('active');
+      const btn = document.getElementById('btn-green-mode');
+      if (btn) btn.classList.remove('active');
 
-      if (greenLayerGroup) {
-        map.removeLayer(greenLayerGroup);
-        greenLayerGroup = null;
-      }
+      if (greenLayerGroup) greenLayerGroup.clearLayers();
       focusCurrentHole();
     }
 
     function toggleGreenFeature(feature) {
       greenContourSettings[feature] = !greenContourSettings[feature];
       const chip = document.getElementById(`chip-toggle-${feature}`);
-      if (chip) {
-        if (greenContourSettings[feature]) chip.classList.add('active');
-        else chip.classList.remove('active');
-      }
+      if (chip) chip.classList.toggle('active', greenContourSettings[feature]);
       renderGreenContourCanvas();
     }
 
     function resetCupPosition() {
       cupOffset = [0, 0];
       renderGreenContourCanvas();
-      showCalibrationToast("カップ位置をピン中央にリセットしました");
+      showCalibrationToast('⛳ ピン位置を中央にリセットしました');
     }
 
-    // Garmin / StrackaLine 級の高精細グリーン面描画 (Canvas + ベクトル演算)
     function renderGreenContourCanvas() {
       if (!isGreenContourMode || !map || !currentPinCoord) return;
+      if (!greenLayerGroup) greenLayerGroup = L.layerGroup().addTo(map);
+      greenLayerGroup.clearLayers();
 
-      if (greenLayerGroup) {
-        map.removeLayer(greenLayerGroup);
-      }
-      greenLayerGroup = L.layerGroup().addTo(map);
+      const canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
 
-      const center = currentPinCoord;
-      const radiusMeters = 24; // 半径24mのグリーン面
-      const gridSize = 2.0; // 2mグリッド
+      const cx = 200 + cupOffset[0];
+      const cy = 200 + cupOffset[1];
+      const r = 160;
 
-      // グリーン境界円
-      const greenBoundary = L.circle(center, {
-        radius: radiusMeters,
-        color: '#38bdf8',
-        weight: 1.5,
-        fillColor: '#10b981',
-        fillOpacity: 0.08,
-        dashArray: '3, 5',
-        interactive: false
-      }).addTo(greenLayerGroup);
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r, r * 0.85, 0.2, 0, Math.PI * 2);
+      ctx.clip();
 
-      // 起伏関数（受グリーン＋奥高手前低＋アンジュレーション波形）
-      function getElevationAt(relX, relY) {
-        // relX: 東西(m), relY: 南北(m)
-        const slopeY = relY * 0.035; // 北側（奥）が高い
-        const slopeX = relX * 0.015; // わずかなフック傾斜
-        const mound = Math.sin(relX * 0.18) * Math.cos(relY * 0.18) * 0.25; // 2段グリーンのマウンド
-        return slopeY + slopeX + mound;
-      }
-
-      // 1. ヒートマップ描画
       if (greenContourSettings.heatmap) {
-        for (let y = -radiusMeters; y <= radiusMeters; y += gridSize) {
-          for (let x = -radiusMeters; x <= radiusMeters; x += gridSize) {
-            const dist = Math.sqrt(x * x + y * y);
-            if (dist > radiusMeters) continue;
-
-            const elev = getElevationAt(x, y);
-            // カラーマップ: 低(青) -> 中(緑/黄) -> 高(赤)
-            let color = "#10b981";
-            if (elev < -0.3) color = "#3b82f6";
-            else if (elev < 0.0) color = "#06b6d4";
-            else if (elev < 0.25) color = "#eab308";
-            else if (elev < 0.5) color = "#f97316";
-            else color = "#ef4444";
-
-            const cellCoord = moveCoord(moveCoord(center, y, 0), x, 90);
-            L.circle(cellCoord, {
-              radius: gridSize * 0.65,
-              color: 'transparent',
-              fillColor: color,
-              fillOpacity: 0.42,
-              interactive: false
-            }).addTo(greenLayerGroup);
+        const imgData = ctx.createImageData(400, 400);
+        for (let y = 0; y < 400; y++) {
+          for (let x = 0; x < 400; x++) {
+            const dx = x - cx;
+            const dy = y - cy;
+            if ((dx*dx)/(r*r) + (dy*dy)/((r*0.85)*(r*0.85)) <= 1) {
+              const elev = (dx * 0.005) - (dy * 0.008) + Math.sin(dx * 0.03) * 0.2;
+              const norm = Math.max(0, Math.min(1, (elev + 1.2) / 2.4));
+              const idx = (y * 400 + x) * 4;
+              imgData.data[idx] = Math.round(norm < 0.5 ? 0 : (norm - 0.5) * 2 * 255);
+              imgData.data[idx+1] = Math.round(norm < 0.5 ? norm * 2 * 255 : (1 - norm) * 2 * 255);
+              imgData.data[idx+2] = Math.round(norm < 0.5 ? (1 - norm * 2) * 255 : 0);
+              imgData.data[idx+3] = 160;
+            }
           }
         }
+        ctx.putImageData(imgData, 0, 0);
       }
 
-      // 2. 傾斜矢印（スロープアロー / 下り坂方向）
-      if (greenContourSettings.arrows) {
-        const arrowStep = 4.0; // 4m間隔
-        for (let y = -radiusMeters + 2; y <= radiusMeters - 2; y += arrowStep) {
-          for (let x = -radiusMeters + 2; x <= radiusMeters - 2; x += arrowStep) {
-            if (Math.sqrt(x * x + y * y) > radiusMeters - 2) continue;
-
-            const delta = 0.5;
-            const eCenter = getElevationAt(x, y);
-            const eX = getElevationAt(x + delta, y);
-            const eY = getElevationAt(x, y + delta);
-
-            // 勾配ベクトル（下り坂はマイナス勾配）
-            const gradX = -(eX - eCenter) / delta;
-            const gradY = -(eY - eCenter) / delta;
-            const slopeMag = Math.sqrt(gradX * gradX + gradY * gradY);
-            if (slopeMag < 0.005) continue;
-
-            const flowBearing = (Math.atan2(gradX, gradY) * 180 / Math.PI + 360) % 360;
-            const arrowCoord = moveCoord(moveCoord(center, y, 0), x, 90);
-
-            let arrowColor = "#22c55e";
-            if (slopeMag > 0.04) arrowColor = "#ef4444";
-            else if (slopeMag > 0.02) arrowColor = "#f59e0b";
-
-            const arrowIcon = L.divIcon({
-              className: '',
-              html: `<div style="transform: rotate(${flowBearing}deg); color:${arrowColor}; font-size:12px; font-weight:900; line-height:1; text-shadow:0 1px 3px rgba(0,0,0,0.8);">▼</div>`,
-              iconSize: [12, 12],
-              iconAnchor: [6, 6]
-            });
-
-            L.marker(arrowCoord, { icon: arrowIcon, interactive: false }).addTo(greenLayerGroup);
-          }
-        }
-      }
-
-      // 3. 等高線（コンターライン）
       if (greenContourSettings.contours) {
-        for (let r = 5; r <= radiusMeters; r += 5) {
-          L.circle(center, {
-            radius: r,
-            color: 'rgba(255, 255, 255, 0.45)',
-            weight: 1,
-            fill: false,
-            dashArray: '2, 6',
-            interactive: false
-          }).addTo(greenLayerGroup);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.lineWidth = 1.2;
+        for (let ring = 30; ring < r; ring += 25) {
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, ring, ring * 0.85, 0.2, 0, Math.PI * 2);
+          ctx.stroke();
         }
       }
+
+      if (greenContourSettings.arrows) {
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#ffffff';
+        for (let ay = cy - r + 30; ay < cy + r; ay += 35) {
+          for (let ax = cx - r + 30; ax < cx + r; ax += 35) {
+            const dx = ax - cx;
+            const dy = ay - cy;
+            if ((dx*dx)/(r*r) + (dy*dy)/((r*0.85)*(r*0.85)) <= 0.8) {
+              const slopeAngle = Math.atan2(dy, dx) + 0.3;
+              drawSlopeArrow(ctx, ax, ay, slopeAngle, 12);
+            }
+          }
+        }
+      }
+
+      ctx.restore();
+
+      const metersR = 25;
+      const southWest = moveCoord(currentPinCoord, metersR, 225);
+      const northEast = moveCoord(currentPinCoord, metersR, 45);
+      const bounds = L.latLngBounds(southWest, northEast);
+
+      const overlay = L.imageOverlay(canvas.toDataURL(), bounds, { opacity: 0.85, zIndex: 400 });
+      overlay.addTo(greenLayerGroup);
+    }
+
+    function drawSlopeArrow(ctx, x, y, angle, length) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.moveTo(-length / 2, 0);
+      ctx.lineTo(length / 2, 0);
+      ctx.lineTo(length / 2 - 4, -3);
+      ctx.moveTo(length / 2, 0);
+      ctx.lineTo(length / 2 - 4, 3);
+      ctx.stroke();
+      ctx.restore();
     }
 
     /* ==========================================================
-       8. 全国全ゴルフ場対応 Overpass API & 最寄り検出
+       16. 全国全ゴルフ場対応 Overpass API & 最寄り検索
     ========================================================== */
     function locateNearestGolfCourse() {
       if (!navigator.geolocation) {
-        alert("お使いの端末はGPS位置情報に対応していません。");
+        showCalibrationToast('GPS位置情報が利用できません');
         return;
       }
-      showCalibrationToast("📍 現在地を取得しています...");
-
+      showCalibrationToast('📍 現在地を測位中...');
       navigator.geolocation.getCurrentPosition(async (pos) => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        showCalibrationToast("最寄りのゴルフ場を検索中...");
+        const uLat = pos.coords.latitude;
+        const uLon = pos.coords.longitude;
 
-        try {
-          // Overpass API で半径10km以内のゴルフ場を検索
-          const query = `[out:json][timeout:10];
-          (
-            node["leisure"="golf_course"](around:12000, ${lat}, ${lon});
-            way["leisure"="golf_course"](around:12000, ${lat}, ${lon});
-            relation["leisure"="golf_course"](around:12000, ${lat}, ${lon});
-          );
-          out center 5;`;
-
-          const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
-          const data = await res.json();
-
-          if (data && data.elements && data.elements.length > 0) {
-            const courseEl = data.elements.find(e => e.tags && e.tags.name && !isInvalidGolfFacility(e.tags.name));
-            if (courseEl) {
-              const name = courseEl.tags.name;
-              const cLat = courseEl.lat || (courseEl.center && courseEl.center.lat) || lat;
-              const cLon = courseEl.lon || (courseEl.center && courseEl.center.lon) || lon;
-              const detected = {
-                id: "detected_" + Date.now(),
-                name: name,
-                pref: "現在地付近",
-                lat: cLat,
-                lon: cLon,
-                par: 72,
-                desc: "GPS現在地より自動検出されたゴルフ場"
-              };
-              selectCourse(detected);
-              showCalibrationToast(`📍 最寄りコース「${name}」を検出しました！`);
-              return;
-            }
-          }
-        } catch (e) {
-          console.warn("Overpass Nearest failed", e);
-        }
-
-        // フォールバック: 内蔵マスターから最も近いコースを計算
-        let nearest = null;
-        let minDist = Infinity;
+        let closest = null;
+        let minD = Infinity;
         NATIONWIDE_COURSES.forEach(c => {
-          const d = calcDistanceMeters([lat, lon], [c.lat, c.lon]);
-          if (d < minDist) {
-            minDist = d;
-            nearest = c;
+          const d = calcDistanceMeters([uLat, uLon], [c.lat, c.lon]);
+          if (d < minD) {
+            minD = d;
+            closest = c;
           }
         });
-        if (nearest) {
-          selectCourse(nearest);
-          showCalibrationToast(`📍 最寄りコース「${nearest.name}」を選択しました！`);
+
+        if (closest && minD < 80000) {
+          wizardTempCourse = closest;
+          wizardTempSubCourse = closest.subCourses ? closest.subCourses[0] : { id: 'out_in', name: 'OUT ➔ IN' };
+          gotoWizardStep(2);
+          showCalibrationToast(`📍 最寄り: ${closest.name} (${(minD/1000).toFixed(1)}km)`);
+        } else {
+          showCalibrationToast('近隣のゴルフ場をOverpass APIから探索中...');
+          const overpassCourses = await fetchOverpassGolfData(uLat, uLon);
+          if (overpassCourses.length > 0) {
+            wizardTempCourse = overpassCourses[0];
+            wizardTempSubCourse = overpassCourses[0].subCourses[0];
+            gotoWizardStep(2);
+          } else {
+            showCalibrationToast('近隣50km圏内にゴルフ場が見つかりませんでした');
+          }
         }
-      }, (err) => {
-        alert("GPS位置情報の取得に失敗しました。位置情報の許可をご確認ください。");
-      }, { timeout: 8000, enableHighAccuracy: true });
+      }, () => {
+        showCalibrationToast('位置情報の取得に失敗しました');
+      }, { enableHighAccuracy: true, timeout: 8000 });
     }
 
-    // Overpass API による実測ホール座標 ＆ 施設ピン（トイレ・売店）の動的取得
     async function fetchOverpassGolfData(centerLat, centerLng) {
       try {
-        const query = `[out:json][timeout:8];
-        (
-          node["golf"="tee"](around:1600, ${centerLat}, ${centerLng});
-          node["golf"="pin"](around:1600, ${centerLat}, ${centerLng});
-          node["golf"="green"](around:1600, ${centerLat}, ${centerLng});
-          node["amenity"="toilets"](around:1600, ${centerLat}, ${centerLng});
-          node["shop"="kiosk"](around:1600, ${centerLat}, ${centerLng});
-        );
-        out body;`;
-
-        const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
+        const q = `[out:json][timeout:15];(node["leisure"="golf_course"](around:50000,${centerLat},${centerLng});way["leisure"="golf_course"](around:50000,${centerLat},${centerLng}););out center 10;`;
+        const res = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: q });
         const data = await res.json();
-        return data.elements || [];
+        const results = [];
+        if (data && data.elements) {
+          data.elements.forEach(el => {
+            const name = el.tags && (el.tags.name || el.tags['name:ja']);
+            if (name && !isInvalidGolfFacility(name)) {
+              const lat = el.lat || (el.center && el.center.lat);
+              const lon = el.lon || (el.center && el.center.lon);
+              results.push({
+                id: `op_${el.id}`,
+                name: name,
+                pref: '近隣検出',
+                lat: lat,
+                lon: lon,
+                par: 72,
+                desc: '現地GPS検出ゴルフ場',
+                subCourses: [
+                  { id: "out_in", name: "OUT ➔ IN", desc: "1H ➔ 18H (Par 72)", startHoleIdx: 0 }
+                ]
+              });
+            }
+          });
+        }
+        return results;
       } catch (e) {
         return [];
       }
     }
 
-    /* ==========================================================
-       9. 店舗・練習場100%除外 ＆ 検索エンジン
-    ========================================================== */
     function isInvalidGolfFacility(name) {
-      if (!name) return true;
-      const n = name.toLowerCase();
-      const shopKeywords = [
-        'ゴルフ・ドゥ', 'ゴルフドゥ', 'golf do', 'ゴルフパートナー', 'golf partner',
-        'ゴルフ5', 'golf 5', 'つるやゴルフ', '二木ゴルフ', 'ヴィクトリアゴルフ',
-        'ヒマラヤ', 'アルペン', 'スポーツオーソリティ', 'ゼビオ',
-        '練習場', '打ちっぱなし', 'ドライビングレンジ', 'バッティング',
-        'レンジ', '打席', 'インドア', '室内', 'シミュレーションゴルフ',
-        'スタジオ', 'スクール', 'レッスン', 'ゴルフバー', 'ショップ', '工房', '店'
+      const invalidWords = [
+        '練習場', 'ゴルフレンジ', 'レンジ', 'スクール', 'レッスン',
+        'バッティング', '打ちっぱなし', 'ドライビングレンジ', '中古', 'ショップ', 'ゴルフパートナー', 'ゴルフ5'
       ];
-      return shopKeywords.some(kw => n.includes(kw));
+      return invalidWords.some(w => name.includes(w));
     }
 
     function renderCourseCandidates(list) {
@@ -2081,228 +3037,159 @@
       if (!container) return;
       container.innerHTML = '';
       if (!list || list.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-sub); font-size:12px; padding:12px; text-align:center;">該当するゴルフ場が見つかりませんでした。「Web検索」をお試しください。</div>';
+        container.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:12px;">該当するコースがありません</div>';
         return;
       }
-
-      list.forEach((c) => {
-        const card = document.createElement('div');
-        card.className = 'candidate-card';
-        card.setAttribute('role', 'button');
-        card.setAttribute('tabindex', '0');
-        card.onclick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          selectCourse(c);
-        };
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="candidate-title">
-              ⛳ ${c.name}
-              <span class="candidate-tag">${c.pref || '国内'}</span>
-            </div>
-            <button class="btn-main" style="padding:4px 10px; font-size:11px; pointer-events:none;">選択</button>
+      list.forEach(c => {
+        const item = document.createElement('div');
+        item.style.cssText = 'background:#132238; border:1px solid var(--border-subtle); border-radius:8px; padding:7px 10px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;';
+        item.innerHTML = `
+          <div>
+            <div style="font-weight:700; color:#fff; font-size:12px;">${c.name}</div>
+            <div style="font-size:10px; color:var(--text-sub);">${c.pref} / Par ${c.par || 72}</div>
           </div>
-          <div class="candidate-desc">${c.desc || c.name}</div>
+          <button class="btn-main" style="padding:4px 8px; font-size:11px;">次へ</button>
         `;
-        container.appendChild(card);
+        item.onclick = () => {
+          wizardTempCourse = c;
+          wizardTempSubCourse = c.subCourses ? c.subCourses[0] : { id: 'out_in', name: 'OUT ➔ IN', desc: '1H ➔ 18H', startHoleIdx: 0 };
+          gotoWizardStep(2); // 自動でSTEP 2へ遷移
+        };
+        container.appendChild(item);
       });
     }
 
     function onCourseSearchInput(query) {
-      const q = (query || '').trim().toLowerCase();
-      if (!q) {
-        renderCourseCandidates(NATIONWIDE_COURSES);
+      if (!query.trim()) {
+        renderCourseCandidates(NATIONWIDE_COURSES.slice(0, 8));
         return;
       }
-
+      const q = query.toLowerCase();
       const filtered = NATIONWIDE_COURSES.filter(c => {
         if (isInvalidGolfFacility(c.name)) return false;
-        const nameMatch = c.name.toLowerCase().includes(q);
-        const prefMatch = (c.pref || '').toLowerCase().includes(q);
-        const descMatch = (c.desc || '').toLowerCase().includes(q);
-        return nameMatch || prefMatch || descMatch;
+        return c.name.toLowerCase().includes(q) || c.pref.toLowerCase().includes(q);
       });
-
       renderCourseCandidates(filtered);
     }
 
     async function executeExternalCourseSearch() {
       const input = document.getElementById('course-search-input');
-      const query = (input ? input.value : '').trim();
-      if (!query) return;
+      const q = input ? input.value.trim() : '';
+      if (!q) return;
 
-      if (isInvalidGolfFacility(query)) {
-        alert("ゴルフ練習場、ゴルフショップ、インドアスクールは検索対象外です。実際のゴルフコース名を入力してください。");
-        return;
-      }
-
-      const container = document.getElementById('course-candidates-container');
-      container.innerHTML = '<div style="color:var(--accent-green); font-size:12px; padding:12px; text-align:center;">🌐 日本全国のコースデータベースを高速検索中...</div>';
-
+      showCalibrationToast('全国Overpass APIで検索中...');
       try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=jp&q=${encodeURIComponent(query + ' ゴルフ')}&limit=15`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=jp&q=${encodeURIComponent(q + ' ゴルフ場')}&limit=10`;
         const res = await fetch(url, { headers: { 'Accept-Language': 'ja' } });
-        const data = await res.json();
-
-        const externalResults = [];
-        if (Array.isArray(data)) {
-          data.forEach((item, idx) => {
-            const rawName = item.display_name.split(',')[0].trim();
-            if (!isInvalidGolfFacility(rawName)) {
-              externalResults.push({
-                id: `osm_${item.osm_id || idx}_${Date.now()}`,
-                name: rawName,
-                pref: item.display_name.split(',')[1] || '日本',
-                lat: parseFloat(item.lat),
-                lon: parseFloat(item.lon),
-                par: 72,
-                desc: item.display_name
-              });
-            }
-          });
-        }
-
-        const internalMatches = NATIONWIDE_COURSES.filter(c => 
-          !isInvalidGolfFacility(c.name) && 
-          (c.name.toLowerCase().includes(query.toLowerCase()) || (c.pref && c.pref.includes(query)))
-        );
-
-        const combined = [...internalMatches, ...externalResults];
-        const unique = [];
-        const seen = new Set();
-        combined.forEach(c => {
-          if (!seen.has(c.name)) {
-            seen.add(c.name);
-            unique.push(c);
+        const list = await res.json();
+        const parsed = [];
+        list.forEach(item => {
+          if (!isInvalidGolfFacility(item.display_name)) {
+            const shortName = item.display_name.split(',')[0];
+            parsed.push({
+              id: `nom_${item.place_id}`,
+              name: shortName,
+              pref: '日本全国',
+              lat: parseFloat(item.lat),
+              lon: parseFloat(item.lon),
+              par: 72,
+              desc: item.display_name,
+              subCourses: [
+                { id: "out_in", name: "OUT ➔ IN", desc: "1H ➔ 18H (Par 72)", startHoleIdx: 0 }
+              ]
+            });
           }
         });
-
-        renderCourseCandidates(unique);
-      } catch (err) {
-        onCourseSearchInput(query);
+        if (parsed.length > 0) {
+          renderCourseCandidates(parsed);
+          showCalibrationToast(`${parsed.length}件のゴルフ場を発見`);
+        } else {
+          showCalibrationToast('該当するゴルフコースが見つかりませんでした');
+        }
+      } catch (e) {
+        showCalibrationToast('外部検索に失敗しました');
       }
+    }
+
+    function renderPresetChips() {
+      const container = document.getElementById('preset-course-chips');
+      if (!container) return;
+      container.innerHTML = '';
+      const chips = [
+        { id: "toride", label: "取手桜が丘GC" },
+        { id: "taiheidai_cc", label: "太平台CC" },
+        { id: "shishido_hills", label: "宍戸ヒルズCC" },
+        { id: "pgm_ishioka", label: "PGM石岡GC" },
+        { id: "taiheiyo_gotemba", label: "太平洋御殿場" },
+        { id: "kasumigaseki", label: "霞ヶ関CC" },
+        { id: "narashino", label: "習志野CC" },
+        { id: "kawana_fuji", label: "川奈富士" },
+        { id: "phoenix_cc", label: "フェニックスCC" }
+      ];
+
+      chips.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-sub';
+        btn.style.fontSize = '10.5px';
+        btn.style.padding = '3px 7px';
+        btn.innerText = c.label;
+        btn.onclick = () => {
+          const found = NATIONWIDE_COURSES.find(item => item.id === c.id);
+          if (found) {
+            wizardTempCourse = found;
+            wizardTempSubCourse = found.subCourses ? found.subCourses[0] : { id: 'out_in', name: 'OUT ➔ IN' };
+            gotoWizardStep(2);
+          }
+        };
+        container.appendChild(btn);
+      });
     }
 
     /* ==========================================================
-       10. コース選択 ＆ 1H確実フォーカスシーケンス
+       17. ホール適用 ＆ 選択ティー・マップ動的連動
     ========================================================== */
-    async function selectCourse(c) {
-      if (!c) return;
-      try {
-        currentCourse = { ...c };
-        if (!Array.isArray(currentCourse.tee)) {
-          currentCourse.tee = [parseFloat(c.lat || 35.9023), parseFloat(c.lon || 140.1221)];
-        } else {
-          currentCourse.tee = [parseFloat(currentCourse.tee[0]), parseFloat(currentCourse.tee[1])];
-        }
-
-        const displayEl = document.getElementById('current-course-display');
-        if (displayEl) {
-          displayEl.innerHTML = `
-            ${currentCourse.name}
-            <span style="font-size:10px; background:rgba(16,185,129,0.25); color:#34d399; padding:1px 5px; border-radius:4px;">Par ${currentCourse.par || 72}</span>
-          `;
-        }
-        const prefEl = document.getElementById('current-course-pref');
-        if (prefEl) prefEl.innerText = `${currentCourse.pref || '日本'} (タップで全国検索)`;
-
-        if (c.id === 'toride') {
-          holeList = [...TORIDE_SAKURAGAOKA_18HOLES];
-        } else {
-          const centerLat = currentCourse.tee[0];
-          const centerLng = currentCourse.tee[1];
-          holeList = generateCourseLayout(centerLat, centerLng, currentCourse.name);
-
-          // Overpass API より実測ホール＆設備ピン取得
-          fetchOverpassGolfData(centerLat, centerLng).then(osmElements => {
-            if (osmElements && osmElements.length > 0) {
-              const tees = osmElements.filter(e => e.tags && (e.tags.golf === 'tee' || e.tags.ref));
-              const pins = osmElements.filter(e => e.tags && (e.tags.golf === 'pin' || e.tags.golf === 'green'));
-
-              if (tees.length > 0 && pins.length > 0) {
-                tees.forEach((t, i) => {
-                  if (i < holeList.length && pins[i]) {
-                    holeList[i].tee = [t.lat, t.lon];
-                    holeList[i].pin = [pins[i].lat, pins[i].lon];
-                    holeList[i].yard = calcDistanceYards(holeList[i].tee, holeList[i].pin);
-                  }
-                });
-                applyHole(0);
-                showCalibrationToast("🎯 OSM実測ホール座標を取得・反映しました");
-              }
-
-              // トイレ・売店のスマートピン描画
-              facilityLayerGroup.clearLayers();
-              const facilities = osmElements.filter(e => e.tags && (e.tags.amenity === 'toilets' || e.tags.shop === 'kiosk'));
-              facilities.forEach(f => {
-                const isToilet = f.tags.amenity === 'toilets';
-                const iconChar = isToilet ? '🚻' : '🍵';
-                const fMarker = L.marker([f.lat, f.lon], {
-                  icon: L.divIcon({
-                    className: '',
-                    html: `<div class="facility-pin-marker" title="${isToilet ? 'トイレ' : '茶屋・売店'}">${iconChar}</div>`,
-                    iconSize: [26, 26],
-                    iconAnchor: [13, 13]
-                  })
-                });
-                facilityLayerGroup.addLayer(fMarker);
-              });
-            }
-          });
-        }
-        originalHoleList = JSON.parse(JSON.stringify(holeList));
-
-        populateHoleSelect();
-        applyHole(0); // ★コース選択時、確実に1番ホール(1H)に着地！
-
-        fetchRealWeather(currentCourse.tee[0], currentCourse.tee[1]);
-        fetchSunsetTime(currentCourse.tee[0], currentCourse.tee[1]);
-
-        closeCourseSearchModal();
-        showCalibrationToast(`⛳ ${currentCourse.name} を選択しました！`);
-      } catch (err) {
-        closeCourseSearchModal();
-      }
-    }
-
     function applyHole(idx) {
       if (!holeList || holeList.length === 0) return;
       currentHoleIndex = Math.max(0, Math.min(idx, holeList.length - 1));
       const hole = holeList[currentHoleIndex];
       if (!hole) return;
 
-      // スマートキャリブレーション復元
-      let calib = null;
-      if (currentCourse && currentCourse.id) {
-        calib = getCalibratedCoord(currentCourse.id, hole.h);
-      }
-
-      if (calib && Array.isArray(calib.tee) && Array.isArray(calib.pin)) {
-        currentTeeCoord = [...calib.tee];
-        currentPinCoord = [...calib.pin];
+      // ピン座標の決定 (メイン/サブ)
+      if (currentGreenSide === 'R') {
+        const bearing = calcBearing(hole.tee, hole.pin);
+        currentPinCoord = moveCoord(hole.pin, 22, (bearing + 85) % 360);
       } else {
-        currentTeeCoord = [...hole.tee];
         currentPinCoord = [...hole.pin];
       }
+
+      // ★ 選択中ティーグラウンドに応じたティー座標の幾何学解決
+      currentTeeCoord = resolveTeeCoordinate(hole, currentTeeType);
       userCoord = [...currentTeeCoord];
       lastShotCoord = null;
+
+      // ティーによる実測ヤード数（白基準からの変化を反映）
+      const holeYard = calcDistanceYards(currentTeeCoord, currentPinCoord);
 
       // UI表示更新
       const numEl = document.getElementById('hud-current-hole-num');
       if (numEl) numEl.innerText = `${hole.h}H`;
       const parEl = document.getElementById('hud-current-hole-par');
-      if (parEl) parEl.innerText = `Par ${hole.par} / ${hole.yard}y`;
+      if (parEl) parEl.innerText = `Par ${hole.par} / ${holeYard}y`;
       const selectEl = document.getElementById('hole-quick-select');
       if (selectEl) selectEl.value = currentHoleIndex;
       const lastShotEl = document.getElementById('hud-last-shot-dist');
       if (lastShotEl) lastShotEl.innerText = "-- y";
 
-      if (teeMarker && typeof teeMarker.setLatLng === 'function') teeMarker.setLatLng(currentTeeCoord);
-      if (pinMarker && typeof pinMarker.setLatLng === 'function') pinMarker.setLatLng(currentPinCoord);
-      if (userMarker && typeof userMarker.setLatLng === 'function') userMarker.setLatLng(userCoord);
+      // ティーマーカーのビジュアル（色・バッジ）と位置更新
+      updateTeeMarkerVisual();
 
-      focusCurrentHole(); // 1H / 選択ホールへの自動画角ズーム
+      if (pinMarker) pinMarker.setLatLng(currentPinCoord);
+      if (userMarker) userMarker.setLatLng(userCoord);
+
+      // IPルート再計算
+      updateIpRoute();
+
+      focusCurrentHole();
       drawYardArcs();
       updateHUDAndSimulation();
       updateGuideHoleInfo();
@@ -2310,10 +3197,10 @@
     }
 
     function focusCurrentHole() {
-      if (map && typeof map.fitBounds === 'function' && currentTeeCoord && currentPinCoord) {
+      if (map && currentTeeCoord && currentPinCoord) {
         try {
           map.fitBounds([currentTeeCoord, currentPinCoord], {
-            padding: [60, 60],
+            padding: [50, 50],
             maxZoom: 18,
             duration: 0.8
           });
@@ -2338,124 +3225,92 @@
       holeList.forEach((hole, idx) => {
         const opt = document.createElement('option');
         opt.value = idx;
-        opt.innerText = `${hole.h}H (Par ${hole.par} / ${hole.yard}y)`;
+        const dist = calcDistanceYards(resolveTeeCoordinate(hole, currentTeeType), hole.pin);
+        opt.innerText = `${hole.h}H (Par ${hole.par} / ${dist}y)`;
         select.appendChild(opt);
       });
     }
 
     /* ==========================================================
-       11. コース横幅 (フェアウェイ幅) 連続計測 ＆ 即効消去システム
+       18. コース横幅連続計測
     ========================================================== */
     function toggleDirectWidthMeasurement() {
-      if (!isWidthMeasuring) {
-        startMapTapWidthMeasurement();
-      } else {
-        finishWidthMeasurement();
-      }
+      if (isWidthMeasuring) finishWidthMeasurement();
+      else startMapTapWidthMeasurement();
     }
 
     function startMapTapWidthMeasurement() {
       isWidthMeasuring = true;
       widthTapCoords = [];
-
-      updateMeasureBannerUI("left");
-
-      const btnFloat = document.getElementById('btn-floating-measure');
-      if (btnFloat) btnFloat.classList.add('active-amber');
-
-      updateDirectClearButton();
-      showCalibrationToast("📏 幅計測モード開始: フェアウェイ両端をタップ");
+      const banner = document.getElementById('measure-active-banner');
+      if (banner) banner.style.display = 'flex';
+      const btn = document.getElementById('btn-floating-measure');
+      if (btn) btn.classList.add('active-amber');
+      updateMeasureBannerUI(1);
     }
 
     function updateMeasureBannerUI(stage) {
-      const banner = document.getElementById('measure-active-banner');
-      if (!banner) return;
-      banner.style.display = 'flex';
-      const count = widthHistory.length;
-
-      let msg = "";
-      if (stage === "left") {
-        msg = `📏 <strong>幅計測中:</strong> 左端（1点目）をタップ (${count}本描画中)`;
-      } else if (stage === "right") {
-        msg = `📏 <strong>1点目OK:</strong> 続けて右端（2点目）をタップ`;
-      } else if (stage === "done") {
-        msg = `📏 <strong>${count}本目計測完了！</strong> 続けて別の場所をタップ可能`;
+      const textEl = document.getElementById('measure-banner-text');
+      if (!textEl) return;
+      if (stage === 1) {
+        textEl.innerHTML = '📏 <strong>幅計測中:</strong> 左端（1点目）をタップ';
+      } else if (stage === 2) {
+        textEl.innerHTML = '📏 <strong>幅計測中:</strong> 右端（2点目）をタップ';
       }
-
-      banner.innerHTML = `
-        <span>${msg}</span>
-        <div style="display:flex; align-items:center; gap:6px;">
-          ${count > 0 ? `<button class="btn-danger" style="padding:3px 9px; font-size:10.5px; border-radius:6px;" onclick="clearWidthLines()">🗑️ 全消去 (${count})</button>` : ''}
-          <button class="btn-sub" style="padding:3px 9px; font-size:10.5px; background:#000; color:#fff; border-radius:6px;" onclick="finishWidthMeasurement()">✕ 完了</button>
-        </div>
-      `;
     }
 
     function handleMapWidthTap(latlng) {
-      widthTapCoords.push([latlng.lat, latlng.lng]);
+      const coord = [latlng.lat, latlng.lng];
+      widthTapCoords.push(coord);
 
       if (widthTapCoords.length === 1) {
         if (tempTapMarker) map.removeLayer(tempTapMarker);
-        tempTapMarker = L.circleMarker([latlng.lat, latlng.lng], {
-          radius: 9,
-          color: '#ffffff',
-          fillColor: '#f59e0b',
-          fillOpacity: 1,
-          weight: 3.5,
-          interactive: false
+        tempTapMarker = L.circleMarker(coord, {
+          radius: 6,
+          color: '#f59e0b',
+          fillColor: '#fbbf24',
+          fillOpacity: 0.9
         }).addTo(map);
-
-        updateMeasureBannerUI("right");
+        updateMeasureBannerUI(2);
       } else if (widthTapCoords.length === 2) {
         if (tempTapMarker) {
           map.removeLayer(tempTapMarker);
           tempTapMarker = null;
         }
-
-        const p1 = widthTapCoords[0];
-        const p2 = widthTapCoords[1];
-        createWidthLineAndLabel(p1, p2);
-
-        // ★連続計測を可能にするため、座標配列のみリセットしモードは継続！
+        createWidthLineAndLabel(widthTapCoords[0], widthTapCoords[1]);
         widthTapCoords = [];
-        updateMeasureBannerUI("done");
-        updateDirectClearButton();
+        updateMeasureBannerUI(1);
       }
     }
 
     function createWidthLineAndLabel(p1, p2) {
-      const line = L.polyline([p1, p2], {
-        color: '#f59e0b',
-        weight: 4.5,
-        opacity: 0.95,
-        interactive: false
-      }).addTo(map);
-
-      const m1 = L.circleMarker(p1, { radius: 7, color: '#ffffff', fillColor: '#d97706', fillOpacity: 1, weight: 2.5, interactive: false }).addTo(map);
-      const m2 = L.circleMarker(p2, { radius: 7, color: '#ffffff', fillColor: '#d97706', fillOpacity: 1, weight: 2.5, interactive: false }).addTo(map);
-
-      const midLat = (p1[0] + p2[0]) / 2;
-      const midLng = (p1[1] + p2[1]) / 2;
       const meters = calcDistanceMeters(p1, p2);
       const yards = Math.round(meters * 1.09361);
 
-      // ★特大ゴールド文字 ＆ 青メートルバッジの極大視認性ラベル
-      const badge = L.marker([midLat, midLng], {
-        interactive: false,
-        icon: L.divIcon({
-          className: '',
-          html: `
-            <div class="custom-width-badge">
-              <span class="badge-val">${yards}</span>
-              <span class="badge-unit">yd</span>
-              <span class="badge-metric">(${meters.toFixed(1)}m)</span>
-            </div>
-          `,
-          iconAnchor: [70, 22]
-        })
+      const line = L.polyline([p1, p2], {
+        color: '#f59e0b',
+        weight: 3.5,
+        dashArray: '3, 6',
+        opacity: 0.95
       }).addTo(map);
 
-      widthHistory.push({ id: Date.now() + Math.random(), p1, p2, yd: yards, m: meters, line, badge, markers: [m1, m2] });
+      const mid = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+      const badgeHtml = `
+        <div class="custom-width-badge">
+          <span class="badge-val">${yards}</span>
+          <span class="badge-unit">yd</span>
+          <span class="badge-metric">${meters.toFixed(1)}m</span>
+        </div>
+      `;
+
+      const marker = L.marker(mid, {
+        icon: L.divIcon({ className: '', html: badgeHtml, iconSize: [0, 0] }),
+        interactive: false
+      }).addTo(map);
+
+      widthHistory.push({ line, marker, yards, meters });
+      updateDirectClearButton();
+      showCalibrationToast(`📏 横幅計測完了: ${yards}yd (${meters.toFixed(1)}m)`);
     }
 
     function finishWidthMeasurement() {
@@ -2465,133 +3320,126 @@
         map.removeLayer(tempTapMarker);
         tempTapMarker = null;
       }
-      document.getElementById('measure-active-banner').style.display = 'none';
-      const btnFloat = document.getElementById('btn-floating-measure');
-      if (btnFloat) btnFloat.classList.remove('active-amber');
-      updateDirectClearButton();
+      const banner = document.getElementById('measure-active-banner');
+      if (banner) banner.style.display = 'none';
+      const btn = document.getElementById('btn-floating-measure');
+      if (btn) btn.classList.remove('active-amber');
     }
 
     function updateDirectClearButton() {
       const btn = document.getElementById('btn-direct-clear-width');
       const countEl = document.getElementById('direct-clear-count');
-      const count = widthHistory.length;
-      if (count > 0) {
-        if (countEl) countEl.innerText = `${count}`;
-        if (btn) btn.style.display = 'flex';
-      } else {
-        if (btn) btn.style.display = 'none';
-      }
+      if (!btn || !countEl) return;
+      countEl.innerText = widthHistory.length;
+      btn.style.display = widthHistory.length > 0 ? 'flex' : 'none';
     }
 
     function clearWidthLines() {
       widthHistory.forEach(item => {
-        if (item.line) map.removeLayer(item.line);
-        if (item.badge) map.removeLayer(item.badge);
-        if (item.markers) item.markers.forEach(m => map.removeLayer(m));
+        if (map.hasLayer(item.line)) map.removeLayer(item.line);
+        if (map.hasLayer(item.marker)) map.removeLayer(item.marker);
       });
       widthHistory = [];
-      widthTapCoords = [];
-      if (tempTapMarker) {
-        map.removeLayer(tempTapMarker);
-        tempTapMarker = null;
-      }
       updateDirectClearButton();
-      if (isWidthMeasuring) {
-        updateMeasureBannerUI("left");
-      }
-      showCalibrationToast("🗑️ 計測幅ラインをすべて消去しました");
+      showCalibrationToast('🗑️ 計測した幅ラインを全消去しました');
     }
 
     /* ==========================================================
-       12. 打席記録 & GPSリアルタイム追跡
+       19. 打席記録 & クラブ設定
     ========================================================== */
     function recordCurrentShot() {
-      if (!userCoord) return;
       lastShotCoord = [...userCoord];
+      const rawDist = calcDistanceYards(userCoord, currentPinCoord);
 
-      const shotNum = shotHistoryLines.length + 1;
-      const marker = L.circleMarker(lastShotCoord, {
-        radius: 8,
-        color: '#ffffff',
-        fillColor: '#38bdf8',
-        fillOpacity: 1,
+      const line = L.polyline([currentTeeCoord, userCoord], {
+        color: '#38bdf8',
         weight: 2,
-        interactive: false
+        dashArray: '4, 4'
       }).addTo(map);
+      shotHistoryLines.push(line);
 
-      shotHistoryLines.push({ num: shotNum, coord: lastShotCoord, marker });
-      document.getElementById('hud-last-shot-dist').innerText = "0y (計測中)";
-      showCalibrationToast(`📍 第${shotNum}打の地点を記録しました！`);
-
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((pos) => {
-          userCoord = [pos.coords.latitude, pos.coords.longitude];
-          userMarker.setLatLng(userCoord);
-          updateHUDAndSimulation();
-        }, () => {}, { enableHighAccuracy: true });
-      }
+      document.getElementById('hud-last-shot-dist').innerText = `0y (記録済)`;
+      showCalibrationToast(`📍 打席位置を記録しました (ピンまで残${rawDist}y)`);
     }
 
-    /* ==========================================================
-       13. クラブ設定 ＆ 楽天スコアPlus
-    ========================================================== */
     function populateClubSelect() {
       const select = document.getElementById('caddie-club-select');
       if (!select) return;
       select.innerHTML = '';
-      userClubs.forEach((club) => {
+      userClubs.forEach(c => {
         const opt = document.createElement('option');
-        opt.value = club.dist;
-        opt.innerText = `${club.id} (${club.dist}y)`;
-        if (club.id === '7I') opt.selected = true;
+        opt.value = c.dist;
+        opt.innerText = `${c.name} (${c.dist}y)`;
+        if (c.id === '7I') opt.selected = true;
         select.appendChild(opt);
       });
-      onClubChange(150);
+      updateDockClubLabel('7I', 150);
     }
 
     function onClubChange(dist) {
       const select = document.getElementById('caddie-club-select');
-      const text = select ? select.options[select.selectedIndex].text : `7I (${dist}y)`;
-      const dockLabel = document.getElementById('dock-selected-club-label');
-      if (dockLabel) dockLabel.innerText = text;
+      const name = select ? select.options[select.selectedIndex].text : '';
+      const clubId = name.split(' ')[0] || '';
+      updateDockClubLabel(clubId, dist);
       updateHUDAndSimulation();
     }
 
+    function updateDockClubLabel(id, dist) {
+      const lbl = document.getElementById('dock-selected-club-label');
+      if (lbl) lbl.innerText = `${id} (${dist}y)`;
+    }
+
     function renderClubEditor() {
-      const container = document.getElementById('club-distance-editor-list');
-      if (!container) return;
-      container.innerHTML = '';
+      const list = document.getElementById('club-distance-editor-list');
+      if (!list) return;
+      list.innerHTML = '';
       userClubs.forEach((c, idx) => {
-        const row = document.createElement('div');
-        row.style.display = 'flex';
-        row.style.alignItems = 'center';
-        row.style.justifyContent = 'space-between';
-        row.style.background = '#15253e';
-        row.style.padding = '6px 8px';
-        row.style.borderRadius = '6px';
-        row.innerHTML = `
-          <span style="font-weight:700; color:#fff;">${c.id}</span>
+        const item = document.createElement('div');
+        item.style.cssText = 'background:#132238; border:1px solid var(--border-subtle); border-radius:6px; padding:4px 8px; display:flex; justify-content:space-between; align-items:center;';
+        item.innerHTML = `
+          <span style="font-weight:700; font-size:11px;">${c.name}</span>
           <div style="display:flex; align-items:center; gap:4px;">
-            <input type="number" id="club-dist-input-${idx}" value="${c.dist}" style="width:58px; background:#1e293b; color:#fff; border:1px solid var(--border-subtle); border-radius:4px; padding:3px; text-align:center; font-weight:800;" min="10" max="350">
-            <span style="font-size:10px; color:var(--text-sub);">yd</span>
+            <input type="number" value="${c.dist}" id="club-inp-${idx}" style="width:50px; background:#1e293b; border:1px solid var(--border-subtle); color:#fff; border-radius:4px; padding:3px; text-align:center; font-weight:800; font-size:12px;">
+            <span style="font-size:10px; color:var(--text-sub);">y</span>
           </div>
         `;
-        container.appendChild(row);
+        list.appendChild(item);
       });
     }
 
     function saveClubDistances() {
       userClubs.forEach((c, idx) => {
-        const inp = document.getElementById(`club-dist-input-${idx}`);
+        const inp = document.getElementById(`club-inp-${idx}`);
         if (inp) c.dist = parseInt(inp.value, 10) || c.dist;
       });
-      localStorage.setItem('smart_caddie_pro_clubs_v5', JSON.stringify(userClubs));
+      localStorage.setItem('smart_caddie_pro_clubs_v7', JSON.stringify(userClubs));
       populateClubSelect();
       closeClubModal();
-      showCalibrationToast("🏌️ クラブ飛距離設定を保存しました！");
+      showCalibrationToast('💾 クラブ飛距離設定を保存しました');
     }
 
-    // スコアカード
+    /* ==========================================================
+       20. 4人スコアカード ＆ 新ペリア自動計算
+    ========================================================== */
+    function selectScorePlayer(pId) {
+      currentScorePlayerId = pId;
+      for (let i = 1; i <= 4; i++) {
+        const btn = document.getElementById(`tab-p${i}`);
+        if (btn) {
+          if (i === pId) {
+            btn.style.background = 'var(--accent-green)';
+            btn.style.color = '#fff';
+            btn.style.fontWeight = '800';
+          } else {
+            btn.style.background = 'rgba(255,255,255,0.08)';
+            btn.style.color = 'var(--text-main)';
+            btn.style.fontWeight = '600';
+          }
+        }
+      }
+      renderScoreTable();
+    }
+
     function renderScoreTable() {
       const tbody = document.getElementById('score-table-body');
       if (!tbody) return;
@@ -2599,168 +3447,255 @@
 
       let totalGross = 0;
       let totalPutt = 0;
-      let fwHits = 0;
-      let girHits = 0;
+      const pData = scoreCardData[currentScorePlayerId] || {};
 
-      for (let i = 1; i <= 18; i++) {
-        const par = (holeList[i - 1] && holeList[i - 1].par) || 4;
-        const saved = scoreCardData[i] || { score: par, putt: 2, fw: 'C', gir: true };
-
-        totalGross += parseInt(saved.score, 10) || 0;
-        totalPutt += parseInt(saved.putt, 10) || 0;
-        if (saved.fw === 'C') fwHits++;
-        if (saved.gir) girHits++;
+      holeList.forEach(hole => {
+        const d = pData[hole.h] || { score: hole.par, putt: 2, fw: true, gir: false };
+        totalGross += parseInt(d.score, 10) || hole.par;
+        totalPutt += parseInt(d.putt, 10) || 2;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="font-weight:700;">${i}</td>
-          <td>${par}</td>
-          <td><input type="number" class="score-input-cell" value="${saved.score}" onchange="updateScoreValue(${i}, 'score', this.value)"></td>
-          <td><input type="number" class="score-input-cell" value="${saved.putt}" onchange="updateScoreValue(${i}, 'putt', this.value)"></td>
-          <td>
-            <select style="background:transparent; border:none; color:#fbbf24; font-weight:700;" onchange="updateScoreValue(${i}, 'fw', this.value)">
-              <option value="C" ${saved.fw === 'C' ? 'selected' : ''}>○</option>
-              <option value="L" ${saved.fw === 'L' ? 'selected' : ''}>左</option>
-              <option value="R" ${saved.fw === 'R' ? 'selected' : ''}>右</option>
-            </select>
-          </td>
-          <td>
-            <input type="checkbox" ${saved.gir ? 'checked' : ''} onchange="updateScoreValue(${i}, 'gir', this.checked)">
-          </td>
+          <td style="font-weight:800; color:#fff;">${hole.h}</td>
+          <td style="color:var(--text-sub);">${hole.par}</td>
+          <td><input type="number" class="score-input-cell" value="${d.score}" onchange="updateScoreValue(${hole.h}, 'score', this.value)"></td>
+          <td><input type="number" class="score-input-cell" value="${d.putt}" onchange="updateScoreValue(${hole.h}, 'putt', this.value)"></td>
+          <td><input type="checkbox" ${d.fw ? 'checked' : ''} onchange="updateScoreValue(${hole.h}, 'fw', this.checked)"></td>
+          <td><input type="checkbox" ${d.gir ? 'checked' : ''} onchange="updateScoreValue(${hole.h}, 'gir', this.checked)"></td>
         `;
         tbody.appendChild(tr);
-      }
+      });
 
       document.getElementById('score-total-gross').innerText = totalGross;
       document.getElementById('score-total-putt').innerText = totalPutt;
-      document.getElementById('score-fw-rate').innerText = `${Math.round(fwHits / 18 * 100)}%`;
-      document.getElementById('score-gir-rate').innerText = `${Math.round(girHits / 18 * 100)}%`;
+
+      calculatePeoriaForPlayer(currentScorePlayerId);
     }
 
     function updateScoreValue(holeNum, field, val) {
-      if (!scoreCardData[holeNum]) {
-        scoreCardData[holeNum] = { score: 4, putt: 2, fw: 'C', gir: false };
+      if (!scoreCardData[currentScorePlayerId]) scoreCardData[currentScorePlayerId] = {};
+      if (!scoreCardData[currentScorePlayerId][holeNum]) {
+        const hole = holeList.find(h => h.h === holeNum);
+        scoreCardData[currentScorePlayerId][holeNum] = { score: hole ? hole.par : 4, putt: 2, fw: true, gir: false };
       }
-      scoreCardData[holeNum][field] = val;
-      localStorage.setItem('smart_caddie_score_v6', JSON.stringify(scoreCardData));
+      scoreCardData[currentScorePlayerId][holeNum][field] = val;
+      localStorage.setItem('smart_caddie_score_4p_v2', JSON.stringify(scoreCardData));
       renderScoreTable();
     }
 
+    function calculatePeoriaForPlayer(pId) {
+      const pData = scoreCardData[pId] || {};
+      let gross = 0;
+      const hiddenHoles = [2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18];
+      let hiddenOver = 0;
+
+      holeList.forEach(hole => {
+        const sc = parseInt(pData[hole.h]?.score || hole.par, 10);
+        gross += sc;
+        if (hiddenHoles.includes(hole.h)) {
+          hiddenOver += (sc - hole.par);
+        }
+      });
+
+      const hiddenSum = 48 + hiddenOver;
+      const hdcp = Math.max(0, parseFloat(((hiddenSum * 1.5 - 72) * 0.8).toFixed(1)));
+      const net = parseFloat((gross - hdcp).toFixed(1));
+
+      document.getElementById('score-peoria-hdcp').innerText = hdcp.toFixed(1);
+      document.getElementById('score-peoria-net').innerText = `${net.toFixed(1)}`;
+    }
+
+    function calculatePeoriaAllPlayers() {
+      let results = [];
+      for (let i = 1; i <= 4; i++) {
+        const pData = scoreCardData[i] || {};
+        let gross = 0;
+        const hiddenHoles = [2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18];
+        let hiddenOver = 0;
+        holeList.forEach(h => {
+          const sc = parseInt(pData[h.h]?.score || h.par, 10);
+          gross += sc;
+          if (hiddenHoles.includes(h.h)) hiddenOver += (sc - h.par);
+        });
+        const hiddenSum = 48 + hiddenOver;
+        const hdcp = Math.max(0, parseFloat(((hiddenSum * 1.5 - 72) * 0.8).toFixed(1)));
+        const net = parseFloat((gross - hdcp).toFixed(1));
+        results.push({ name: `PLAYER ${i}${i===1?' (自分)':''}`, gross, hdcp, net });
+      }
+
+      results.sort((a, b) => a.net - b.net);
+      let alertMsg = "🏆 4人新ペリア順位結果:\n";
+      results.forEach((r, idx) => {
+        alertMsg += `${idx + 1}位: ${r.name} | Net: ${r.net} (Gross: ${r.gross} / HDCP: ${r.hdcp})\n`;
+      });
+      alert(alertMsg);
+    }
+
     function resetScoreCard() {
-      if (!confirm("スコアカードの入力をすべてリセットしますか？")) return;
-      scoreCardData = {};
-      localStorage.removeItem('smart_caddie_score_v6');
-      renderScoreTable();
-      showCalibrationToast("スコアカードをリセットしました");
+      if (confirm('スコアデータをリセットしますか？')) {
+        scoreCardData = { 1: {}, 2: {}, 3: {}, 4: {} };
+        localStorage.removeItem('smart_caddie_score_4p_v2');
+        renderScoreTable();
+        showCalibrationToast('🗑️ スコアカードをリセットしました');
+      }
+    }
+
+    /* ==========================================================
+       21. ビジュアルSNSカード画像生成 (Canvas API)
+    ========================================================== */
+    function openSnsShareModal() {
+      document.getElementById('sns-modal').style.display = 'flex';
+      drawSnsCardCanvas();
+    }
+    function closeSnsShareModal() {
+      document.getElementById('sns-modal').style.display = 'none';
+    }
+
+    function drawSnsCardCanvas() {
+      const canvas = document.getElementById('sns-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      const bg = ctx.createLinearGradient(0, 0, w, h);
+      bg.addColorStop(0, '#080d1a');
+      bg.addColorStop(0.5, '#0f172a');
+      bg.addColorStop(1, '#022c22');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = '#10b981';
+      ctx.font = '900 24px "Outfit", sans-serif';
+      ctx.fillText('SMARTCADDIE PRO', 36, 56);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 30px "Inter", sans-serif';
+      ctx.fillText(currentCourse.name, 36, 98);
+
+      const hole = holeList[currentHoleIndex];
+      const teeDef = TEE_DEFINITIONS[currentTeeType] || TEE_DEFINITIONS.white;
+      const currentYard = calcDistanceYards(currentTeeCoord, currentPinCoord);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '700 16px "Inter", sans-serif';
+      ctx.fillText(`${hole.h}H  Par ${hole.par}  ${currentYard}y  (${teeDef.shortName})`, 36, 128);
+
+      ctx.fillStyle = '#132238';
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(36, 150, w - 72, 290, 16);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(80, 380);
+      if (currentIpCoords.length === 1) {
+        ctx.lineTo(260, 290);
+        ctx.lineTo(440, 210);
+      } else if (currentIpCoords.length >= 2) {
+        ctx.lineTo(220, 310);
+        ctx.lineTo(360, 240);
+        ctx.lineTo(460, 200);
+      } else {
+        ctx.lineTo(440, 210);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = teeDef.color;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(80, 380, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath(); ctx.arc(260, 290, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath(); ctx.arc(440, 210, 11, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = '#fff';
+      ctx.font = '800 12px "Outfit"';
+      ctx.fillText('TEE', 68, 410);
+      ctx.fillText('IP1', 250, 270);
+      ctx.fillText('PIN', 430, 190);
+
+      const pl = document.getElementById('hud-playslike-dist')?.innerText || '--';
+      const gross = document.getElementById('score-total-gross')?.innerText || '0';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 36px "Outfit"';
+      ctx.fillText(`PlaysLike ${pl}`, 36, 485);
+
+      ctx.font = '800 20px "Inter"';
+      ctx.fillStyle = '#34d399';
+      ctx.fillText(`Gross Score: ${gross}`, 36, 524);
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '600 13px "Inter"';
+      ctx.fillText(`GSI DEM & Open-Meteo & WebGIS Engine`, 36, 560);
+    }
+
+    function downloadSnsCardImage() {
+      const canvas = document.getElementById('sns-canvas');
+      if (!canvas) return;
+      const link = document.createElement('a');
+      link.download = `SmartCaddie_${currentCourse.id}_${currentHoleIndex+1}H.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showCalibrationToast('📸 SNS画像を保存しました');
     }
 
     function updateGuideHoleInfo() {
       const hole = holeList[currentHoleIndex];
       if (!hole) return;
       const titleEl = document.getElementById('guide-hole-title');
-      if (titleEl) titleEl.innerText = `${hole.h}H (Par ${hole.par} / ${hole.yard}y)`;
+      const holeYard = calcDistanceYards(currentTeeCoord, currentPinCoord);
+      if (titleEl) titleEl.innerText = `${hole.h}H (Par ${hole.par} / ${holeYard}y)`;
       const descEl = document.getElementById('guide-hole-desc');
-      if (descEl) descEl.innerText = hole.advice || "戦略的なホールレイアウト。航空写真に合わせてティーやピン位置を微調整できます。";
+      if (descEl) descEl.innerText = hole.advice || "フェアウェイセンター狙いがセオリー。";
+
+      const caddieEl = document.getElementById('guide-caddie-advice');
+      if (caddieEl) {
+        if (currentIpCoords.length === 1) {
+          const d1 = calcDistanceYards(currentTeeCoord, currentIpCoords[0]);
+          const dPin = calcDistanceYards(currentIpCoords[0], currentPinCoord);
+          caddieEl.innerText = `ティーショットは中間1(IP1)まで${d1}y。セカンドは残り${dPin}y、無理のないグリーンセンター狙いが有効です。`;
+        } else if (currentIpCoords.length >= 2) {
+          const d1 = calcDistanceYards(currentTeeCoord, currentIpCoords[0]);
+          const d2 = calcDistanceYards(currentIpCoords[0], currentIpCoords[1]);
+          const dPin = calcDistanceYards(currentIpCoords[currentIpCoords.length - 1], currentPinCoord);
+          caddieEl.innerText = `1打目はIP1まで${d1}y、2打目IP2まで${d2}y刻み、残り${dPin}yからのアプローチ勝負です。`;
+        } else {
+          caddieEl.innerText = `風の計算を念頭に、グリーン中央へ正確なキャリーで打つのが鉄則です。`;
+        }
+      }
     }
+
+    function toggleLayerMenu() { document.getElementById('layer-modal').style.display = 'flex'; }
+    function closeLayerModal() { document.getElementById('layer-modal').style.display = 'none'; }
+    function openClubModal() { document.getElementById('club-modal').style.display = 'flex'; renderClubEditor(); }
+    function closeClubModal() { document.getElementById('club-modal').style.display = 'none'; }
+    function openScoreModal() { document.getElementById('score-modal').style.display = 'flex'; renderScoreTable(); }
+    function closeScoreModal() { document.getElementById('score-modal').style.display = 'none'; }
+    function openGuideModal() { document.getElementById('guide-modal').style.display = 'flex'; updateGuideHoleInfo(); }
+    function closeGuideModal() { document.getElementById('guide-modal').style.display = 'none'; }
 
     /* ==========================================================
-       14. モーダル開閉制御
-    ========================================================== */
-    function openCourseSearchModal() {
-      document.getElementById('course-search-modal').style.display = 'flex';
-      renderPresetChips();
-      renderCourseCandidates(NATIONWIDE_COURSES);
-    }
-    function closeCourseSearchModal() {
-      document.getElementById('course-search-modal').style.display = 'none';
-    }
-
-    function renderPresetChips() {
-      const container = document.getElementById('preset-course-chips');
-      if (!container) return;
-      container.innerHTML = '';
-      const chips = [
-        { id: "toride", label: "取手桜が丘GC" },
-        { id: "urawa_gc", label: "浦和GC" },
-        { id: "oomiya_cc", label: "大宮CC" },
-        { id: "oomiya_gc_course", label: "大宮ゴルフ" },
-        { id: "kounosu_cc", label: "鴻巣GC" },
-        { id: "kawaguchi_public", label: "KPG川口パブリック" },
-        { id: "little_green_valley", label: "リトルグリーンV船橋" },
-        { id: "toda_public", label: "戸田パブリック" },
-        { id: "asaka_public", label: "朝霞パブリック" },
-        { id: "koshigaya_gc", label: "越谷GC" },
-        { id: "kasco_hanaha", label: "キャスコ花葉CLUB" },
-        { id: "shishido_hills", label: "宍戸ヒルズCC" },
-        { id: "pgm_ishioka", label: "PGM石岡GC" },
-        { id: "taiheidai_cc", label: "太平台CC" },
-        { id: "taiheiyo_gotemba", label: "太平洋御殿場" },
-        { id: "kasumigaseki", label: "霞ヶ関CC" },
-        { id: "kawana_fuji", label: "川奈富士コース" },
-        { id: "phoenix_cc", label: "フェニックスCC" }
-      ];
-
-      chips.forEach(c => {
-        const btn = document.createElement('button');
-        btn.className = 'btn-sub';
-        btn.style.fontSize = '11px';
-        btn.style.padding = '4px 8px';
-        btn.innerText = c.label;
-        btn.onclick = () => {
-          const found = NATIONWIDE_COURSES.find(item => item.id === c.id);
-          if (found) selectCourse(found);
-        };
-        container.appendChild(btn);
-      });
-    }
-
-    function toggleLayerMenu() {
-      document.getElementById('layer-modal').style.display = 'flex';
-    }
-    function closeLayerModal() {
-      document.getElementById('layer-modal').style.display = 'none';
-    }
-
-    function openClubModal() {
-      document.getElementById('club-modal').style.display = 'flex';
-      renderClubEditor();
-    }
-    function closeClubModal() {
-      document.getElementById('club-modal').style.display = 'none';
-    }
-
-    function openScoreModal() {
-      document.getElementById('score-modal').style.display = 'flex';
-      renderScoreTable();
-    }
-    function closeScoreModal() {
-      document.getElementById('score-modal').style.display = 'none';
-    }
-
-    function openGuideModal() {
-      document.getElementById('guide-modal').style.display = 'flex';
-      updateGuideHoleInfo();
-    }
-    function closeGuideModal() {
-      document.getElementById('guide-modal').style.display = 'none';
-    }
-
-    /* ==========================================================
-       15. アプリ起動エントリーポイント
+       22. アプリ起動エントリーポイント
     ========================================================== */
     window.addEventListener('DOMContentLoaded', () => {
       initMap();
       populateClubSelect();
+      updateHeaderTeeBadge();
       populateHoleSelect();
-      applyHole(0); // ★起動時、確実に1番ホール(1H)を選択＆フォーカス！
+      applyHole(0);
 
       renderScoreTable();
-      fetchRealWeather(currentCourse.tee[0], currentCourse.tee[1]);
-      fetchSunsetTime(currentCourse.tee[0], currentCourse.tee[1]);
+      fetchRealWeather(currentCourse.lat || currentTeeCoord[0], currentCourse.lon || currentTeeCoord[1]);
+      fetchSunsetTime(currentCourse.lat || currentTeeCoord[0], currentCourse.lon || currentTeeCoord[1]);
 
       setInterval(() => {
         updateSunsetCountdown(null);
-      }, 60000); // 1分ごとに日没カウントダウン更新
+      }, 60000);
 
       setTimeout(() => {
         if (map) {
