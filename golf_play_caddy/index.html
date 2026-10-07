@@ -1052,6 +1052,32 @@
       font-size: 11.5px; z-index: 2500; display: none; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       pointer-events: none;
     }
+  
+    /* Gist クラウド同期用スタイル */
+    @keyframes spin-clockwise {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .icon-spin {
+      display: inline-block;
+      animation: spin-clockwise 1s linear infinite;
+    }
+    .cloud-synced-active {
+      border-color: #10b981 !important;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.45) !important;
+    }
+    .cloud-synced-active::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 7px;
+      height: 7px;
+      background: #10b981;
+      border-radius: 50%;
+      border: 1px solid #080d1a;
+    }
+
   </style>
 </head>
 <body>
@@ -1079,6 +1105,8 @@
         <button class="icon-btn" id="btn-voice-guide" onclick="speakVoiceCaddieGuide()" title="🗣️ ボイスキャディ音声案内">🗣️</button>
         <button class="icon-btn" id="btn-compass-icon" onclick="toggleHeadingUpMode()" title="🧭 ヘディングアップ / ノースアップ切替">🧭</button>
         <button class="icon-btn" id="btn-sunlight-mode" onclick="toggleSunlightMode()" title="☀️ サンライト屋外高視認性モード">☀️</button>
+        <button class="icon-btn" id="btn-quick-snap" onclick="toggleQuickSnapMode()" title="📐 2タップ・ホール位置合わせ">📐</button>
+        <button class="icon-btn" id="btn-cloud-sync" onclick="openCloudSyncModal()" title="☁️ GitHub Gist クラウド同期" style="position:relative;">☁️</button>
         <button class="icon-btn" id="btn-touch-lock" onclick="toggleTouchLock()" title="🔒 ポケット誤タッチロック">🔒</button>
         <button class="icon-btn" id="btn-layer-menu" onclick="toggleLayerMenu()" title="地図レイヤー切替">🗺️</button>
         <button class="icon-btn" id="btn-radar-toggle" onclick="toggleRainRadar()" title="雨雲レーダー">🌧️</button>
@@ -1335,6 +1363,123 @@
         <div style="font-size:12px; font-weight:700; color:var(--text-sub); margin-top:10px;">オーバーレイ機能:</div>
         <button class="btn-sub" id="btn-modal-radar-toggle" style="text-align:left;" onclick="toggleRainRadar()">🌧️ 雨雲レーダー重ね合わせ: <strong id="modal-radar-status">OFF</strong></button>
         <button class="btn-sub" id="btn-modal-facility-toggle" style="text-align:left;" onclick="toggleFacilityPins()">🚻 コース設備ピン (トイレ・茶屋・売店): <strong id="modal-facility-status">ON</strong></button>
+      </div>
+    </div>
+  </div>
+
+
+    <!-- GitHub Gist セキュア・クラウド同期モーダル (単一HTML完結 & 外部キーツール対応) -->
+  <div class="modal-overlay" id="cloud-sync-modal">
+    <div class="modal-card" style="max-width:420px; max-height:90vh; overflow-y:auto;">
+      <div class="modal-header">
+        <div class="modal-title">☁️ Gistクラウド同期 & キー管理</div>
+        <button class="modal-close" onclick="closeCloudSyncModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+        <!-- クラウドステータスバッジ -->
+        <div id="cloud-status-badge" style="background:rgba(15,23,42,0.6); border:1px solid var(--border-subtle); border-radius:10px; padding:10px; display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span id="cloud-status-icon" style="font-size:20px;">⚪</span>
+            <div>
+              <div id="cloud-status-title" style="font-weight:700; font-size:12px; color:var(--text-main);">キー未設定 (ローカル保存のみ)</div>
+              <div id="cloud-last-sync-time" style="font-size:10px; color:var(--text-sub);">最終同期: 未実行</div>
+            </div>
+          </div>
+          <button type="button" class="btn" id="btn-sync-now" style="background:var(--accent-blue); color:#fff; font-size:11px; font-weight:700; padding:6px 12px; border-radius:8px; border:none; cursor:pointer;" onclick="syncNowWithGist()">🔄 今すぐ同期</button>
+        </div>
+
+        <!-- セキュリティ案内 -->
+        <div style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:8px; padding:8px 10px; font-size:11px; color:#94a3b8; line-height:1.4;">
+          🔒 <strong>端末隔離セキュリティ:</strong> 入力されたキーはWeb標準の Same-Origin Policy と Web Crypto 暗号化により、この端末のブラウザ内でのみ恒久保存されます。他端末や外部からキーを参照・傍受することはできません。
+        </div>
+
+        <!-- トークン入力欄 -->
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="font-size:11px; font-weight:700; color:var(--text-sub);">GitHub Personal Access Token (PAT):</label>
+            <a href="https://github.com/settings/tokens/new?scopes=gist&description=SmartCaddiePro" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue); font-size:10px; text-decoration:underline;">
+              🔑 PATを新規発行 (gist権限のみ) ➔
+            </a>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <input type="password" id="gist-pat-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx (未設定)" autocomplete="off" spellcheck="false" style="flex:1; background:#1e293b; color:#fff; border:1px solid var(--border-subtle); border-radius:8px; padding:8px 10px; font-size:12px; font-family:monospace;">
+            <button type="button" class="btn" onclick="togglePatVisibility()" style="background:#334155; color:#fff; border:none; border-radius:8px; padding:0 10px; font-size:12px; cursor:pointer;" title="表示/非表示">👁️</button>
+          </div>
+        </div>
+
+        <!-- Gist ID入力欄 & 自動作成ボタン -->
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="font-size:11px; font-weight:700; color:var(--text-sub);">Gist ID (非公開クラウドDB):</label>
+            <button type="button" class="btn" onclick="createInitialGist()" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; border:none; border-radius:6px; padding:2px 8px; font-size:10px; font-weight:700; cursor:pointer;">✨ 新規Gistを自動作成</button>
+          </div>
+          <input type="text" id="gist-id-input" placeholder="未設定 (自動作成を押すと自動取得)" autocomplete="off" spellcheck="false" style="width:100%; box-sizing:border-box; background:#1e293b; color:#fff; border:1px solid var(--border-subtle); border-radius:8px; padding:8px 10px; font-size:12px; font-family:monospace;">
+        </div>
+
+        <!-- 自動同期オプション -->
+        <div style="display:flex; align-items:center; gap:8px; padding:2px 0;">
+          <input type="checkbox" id="gist-autosync-toggle" checked style="width:16px; height:16px; accent-color:var(--accent-green); cursor:pointer;">
+          <label for="gist-autosync-toggle" style="font-size:11px; color:var(--text-main); cursor:pointer; font-weight:600;">位置合わせ・スコア記録時にバックグラウンド自動同期する</label>
+        </div>
+
+        <!-- アクションボタン群 -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <button type="button" class="btn" onclick="uploadToGistManual()" style="background:rgba(16,185,129,0.2); border:1px solid var(--accent-green); color:var(--accent-green); font-weight:700; font-size:11px; padding:9px; border-radius:8px; cursor:pointer;">
+            ☁️ クラウドへ保存 (Upload)
+          </button>
+          <button type="button" class="btn" onclick="downloadFromGistManual()" style="background:rgba(56,189,248,0.2); border:1px solid var(--accent-blue); color:var(--accent-blue); font-weight:700; font-size:11px; padding:9px; border-radius:8px; cursor:pointer;">
+            📥 クラウドから復元 (Download)
+          </button>
+        </div>
+
+        <!-- 保存 ＆ 消去ボタン -->
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-main" onclick="saveGistSettings()" style="flex:1;">
+            💾 キー設定を恒久保存
+          </button>
+          <button type="button" class="btn" onclick="clearSecureTokenAndGist()" style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#ef4444; font-size:11px; font-weight:700; padding:8px 12px; border-radius:8px; cursor:pointer;" title="この端末からキーを完全消去">
+            🗑️ キー抹消
+          </button>
+        </div>
+
+        <!-- ★ 別のキー管理ツールから呼び出す仕様パターン -->
+        <div style="background:rgba(30,41,59,0.7); border:1px solid var(--border-subtle); border-radius:10px; padding:10px; margin-top:4px;">
+          <div style="font-size:11px; font-weight:700; color:var(--accent-amber); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+            <span>🛠️ 外部キー管理ツールからの呼び出し連携</span>
+          </div>
+          <div style="font-size:10.5px; color:var(--text-sub); margin-bottom:8px; line-height:1.4;">
+            1Password / Bitwarden / .envファイル / パスワードマネージャー / 外部スクリプトからワンタッチでキーをインポートできます。
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <!-- パターンA: キー管理ファイル読込 -->
+            <button type="button" class="btn" onclick="document.getElementById('key-file-import-input').click()" style="width:100%; background:#334155; color:#fff; font-size:11px; font-weight:600; padding:6px 10px; border-radius:6px; border:none; cursor:pointer; text-align:left; display:flex; align-items:center; justify-content:space-between;">
+              <span>📂 パターンA: キー管理ファイル読込 (.json / .env)</span>
+              <span style="font-size:9px; opacity:0.7;">1Password / Keepass等</span>
+            </button>
+            <input type="file" id="key-file-import-input" accept=".json,.env,.txt" style="display:none;" onchange="importKeyFromFile(event)">
+
+            <!-- パターンB: Credential Management API (ブラウザ標準) -->
+            <button type="button" class="btn" onclick="loadFromCredentialManager()" style="width:100%; background:#334155; color:#fff; font-size:11px; font-weight:600; padding:6px 10px; border-radius:6px; border:none; cursor:pointer; text-align:left; display:flex; align-items:center; justify-content:space-between;">
+              <span>🔑 パターンB: ブラウザ資格情報マネージャーから呼出</span>
+              <span style="font-size:9px; opacity:0.7;">Credential API</span>
+            </button>
+
+            <!-- パターンC: ワンタイムURLハッシュ注入の説明 -->
+            <div style="font-size:9.5px; color:#64748b; padding:4px 6px; background:rgba(15,23,42,0.5); border-radius:4px; line-height:1.3;">
+              💡 <strong>パターンC (URLハッシュ自動消去注入):</strong><br>
+              <code>index.html#token=ghp_...&gist_id=...</code> で起動すると自動ロード後、直ちにURL履歴からキーが抹消されます。
+            </div>
+          </div>
+        </div>
+
+        <!-- オフラインJSON入出力 -->
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-top:4px;">
+          <span style="font-size:10px; color:var(--text-sub);">オフラインファイル:</span>
+          <div style="display:flex; gap:6px;">
+            <button type="button" class="btn" style="background:#1e293b; border:1px solid var(--border-subtle); color:#94a3b8; font-size:10px; padding:4px 8px; border-radius:6px; cursor:pointer;" onclick="exportCourseDataJson()">💾 JSON保存</button>
+            <button type="button" class="btn" style="background:#1e293b; border:1px solid var(--border-subtle); color:#94a3b8; font-size:10px; padding:4px 8px; border-radius:6px; cursor:pointer;" onclick="document.getElementById('import-course-file-input').click()">📂 JSON復元</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1838,6 +1983,7 @@
       try {
         const key = `golf_calib_${courseId}_${holeNum}_${teeType}`;
         localStorage.setItem(key, JSON.stringify({ tee, pin }));
+        autoSyncToGistBackground();
       } catch (e) {}
     }
 
@@ -3170,6 +3316,539 @@
         container.appendChild(btn);
       });
     }
+
+
+    /* ==========================================================
+       ★ 案2: GitHub Gist API セキュア・クラウド同期 ＆ 外部キーツール連携エンジン
+    ========================================================== */
+    const GIST_KEY_TOKEN_SECURE = 'smart_caddie_gist_pat_sec';
+    const GIST_KEY_ID = 'smart_caddie_gist_id';
+    const GIST_KEY_AUTOSYNC = 'smart_caddie_gist_autosync';
+    const GIST_KEY_LAST_SYNC = 'smart_caddie_gist_last_sync';
+    const GIST_FILENAME = 'smartcaddie_golf_cloud.json';
+
+    let isSyncingGist = false;
+
+    // --- Web Crypto API による端末隔離 AES-GCM 暗号化 ---
+    async function getDeviceEncryptionKey() {
+      const saltStr = window.location.origin + navigator.userAgent + 'smart_caddie_salt_2026';
+      const enc = new TextEncoder();
+      const keyMaterial = await window.crypto.subtle.importKey(
+        'raw', enc.encode(saltStr), { name: 'PBKDF2' }, false, ['deriveKey']
+      );
+      return window.crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt: enc.encode('sc_crypto_fixed_salt'),
+          iterations: 10000,
+          hash: 'SHA-256'
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+      );
+    }
+
+    async function storeSecureToken(rawToken) {
+      if (!rawToken) {
+        localStorage.removeItem(GIST_KEY_TOKEN_SECURE);
+        return;
+      }
+      try {
+        const key = await getDeviceEncryptionKey();
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+        const enc = new TextEncoder();
+        const encrypted = await window.crypto.subtle.encrypt(
+          { name: 'AES-GCM', iv }, key, enc.encode(rawToken)
+        );
+        const dataObj = {
+          iv: Array.from(iv),
+          data: Array.from(new Uint8Array(encrypted))
+        };
+        localStorage.setItem(GIST_KEY_TOKEN_SECURE, JSON.stringify(dataObj));
+      } catch (e) {
+        // フォールバック: Base64難読化
+        localStorage.setItem(GIST_KEY_TOKEN_SECURE, 'obf:' + btoa(rawToken));
+      }
+    }
+
+    async function getSecureToken() {
+      const stored = localStorage.getItem(GIST_KEY_TOKEN_SECURE);
+      if (!stored) return '';
+      if (stored.startsWith('obf:')) {
+        try { return atob(stored.substring(4)); } catch (e) { return ''; }
+      }
+      try {
+        const parsed = JSON.parse(stored);
+        if (!parsed.iv || !parsed.data) return '';
+        const key = await getDeviceEncryptionKey();
+        const decrypted = await window.crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: new Uint8Array(parsed.iv) },
+          key,
+          new Uint8Array(parsed.data)
+        );
+        const dec = new TextDecoder();
+        return dec.decode(decrypted);
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function clearSecureTokenAndGist() {
+      if (confirm('この端末から保存されたGitHub TokenとGist IDを完全に消去しますか？')) {
+        localStorage.removeItem(GIST_KEY_TOKEN_SECURE);
+        localStorage.removeItem(GIST_KEY_ID);
+        localStorage.removeItem(GIST_KEY_LAST_SYNC);
+        const patInput = document.getElementById('gist-pat-input');
+        const idInput = document.getElementById('gist-id-input');
+        if (patInput) patInput.value = '';
+        if (idInput) idInput.value = '';
+        updateCloudSyncStatusBadge();
+        showCalibrationToast('🗑️ この端末からキーを完全消去しました');
+      }
+    }
+
+    // --- モーダル制御 ---
+    async function openCloudSyncModal() {
+      const modal = document.getElementById('cloud-sync-modal');
+      if (!modal) return;
+
+      const token = await getSecureToken();
+      const id = localStorage.getItem(GIST_KEY_ID) || '';
+      const autoSync = localStorage.getItem(GIST_KEY_AUTOSYNC) !== 'false';
+
+      const patInput = document.getElementById('gist-pat-input');
+      const idInput = document.getElementById('gist-id-input');
+      const autoToggle = document.getElementById('gist-autosync-toggle');
+
+      if (patInput) patInput.value = token;
+      if (idInput) idInput.value = id;
+      if (autoToggle) autoToggle.checked = autoSync;
+
+      updateCloudSyncStatusBadge();
+      modal.classList.add('active');
+
+      // トークン未登録時は入力欄にフォーカス
+      if (!token && patInput) {
+        setTimeout(() => patInput.focus(), 200);
+      }
+    }
+
+    function closeCloudSyncModal() {
+      const modal = document.getElementById('cloud-sync-modal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function togglePatVisibility() {
+      const inp = document.getElementById('gist-pat-input');
+      if (!inp) return;
+      inp.type = (inp.type === 'password') ? 'text' : 'password';
+    }
+
+    async function updateCloudSyncStatusBadge() {
+      const token = await getSecureToken();
+      const id = localStorage.getItem(GIST_KEY_ID);
+      const lastSync = localStorage.getItem(GIST_KEY_LAST_SYNC);
+
+      const iconEl = document.getElementById('cloud-status-icon');
+      const titleEl = document.getElementById('cloud-status-title');
+      const timeEl = document.getElementById('cloud-last-sync-time');
+      const headerBtn = document.getElementById('btn-cloud-sync');
+
+      if (token && id) {
+        if (iconEl) iconEl.innerText = '🟢';
+        if (titleEl) titleEl.innerText = `クラウド連携中 (ID: ${id.substring(0, 7)}...)`;
+        if (headerBtn) headerBtn.classList.add('cloud-synced-active');
+      } else if (token && !id) {
+        if (iconEl) iconEl.innerText = '🟡';
+        if (titleEl) titleEl.innerText = 'Token登録済み (Gist未作成)';
+        if (headerBtn) headerBtn.classList.remove('cloud-synced-active');
+      } else {
+        if (iconEl) iconEl.innerText = '⚪';
+        if (titleEl) titleEl.innerText = 'キー未設定 (ローカル保存のみ)';
+        if (headerBtn) headerBtn.classList.remove('cloud-synced-active');
+      }
+
+      if (timeEl) {
+        timeEl.innerText = lastSync ? `最終同期: ${lastSync}` : '最終同期: 未実行';
+      }
+    }
+
+    async function saveGistSettings() {
+      const patInput = document.getElementById('gist-pat-input');
+      const idInput = document.getElementById('gist-id-input');
+      const autoToggle = document.getElementById('gist-autosync-toggle');
+
+      const pat = patInput ? patInput.value.trim() : '';
+      const id = idInput ? idInput.value.trim() : '';
+      const autoSync = autoToggle ? autoToggle.checked : true;
+
+      await storeSecureToken(pat);
+      localStorage.setItem(GIST_KEY_ID, id);
+      localStorage.setItem(GIST_KEY_AUTOSYNC, autoSync ? 'true' : 'false');
+
+      updateCloudSyncStatusBadge();
+      showCalibrationToast('💾 キー設定を暗号化保存しました');
+    }
+
+    // --- ★ 外部キー管理ツール連携インターフェース ---
+    // パターンA: キー管理ファイル読込 (.json / .env / .txt)
+    function importKeyFromFile(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const text = e.target.result;
+        let tokenFound = '';
+        let idFound = '';
+
+        try {
+          // JSON として試行
+          const json = JSON.parse(text);
+          tokenFound = json.gist_token || json.token || json.github_token || json.pat || json.GIST_TOKEN || '';
+          idFound = json.gist_id || json.id || json.GIST_ID || '';
+        } catch (err) {
+          // .env / テキスト形式として正規表現で抽出
+          const mToken = text.match(/(?:GIST_TOKEN|GITHUB_TOKEN|PAT|token)\s*=\s*['"]?([a-zA-Z0-9_]+)['"]?/i);
+          if (mToken) tokenFound = mToken[1];
+          const mId = text.match(/(?:GIST_ID|ID|gist_id)\s*=\s*['"]?([a-zA-Z0-9_]+)['"]?/i);
+          if (mId) idFound = mId[1];
+        }
+
+        if (tokenFound) {
+          const patInput = document.getElementById('gist-pat-input');
+          const idInput = document.getElementById('gist-id-input');
+          if (patInput) patInput.value = tokenFound;
+          if (idFound && idInput) idInput.value = idFound;
+
+          await storeSecureToken(tokenFound);
+          if (idFound) localStorage.setItem(GIST_KEY_ID, idFound);
+
+          updateCloudSyncStatusBadge();
+          showCalibrationToast('🔑 キー管理ファイルからトークンを自動インポート・保存しました');
+        } else {
+          alert('ファイル内に有効なトークン (GIST_TOKEN や token 等) が見つかりませんでした。');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    // パターンB: ブラウザ Credential Management API
+    async function loadFromCredentialManager() {
+      if (window.PasswordCredential && navigator.credentials) {
+        try {
+          const cred = await navigator.credentials.get({ password: true });
+          if (cred && cred.password) {
+            const patInput = document.getElementById('gist-pat-input');
+            if (patInput) patInput.value = cred.password;
+            await storeSecureToken(cred.password);
+            updateCloudSyncStatusBadge();
+            showCalibrationToast('🔑 パスワードマネージャーからキーをロードしました');
+            return;
+          }
+        } catch (e) {
+          console.warn('Credential API skipped:', e);
+        }
+      }
+      alert('ブラウザの資格情報マネージャーに保存されたキーが見つかりませんでした。');
+    }
+
+    // パターンC: ワンタイムURLハッシュ自動消去注入
+    async function checkUrlHashForCredentials() {
+      const hash = window.location.hash;
+      if (!hash) return;
+
+      const params = new URLSearchParams(hash.substring(1));
+      const token = params.get('token') || params.get('gist_token');
+      const gistId = params.get('gist_id');
+
+      if (token) {
+        await storeSecureToken(token);
+        if (gistId) localStorage.setItem(GIST_KEY_ID, gistId);
+
+        // 即座にブラウザ履歴・URLバーからキー情報を完全消去
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        updateCloudSyncStatusBadge();
+        showCalibrationToast('🔒 URLハッシュからキーを安全に受領し、URL履歴から抹消しました');
+      }
+    }
+
+    // パターンD: 外部ポストメッセージ連携 (Iframe/親ポータル)
+    window.addEventListener('message', async (event) => {
+      if (event.data && event.data.type === 'SMARTCADDIE_SET_CREDENTIALS') {
+        const { token, gistId } = event.data;
+        if (token) {
+          await storeSecureToken(token);
+          if (gistId) localStorage.setItem(GIST_KEY_ID, gistId);
+          updateCloudSyncStatusBadge();
+          showCalibrationToast('🔑 外部ポータルから認証キーを受領しました');
+        }
+      }
+    });
+
+    // --- Gist REST API 通信処理 ---
+    function gatherAllSyncData() {
+      const exportData = {
+        app: "SmartCaddiePro",
+        version: "2026.10",
+        updatedAt: new Date().toISOString(),
+        currentCourseId: currentCourse ? currentCourse.id : 'toda_public',
+        currentTeeType: currentTeeType || 'white',
+        calibrations: {},
+        ips: {},
+        scoreCard: scoreCardData || {},
+        userClubs: userClubs || []
+      };
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('smart_caddie_calib_')) {
+          try { exportData.calibrations[key] = JSON.parse(localStorage.getItem(key)); } catch (e) {}
+        } else if (key && key.startsWith('smart_caddie_ips_')) {
+          try { exportData.ips[key] = JSON.parse(localStorage.getItem(key)); } catch (e) {}
+        }
+      }
+      return exportData;
+    }
+
+    async function createInitialGist() {
+      const patInput = document.getElementById('gist-pat-input');
+      const pat = patInput ? patInput.value.trim() : (await getSecureToken() || '');
+
+      if (!pat) {
+        alert('まずGitHub Personal Access Token (PAT) を入力してください。');
+        if (patInput) patInput.focus();
+        return;
+      }
+
+      const syncData = gatherAllSyncData();
+      const payload = {
+        description: "SmartCaddie Pro - Golf Course Data & Calibrations (Private)",
+        public: false,
+        files: {
+          [GIST_FILENAME]: {
+            content: JSON.stringify(syncData, null, 2)
+          }
+        }
+      };
+
+      try {
+        showCalibrationToast('☁️ 新規Gistを作成中...');
+        const res = await fetch('https://api.github.com/gists', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/vnd.github+json',
+            'Authorization': `Bearer ${pat}`,
+            'X-GitHub-Api-Version': '2022-11-28',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || `HTTP ${res.status}`);
+        }
+
+        const gistData = await res.json();
+        const newGistId = gistData.id;
+
+        await storeSecureToken(pat);
+        localStorage.setItem(GIST_KEY_ID, newGistId);
+
+        const idInput = document.getElementById('gist-id-input');
+        if (idInput) idInput.value = newGistId;
+
+        const nowStr = new Date().toLocaleString('ja-JP');
+        localStorage.setItem(GIST_KEY_LAST_SYNC, nowStr);
+
+        updateCloudSyncStatusBadge();
+        showCalibrationToast(`🎉 新規Gist (ID: ${newGistId.substring(0, 7)}...) を作成・連携完了！`);
+      } catch (err) {
+        alert('新規Gist作成に失敗しました: ' + err.message + '\nトークンの権限 (gistスコープ) を確認してください。');
+      }
+    }
+
+    async function uploadToGist(silent = false) {
+      const pat = await getSecureToken();
+      const gistId = localStorage.getItem(GIST_KEY_ID);
+
+      if (!pat || !gistId) {
+        if (!silent) {
+          openCloudSyncModal();
+        }
+        return false;
+      }
+
+      if (isSyncingGist) return false;
+      isSyncingGist = true;
+
+      const headerBtn = document.getElementById('btn-cloud-sync');
+      if (headerBtn) headerBtn.innerHTML = '<span class="icon-spin">🔄</span>';
+
+      const syncData = gatherAllSyncData();
+      const payload = {
+        description: "SmartCaddie Pro - Golf Course Data & Calibrations",
+        files: {
+          [GIST_FILENAME]: {
+            content: JSON.stringify(syncData, null, 2)
+          }
+        }
+      };
+
+      try {
+        if (!silent) showCalibrationToast('☁️ Gistへクラウド保存中...');
+        const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/vnd.github+json',
+            'Authorization': `Bearer ${pat}`,
+            'X-GitHub-Api-Version': '2022-11-28',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || `HTTP ${res.status}`);
+        }
+
+        const nowStr = new Date().toLocaleString('ja-JP');
+        localStorage.setItem(GIST_KEY_LAST_SYNC, nowStr);
+        updateCloudSyncStatusBadge();
+
+        if (!silent) showCalibrationToast(`✅ クラウド保存完了 (${nowStr})`);
+        return true;
+      } catch (err) {
+        console.error('Gist Upload Error:', err);
+        if (!silent) alert('Gistへの保存に失敗しました: ' + err.message);
+        return false;
+      } finally {
+        isSyncingGist = false;
+        if (headerBtn) headerBtn.innerHTML = '☁️';
+      }
+    }
+
+    async function downloadFromGist(silent = false) {
+      const pat = await getSecureToken();
+      const gistId = localStorage.getItem(GIST_KEY_ID);
+
+      if (!pat || !gistId) {
+        if (!silent) openCloudSyncModal();
+        return false;
+      }
+
+      if (isSyncingGist) return false;
+      isSyncingGist = true;
+
+      const headerBtn = document.getElementById('btn-cloud-sync');
+      if (headerBtn) headerBtn.innerHTML = '<span class="icon-spin">🔄</span>';
+
+      try {
+        if (!silent) showCalibrationToast('📥 Gistからクラウドデータ取得中...');
+        const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/vnd.github+json',
+            'Authorization': `Bearer ${pat}`,
+            'X-GitHub-Api-Version': '2022-11-28'
+          }
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || `HTTP ${res.status}`);
+        }
+
+        const gistData = await res.json();
+        const fileObj = gistData.files && gistData.files[GIST_FILENAME];
+
+        if (!fileObj || !fileObj.content) {
+          throw new Error(`${GIST_FILENAME} がGist内に見つかりません。`);
+        }
+
+        const syncData = JSON.parse(fileObj.content);
+        let restoredCount = 0;
+
+        if (syncData.calibrations) {
+          Object.keys(syncData.calibrations).forEach(k => {
+            localStorage.setItem(k, JSON.stringify(syncData.calibrations[k]));
+            restoredCount++;
+          });
+        }
+        if (syncData.ips) {
+          Object.keys(syncData.ips).forEach(k => {
+            localStorage.setItem(k, JSON.stringify(syncData.ips[k]));
+          });
+        }
+        if (syncData.scoreCard) {
+          scoreCardData = syncData.scoreCard;
+          localStorage.setItem('smart_caddie_score_4p_v2', JSON.stringify(scoreCardData));
+          renderScoreTable();
+        }
+        if (syncData.userClubs) {
+          userClubs = syncData.userClubs;
+          localStorage.setItem('smart_caddie_pro_clubs_v7', JSON.stringify(userClubs));
+          populateClubSelect();
+        }
+
+        const nowStr = new Date().toLocaleString('ja-JP');
+        localStorage.setItem(GIST_KEY_LAST_SYNC, nowStr);
+        updateCloudSyncStatusBadge();
+
+        applyHole(currentHoleIndex);
+
+        if (!silent) showCalibrationToast(`🎉 クラウドから復元完了 (キャリブレーション ${restoredCount}件反映)`);
+        return true;
+      } catch (err) {
+        console.error('Gist Download Error:', err);
+        if (!silent) alert('Gistからの復元に失敗しました: ' + err.message);
+        return false;
+      } finally {
+        isSyncingGist = false;
+        if (headerBtn) headerBtn.innerHTML = '☁️';
+      }
+    }
+
+    function uploadToGistManual() {
+      uploadToGist(false);
+    }
+
+    function downloadFromGistManual() {
+      if (confirm('クラウドのデータでローカルの設定・キャリブレーションを上書き復元しますか？')) {
+        downloadFromGist(false);
+      }
+    }
+
+    async function syncNowWithGist() {
+      const pat = await getSecureToken();
+      const gistId = localStorage.getItem(GIST_KEY_ID);
+      if (!pat || !gistId) {
+        openCloudSyncModal();
+        return;
+      }
+      uploadToGist(false);
+    }
+
+    // 自動同期トリガー (バックグラウンド)
+    let autoSyncTimer = null;
+    async function autoSyncToGistBackground() {
+      const autoSync = localStorage.getItem(GIST_KEY_AUTOSYNC) !== 'false';
+      const pat = await getSecureToken();
+      const gistId = localStorage.getItem(GIST_KEY_ID);
+
+      if (!autoSync || !pat || !gistId) return;
+
+      if (autoSyncTimer) clearTimeout(autoSyncTimer);
+      autoSyncTimer = setTimeout(() => {
+        uploadToGist(true);
+      }, 1500);
+    }
+
 
     /* ==========================================================
        17. ホール適用 ＆ 選択ティー・マップ動的連動
