@@ -1186,7 +1186,8 @@
       <span>幅消去 (<strong id="direct-clear-count">0</strong>)</span>
     </div>
     <button class="fab-btn" onclick="recordCurrentShot()" title="📍 現在の打席を記録">📍</button>
-    <button class="fab-btn" onclick="focusCurrentHole()" title="現在ホールに再ズーム">🎯</button>
+    <button class="fab-btn" onclick="focusCurrentHole({animate:true})" title="現在ホールに再ズーム">🎯</button>
+    <button class="fab-btn" id="btn-calib" onclick="startHoleCalibration()" title="📐 航空写真で2タップ(ティー→ピン)登録">📐</button>
   </div>
 
   <!-- 下部ボトムコントロールバー -->
@@ -1433,6 +1434,10 @@
   </div>
 
   <div id="calibration-toast"></div>
+  <div id="calib-banner" style="display:none; position:fixed; bottom:calc(var(--safe-bottom) + 96px); left:50%; transform:translateX(-50%); z-index:1500; background:rgba(15,23,42,0.96); border:1.5px solid #10b981; border-radius:30px; padding:8px 16px; color:#f8fafc; font-size:12px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.6); align-items:center; gap:10px; max-width:92vw;">
+    <span id="calib-text"></span>
+    <button onclick="cancelHoleCalibration()" style="background:#ef4444; border:none; border-radius:14px; padding:4px 12px; color:#fff; font-size:11px; font-weight:700;">終了</button>
+  </div>
 
   <!-- ==========================================================
        JavaScript 実装 (3ステップウィザード ＆ ティー連動幾何学)
@@ -1442,6 +1447,18 @@
        1. 全国ゴルフ場マスター（サブコース構成内蔵）
     ========================================================== */
     const NATIONWIDE_COURSES = [
+      {
+        id: "toda_public",
+        name: "戸田パブリックゴルフコース",
+        pref: "埼玉県",
+        lat: 35.8109362, lon: 139.6289402,
+        par: 72,
+        desc: "戸田市美女木・荒川彩湖畔。フラットで開放感抜群の本格パブリックコース（戸田ゴルフ場）",
+        subCourses: [
+          { id: "out_in", name: "OUT ➔ IN", desc: "1H〜9H ➔ 10H〜18H (全18H / Par 72)", startHoleIdx: 0, order: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18] },
+          { id: "in_out", name: "IN ➔ OUT", desc: "10H〜18H ➔ 1H〜9H (全18H / Par 72)", startHoleIdx: 9, order: [10,11,12,13,14,15,16,17,18,1,2,3,4,5,6,7,8,9] }
+        ]
+      },
       {
         id: "toride",
         name: "取手桜が丘ゴルフクラブ",
@@ -1551,6 +1568,28 @@
           { id: "sumiyoshi_takachiho", name: "住吉 ➔ 高千穂", desc: "住吉9H ➔ 高千穂9H (Par 72)", startHoleIdx: 0 }
         ]
       }
+    ];
+
+    // 戸田パブリックゴルフコース 基準18ホールデータ (荒川・彩湖沿い)
+    const TODA_PUBLIC_18HOLES = [
+      { h: 1, par: 4, yard: 360, tee: [35.81094, 139.62894], pin: [35.81380, 139.63080], bend: "straight", bendInt: 0, advice: "荒川河川敷の広大なスターティングホール。彩湖からの風を計算してセンターへ。" },
+      { h: 2, par: 4, yard: 380, tee: [35.81410, 139.63110], pin: [35.81720, 139.63290], bend: "slight-right", bendInt: 0.04, advice: "右サイドのクリークに注意。フェアウェイ左目がセオリー。" },
+      { h: 3, par: 3, yard: 160, tee: [35.81750, 139.63320], pin: [35.81880, 139.63410], bend: "straight", bendInt: 0, advice: "川風の影響を受けやすいショート。グリーン手前のバンカーを警戒。" },
+      { h: 4, par: 5, yard: 505, tee: [35.81920, 139.63440], pin: [35.82320, 139.63700], bend: "straight", bendInt: 0, advice: "ストレートなロングホール。2打目は無理せず右サイドへレイアップ。" },
+      { h: 5, par: 4, yard: 375, tee: [35.82350, 139.63720], pin: [35.82050, 139.63530], bend: "left", bendInt: 0.05, advice: "折り返しのミドル。アゲンストの風になりやすいため番手大きめに。" },
+      { h: 6, par: 4, yard: 390, tee: [35.82020, 139.63500], pin: [35.81710, 139.63300], bend: "straight", bendInt: 0, advice: "フェアウェイセンター狙い。グリーン奥は浅いので手前から攻める。" },
+      { h: 7, par: 3, yard: 150, tee: [35.81680, 139.63280], pin: [35.81550, 139.63180], bend: "straight", bendInt: 0, advice: "距離感重視の美しいショート。ピン手前へ確実にオン。" },
+      { h: 8, par: 5, yard: 520, tee: [35.81520, 139.63150], pin: [35.81110, 139.62900], bend: "slight-left", bendInt: 0.04, advice: "広々としたロング。フォローの風に乗せて3オン狙い。" },
+      { h: 9, par: 4, yard: 385, tee: [35.81080, 139.62880], pin: [35.80780, 139.62680], bend: "straight", bendInt: 0, advice: "前半フィニッシングホール。クラブハウス方向へ豪快なティーショット。" },
+      { h: 10, par: 4, yard: 365, tee: [35.80750, 139.62650], pin: [35.81050, 139.62850], bend: "straight", bendInt: 0, advice: "後半インコーススタート。フラットなフェアウェイへ確実に。" },
+      { h: 11, par: 4, yard: 375, tee: [35.81080, 139.62880], pin: [35.81390, 139.63090], bend: "slight-right", bendInt: 0.04, advice: "右ラフの草地を避けてフェアウェイ中央キープ。" },
+      { h: 12, par: 3, yard: 155, tee: [35.81420, 139.63120], pin: [35.81550, 139.63210], bend: "straight", bendInt: 0, advice: "風の計算が鍵を握るパー3。グリーン中央をデッドに狙う。" },
+      { h: 13, par: 5, yard: 515, tee: [35.81580, 139.63240], pin: [35.81990, 139.63510], bend: "straight", bendInt: 0, advice: "バーディを狙える雄大なロング。2打目はフェアウェイセンターへ。" },
+      { h: 14, par: 4, yard: 380, tee: [35.82020, 139.63530], pin: [35.81710, 139.63320], bend: "left", bendInt: 0.05, advice: "ドッグレッグを意識しすぎずセンター狙い。グリーン手前花道から。" },
+      { h: 15, par: 4, yard: 400, tee: [35.81680, 139.63300], pin: [35.81360, 139.63090], bend: "straight", bendInt: 0, advice: "距離のあるタフなミドル。セカンドは花道を使って手前から。" },
+      { h: 16, par: 3, yard: 165, tee: [35.81330, 139.63070], pin: [35.81200, 139.62980], bend: "straight", bendInt: 0, advice: "池と風が絡む美しいショート。1番手大きめでしっかりと。" },
+      { h: 17, par: 4, yard: 370, tee: [35.81170, 139.62950], pin: [35.80870, 139.62750], bend: "straight", bendInt: 0, advice: "正確性が求められるホール。ピン手前の安全サイドへ。" },
+      { h: 18, par: 5, yard: 530, tee: [35.80840, 139.62720], pin: [35.80420, 139.62450], bend: "slight-right", bendInt: 0.05, advice: "ドラマが生まれるフィニッシングロング。彩湖の風を背に受けて快心のフィニッシュ！" }
     ];
 
     // 取手桜が丘 基準18ホールデータ
@@ -1783,33 +1822,6 @@
       ];
     }
 
-    function generateCourseLayout(centerLat, centerLng, courseName) {
-      const pars =  [4, 4, 3, 5, 4, 4, 3, 5, 4,  4, 4, 3, 5, 4, 4, 3, 4, 5];
-      const yards = [370, 390, 160, 515, 380, 400, 155, 525, 410,  385, 360, 150, 500, 375, 415, 170, 395, 530];
-      const holes = [];
-
-      for (let i = 0; i < 18; i++) {
-        const angle = (i * 20 + 35) % 360;
-        const distFromCenter = 70 + (i % 5) * 35;
-        const tee = moveCoord([centerLat, centerLng], distFromCenter, angle);
-        const pinAngle = (angle + 160 + (i % 3) * 12) % 360;
-        const holeLengthM = (yards[i] / 1.09361);
-        const pin = moveCoord(tee, holeLengthM, pinAngle);
-
-        holes.push({
-          h: i + 1,
-          par: pars[i],
-          yard: yards[i],
-          tee: tee,
-          pin: pin,
-          bend: (i % 3 === 1) ? 'right' : ((i % 3 === 2) ? 'left' : 'straight'),
-          bendInt: (i % 3 === 0) ? 0 : 0.06,
-          advice: `${courseName} ${i+1}番ホール。Par ${pars[i]}。フェアウェイセンターへ着実な配球を。`
-        });
-      }
-      return holes;
-    }
-
     /* ==========================================================
        ★ 5. ティー別スマートキャリブレーション & 幾何学位置決定
     ========================================================== */
@@ -1935,22 +1947,24 @@
     ========================================================== */
     function initMap() {
       baseLayers.photo = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
-        maxZoom: 19, attribution: '&copy; 国土地理院 空中写真'
+        maxZoom: 19, maxNativeZoom: 18, attribution: '&copy; 国土地理院 空中写真'
       });
       baseLayers.slope = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/slopemap/{z}/{x}/{y}.png', {
-        maxZoom: 18, attribution: '&copy; 国土地理院 傾斜量図'
+        maxZoom: 19, maxNativeZoom: 18, attribution: '&copy; 国土地理院 傾斜量図'
       });
       baseLayers.hillshade = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
-        maxZoom: 18, attribution: '&copy; 国土地理院 陰影起伏図'
+        maxZoom: 19, maxNativeZoom: 18, attribution: '&copy; 国土地理院 陰影起伏図'
       });
       baseLayers.relief = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/relief/{z}/{x}/{y}.png', {
-        maxZoom: 18, attribution: '&copy; 国土地理院 色別標高図'
+        maxZoom: 19, maxNativeZoom: 18, attribution: '&copy; 国土地理院 色別標高図'
       });
 
       map = L.map('map', {
         center: currentCourse.tee || currentTeeCoord,
         zoom: 17,
         maxZoom: 19,
+        zoomSnap: 0.25,
+        zoomDelta: 0.5,
         zoomControl: false,
         layers: [baseLayers.photo]
       });
@@ -2021,6 +2035,7 @@
       });
 
       map.on('click', (e) => {
+        if (calibState) { handleCalibrationTap(e.latlng); return; }
         if (isWidthMeasuring) {
           handleMapWidthTap(e.latlng);
           return;
@@ -2222,6 +2237,7 @@
         currentIpCoords = calculateDefaultIpCoords(currentTeeCoord, currentPinCoord, hole.par, currentTotalYard);
       }
 
+      currentIpCoords = (currentIpCoords || []).filter(isValidCoord);
       renderIpRouteGraphics();
     }
 
@@ -2464,27 +2480,12 @@
       currentSubCourse = wizardTempSubCourse;
       currentTeeType = wizardTempTeeType;
 
-      // コースホールデータ構築
-      if (currentCourse.id === 'toride') {
-        holeList = [...TORIDE_SAKURAGAOKA_18HOLES];
-      } else {
-        holeList = generateCourseLayout(currentCourse.lat, currentCourse.lon, currentCourse.name);
-      }
-
-      // サブコースが INスタート等の場合、スタートホール設定
-      let startIdx = currentSubCourse.startHoleIdx || 0;
-      if (currentSubCourse.order && currentSubCourse.order.length > 0) {
-        // 並び替え対応
-        const reordered = [];
-        currentSubCourse.order.forEach(hNum => {
-          const found = holeList.find(h => h.h === hNum);
-          if (found) reordered.push(found);
-        });
-        if (reordered.length === holeList.length) {
-          holeList = reordered;
-          startIdx = 0;
-        }
-      }
+      // ★ ホールデータ構築: 実測内蔵 → OSM実測(非同期バインド) → 2タップ登録、の順。架空座標は一切生成しない
+      const loadToken = ++courseLoadToken;
+      holeList = buildInitialHoleList(currentCourse);
+      const ord = applySubCourseOrder(holeList, currentSubCourse);
+      holeList = ord.list;
+      let startIdx = ord.startIdx;
 
       // UIバッジ更新
       const cDisp = document.getElementById('current-course-display');
@@ -2502,6 +2503,7 @@
 
       fetchRealWeather(currentCourse.lat, currentCourse.lon);
       fetchSunsetTime(currentCourse.lat, currentCourse.lon);
+      loadAndBindCourseGeo(currentCourse, loadToken, startIdx);
 
       closeRoundWizard();
       showCalibrationToast(`⛳ ${currentCourse.name} (${currentSubCourse.name}) ${TEE_DEFINITIONS[currentTeeType].shortName} でラウンド開始！`);
@@ -2614,6 +2616,32 @@
     /* ==========================================================
        12. ヘディングアップ自動回転 ＆ 🧭コンパス切替
     ========================================================== */
+    const HEADING_UP_SCALE = 1.0;
+
+    function getHeadingBearing() {
+      const target = (currentIpCoords && currentIpCoords.length > 0 && isValidCoord(currentIpCoords[0]))
+        ? currentIpCoords[0] : currentPinCoord;
+      return calcBearing(userCoord, target);
+    }
+
+    // 回転しても四隅にタイル欠けが出ないよう #map を画面対角線サイズの正方形へ拡張
+    function setMapContainerMode(headingUp) {
+      const mapEl = document.getElementById('map');
+      const wrap = document.getElementById('map-wrapper');
+      if (!mapEl || !wrap) return;
+      if (headingUp) {
+        const D = Math.ceil(Math.hypot(wrap.clientWidth, wrap.clientHeight)) + 4;
+        mapEl.style.position = 'absolute';
+        mapEl.style.width = D + 'px';
+        mapEl.style.height = D + 'px';
+        mapEl.style.left = `calc(50% - ${D / 2}px)`;
+        mapEl.style.top = `calc(50% - ${D / 2}px)`;
+      } else {
+        ['position', 'width', 'height', 'left', 'top'].forEach(k => { mapEl.style[k] = ''; });
+      }
+      if (map) map.invalidateSize({ animate: false, pan: false });
+    }
+
     function toggleHeadingUpMode() {
       isHeadingUp = !isHeadingUp;
       const mapEl = document.getElementById('map');
@@ -2621,16 +2649,19 @@
 
       if (!isHeadingUp) {
         if (mapEl) mapEl.style.transform = 'none';
+        setMapContainerMode(false);
         if (compassBtn) {
           compassBtn.classList.remove('active');
           compassBtn.style.transform = 'none';
         }
         showCalibrationToast('🧭 ノースアップ (北上固定) に戻しました');
       } else {
+        setMapContainerMode(true);
         applyHeadingUpRotation();
         if (compassBtn) compassBtn.classList.add('active');
         showCalibrationToast('🧭 ヘディングアップ (打席進行方向を画面上に固定)');
       }
+      focusCurrentHole({ animate: false });
     }
 
     function applyHeadingUpRotation() {
@@ -2638,15 +2669,9 @@
       const mapEl = document.getElementById('map');
       const compassBtn = document.getElementById('btn-compass-icon');
       if (!mapEl) return;
-
-      const targetCoord = (currentIpCoords && currentIpCoords.length > 0) ? currentIpCoords[0] : currentPinCoord;
-      const bearing = calcBearing(userCoord, targetCoord);
-      const rotAngle = -bearing;
-
-      mapEl.style.transform = `rotate(${rotAngle}deg) scale(1.18)`;
-      if (compassBtn) {
-        compassBtn.style.transform = `rotate(${bearing}deg)`;
-      }
+      const bearing = getHeadingBearing();
+      mapEl.style.transform = `rotate(${-bearing}deg) scale(${HEADING_UP_SCALE})`;
+      if (compassBtn) compassBtn.style.transform = `rotate(${bearing}deg)`;
     }
 
     /* ==========================================================
@@ -3116,6 +3141,7 @@
       if (!container) return;
       container.innerHTML = '';
       const chips = [
+        { id: "toda_public", label: "戸田パブリック" },
         { id: "toride", label: "取手桜が丘GC" },
         { id: "taiheidai_cc", label: "太平台CC" },
         { id: "shishido_hills", label: "宍戸ヒルズCC" },
@@ -3148,8 +3174,12 @@
     /* ==========================================================
        17. ホール適用 ＆ 選択ティー・マップ動的連動
     ========================================================== */
-    function applyHole(idx) {
+    let lastFocusedCourseKey = null;
+
+    function applyHole(idx, opts = {}) {
       if (!holeList || holeList.length === 0) return;
+      idx = parseInt(idx, 10);
+      if (!Number.isFinite(idx)) idx = 0;
       currentHoleIndex = Math.max(0, Math.min(idx, holeList.length - 1));
       const hole = holeList[currentHoleIndex];
       if (!hole) return;
@@ -3189,23 +3219,454 @@
       // IPルート再計算
       updateIpRoute();
 
-      focusCurrentHole();
       drawYardArcs();
       updateHUDAndSimulation();
+      if (isHeadingUp) applyHeadingUpRotation();
+      const courseKey = `${currentCourse.id}|${currentSubCourse.id}|${currentTeeType}`;
+      const jump = opts.initial || courseKey !== lastFocusedCourseKey;
+      lastFocusedCourseKey = courseKey;
+      focusCurrentHole({ animate: !jump });
       updateGuideHoleInfo();
       if (isGreenContourMode) renderGreenContourCanvas();
     }
 
-    function focusCurrentHole() {
-      if (map && currentTeeCoord && currentPinCoord) {
-        try {
-          map.fitBounds([currentTeeCoord, currentPinCoord], {
-            padding: [50, 50],
-            maxZoom: 18,
-            duration: 0.8
-          });
-        } catch (e) {}
+    /* ==========================================================
+       ★ ホール自動配置エンジン v2
+       全ウェイポイント(Tee+全IP+Pin)を、HUD/ドック実測で求めた「実際に見える領域」へ収める。
+       fitBounds は使わず、回転(ヘディングアップ)を含めて zoom/center を自前計算。
+    ========================================================== */
+    let focusToken = 0;
+    let autoFocusPending = true;
+
+    function isValidCoord(c) {
+      return Array.isArray(c) && c.length >= 2 && Number.isFinite(c[0]) && Number.isFinite(c[1]) &&
+        Math.abs(c[0]) <= 90 && Math.abs(c[1]) <= 180;
+    }
+    function rotVec(x, y, deg) {
+      const r = deg * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r);
+      return [x * c - y * sn, x * sn + y * c];
+    }
+    function isElVisible(el) {
+      if (!el) return false;
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    }
+    function getUsableViewRect() {
+      const wrap = document.getElementById('map-wrapper');
+      const wr = wrap.getBoundingClientRect();
+      const W = wr.width, H = wr.height;
+      let top = 0, bottom = H, left = 16, right = W - 16;
+      ['.top-nav', '.hud-metrics-grid', '.safety-banner'].forEach(sel => {
+        const el = document.querySelector(sel);
+        if (isElVisible(el)) {
+          const r = el.getBoundingClientRect();
+          if (r.top - wr.top < H * 0.5) top = Math.max(top, r.bottom - wr.top);
+        }
+      });
+      const dock = document.querySelector('.bottom-dock');
+      if (isElVisible(dock)) bottom = Math.min(bottom, dock.getBoundingClientRect().top - wr.top);
+      const fab = document.querySelector('.floating-fab-group');
+      if (isElVisible(fab)) {
+        const fl = fab.getBoundingClientRect().left - wr.left;
+        if (fl > W * 0.5) right = Math.min(right, fl - 6);
       }
+      top += 10; bottom -= 10;
+      if (bottom - top < H * 0.30 || right - left < W * 0.40) {
+        top = H * 0.25; bottom = H * 0.88; left = 16; right = W - 16;
+      }
+      return { left, top, right, bottom, w: right - left, h: bottom - top,
+               cx: (left + right) / 2, cy: (top + bottom) / 2, W, H };
+    }
+
+    function focusCurrentHole(opts = {}) {
+      if (!map) return false;
+      if (!isValidCoord(currentTeeCoord) || !isValidCoord(currentPinCoord)) {
+        console.warn('[focusCurrentHole] 無効な座標', currentTeeCoord, currentPinCoord);
+        return false;
+      }
+      const retry = opts._retry || 0;
+      map.invalidateSize({ animate: false, pan: false });   // 描画欠落防止
+      const size = map.getSize();
+      const wrap = document.getElementById('map-wrapper');
+      if ((!size.x || !size.y || !wrap || !wrap.clientWidth) && retry < 12) {
+        requestAnimationFrame(() => focusCurrentHole({ ...opts, _retry: retry + 1 }));
+        return false;
+      }
+      const token = ++focusToken;
+      autoFocusPending = true;
+      try {
+        const pts = [currentTeeCoord, ...(currentIpCoords || []), currentPinCoord].filter(isValidCoord);
+        const rect = getUsableViewRect();
+        const rotDeg = isHeadingUp ? -getHeadingBearing() : 0;
+        const scale = isHeadingUp ? HEADING_UP_SCALE : 1;
+        const MARGIN = 56;
+        const bboxAt = (z) => {
+          const P = pts.map(p => map.project(L.latLng(p[0], p[1]), z));
+          const o = P[0];
+          let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+          P.forEach(q => {
+            const [rx, ry] = rotVec(q.x - o.x, q.y - o.y, rotDeg);
+            minx = Math.min(minx, rx); maxx = Math.max(maxx, rx);
+            miny = Math.min(miny, ry); maxy = Math.max(maxy, ry);
+          });
+          return { o, minx, maxx, miny, maxy, w: (maxx - minx) * scale, h: (maxy - miny) * scale };
+        };
+        const MAX_Z = opts.maxZoom || 18, MIN_Z = 13;
+        let z = MIN_Z, bb = null;
+        for (let t = MAX_Z; t >= MIN_Z; t -= 0.25) {
+          const b = bboxAt(t);
+          if (b.w + MARGIN <= rect.w && b.h + MARGIN <= rect.h) { z = t; bb = b; break; }
+        }
+        if (!bb) bb = bboxAt(MIN_Z);
+        const [hx, hy] = rotVec((bb.minx + bb.maxx) / 2, (bb.miny + bb.maxy) / 2, -rotDeg);
+        const holeLocal = L.point(bb.o.x + hx, bb.o.y + hy);
+        const [ox, oy] = rotVec((rect.cx - rect.W / 2) / scale, (rect.cy - rect.H / 2) / scale, -rotDeg);
+        const centerLL = map.unproject(L.point(holeLocal.x - ox, holeLocal.y - oy), z);
+        if (!isValidCoord([centerLL.lat, centerLL.lng])) throw new Error('center invalid');
+        map.stop();
+        const animate = opts.animate !== false;
+        map.setView(centerLL, z, { animate, duration: 0.6 });
+        setTimeout(() => verifyHoleVisible(token, opts._verify || 0), animate ? 800 : 150);
+      } catch (e) {
+        console.error('[focusCurrentHole] 失敗 → フォールバック', e);
+        try { map.setView(currentPinCoord, 17, { animate: false }); } catch (e2) {}
+        return false;
+      }
+      return true;
+    }
+
+    function verifyHoleVisible(token, n) {
+      if (token !== focusToken || !map || !autoFocusPending) return;
+      try {
+        const rect = getUsableViewRect();
+        const z = map.getZoom();
+        const c = map.project(map.getCenter(), z);
+        const rotDeg = isHeadingUp ? -getHeadingBearing() : 0;
+        const scale = isHeadingUp ? HEADING_UP_SCALE : 1;
+        const tol = 8;
+        const ok = [currentTeeCoord, currentPinCoord].every(p => {
+          const q = map.project(L.latLng(p[0], p[1]), z);
+          const [sx, sy] = rotVec((q.x - c.x) * scale, (q.y - c.y) * scale, rotDeg);
+          const x = rect.W / 2 + sx, y = rect.H / 2 + sy;
+          return x >= rect.left - tol && x <= rect.right + tol && y >= rect.top - tol && y <= rect.bottom + tol;
+        });
+        if (!ok && n < 2) {
+          console.warn('[verifyHoleVisible] 可視領域外 → 再配置', n + 1);
+          focusCurrentHole({ animate: false, _verify: n + 1 });
+        }
+      } catch (e) { console.warn('[verifyHoleVisible]', e); }
+    }
+
+    function setupMapResilience() {
+      const wrap = document.getElementById('map-wrapper');
+      const mapEl = document.getElementById('map');
+      ['pointerdown', 'wheel', 'touchstart'].forEach(ev =>
+        mapEl.addEventListener(ev, () => { autoFocusPending = false; }, { passive: true }));
+      let timer = null;
+      const onResize = () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          if (isHeadingUp) setMapContainerMode(true);
+          else map.invalidateSize({ animate: false, pan: false });
+          if (autoFocusPending) focusCurrentHole({ animate: false });
+        }, 200);
+      };
+      if ('ResizeObserver' in window) new ResizeObserver(onResize).observe(wrap);
+      window.addEventListener('resize', onResize);
+      window.addEventListener('orientationchange', onResize);
+      window.addEventListener('load', onResize);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize);
+    }
+
+    /* ==========================================================
+       ★ コースデータ層: 実測内蔵 → OSM(Overpass)実測バインド → 2タップ手動登録
+       ※ 仮想座標(同心円等)の生成は完全撤廃
+    ========================================================== */
+    let courseLoadToken = 0;
+    let courseVectorGroup = null;
+    let courseHoleSource = 'none'; // 'preset' | 'osm' | 'manual' | 'none'
+    const OVERPASS_ENDPOINTS = [
+      'https://overpass-api.de/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter'
+    ];
+    const GEO_STYLES = {
+      fairway: { color: '#10b981', weight: 1, fillColor: '#10b981', fillOpacity: 0.25 },
+      green:   { color: '#059669', weight: 1.5, fillColor: '#059669', fillOpacity: 0.50 },
+      bunker:  { color: '#f59e0b', weight: 1, fillColor: '#f59e0b', fillOpacity: 0.45 },
+      water:   { color: '#0284c7', weight: 1, fillColor: '#0284c7', fillOpacity: 0.50 },
+      tee:     { color: '#a78bfa', weight: 1, fillColor: '#a78bfa', fillOpacity: 0.35 }
+    };
+
+    function getPresetHoles(courseId) {
+      if (courseId === 'toda_public') return TODA_PUBLIC_18HOLES;
+      if (courseId === 'toride') return TORIDE_SAKURAGAOKA_18HOLES;
+      return null;
+    }
+
+    function loadManualHole(courseId, h) {
+      try {
+        const str = localStorage.getItem(`golf_manual_hole_${courseId}_${h}`);
+        if (str) {
+          const o = JSON.parse(str);
+          if (isValidCoord(o.tee) && isValidCoord(o.pin)) return o;
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    function parFromYard(y) { return y < 250 ? 3 : (y < 470 ? 4 : 5); }
+
+    // 位置未確定のホール枠（座標はコース中心の仮置き。実測/手動登録で必ず上書きされる）
+    function buildPlaceholderHoles(course) {
+      const list = [];
+      for (let i = 1; i <= 18; i++) {
+        const tee = [course.lat, course.lon];
+        const pin = moveCoord(tee, 140, 0);
+        list.push({
+          h: i, par: 4, yard: 153, tee, pin, bend: 'straight', bendInt: 0, placeholder: true,
+          advice: `${course.name} ${i}番ホール。📐ボタンで航空写真上のティー→ピンを2タップ登録すると正確なマップになります。`
+        });
+      }
+      return list;
+    }
+
+    function mergeManualHoles(course, list) {
+      list.forEach(hole => {
+        const m = loadManualHole(course.id, hole.h);
+        if (m) {
+          hole.tee = [...m.tee]; hole.pin = [...m.pin];
+          hole.placeholder = false; hole.manual = true;
+          const y = calcDistanceYards(hole.tee, hole.pin);
+          hole.yard = y;
+          if (m.par) hole.par = m.par;
+        }
+      });
+      return list;
+    }
+
+    function buildInitialHoleList(course) {
+      const preset = getPresetHoles(course.id);
+      courseHoleSource = preset ? 'preset' : 'none';
+      const base = preset ? preset.map(h => ({ ...h })) : buildPlaceholderHoles(course);
+      return mergeManualHoles(course, base);
+    }
+
+    function applySubCourseOrder(list, sub) {
+      let startIdx = (sub && sub.startHoleIdx) || 0;
+      if (sub && sub.order && sub.order.length > 0) {
+        const reordered = [];
+        sub.order.forEach(hNum => { const f = list.find(h => h.h === hNum); if (f) reordered.push(f); });
+        if (reordered.length === list.length) { list = reordered; startIdx = 0; }
+      }
+      return { list, startIdx: Math.min(startIdx, Math.max(0, list.length - 1)) };
+    }
+
+    async function overpassQuery(q) {
+      for (const ep of OVERPASS_ENDPOINTS) {
+        try {
+          const ctl = new AbortController();
+          const timer = setTimeout(() => ctl.abort(), 22000);
+          const res = await fetch(ep, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'data=' + encodeURIComponent(q),
+            signal: ctl.signal
+          });
+          clearTimeout(timer);
+          if (!res.ok) continue;
+          return await res.json();
+        } catch (e) { /* 次のエンドポイントへ */ }
+      }
+      return null;
+    }
+
+    function pathLengthYards(pts) {
+      let m = 0;
+      for (let i = 0; i < pts.length - 1; i++) m += calcDistanceMeters(pts[i], pts[i + 1]);
+      return Math.round(m * 1.09361);
+    }
+
+    // ティー→ピン直線からの最大横ズレ(m, 左が正)
+    function maxLateralOffsetM(pts) {
+      if (pts.length < 3) return 0;
+      const t = pts[0], p = pts[pts.length - 1];
+      const k = Math.cos(t[0] * Math.PI / 180);
+      const dx = (p[1] - t[1]) * k * 111320, dy = (p[0] - t[0]) * 110540;
+      const len = Math.hypot(dx, dy) || 1;
+      let best = 0;
+      pts.slice(1, -1).forEach(m => {
+        const mx = (m[1] - t[1]) * k * 111320, my = (m[0] - t[0]) * 110540;
+        const cross = (dx * my - dy * mx) / len;
+        if (Math.abs(cross) > Math.abs(best)) best = cross;
+      });
+      return best;
+    }
+
+    function parseOverpassGolf(data, course) {
+      const holesByRef = {};
+      const polys = [];
+      (data.elements || []).forEach(el => {
+        const tags = el.tags || {};
+        const g = tags.golf;
+        if (!g) return;
+        const rings = [];
+        if (el.type === 'way' && el.geometry) {
+          rings.push(el.geometry.map(p => [p.lat, p.lon]));
+        } else if (el.type === 'relation' && el.members) {
+          el.members.forEach(m => {
+            if (m.geometry && (m.role === 'outer' || m.role === '')) rings.push(m.geometry.map(p => [p.lat, p.lon]));
+          });
+        }
+        if (g === 'hole') {
+          if (el.type !== 'way' || rings.length === 0) return;
+          const pts = rings[0].filter(isValidCoord);
+          const ref = parseInt(tags.ref, 10);
+          if (pts.length < 2 || !Number.isFinite(ref) || ref < 1 || ref > 36) return;
+          const yard = pathLengthYards(pts);
+          const off = maxLateralOffsetM(pts);
+          const lenM = Math.max(1, yard / 1.09361);
+          const bendInt = Math.min(0.12, Math.abs(off) / lenM);
+          const par = parseInt(tags.par, 10) || parFromYard(yard);
+          const cand = {
+            h: ref, par, yard, tee: pts[0], pin: pts[pts.length - 1],
+            bend: Math.abs(off) >= 12 ? (off > 0 ? 'slight-left' : 'slight-right') : 'straight',
+            bendInt: Math.abs(off) >= 12 ? bendInt : 0,
+            osm: true, osmName: tags.name || '',
+            advice: `${course.name} ${ref}番ホール(OSM実測)。Par ${par} / ${yard}y。`
+          };
+          const dist = calcDistanceMeters([course.lat, course.lon], cand.tee);
+          // 同一ref(複数コース併設)は敷地中心に近い方を採用
+          if (!holesByRef[ref] || dist < holesByRef[ref]._d) { cand._d = dist; holesByRef[ref] = cand; }
+          return;
+        }
+        let type = null;
+        if (g === 'fairway') type = 'fairway';
+        else if (g === 'green') type = 'green';
+        else if (g === 'bunker') type = 'bunker';
+        else if (g === 'tee') type = 'tee';
+        else if (g === 'water_hazard' || g === 'lateral_water_hazard') type = 'water';
+        if (!type) return;
+        rings.forEach(r => {
+          const pts = r.filter(isValidCoord);
+          if (pts.length >= 3) polys.push({ type, pts });
+        });
+      });
+      const holes = Object.values(holesByRef).sort((a, b) => a.h - b.h).map(h => { delete h._d; return h; });
+      return { holes, polys };
+    }
+
+    async function fetchCourseGeo(course) {
+      const cacheKey = `osm_golf_geo_v2_${course.id}`;
+      try {
+        const c = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+        if (c && c.t && Date.now() - c.t < 7 * 86400000 && c.data) return c.data;
+      } catch (e) {}
+      const R = 2200;
+      const q = `[out:json][timeout:25];(` +
+        `way["golf"~"^(hole|tee|green|fairway|bunker|water_hazard|lateral_water_hazard)$"](around:${R},${course.lat},${course.lon});` +
+        `relation["golf"~"^(tee|green|fairway|bunker|water_hazard|lateral_water_hazard)$"](around:${R},${course.lat},${course.lon});` +
+        `);out geom tags;`;
+      const raw = await overpassQuery(q);
+      if (!raw) return null;
+      const data = parseOverpassGolf(raw, course);
+      try { localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), data })); } catch (e) {}
+      return data;
+    }
+
+    function renderCourseVectorLayers(polys) {
+      if (!map) return;
+      if (!courseVectorGroup) courseVectorGroup = L.layerGroup().addTo(map);
+      courseVectorGroup.clearLayers();
+      // 描画順: フェアウェイ → ティー → 池 → バンカー → グリーン (重なり順を自然に)
+      ['fairway', 'tee', 'water', 'bunker', 'green'].forEach(type => {
+        polys.filter(p => p.type === type).slice(0, 600).forEach(p => {
+          L.polygon(p.pts, { ...GEO_STYLES[type], interactive: false }).addTo(courseVectorGroup);
+        });
+      });
+    }
+
+    async function loadAndBindCourseGeo(course, token, startIdx) {
+      let geo = null;
+      try { geo = await fetchCourseGeo(course); } catch (e) { console.warn('[geo]', e); }
+      if (token !== courseLoadToken || course.id !== currentCourse.id) return; // コース切替後の古い応答は破棄
+      if (!geo) {
+        if (courseHoleSource === 'none') showCalibrationToast('📐 OSMデータ未取得: 航空写真で2タップ登録できます');
+        return;
+      }
+      renderCourseVectorLayers(geo.polys);
+      if (getPresetHoles(course.id)) return; // 実測内蔵コースはホール座標を置換しない
+      if (geo.holes.length > 0) {
+        let list = mergeManualHoles(course, geo.holes.map(h => ({ ...h })));
+        const ord = applySubCourseOrder(list, currentSubCourse);
+        holeList = ord.list;
+        courseHoleSource = 'osm';
+        populateHoleSelect();
+        applyHole(Math.min(startIdx, holeList.length - 1), { initial: true });
+        showCalibrationToast(`🗺️ OSM実測 ${geo.holes.length}ホールをマップへバインドしました`);
+      } else if (courseHoleSource === 'none') {
+        showCalibrationToast('📐 このコースはOSMにホール実測が未登録です。📐で2タップ登録してください');
+        const b = document.getElementById('btn-calib');
+        if (b) { b.classList.add('active'); setTimeout(() => b.classList.remove('active'), 6000); }
+      }
+    }
+
+    /* ---- 2タップ手動登録 (ティー → ピン) → localStorage永続 ---- */
+    let calibState = null;
+    let calibTempMarker = null;
+
+    function startHoleCalibration() {
+      const hole = holeList[currentHoleIndex];
+      if (!hole) return;
+      if (isHeadingUp) toggleHeadingUpMode(); // タップ座標を正確にするため北上固定へ
+      calibState = { stage: 1, tee: null };
+      const b = document.getElementById('calib-banner');
+      b.style.display = 'flex';
+      document.getElementById('calib-text').innerText = `📐 ${hole.h}H ① 航空写真上の「ティー」をタップ`;
+      map.getContainer().style.cursor = 'crosshair';
+      // 現在位置が仮置きの場合はコース中心へ寄せる(見えない場所をタップさせない)
+      if (hole.placeholder) map.setView([currentCourse.lat, currentCourse.lon], 17, { animate: false });
+    }
+
+    function cancelHoleCalibration() {
+      calibState = null;
+      const b = document.getElementById('calib-banner');
+      if (b) b.style.display = 'none';
+      if (map) map.getContainer().style.cursor = '';
+      if (calibTempMarker) { map.removeLayer(calibTempMarker); calibTempMarker = null; }
+    }
+
+    function handleCalibrationTap(latlng) {
+      const pt = [latlng.lat, latlng.lng];
+      const hole = holeList[currentHoleIndex];
+      if (!calibState || !hole) return;
+      if (calibState.stage === 1) {
+        calibState.tee = pt;
+        calibState.stage = 2;
+        calibTempMarker = L.circleMarker(pt, { radius: 8, color: '#fff', fillColor: '#3b82f6', fillOpacity: 1 }).addTo(map);
+        document.getElementById('calib-text').innerText = `📐 ${hole.h}H ② 「ピン(グリーン中心)」をタップ`;
+        return;
+      }
+      const tee = calibState.tee, pin = pt;
+      const yard = calcDistanceYards(tee, pin);
+      if (yard < 40) { showCalibrationToast('ティーとピンが近すぎます。もう一度ピンをタップ'); return; }
+      const par = hole.manual ? hole.par : parFromYard(yard);
+      try {
+        localStorage.setItem(`golf_manual_hole_${currentCourse.id}_${hole.h}`, JSON.stringify({ tee, pin, par }));
+        // 旧キャリブ/IP保存が新座標を上書きしないよう破棄
+        Object.keys(TEE_DEFINITIONS).forEach(t => {
+          localStorage.removeItem(`golf_calib_${currentCourse.id}_${hole.h}_${t}`);
+          localStorage.removeItem(`smart_ip_route_${currentCourse.id}_${hole.h}_${t}`);
+        });
+      } catch (e) {}
+      hole.tee = tee; hole.pin = pin; hole.yard = yard; hole.par = par;
+      hole.placeholder = false; hole.manual = true;
+      if (courseHoleSource === 'none') courseHoleSource = 'manual';
+      cancelHoleCalibration();
+      populateHoleSelect();
+      applyHole(currentHoleIndex, { initial: true });
+      showCalibrationToast(`✅ ${hole.h}H を登録しました (${yard}y / Par ${par}) ※端末に永続保存`);
     }
 
     function prevHole() {
@@ -3686,23 +4147,20 @@
       initMap();
       populateClubSelect();
       updateHeaderTeeBadge();
+      // ★ 起動時のコースとホールデータの不整合(戸田コース×取手ホール等)を解消
+      const bootToken = ++courseLoadToken;
+      holeList = buildInitialHoleList(currentCourse);
       populateHoleSelect();
-      applyHole(0);
+      applyHole(0, { initial: true });
+      setupMapResilience();
 
       renderScoreTable();
       fetchRealWeather(currentCourse.lat || currentTeeCoord[0], currentCourse.lon || currentTeeCoord[1]);
       fetchSunsetTime(currentCourse.lat || currentTeeCoord[0], currentCourse.lon || currentTeeCoord[1]);
+      loadAndBindCourseGeo(currentCourse, bootToken, 0);
 
-      setInterval(() => {
-        updateSunsetCountdown(null);
-      }, 60000);
-
-      setTimeout(() => {
-        if (map) {
-          map.invalidateSize();
-          focusCurrentHole();
-        }
-      }, 200);
+      setInterval(() => { updateSunsetCountdown(null); }, 60000);
+      setTimeout(() => { if (map && autoFocusPending) focusCurrentHole({ animate: false }); }, 300);
     });
   </script>
 </body>
