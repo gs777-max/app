@@ -1,4 +1,14 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
+
+// Redis クライアントの安全な初期化 (Upstash Redis & Vercel KV 両環境変数に対応)
+function getRedisClient() {
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  if (url && token) {
+    return new Redis({ url, token });
+  }
+  return null;
+}
 
 export default async function handler(req, res) {
   // CORSヘッダー設定 (ローカル開発および本番クロスオリジン対応)
@@ -14,8 +24,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Vercel KV 環境変数の有無をチェック (未接続時でもクラッシュさせない安全設計)
-  const hasKvConfig = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN;
+  const redis = getRedisClient();
 
   try {
     // -------------------------------------------------------------
@@ -30,17 +39,17 @@ export default async function handler(req, res) {
         });
       }
 
-      if (!hasKvConfig) {
+      if (!redis) {
         return res.status(200).json({
           success: true,
           courseId: id,
           data: null,
-          note: 'Vercel KV is not configured. Running in local fallback mode.'
+          note: 'Vercel KV / Upstash Redis is not configured. Running in local fallback mode.'
         });
       }
 
       const key = `course:${id}`;
-      const courseData = await kv.get(key);
+      const courseData = await redis.get(key);
 
       return res.status(200).json({
         success: true,
@@ -79,21 +88,21 @@ export default async function handler(req, res) {
         updatedAt: updatedAt || new Date().toISOString()
       };
 
-      if (!hasKvConfig) {
+      if (!redis) {
         return res.status(200).json({
           success: true,
           courseId,
           saved: false,
-          note: 'Vercel KV is not configured. Data safely kept in localStorage.'
+          note: 'Vercel KV / Upstash Redis is not configured. Data safely kept in localStorage.'
         });
       }
 
       const key = `course:${courseId}`;
-      await kv.set(key, payload);
+      await redis.set(key, payload);
 
       return res.status(200).json({
         success: true,
-        message: 'Saved to Vercel KV successfully',
+        message: 'Saved to cloud storage successfully',
         courseId,
         updatedAt: payload.updatedAt
       });
@@ -104,7 +113,7 @@ export default async function handler(req, res) {
       error: `Method ${req.method} Not Allowed`
     });
   } catch (error) {
-    console.error('Vercel KV API Error:', error);
+    console.error('Vercel Cloud API Error:', error);
     return res.status(500).json({
       success: false,
       error: error.message || 'Internal Server Error'
