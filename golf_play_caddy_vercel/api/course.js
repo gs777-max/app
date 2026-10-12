@@ -71,7 +71,17 @@ export default async function handler(req, res) {
         }
       }
 
-      const { courseId, holes, calibrations, ips, updatedAt } = body || {};
+      const {
+        courseId,
+        holes,
+        manualHoles,
+        calibrations,
+        ips,
+        shots,
+        scoreCard,
+        userClubs,
+        updatedAt
+      } = body || {};
 
       if (!courseId) {
         return res.status(400).json({
@@ -83,8 +93,12 @@ export default async function handler(req, res) {
       const payload = {
         courseId,
         holes: holes || [],
+        manualHoles: manualHoles || {},
         calibrations: calibrations || {},
         ips: ips || {},
+        shots: shots || [],
+        scoreCard: scoreCard || null,
+        userClubs: userClubs || null,
         updatedAt: updatedAt || new Date().toISOString()
       };
 
@@ -104,6 +118,7 @@ export default async function handler(req, res) {
         success: true,
         message: 'Saved to cloud storage successfully',
         courseId,
+        shotsCount: (payload.shots || []).length,
         updatedAt: payload.updatedAt
       });
     }
