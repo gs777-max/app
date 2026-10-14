@@ -2019,6 +2019,11 @@
     let userElevation = 15.0;
     let pinElevation = 18.2;
     let windInfo = { speed: 2.8, direction: 45, gust: 4.1, temp: 21.0 };
+    let currentSunsetDate = null;
+    let elevationCache = new Map();
+    let lastManualTapTime = 0;
+    let currentCoursePolygons = [];
+    let currentCourseFacilities = [];
     let sunsetTimeStr = "17:18";
 
     // 画面状態フラグ
@@ -5518,38 +5523,45 @@
       const pData = scoreCardData[pId] || {};
       let gross = 0;
       const hiddenHoles = [2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18];
-      let hiddenOver = 0;
+      let hiddenStrokes = 0;
+      let totalPar = 0;
 
       holeList.forEach(hole => {
-        const sc = parseInt(pData[hole.h]?.score || hole.par, 10);
+        const p = parseInt(hole.par, 10) || 4;
+        totalPar += p;
+        const sc = parseInt(pData[hole.h]?.score, 10) || p;
         gross += sc;
         if (hiddenHoles.includes(hole.h)) {
-          hiddenOver += (sc - hole.par);
+          hiddenStrokes += sc;
         }
       });
 
-      const hiddenSum = 48 + hiddenOver;
-      const hdcp = Math.max(0, parseFloat(((hiddenSum * 1.5 - 72) * 0.8).toFixed(1)));
+      const hdcp = Math.max(0, parseFloat(((hiddenStrokes * 1.5 - totalPar) * 0.8).toFixed(1)));
       const net = parseFloat((gross - hdcp).toFixed(1));
 
-      document.getElementById('score-peoria-hdcp').innerText = hdcp.toFixed(1);
-      document.getElementById('score-peoria-net').innerText = `${net.toFixed(1)}`;
+      const hdcpEl = document.getElementById('score-peoria-hdcp');
+      if (hdcpEl) hdcpEl.innerText = hdcp.toFixed(1);
+      const netEl = document.getElementById('score-peoria-net');
+      if (netEl) netEl.innerText = `${net.toFixed(1)}`;
     }
 
     function calculatePeoriaAllPlayers() {
       let results = [];
+      const hiddenHoles = [2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18];
+      let totalPar = 0;
+      holeList.forEach(h => { totalPar += (parseInt(h.par, 10) || 4); });
+
       for (let i = 1; i <= 4; i++) {
         const pData = scoreCardData[i] || {};
         let gross = 0;
-        const hiddenHoles = [2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18];
-        let hiddenOver = 0;
+        let hiddenStrokes = 0;
         holeList.forEach(h => {
-          const sc = parseInt(pData[h.h]?.score || h.par, 10);
+          const p = parseInt(h.par, 10) || 4;
+          const sc = parseInt(pData[h.h]?.score, 10) || p;
           gross += sc;
-          if (hiddenHoles.includes(h.h)) hiddenOver += (sc - h.par);
+          if (hiddenHoles.includes(h.h)) hiddenStrokes += sc;
         });
-        const hiddenSum = 48 + hiddenOver;
-        const hdcp = Math.max(0, parseFloat(((hiddenSum * 1.5 - 72) * 0.8).toFixed(1)));
+        const hdcp = Math.max(0, parseFloat(((hiddenStrokes * 1.5 - totalPar) * 0.8).toFixed(1)));
         const net = parseFloat((gross - hdcp).toFixed(1));
         results.push({ name: `PLAYER ${i}${i===1?' (自分)':''}`, gross, hdcp, net });
       }
