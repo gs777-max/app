@@ -291,6 +291,19 @@
       border-radius: 10px;
       padding: 3px 6px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .hole-bar::-webkit-scrollbar {
+      display: none;
+    }
+    .hole-bar button,
+    .hole-bar div,
+    .hole-bar select {
+      flex-shrink: 0;
+      white-space: nowrap;
     }
 
     .hole-nav-btn {
@@ -401,15 +414,17 @@
 
     /* リアルタイムHUD情報バー */
     .hud-metrics-grid {
-      position: absolute;
-      top: calc(var(--safe-top) + 84px);
-      left: 10px;
-      right: 10px;
+      position: static;
+      width: 100%;
+      box-sizing: border-box;
       z-index: 900;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 5px;
       pointer-events: none;
+    }
+    .hud-metrics-grid .hud-card {
+      pointer-events: auto;
     }
 
     .hud-card {
@@ -467,10 +482,9 @@
 
     /* グリーン3点距離 ＆ 安全管理・日没バナー */
     .safety-banner {
-      position: absolute;
-      top: calc(var(--safe-top) + 144px);
-      left: 10px;
-      right: 10px;
+      position: static;
+      width: 100%;
+      box-sizing: border-box;
       z-index: 890;
       display: flex;
       align-items: center;
@@ -515,10 +529,9 @@
 
     /* 計測中アクティブバナー */
     #measure-active-banner {
-      position: absolute;
-      top: calc(var(--safe-top) + 180px);
-      left: 10px;
-      right: 10px;
+      position: static;
+      width: 100%;
+      box-sizing: border-box;
       z-index: 999;
       background: rgba(245, 158, 11, 0.95);
       color: #000;
@@ -530,6 +543,7 @@
       align-items: center;
       justify-content: space-between;
       box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5);
+      pointer-events: auto;
     }
 
     /* グリーンアンジュレーション専用コントロールパネル */
@@ -1311,10 +1325,9 @@
       </select>
       <button class="hole-nav-btn" onclick="nextHole()">次H ▶</button>
     </div>
-  </header>
-
-  <!-- リアルタイムHUD情報バー -->
-  <div class="hud-metrics-grid">
+  
+    <!-- リアルタイムHUD情報バー -->
+    <div class="hud-metrics-grid">
     <div class="hud-card highlight">
       <div class="hud-label">🎯 ピン実距離</div>
       <div class="hud-value large" id="hud-raw-dist">-- y</div>
@@ -1337,13 +1350,14 @@
     </div>
   </div>
 
-  <!-- グリーン3点距離 ＆ 安全管理・日没バナー -->
-  <div class="safety-banner">
+    <!-- グリーン3点距離 ＆ 安全管理・日没・Vercel DB同期バナー -->
+    <div class="safety-banner">
     <div class="safety-banner-left">
       <div class="green-three-pts-badge" id="green-three-pts-display" title="打席進入角に沿った手前・中央・奥の3点ヤード">
         ⛳ F: <span id="g3-front">--</span> | C: <span id="g3-center">--</span> | B: <span id="g3-back">--</span>y
       </div>
       <span id="hud-gps-badge" class="gps-badge-chip" onclick="toggleGpsTracking()" title="タップでGPS追従ON/OFF">📍 GPS: 手動</span>
+      <span id="hud-db-sync-badge" class="gps-badge-chip" onclick="triggerManualVercelSync()" title="タップでVercel DBと即時再同期" style="cursor:pointer; background:rgba(56,189,248,0.2); color:#38bdf8;">☁️ DB同期済</span>
       <span id="sunset-countdown-display" class="sunset-tag">🌅 日没計算中...</span>
     </div>
     <div class="safety-banner-right">
@@ -1353,34 +1367,14 @@
     </div>
   </div>
 
-  
-  <!-- GPS 各ショット距離リアルタイム計測中バナー -->
-  <div id="shot-tracking-banner">
-    <div class="shot-banner-row">
-      <div style="display:flex; align-items:center; gap:6px;">
-        <span style="font-size:18px;">🏌️</span>
-        <div>
-          <div style="font-weight:900; font-size:12px; color:#fff;" id="shot-banner-title">第1打 計測中 (1W)</div>
-          <div style="font-size:10px; color:#94a3b8;" id="shot-banner-sub">ボール位置へ移動してください</div>
-        </div>
-      </div>
-      <div class="shot-dist-badge-live" id="shot-banner-dist-live">0 y</div>
-    </div>
-    <div style="display:flex; gap:6px;">
-      <button class="btn-main" style="flex:1; padding:8px; font-size:11px; font-weight:800; background:linear-gradient(135deg,#10b981,#059669);" onclick="completeShotTracking()">
-        ✅ ボール到達・ショット確定
-      </button>
-      <button class="btn-danger" style="padding:8px 12px; font-size:11px;" onclick="cancelShotTracking()">
-        ❌ 取消
-      </button>
-    </div>
-  </div>
-
-  <!-- 計測中アクティブバナー -->
-  <div id="measure-active-banner">
+    <!-- 計測中アクティブバナー -->
+    <div id="measure-active-banner">
     <span id="measure-banner-text">📏 <strong>幅計測中:</strong> 左端（1点目）をタップ</span>
     <button class="btn-sub" style="padding:2px 8px; font-size:10px; background:#000; color:#fff;" onclick="finishWidthMeasurement()">完了</button>
   </div>
+  </header>
+
+  
 
   <!-- グリーンアンジュレーション専用コントロールパネル -->
   <div id="green-contour-panel">
@@ -2275,12 +2269,62 @@
     }
 
 
-    function showCalibrationToast(msg) {
+    let calibrationToastTimer = null;
+
+    function showCalibrationToast(msg, duration = 3200) {
       const t = document.getElementById('calibration-toast');
       if (!t) return;
+      if (calibrationToastTimer) {
+        clearTimeout(calibrationToastTimer);
+        calibrationToastTimer = null;
+      }
       t.innerText = msg;
       t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 2400);
+      calibrationToastTimer = setTimeout(() => {
+        t.style.display = 'none';
+        calibrationToastTimer = null;
+      }, duration);
+    }
+
+    function updateDbSyncBadge(status, customMsg = null) {
+      const badge = document.getElementById('hud-db-sync-badge');
+      const syncBtn = document.getElementById('btn-vercel-sync');
+      if (!badge && !syncBtn) return;
+
+      if (status === 'saving') {
+        if (badge) {
+          badge.innerHTML = '🔄 保存中...';
+          badge.style.background = 'rgba(245, 158, 11, 0.25)';
+          badge.style.color = '#fbbf24';
+        }
+        if (syncBtn) syncBtn.innerHTML = '<span class="icon-spin">🔄</span>';
+      } else if (status === 'synced') {
+        const timeStr = customMsg || new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+        if (badge) {
+          badge.innerHTML = `☁️ DB同期済 (${timeStr})`;
+          badge.style.background = 'rgba(16, 185, 129, 0.2)';
+          badge.style.color = '#34d399';
+        }
+        if (syncBtn) syncBtn.innerHTML = '☁️';
+      } else if (status === 'local') {
+        if (badge) {
+          badge.innerHTML = '⚪ 端末保存';
+          badge.style.background = 'rgba(148, 163, 184, 0.2)';
+          badge.style.color = '#94a3b8';
+        }
+        if (syncBtn) syncBtn.innerHTML = '☁️';
+      }
+    }
+
+    async function triggerManualVercelSync() {
+      if (!currentCourse || !currentCourse.id) {
+        showCalibrationToast('コースが選択されていません');
+        return;
+      }
+      showCalibrationToast('🔄 Vercel DBと手動同期中...');
+      updateDbSyncBadge('saving');
+      await fetchCourseFromVercelKv(currentCourse.id);
+      await saveCourseToVercelKv(currentCourse.id);
     }
 
     /* ==========================================================
@@ -2462,13 +2506,20 @@
         }
         const hole = holeList[currentHoleIndex];
         hole.placeholder = false;
+        if (currentTeeType === 'white') {
+          hole.tee = [...currentTeeCoord];
+        }
+        hole.calibTees = hole.calibTees || {};
+        hole.calibTees[currentTeeType] = [...currentTeeCoord];
+
         saveCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, currentTeeCoord, null, currentGreenSide);
-        showCalibrationToast(`⚪ ${hole.h}H ティー位置を永久保存しました`);
+        showCalibrationToast(`⏳ ⚪ ${hole.h}H ティー位置を保存中 (Vercel DB同期中...)`);
         updateIpRoute();
         updateHUDAndSimulation();
         const parEl = document.getElementById('hud-current-hole-par');
         if (parEl) parEl.innerText = `Par ${hole.par} / ${calcDistanceYards(currentTeeCoord, currentPinCoord)}y`;
         populateHoleSelect();
+        saveCourseToVercelKv(currentCourse.id);
       });
 
       pinMarker.on('drag', (e) => {
@@ -2482,8 +2533,17 @@
         currentPinCoord = [e.target.getLatLng().lat, e.target.getLatLng().lng];
         const hole = holeList[currentHoleIndex];
         hole.placeholder = false;
+        if (currentGreenSide === 'R') {
+          hole.pinR = [...currentPinCoord];
+        } else {
+          hole.pinL = [...currentPinCoord];
+          hole.pin = [...currentPinCoord];
+        }
+        hole.calibPins = hole.calibPins || {};
+        hole.calibPins[currentGreenSide] = [...currentPinCoord];
+
         saveCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, null, currentPinCoord, currentGreenSide);
-        showCalibrationToast(`📍 ${hole.h}H (${currentGreenSide}グリーン) ピン位置を永久保存しました`);
+        showCalibrationToast(`⏳ 📍 ${hole.h}H (${currentGreenSide}グリーン) ピン位置を保存中 (Vercel DB同期中...)`);
         drawYardArcs();
         updateIpRoute();
         updateHUDAndSimulation();
@@ -2491,6 +2551,7 @@
         if (parEl) parEl.innerText = `Par ${hole.par} / ${calcDistanceYards(currentTeeCoord, currentPinCoord)}y`;
         populateHoleSelect();
         if (isGreenContourMode) renderGreenContourCanvas();
+        saveCourseToVercelKv(currentCourse.id);
       });
 
       userMarker.on('drag', (e) => {
@@ -2762,9 +2823,12 @@
 
         ipMarker.on('dragend', () => {
           const hole = holeList[currentHoleIndex];
+          hole.savedIps = hole.savedIps || {};
+          hole.savedIps[`${currentTeeType}_${currentGreenSide}`] = [...currentIpCoords];
           saveIpCoords(currentCourse.id, hole.h, currentTeeType, currentIpCoords, currentGreenSide);
-          showCalibrationToast(`📍 IP${idx + 1} の配置を自動保存しました`);
+          showCalibrationToast(`⏳ 📍 IP${idx + 1} の配置を保存中 (Vercel DB同期中...)`);
           updateHUDAndSimulation();
+          saveCourseToVercelKv(currentCourse.id);
         });
 
         ipMarkers.push(ipMarker);
@@ -3318,6 +3382,10 @@
         }
       }
 
+      // Front <= Center <= Back の順序と物理的一貫性を保証
+      frontDist = Math.min(frontDist, Math.max(1, rawDist - 4));
+      backDist = Math.max(backDist, rawDist + 4);
+
       document.getElementById('g3-front').innerText = frontDist;
       document.getElementById('g3-center').innerText = rawDist;
       document.getElementById('g3-back').innerText = backDist;
@@ -3513,6 +3581,11 @@
         fetchElevation(pEast[0], pEast[1]),
         fetchElevation(pWest[0], pWest[1])
       ]);
+      if (!isGreenContourMode || !map || !currentPinCoord) {
+        if (greenLayerGroup) greenLayerGroup.clearLayers();
+        return;
+      }
+      if (greenLayerGroup) greenLayerGroup.clearLayers();
       const gradX = (eE - eW) / 30; // 東西傾斜勾配
       const gradY = (eS - eN) / 30; // 南北傾斜勾配
 
@@ -3660,7 +3733,7 @@
               const lat = el.lat || (el.center && el.center.lat);
               const lon = el.lon || (el.center && el.center.lon);
               results.push({
-                id: `op_${el.id}`,
+                id: generateUniversalCourseId(name, lat, lon),
                 name: name,
                 pref: '近隣検出',
                 lat: lat,
@@ -3678,6 +3751,13 @@
       } catch (e) {
         return [];
       }
+    }
+
+    function generateUniversalCourseId(name, lat, lon) {
+      const cleanName = (name || 'golf').replace(/[\s\-_・/\\,，.]+/g, '').slice(0, 20);
+      const latR = (typeof lat === 'number') ? lat.toFixed(2) : '0';
+      const lonR = (typeof lon === 'number') ? lon.toFixed(2) : '0';
+      return `course_${encodeURIComponent(cleanName)}_${latR}_${lonR}`;
     }
 
     function isInvalidGolfFacility(name) {
@@ -3743,7 +3823,7 @@
           if (!isInvalidGolfFacility(item.display_name)) {
             const shortName = item.display_name.split(',')[0];
             parsed.push({
-              id: `nom_${item.place_id}`,
+              id: generateUniversalCourseId(shortName, parseFloat(item.lat), parseFloat(item.lon)),
               name: shortName,
               pref: '日本全国',
               lat: parseFloat(item.lat),
@@ -4321,11 +4401,16 @@
     }
 
     // クラウドへの永続保存 (POST /api/course)
+    let pendingSyncCourseId = null;
+
     async function saveCourseToVercelKv(courseId) {
-      if (!courseId || isVercelKvSyncing) return;
+      if (!courseId) return;
+      if (isVercelKvSyncing) {
+        pendingSyncCourseId = courseId;
+        return;
+      }
       isVercelKvSyncing = true;
-      const syncBtn = document.getElementById('btn-vercel-sync');
-      if (syncBtn) syncBtn.innerHTML = '<span class="icon-spin">🔄</span>';
+      updateDbSyncBadge('saving');
 
       try {
         const calibrations = {};
@@ -4353,45 +4438,188 @@
         const localShots = loadLocalShotHistory(courseId);
 
         const payload = {
+          id: courseId,
           courseId: courseId,
           holes: holeList,
           manualHoles: manualHoles,
           calibrations: calibrations,
           ips: ips,
           shots: localShots,
-          scoreCard: scoreCardData || null,
-          userClubs: userClubs || null,
+          scoreCard: scoreCardData,
+          userClubs: userClubs,
           updatedAt: new Date().toISOString()
         };
 
-        const res = await fetch('/api/course', {
+        const postUrl = `/api/course?id=${encodeURIComponent(courseId)}&courseId=${encodeURIComponent(courseId)}`;
+        const res = await fetch(postUrl, {
           method: 'POST',
+          cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
           },
           body: JSON.stringify(payload)
         });
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-
-        if (json && json.success) {
-          vercelKvLastSyncTime = json.updatedAt || payload.updatedAt;
+        if (res.ok) {
+          vercelKvLastSyncTime = payload.updatedAt;
           localStorage.setItem('smart_caddie_kv_last_sync_time', vercelKvLastSyncTime);
           updateVercelKvSyncStatus(true, vercelKvLastSyncTime);
-          showCalibrationToast('☁️ クラウドへ自動永続保存しました');
+          const nowStr = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          showCalibrationToast(`✅ Vercel DBへ位置情報を保存しました (他端末と同期完了 ${nowStr})`, 3500);
+          updateDbSyncBadge('synced', nowStr);
+        } else {
+          throw new Error(`HTTP ${res.status}`);
         }
       } catch (err) {
-        console.warn('Vercel KV save fallback (local storage active):', err);
+        console.warn('Vercel KV save fallback (offline/local mode):', err);
         updateVercelKvSyncStatus(false, vercelKvLastSyncTime);
+        showCalibrationToast(`⚠️ Vercel DB未接続のため端末内に保存しました (${err.message || '通信確認'})`, 3500);
+        updateDbSyncBadge('local');
       } finally {
         isVercelKvSyncing = false;
-        if (syncBtn) syncBtn.innerHTML = '☁️';
+        if (pendingSyncCourseId) {
+          const nextId = pendingSyncCourseId;
+          pendingSyncCourseId = null;
+          setTimeout(() => saveCourseToVercelKv(nextId), 100);
+        }
       }
     }
 
-    // 同期ステータスバッジの更新
+    async function fetchCourseFromVercelKv(courseId) {
+      if (!courseId || isVercelKvSyncing) return;
+      isVercelKvSyncing = true;
+      updateDbSyncBadge('saving');
+
+      try {
+        const getUrl = `/api/course?id=${encodeURIComponent(courseId)}&courseId=${encodeURIComponent(courseId)}&_t=${Date.now()}`;
+        const res = await fetch(getUrl, {
+          cache: 'no-store',
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json().catch(() => null);
+
+        const cloudData = (json && (json.data || json.result))
+          ? (json.data || json.result)
+          : (json && (json.holes || json.calibrations || json.manualHoles) ? json : null);
+
+        if (cloudData) {
+          let hasUpdates = false;
+
+          // 1. 手動登録ホール (golf_manual_hole_) の反映 (L/R グリーン別含む)
+          if (cloudData.manualHoles && typeof cloudData.manualHoles === 'object') {
+            Object.keys(cloudData.manualHoles).forEach(k => {
+              localStorage.setItem(k, JSON.stringify(cloudData.manualHoles[k]));
+              hasUpdates = true;
+            });
+          }
+
+          // 2. キャリブレーション (golf_calib_) の反映 (L/R グリーン別含む)
+          if (cloudData.calibrations && typeof cloudData.calibrations === 'object') {
+            Object.keys(cloudData.calibrations).forEach(k => {
+              localStorage.setItem(k, JSON.stringify(cloudData.calibrations[k]));
+              hasUpdates = true;
+            });
+          }
+
+          // 3. IPルート点 (smart_ip_route_) の反映 (L/R グリーン別含む)
+          if (cloudData.ips && typeof cloudData.ips === 'object') {
+            Object.keys(cloudData.ips).forEach(k => {
+              localStorage.setItem(k, JSON.stringify(cloudData.ips[k]));
+              hasUpdates = true;
+            });
+          }
+
+          // 4. cloudData.holes 内に埋め込まれたティー・ピン・IP座標のマージ
+          if (cloudData.holes && Array.isArray(cloudData.holes) && Array.isArray(holeList)) {
+            cloudData.holes.forEach(cHole => {
+              const target = holeList.find(h => h.h === cHole.h);
+              if (target) {
+                if (cHole.tee) target.tee = [...cHole.tee];
+                if (cHole.pin) target.pin = [...cHole.pin];
+                if (cHole.pinL) target.pinL = [...cHole.pinL];
+                if (cHole.pinR) target.pinR = [...cHole.pinR];
+                if (cHole.calibTees) target.calibTees = Object.assign(target.calibTees || {}, cHole.calibTees);
+                if (cHole.calibPins) target.calibPins = Object.assign(target.calibPins || {}, cHole.calibPins);
+                if (cHole.savedIps) target.savedIps = Object.assign(target.savedIps || {}, cHole.savedIps);
+                if (typeof cHole.placeholder === 'boolean') target.placeholder = cHole.placeholder;
+                hasUpdates = true;
+              }
+            });
+          }
+
+          // 5. 各ショット距離履歴 (shots) の反映
+          if (cloudData.shots && Array.isArray(cloudData.shots)) {
+            const k = getCourseShotStorageKey(courseId);
+            const localShots = loadLocalShotHistory(courseId);
+            const idMap = new Map();
+            localShots.forEach(s => idMap.set(s.id, s));
+            cloudData.shots.forEach(s => idMap.set(s.id, s));
+            shotHistoryData = Array.from(idMap.values());
+            localStorage.setItem(k, JSON.stringify(shotHistoryData));
+            hasUpdates = true;
+          }
+
+          // 6. スコアカード (scoreCard) の反映
+          if (cloudData.scoreCard && typeof cloudData.scoreCard === 'object') {
+            scoreCardData = cloudData.scoreCard;
+            try { saveLocalScoreCard(courseId, scoreCardData); } catch(e){}
+            if (typeof renderScoreTable === 'function') renderScoreTable();
+          }
+
+          // 7. クラブ設定 (userClubs) の反映
+          if (cloudData.userClubs && Array.isArray(cloudData.userClubs)) {
+            userClubs = cloudData.userClubs;
+            try { localStorage.setItem("smart_caddie_pro_clubs_v7", JSON.stringify(userClubs)); } catch(e){}
+          }
+
+          // 8. ホールデータ自体の再バインド & 描画更新 (OSMホールを潰さず反映)
+          if (hasUpdates) {
+            holeList.forEach(hole => {
+              const cTee = loadCalibratedTeePinCoord(courseId, hole.h, currentTeeType, currentGreenSide);
+              if (cTee) {
+                if (cTee.tee) hole.tee = [...cTee.tee];
+                if (cTee.pin) {
+                  if (currentGreenSide === 'R') hole.pinR = [...cTee.pin];
+                  else { hole.pinL = [...cTee.pin]; hole.pin = [...cTee.pin]; }
+                }
+                hole.placeholder = false;
+              }
+            });
+            populateHoleSelect();
+            applyHole(currentHoleIndex, { animate: false });
+            if (typeof renderHoleShotHistoryGraphics === 'function' && holeList[currentHoleIndex]) {
+              renderHoleShotHistoryGraphics(holeList[currentHoleIndex].h);
+            }
+            showCalibrationToast('☁️ クラウドから最新のティー・ピン・IP座標を同期反映しました');
+          }
+
+          if (cloudData.updatedAt) {
+            vercelKvLastSyncTime = cloudData.updatedAt;
+            localStorage.setItem('smart_caddie_kv_last_sync_time', vercelKvLastSyncTime);
+          }
+          updateVercelKvSyncStatus(true, vercelKvLastSyncTime);
+          updateDbSyncBadge('synced');
+        } else {
+          updateVercelKvSyncStatus(true, vercelKvLastSyncTime);
+          updateDbSyncBadge('synced');
+        }
+      } catch (err) {
+        console.warn('Vercel KV fetch fallback (offline/local mode):', err);
+        updateVercelKvSyncStatus(false, vercelKvLastSyncTime);
+        updateDbSyncBadge('local');
+      } finally {
+        isVercelKvSyncing = false;
+      }
+    }
+
     function updateVercelKvSyncStatus(isSuccess, updatedAt) {
       const syncBtn = document.getElementById('btn-vercel-sync');
       const iconEl = document.getElementById('cloud-status-icon');
@@ -5210,11 +5438,18 @@
       hole.yard = yard;
       hole.par = par;
       hole.placeholder = false; hole.manual = true;
+
+      hole.calibTees = hole.calibTees || {};
+      hole.calibTees[currentTeeType] = [...tee];
+      hole.calibPins = hole.calibPins || {};
+      hole.calibPins[currentGreenSide] = [...pin];
+
       if (courseHoleSource === 'none') courseHoleSource = 'manual';
       cancelHoleCalibration();
       populateHoleSelect();
       applyHole(currentHoleIndex, { initial: true });
-      showCalibrationToast(`✅ ${hole.h}H (${currentGreenSide}グリーン) を登録しました (${yard}y / Par ${par}) ※永久保存`);
+      showCalibrationToast(`⏳ ✅ ${hole.h}H (${currentGreenSide}グリーン) 登録完了 (Vercel DB同期中...)`);
+      saveCourseToVercelKv(currentCourse.id);
     }
 
     function prevHole() {
@@ -5836,6 +6071,20 @@
     /* ==========================================================
        22. アプリ起動エントリーポイント
     ========================================================== */
+    // 他スマホでの画面復帰時オートシンク (タブ復帰 / スリープ解除)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && currentCourse && currentCourse.id) {
+        console.log('App returned to foreground, auto-syncing with Vercel KV...');
+        fetchCourseFromVercelKv(currentCourse.id);
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      if (currentCourse && currentCourse.id) {
+        fetchCourseFromVercelKv(currentCourse.id);
+      }
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
       initMap();
       populateClubSelect();
