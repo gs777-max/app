@@ -81,7 +81,10 @@ export default async function handler(req, res) {
         scoreCard,
         userClubs,
         updatedAt,
-        lastUpdatedBy
+        lastUpdatedBy,
+        currentTeeType,
+        currentGreenSide,
+        currentSubCourseId
       } = body || {};
 
       if (!courseId) {
@@ -100,6 +103,9 @@ export default async function handler(req, res) {
         shots: shots || [],
         scoreCard: scoreCard || null,
         userClubs: userClubs || null,
+        currentTeeType: currentTeeType || 'white',
+        currentGreenSide: currentGreenSide || 'L',
+        currentSubCourseId: currentSubCourseId || 'out_in',
         updatedAt: updatedAt || new Date().toISOString(),
         lastUpdatedBy: lastUpdatedBy || null
       };

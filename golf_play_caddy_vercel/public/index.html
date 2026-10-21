@@ -2331,6 +2331,16 @@
       }
     }
 
+    // ★ 全18ホールの公式ヤード値(hole.yard)を現在のティー・グリーンで完全統一同期・一括再計算
+    function synchronizeAllHoleYards() {
+      if (!Array.isArray(holeList) || !holeList.length) return;
+      holeList.forEach(h => {
+        const pCoord = resolvePinCoordinate(h, currentGreenSide);
+        const tCoord = resolveTeeCoordinate(h, currentTeeType);
+        h.yard = calcDistanceYards(tCoord, pCoord);
+      });
+    }
+
 
     let calibrationToastTimer = null;
 
@@ -2574,12 +2584,14 @@
         hole.calibTees = hole.calibTees || {};
         hole.calibTees[currentTeeType] = [...currentTeeCoord];
 
+        hole.yard = calcDistanceYards(currentTeeCoord, currentPinCoord);
+        synchronizeAllHoleYards();
         saveCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, currentTeeCoord, null, currentGreenSide);
         showCalibrationToast(`⏳ ⚪ ${hole.h}H ティー位置を保存中 (Vercel KV同期中...)`);
         updateIpRoute();
         updateHUDAndSimulation();
         const parEl = document.getElementById('hud-current-hole-par');
-        if (parEl) parEl.innerText = `Par ${hole.par} / ${calcDistanceYards(currentTeeCoord, currentPinCoord)}y`;
+        if (parEl) parEl.innerText = `Par ${hole.par} / ${hole.yard}y`;
         populateHoleSelect();
         saveCourseToVercelKv(currentCourse.id);
       });
@@ -2604,13 +2616,15 @@
         hole.calibPins = hole.calibPins || {};
         hole.calibPins[currentGreenSide] = [...currentPinCoord];
 
+        hole.yard = calcDistanceYards(currentTeeCoord, currentPinCoord);
+        synchronizeAllHoleYards();
         saveCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, null, currentPinCoord, currentGreenSide);
         showCalibrationToast(`⏳ 📍 ${hole.h}H (${currentGreenSide}グリーン) ピン位置を保存中 (Vercel KV同期中...)`);
         drawYardArcs();
         updateIpRoute();
         updateHUDAndSimulation();
         const parEl = document.getElementById('hud-current-hole-par');
-        if (parEl) parEl.innerText = `Par ${hole.par} / ${calcDistanceYards(currentTeeCoord, currentPinCoord)}y`;
+        if (parEl) parEl.innerText = `Par ${hole.par} / ${hole.yard}y`;
         populateHoleSelect();
         if (isGreenContourMode) renderGreenContourCanvas();
         saveCourseToVercelKv(currentCourse.id);
@@ -3119,6 +3133,9 @@
       // ヘッダーのティーバッジ更新
       updateHeaderTeeBadge();
 
+      // ★ 全ホールの公式ヤード値を選択中ティー・グリーンで一括完全再計算
+      synchronizeAllHoleYards();
+
       populateHoleSelect();
       // ★ 切り替え先コースのショット履歴 & スコアカードを applyHole 前に先行ロード
       shotHistoryData = loadLocalShotHistory(currentCourse.id);
@@ -3134,6 +3151,7 @@
 
       closeRoundWizard();
       showCalibrationToast(`⛳ ${currentCourse.name} (${currentSubCourse.name}) ${TEE_DEFINITIONS[currentTeeType].shortName} でラウンド開始！`);
+      if (currentCourse && currentCourse.id) triggerVercelKvAutoSync(currentCourse.id);
     }
 
     function updateHeaderTeeBadge() {
@@ -3171,6 +3189,9 @@
       // 2. 当該グリーン(L/R)の保存済みIPルートを再計算・反映
       updateIpRoute();
 
+      // ★ 全ホールの公式ヤード値を選択中グリーン・ティーで一括完全再計算
+      synchronizeAllHoleYards();
+
       // ★ 上部ホール選択プルダウンの各ホール距離を選択中グリーンへ即時同期
       populateHoleSelect();
 
@@ -3191,6 +3212,7 @@
       if (parEl) parEl.innerText = `Par ${hole.par} / ${holeYard}y`;
 
       showCalibrationToast(`🟢 ${side}グリーン (${side === 'L' ? 'メイン' : 'サブ'}) に切り替えました (${holeYard}y)`);
+      if (currentCourse && currentCourse.id) triggerVercelKvAutoSync(currentCourse.id);
     }
 
     /* ==========================================================
@@ -4737,6 +4759,14 @@
       if (!currentCourse || currentCourse.id !== courseId || !Array.isArray(holeList) || !holeList.length) return;
       try {
         mergeManualHoles(currentCourse, holeList);
+
+        // ★ 全ホールのヤード値を現在のティー・グリーンで完全再計算・統一同期
+        holeList.forEach(hole => {
+          const pinCoord = resolvePinCoordinate(hole, currentGreenSide);
+          const teeCoord = resolveTeeCoordinate(hole, currentTeeType);
+          hole.yard = calcDistanceYards(teeCoord, pinCoord);
+        });
+
         populateHoleSelect();
         const hole = holeList[currentHoleIndex];
         if (hole) {
@@ -4752,6 +4782,9 @@
         }
         if (typeof renderHoleShotHistoryGraphics === 'function' && hole) {
           renderHoleShotHistoryGraphics(hole.h);
+        }
+        if (typeof renderScoreTable === 'function') {
+          renderScoreTable();
         }
       } catch (e) {
         console.warn('redrawAfterCloudApply failed:', e);
@@ -4803,6 +4836,24 @@
             if (Array.isArray(cHole.tee) && isValidCoord(cHole.tee)) {
               localStorage.setItem(`golf_calib_tee_${courseId}_${cHole.h}_white`, JSON.stringify({ tee: cHole.tee, teeType: 'white', updatedAt: cloudData.updatedAt }));
             }
+            // ★ 全ティー種別(blue, black, gold, red等)のキャリブレーションも個別キーへ完全展開
+            if (cHole.calibTees && typeof cHole.calibTees === 'object') {
+              Object.keys(cHole.calibTees).forEach(tType => {
+                const tCoord = cHole.calibTees[tType];
+                if (Array.isArray(tCoord) && isValidCoord(tCoord)) {
+                  localStorage.setItem(`golf_calib_tee_${courseId}_${cHole.h}_${tType}`, JSON.stringify({ tee: tCoord, teeType: tType, updatedAt: cloudData.updatedAt }));
+                }
+              });
+            }
+            // ★ 全グリーン面(L, R)のキャリブレーションも個別キーへ完全展開
+            if (cHole.calibPins && typeof cHole.calibPins === 'object') {
+              Object.keys(cHole.calibPins).forEach(gSide => {
+                const pCoord = cHole.calibPins[gSide];
+                if (Array.isArray(pCoord) && isValidCoord(pCoord)) {
+                  localStorage.setItem(`golf_calib_pin_${courseId}_${cHole.h}_${gSide}`, JSON.stringify({ pin: pCoord, greenSide: gSide, updatedAt: cloudData.updatedAt }));
+                }
+              });
+            }
           });
         }
 
@@ -4830,6 +4881,27 @@
           userClubs = cloudData.userClubs;
           try { localStorage.setItem('smart_caddie_pro_clubs_v7', JSON.stringify(userClubs)); } catch (e) {}
           if (typeof populateClubSelect === 'function') populateClubSelect();
+        }
+
+        // ★ 4.5 ラウンド共通設定の完全同期 (ティー色・グリーン面・サブコースの一致保証)
+        if (cloudData.currentTeeType && cloudData.currentTeeType !== currentTeeType && TEE_DEFINITIONS[cloudData.currentTeeType]) {
+          currentTeeType = cloudData.currentTeeType;
+          updateHeaderTeeBadge();
+        }
+        if (cloudData.currentGreenSide && (cloudData.currentGreenSide === 'L' || cloudData.currentGreenSide === 'R') && cloudData.currentGreenSide !== currentGreenSide) {
+          currentGreenSide = cloudData.currentGreenSide;
+          const btnL = document.getElementById('btn-green-l');
+          const btnR = document.getElementById('btn-green-r');
+          if (btnL) btnL.classList.toggle('active', currentGreenSide === 'L');
+          if (btnR) btnR.classList.toggle('active', currentGreenSide === 'R');
+        }
+        if (cloudData.currentSubCourseId && currentSubCourse && currentCourse && Array.isArray(currentCourse.subCourses)) {
+          const matchedSub = currentCourse.subCourses.find(s => s.id === cloudData.currentSubCourseId);
+          if (matchedSub && matchedSub.id !== currentSubCourse.id) {
+            currentSubCourse = matchedSub;
+            const subBadge = document.getElementById('current-subcourse-badge');
+            if (subBadge) subBadge.innerText = matchedSub.name;
+          }
         }
 
         // 5. 同期時刻と最終更新端末を記録
@@ -4938,6 +5010,7 @@
       updateDbSyncBadge('saving');
 
       try {
+        synchronizeAllHoleYards();
         const { calibrations, ips, manualHoles } = collectLocalCourseData(courseId);
         const localShots = loadLocalShotHistory(courseId);
 
@@ -4951,6 +5024,9 @@
           shots: localShots,
           scoreCard: scoreCardData,
           userClubs: userClubs,
+          currentTeeType: currentTeeType || 'white',
+          currentGreenSide: currentGreenSide || 'L',
+          currentSubCourseId: currentSubCourse ? currentSubCourse.id : 'out_in',
           updatedAt: new Date().toISOString(),
           lastUpdatedBy: getDeviceId()
         };
@@ -5754,12 +5830,19 @@
       }
       if (isFacilityPinsOn) renderFacilityPins(course.lat, course.lon);
       // ★ 1. 内蔵プリセットのダミー座標問題の解消とOSM実測優先バインド
-      // OSM(Overpass API)から実測の golf=hole や golf=green が取得できた場合はプリセットより優先
+      // ※重要: すでに Vercel KV から同期済み、またはローカル手動データがある場合は、背景ベクターのみ描画し、holeList の上書きは絶対にしない！
+      const hasCloudOrManual = cloudPulledCourses.has(course.id) || hasLocalCourseData(course.id);
+      if (hasCloudOrManual) {
+        synchronizeAllHoleYards();
+        populateHoleSelect();
+        return;
+      }
       if (geo.holes && geo.holes.length > 0) {
         let list = mergeManualHoles(course, geo.holes.map(h => ({ ...h })));
         const ord = applySubCourseOrder(list, currentSubCourse);
         holeList = ord.list;
         courseHoleSource = 'osm';
+        synchronizeAllHoleYards();
         populateHoleSelect();
         applyHole(Math.min(currentHoleIndex, holeList.length - 1), { initial: true });
         showCalibrationToast(`🗺️ OSM実測 ${geo.holes.length}ホールをマップへ優先バインドしました`);
@@ -5770,6 +5853,7 @@
           let list = mergeManualHoles(course, preset.map(h => ({ ...h })));
           const ord = applySubCourseOrder(list, currentSubCourse);
           holeList = ord.list;
+          synchronizeAllHoleYards();
           populateHoleSelect();
           applyHole(Math.min(currentHoleIndex, holeList.length - 1), { initial: true });
         } else if (courseHoleSource === 'none') {
