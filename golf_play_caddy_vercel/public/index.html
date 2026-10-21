@@ -1595,9 +1595,27 @@
 
       <!-- 他端末設定の手動取込 -->
       <div style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.35); border-radius:12px; padding:12px; margin-bottom:14px;">
-        <div style="font-size:12px; font-weight:700; color:#7dd3fc; margin-bottom:4px;">📥 他端末で設定した情報を取込</div>
-        <div style="font-size:10px; color:var(--text-sub); margin-bottom:8px; line-height:1.5;">別のスマホで登録・移動したティー / ピン / IP / 2グリーン情報を Vercel KV から取り込み、この端末の表示へ即時反映します (Vercel KV の内容を優先)。</div>
-        <button type="button" class="btn" id="btn-db-import-modal" style="width:100%; background:linear-gradient(135deg,#0ea5e9,#2563eb); color:#fff; padding:9px; font-size:12px; font-weight:800; border-radius:8px;" onclick="importFromVercelKvManual()">📥 Vercel KVから取込</button>
+        <div style="font-size:12px; font-weight:700; color:#7dd3fc; margin-bottom:4px;">📥 他端末で設定した情報を取込 (強制反映)</div>
+        <div style="font-size:10px; color:var(--text-sub); margin-bottom:8px; line-height:1.5;">別のスマホ・PCで登録・移動したピン / ティー / IP / 2グリーン情報を Vercel KV から直接取得し、この端末のマップとマーカーを即座に再描画します。</div>
+        <button type="button" class="btn" id="btn-db-import-modal" style="width:100%; background:linear-gradient(135deg,#0ea5e9,#2563eb); color:#fff; padding:9px; font-size:12px; font-weight:800; border-radius:8px;" onclick="importFromVercelKvManual()">📥 Vercel KVから最新情報を取込</button>
+      </div>
+
+      <!-- 📲 他端末(スマホ)と同期・QRコード連携 -->
+      <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.35); border-radius:12px; padding:12px; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <div style="font-size:12px; font-weight:700; color:#34d399;">📲 他端末 (スマホ) と同期する</div>
+          <span style="font-size:10px; color:var(--text-sub);" id="cloud-device-id-badge">端末ID: --</span>
+        </div>
+        <div style="font-size:10px; color:var(--text-sub); margin-bottom:8px; line-height:1.5;">
+          このPCと同じゴルフ場・同一Vercel KV接続先でスマホを開くためのQRコードです。スマホのカメラでスキャンするだけで即座に同期連携されます。
+        </div>
+        <div style="display:flex; gap:12px; align-items:center; background:rgba(0,0,0,0.3); border-radius:8px; padding:8px;">
+          <img id="cloud-share-qrcode" src="" alt="QRコード" style="width:110px; height:110px; background:#fff; padding:4px; border-radius:6px; flex-shrink:0;">
+          <div style="flex:1; font-size:10px; display:flex; flex-direction:column; gap:6px;">
+            <div style="word-break:break-all; color:var(--text-main); line-height:1.3;" id="cloud-share-url-text">http://...</div>
+            <button type="button" class="btn" style="background:rgba(255,255,255,0.1); color:#fff; padding:5px 8px; font-size:10px; border-radius:6px;" onclick="copyShareUrlToClipboard()">📋 共有URLをコピー</button>
+          </div>
+        </div>
       </div>
 
       <!-- 現在のコース・同期データ概要 -->
@@ -4356,6 +4374,11 @@
       }
       updateActiveEndpointBadge();
 
+      // 端末IDの表示とQRコードの生成
+      const devBadge = document.getElementById('cloud-device-id-badge');
+      if (devBadge) devBadge.innerText = 'この端末: ' + getDeviceId();
+      renderShareQrCode();
+
       updateVercelKvSyncStatus(true, vercelKvLastSyncTime);
     }
 
@@ -4371,13 +4394,75 @@
       showCalibrationToast(vercelKvAutoSyncEnabled ? '⚡ 自動クラウド同期を有効にしました' : '⏸️ 自動クラウド同期を一時停止しました');
     }
 
-    // ★ Vercel KV 同期エンジン (タイムスタンプ比較)
-    //   ・Vercel KV が端末(localStorage)より新しい場合は Vercel KV を優先して取込
-    //   ・送信前に必ず Vercel KV を確認 (Pull-before-Push) し、古い端末データで他端末の設定を上書きしない
+    // ★ Vercel KV 同期エンジン v3 (端末識別・逆流防止・自動ポーリング)
     let pendingSyncCourseId = null;
     let isApplyingCloudData = false;
     let vercelKvSaveTimer = null;
     const cloudPulledCourses = new Set();
+
+    // 端末識別ID (PC/Mobile)
+    function getDeviceId() {
+      let id = localStorage.getItem('smart_caddie_device_id');
+      if (!id) {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        id = (isMobile ? 'Mobile_' : 'PC_') + Math.random().toString(36).substring(2, 7);
+        localStorage.setItem('smart_caddie_device_id', id);
+      }
+      return id;
+    }
+
+    // 他端末共有URLの取得とQRコード描画
+    function getShareSyncUrl() {
+      const loc = window.location;
+      // localhostの場合、LAN IP (192.168.x.x) があれば優先して案内
+      let host = loc.host;
+      if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
+        // LAN IPがlocalStorageに設定されている場合
+        const lanIp = localStorage.getItem('smart_caddie_lan_ip') || '192.168.11.16:8080';
+        host = lanIp;
+      }
+      const courseId = currentCourse ? currentCourse.id : 'toda_public';
+      const customApi = (localStorage.getItem('smart_caddie_custom_api_url') || '').trim();
+      let shareUrl = `${loc.protocol}//${host}${loc.pathname}?course=${encodeURIComponent(courseId)}`;
+      if (customApi) {
+        shareUrl += `&api=${encodeURIComponent(customApi)}`;
+      }
+      return shareUrl;
+    }
+
+    function renderShareQrCode() {
+      const img = document.getElementById('cloud-share-qrcode');
+      const textEl = document.getElementById('cloud-share-url-text');
+      const url = getShareSyncUrl();
+      if (textEl) textEl.innerText = url;
+      if (img) {
+        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=4&data=${encodeURIComponent(url)}`;
+      }
+    }
+
+    function copyShareUrlToClipboard() {
+      const url = getShareSyncUrl();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          showCalibrationToast('📋 共有URLをクリップボードにコピーしました！');
+        }).catch(() => {
+          prompt('以下のURLをコピーしてスマホで開いてください:', url);
+        });
+      } else {
+        prompt('以下のURLをコピーしてスマホで開いてください:', url);
+      }
+    }
+
+    // URLパラメータから自動設定 (スマホでQRコードから開いた場合)
+    (function handleUrlShareParams() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const apiParam = params.get('api');
+        if (apiParam) {
+          localStorage.setItem('smart_caddie_custom_api_url', apiParam);
+        }
+      } catch (e) {}
+    })();
 
     function getVkvPrefixes(courseId) {
       return [
@@ -4595,24 +4680,32 @@
       return cloudData || null;
     }
 
-    // 取込/送信の判定
+    // ★ 取込/送信の厳密判定 (他端末の変更を最優先し、逆流上書きを100%防止)
     //   apply : Vercel KV を優先して端末へ取込
-    //   push  : 端末の方が新しいので Vercel KV へ送信
-    //   none  : 差分なし
+    //   push  : この端末で新規変更があり、かつ他端末の未受信更新がない場合に限り送信
+    //   none  : 同期済み・差分なし
     function decideVercelKvSync(courseId, cloudData, force) {
-      const cloudTime = cloudData ? vkvToMs(cloudData.updatedAt) : 0;
-      if (!cloudData || !cloudTime) {
-        if (force) return 'none';
-        return hasLocalCourseData(courseId) || hasUnsyncedLocalChanges(courseId) ? 'push' : 'none';
-      }
       if (force) return 'apply';
+      if (!cloudData || !cloudData.updatedAt) {
+        return hasUnsyncedLocalChanges(courseId) ? 'push' : 'none';
+      }
+
+      const cloudTime = vkvToMs(cloudData.updatedAt);
       const lastSync = vkvToMs(getCourseCloudSyncTime(courseId));
-      const localMod = vkvToMs(getLocalModTime(courseId));
-      const unsynced = localMod > lastSync;
-      const cloudChanged = cloudTime > lastSync;
-      // Vercel KV が端末の最終変更より新しい → Vercel KV 優先
-      if (cloudChanged && (!unsynced || cloudTime >= localMod)) return 'apply';
-      if (unsynced) return 'push';
+      const myDeviceId = getDeviceId();
+      const updatedByOther = cloudData.lastUpdatedBy && cloudData.lastUpdatedBy !== myDeviceId;
+
+      // 1. クラウドの更新時刻が端末の前回同期時刻より新しい場合
+      if (cloudTime > lastSync) {
+        // 他端末による更新なら、無条件で優先取込 (他端末の更新を端末の古いキャッシュで上書きしない)
+        return 'apply';
+      }
+
+      // 2. この端末でローカル操作が行われた場合
+      if (hasUnsyncedLocalChanges(courseId)) {
+        return 'push';
+      }
+
       return 'none';
     }
 
@@ -4645,29 +4738,32 @@
       try {
         mergeManualHoles(currentCourse, holeList);
         populateHoleSelect();
-        applyHole(currentHoleIndex, { animate: false });
-        if (typeof renderHoleShotHistoryGraphics === 'function' && holeList[currentHoleIndex]) {
-          renderHoleShotHistoryGraphics(holeList[currentHoleIndex].h);
+        const hole = holeList[currentHoleIndex];
+        if (hole) {
+          currentPinCoord = resolvePinCoordinate(hole, currentGreenSide);
+          currentTeeCoord = resolveTeeCoordinate(hole, currentTeeType);
+          if (pinMarker) pinMarker.setLatLng(currentPinCoord);
+          if (userMarker) userMarker.setLatLng(userCoord);
+          updateIpRoute();
+          drawYardArcs();
+          updateHUDAndSimulation();
+          if (typeof updateTeeMarkerVisual === 'function') updateTeeMarkerVisual();
+          if (typeof focusCurrentHole === 'function') focusCurrentHole({ animate: false });
+        }
+        if (typeof renderHoleShotHistoryGraphics === 'function' && hole) {
+          renderHoleShotHistoryGraphics(hole.h);
         }
       } catch (e) {
         console.warn('redrawAfterCloudApply failed:', e);
       }
     }
 
-    // ★ Vercel KV のデータで端末を上書き (当該コースの古いキャッシュは整理してから復元)
+    // ★ Vercel KV のデータを端末へ確実に適用 (スマートマージ & 個別キー生成)
     function applyCloudDataToDevice(courseId, cloudData) {
+      if (!cloudData) return;
       isApplyingCloudData = true;
       try {
-        // 1. 当該コースの位置キャッシュを整理 (削除済み・古いキャリブ/IPが残って優先されないように)
-        const prefixes = getVkvPrefixes(courseId);
-        const toRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const k = localStorage.key(i);
-          if (k && prefixes.some(p => k.startsWith(p))) toRemove.push(k);
-        }
-        toRemove.forEach(k => localStorage.removeItem(k));
-
-        // 2. 手動登録 / キャリブレーション / IP を復元
+        // 1. 手動登録 / キャリブレーション / IP を復元 (安全なキー上書きマージ)
         ['manualHoles', 'calibrations', 'ips'].forEach(group => {
           const g = cloudData[group];
           if (!g || typeof g !== 'object') return;
@@ -4675,6 +4771,40 @@
             try { localStorage.setItem(k, JSON.stringify(g[k])); } catch (e) {}
           });
         });
+
+        // 2. holes に埋め込まれた座標を holeList および localStorage 個別キーへ完全同期
+        if (Array.isArray(cloudData.holes) && Array.isArray(holeList) && currentCourse && currentCourse.id === courseId) {
+          cloudData.holes.forEach(cHole => {
+            if (!cHole || typeof cHole.h === 'undefined') return;
+            const target = holeList.find(h => h.h === cHole.h);
+            if (!target) return;
+            if (cHole.placeholder === true && target.placeholder === false) return;
+
+            ['tee', 'pin', 'pinL', 'pinR'].forEach(f => {
+              if (Array.isArray(cHole[f]) && isValidCoord(cHole[f])) target[f] = [...cHole[f]];
+            });
+            if (cHole.par) target.par = cHole.par;
+            if (cHole.yard) target.yard = cHole.yard;
+            if (cHole.manual) target.manual = true;
+            if (cHole.calibTees && typeof cHole.calibTees === 'object') target.calibTees = { ...cHole.calibTees };
+            if (cHole.calibPins && typeof cHole.calibPins === 'object') target.calibPins = { ...cHole.calibPins };
+            if (cHole.savedIps && typeof cHole.savedIps === 'object') target.savedIps = { ...cHole.savedIps };
+            if (typeof cHole.placeholder === 'boolean') target.placeholder = cHole.placeholder;
+
+            // ★ 重要: localStorage 個別キャリブレーションキーも同時に同期 (resolvePinCoordinate で即座に参照可能にする)
+            const pinValL = (Array.isArray(cHole.pinL) && isValidCoord(cHole.pinL)) ? cHole.pinL : cHole.pin;
+            const pinValR = (Array.isArray(cHole.pinR) && isValidCoord(cHole.pinR)) ? cHole.pinR : cHole.pin;
+            if (isValidCoord(pinValL)) {
+              localStorage.setItem(`golf_calib_pin_${courseId}_${cHole.h}_L`, JSON.stringify({ pin: pinValL, greenSide: 'L', updatedAt: cloudData.updatedAt }));
+            }
+            if (isValidCoord(pinValR)) {
+              localStorage.setItem(`golf_calib_pin_${courseId}_${cHole.h}_R`, JSON.stringify({ pin: pinValR, greenSide: 'R', updatedAt: cloudData.updatedAt }));
+            }
+            if (Array.isArray(cHole.tee) && isValidCoord(cHole.tee)) {
+              localStorage.setItem(`golf_calib_tee_${courseId}_${cHole.h}_white`, JSON.stringify({ tee: cHole.tee, teeType: 'white', updatedAt: cloudData.updatedAt }));
+            }
+          });
+        }
 
         // 3. ショット履歴 (和集合マージ)
         if (Array.isArray(cloudData.shots)) {
@@ -4702,37 +4832,19 @@
           if (typeof populateClubSelect === 'function') populateClubSelect();
         }
 
-        // 5. holes に埋め込まれた座標を holeList へマージ (取得済みOSMホールは保持)
-        if (Array.isArray(cloudData.holes) && Array.isArray(holeList) && currentCourse && currentCourse.id === courseId) {
-          cloudData.holes.forEach(cHole => {
-            if (!cHole || typeof cHole.h === 'undefined') return;
-            const target = holeList.find(h => h.h === cHole.h);
-            if (!target) return;
-            // 他端末側がプレースホルダーのままなら、この端末の実測(OSM)座標を潰さない
-            if (cHole.placeholder === true && target.placeholder === false) return;
-            ['tee', 'pin', 'pinL', 'pinR'].forEach(f => {
-              if (Array.isArray(cHole[f]) && isValidCoord(cHole[f])) target[f] = [...cHole[f]];
-            });
-            if (cHole.par) target.par = cHole.par;
-            if (cHole.yard) target.yard = cHole.yard;
-            if (cHole.manual) target.manual = true;
-            if (cHole.calibTees && typeof cHole.calibTees === 'object') target.calibTees = { ...cHole.calibTees };
-            if (cHole.calibPins && typeof cHole.calibPins === 'object') target.calibPins = { ...cHole.calibPins };
-            if (cHole.savedIps && typeof cHole.savedIps === 'object') target.savedIps = { ...cHole.savedIps };
-            if (typeof cHole.placeholder === 'boolean') target.placeholder = cHole.placeholder;
-          });
-        }
-
-        // 6. 同期時刻を記録 (端末は Vercel KV と同一状態になった)
+        // 5. 同期時刻と最終更新端末を記録
         setCourseCloudSyncTime(courseId, cloudData.updatedAt);
         try { localStorage.setItem(`smart_caddie_local_mod_${courseId}`, cloudData.updatedAt); } catch (e) {}
         vercelKvLastSyncTime = cloudData.updatedAt;
         localStorage.setItem('smart_caddie_kv_last_sync_time', vercelKvLastSyncTime);
+        if (cloudData.lastUpdatedBy) {
+          localStorage.setItem('smart_caddie_kv_last_device', cloudData.lastUpdatedBy);
+        }
 
-        // 7. 再描画
+        // 6. 再描画 (現在ホールのピン・ティーマーカーを最新位置へ移動)
         redrawAfterCloudApply(courseId);
       } finally {
-        setTimeout(() => { isApplyingCloudData = false; }, 300);
+        setTimeout(() => { isApplyingCloudData = false; }, 200);
       }
     }
 
@@ -4839,7 +4951,8 @@
           shots: localShots,
           scoreCard: scoreCardData,
           userClubs: userClubs,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          lastUpdatedBy: getDeviceId()
         };
 
         const json = await callVercelKvApi('POST', courseId, payload);
@@ -4876,15 +4989,48 @@
         return;
       }
       const courseId = currentCourse.id;
-      if (hasUnsyncedLocalChanges(courseId)) {
-        const ok = confirm('この端末には Vercel KV へ未送信の変更があります。\n他端末で設定した Vercel KV の情報で上書きして取り込みますか？');
-        if (!ok) return;
-      }
       showCalibrationToast('📥 Vercel KVから他端末の設定情報を取込中...');
       await fetchCourseFromVercelKv(courseId, { force: true, noPush: true });
       const modal = document.getElementById('cloud-sync-modal');
       if (modal && modal.style.display === 'flex') openCloudSyncModal();
     }
+
+    // ★ 他端末の更新を自動検知するバックグラウンドオートシンク (30秒間隔)
+    let vercelKvAutoPollTimer = null;
+    function startVercelKvAutoPoller() {
+      if (vercelKvAutoPollTimer) clearInterval(vercelKvAutoPollTimer);
+      vercelKvAutoPollTimer = setInterval(async () => {
+        if (!currentCourse || !currentCourse.id) return;
+        if (isVercelKvSyncing || isApplyingCloudData) return;
+        if (document.hidden) return;
+        try {
+          const cloudData = await vkvGetCloudData(currentCourse.id);
+          if (!cloudData || !cloudData.updatedAt) return;
+          const cloudTime = vkvToMs(cloudData.updatedAt);
+          const lastSync = vkvToMs(getCourseCloudSyncTime(currentCourse.id));
+          const myDeviceId = getDeviceId();
+          // 他端末が新しく更新した場合のみ自動取込
+          if (cloudTime > lastSync && cloudData.lastUpdatedBy !== myDeviceId) {
+            applyCloudDataToDevice(currentCourse.id, cloudData);
+            const devLabel = cloudData.lastUpdatedBy ? `[${cloudData.lastUpdatedBy}]` : '他端末';
+            const timeStr = new Date(cloudData.updatedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            showCalibrationToast(`⚡ ${devLabel} からの最新更新を自動同期しました (${timeStr})`, 3200);
+            updateVercelKvSyncStatus(true, cloudData.updatedAt);
+            updateDbSyncBadge('synced', timeStr);
+          }
+        } catch (e) {}
+      }, 30000);
+    }
+
+    // 画面アクティブ復帰時の即時同期チェック
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && currentCourse && currentCourse.id) {
+        fetchCourseFromVercelKv(currentCourse.id, { noPush: true });
+      }
+    });
+
+    // 起動時に自動ポーラーを開始
+    startVercelKvAutoPoller();
 
     function updateVercelKvSyncStatus(isSuccess, updatedAt) {
       const syncBtn = document.getElementById('btn-vercel-sync');

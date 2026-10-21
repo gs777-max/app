@@ -80,7 +80,8 @@ export default async function handler(req, res) {
         shots,
         scoreCard,
         userClubs,
-        updatedAt
+        updatedAt,
+        lastUpdatedBy
       } = body || {};
 
       if (!courseId) {
@@ -99,7 +100,8 @@ export default async function handler(req, res) {
         shots: shots || [],
         scoreCard: scoreCard || null,
         userClubs: userClubs || null,
-        updatedAt: updatedAt || new Date().toISOString()
+        updatedAt: updatedAt || new Date().toISOString(),
+        lastUpdatedBy: lastUpdatedBy || null
       };
 
       if (!redis) {
