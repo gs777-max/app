@@ -1,0 +1,1012 @@
+{
+  "course:toda_public": {
+    "id": "toda_public",
+    "courseId": "toda_public",
+    "holes": [
+      {
+        "h": 1,
+        "par": 4,
+        "yard": 759,
+        "tee": [
+          35.80955442585673,
+          139.62803900241855
+        ],
+        "pin": [
+          35.807159515443665,
+          139.632263481617
+        ],
+        "pinL": [
+          35.807159515443665,
+          139.632263481617
+        ],
+        "pinR": [
+          35.80685716175294,
+          139.6322653792163
+        ],
+        "bend": "straight",
+        "bendInt": 0,
+        "advice": "荒川河川敷の広大なスターティングホール。彩湖からの風を計算してセンターへ。",
+        "placeholder": false,
+        "manual": true,
+        "calibPins": {
+          "R": [
+            35.80685716175294,
+            139.6322653792163
+          ]
+        }
+      },
+      {
+        "h": 2,
+        "par": 4,
+        "yard": 495,
+        "tee": [
+          35.802,
+          139.622
+        ],
+        "pin": [
+          35.805,
+          139.625
+        ],
+        "pinL": [
+          35.805,
+          139.625
+        ],
+        "pinR": [
+          35.8052,
+          139.6251
+        ],
+        "bend": "slight-right",
+        "bendInt": 0.04,
+        "advice": "右サイドのクリークに注意。フェアウェイ左目がセオリー。"
+      },
+      {
+        "h": 3,
+        "par": 3,
+        "yard": 495,
+        "tee": [
+          35.803,
+          139.623
+        ],
+        "pin": [
+          35.806,
+          139.62599999999998
+        ],
+        "pinL": [
+          35.806,
+          139.62599999999998
+        ],
+        "pinR": [
+          35.8062,
+          139.62609999999998
+        ],
+        "bend": "straight",
+        "bendInt": 0,
+        "advice": "川風の影響を受けやすいショート。グリーン手前のバンカーを警戒。"
+      },
+      {
+        "h": 4,
+        "par": 4,
+        "yard": 495,
+        "tee": [
+          35.803999999999995,
+          139.624
+        ],
+        "pin": [
+          35.806999999999995,
+          139.62699999999998
+        ],
+        "pinL": [
+          35.806999999999995,
+          139.62699999999998
+        ],
+        "pinR": [
+          35.807199999999995,
+          139.62709999999998
+        ],
+        "bend": "slight-left",
+        "bendInt": 0.03,
+        "advice": "ストレートなロングホール。2打目は無理せず右サイドへレイアップ。"
+      },
+      {
+        "h": 5,
+        "par": 5,
+        "yard": 495,
+        "tee": [
+          35.805,
+          139.625
+        ],
+        "pin": [
+          35.808,
+          139.628
+        ],
+        "pinL": [
+          35.808,
+          139.628
+        ],
+        "pinR": [
+          35.8082,
+          139.6281
+        ],
+        "bend": "left",
+        "bendInt": 0.05,
+        "advice": "折り返しのミドル。アゲンストの風になりやすいため番手大きめに。"
+      },
+      {
+        "h": 6,
+        "par": 3,
+        "yard": 495,
+        "tee": [
+          35.806,
+          139.626
+        ],
+        "pin": [
+          35.809,
+          139.629
+        ],
+        "pinL": [
+          35.809,
+          139.629
+        ],
+        "pinR": [
+          35.8092,
+          139.6291
+        ],
+        "bend": "straight",
+        "bendInt": 0,
+        "advice": "フェアウェイセンター狙い。グリーン奥は浅いので手前から攻める。"
+      },
+      {
+        "h": 7,
+        "par": 4,
+        "yard": 495,
+        "tee": [
+          35.806999999999995,
+          139.627
+        ],
+        "pin": [
+          35.809999999999995,
+          139.63
+        ],
+        "pinL": [
+          35.809999999999995,
+          139.63
+        ],
+        "pinR": [
+          35.810199999999995,
+          139.6301
+        ],
+        "bend": "straight",
+        "bendInt": 0,
+        "advice": "距離感重視の美しいショート。ピン手前へ確実にオン。"
+      },
+      {
+        "h": 8,
+        "par": 4,
+        "yard": 495,
+        "tee": [
+          35.808,
+          139.62800000000001
+        ],
+        "pin": [
+          35.811,
+          139.631
+        ],
+        "pinL": [
+          35.811,
+          139.631
+        ],
+        "pinR": [
+          35.8112,
+          139.6311
+        ],
+        "bend": "slight-left",
+        "bendInt": 0.04,
+        "advice": "広々としたロング。フォローの風に乗せて3オン狙い。"
+      },
+      {
+        "h": 9,
+        "par": 3,
+        "yard": 495,
+        "tee": [
+          35.809,
+          139.629
+        ],
+        "pin": [
+          35.812,
+          139.63199999999998
+        ],
+        "pinL": [
+          35.812,
+          139.63199999999998
+        ],
+        "pinR": [
+          35.8122,
+          139.63209999999998
+        ],
+        "bend": "straight",
+        "bendInt": 0,
+        "advice": "前半フィニッシングホール。クラブハウス方向へ豪快なティーショット。"
+      },
+      {
+        "h": 10,
+        "par": 5,
+        "yard": 495,
+        "tee": [
+          35.809999999999995,
+          139.63
+        ],
+        "pin": [
+          35.812999999999995,
+          139.63299999999998
+        ],
+        "pinL": [
+          35.812999999999995,
+          139.63299999999998
+        ],
+        "pinR": [
+          35.813199999999995,
+          139.63309999999998
+        ],
+        "bend": "straight",
+        "bendInt": 0,
+        "advice": "後半インコーススタート。フラットなフェアウェイへ確実に。"
+      },
+      {
+        "h": 11,
+        "par": 4,
+        "yard": 495,
+        "tee": [
+          35.811,
+          139.631
+        ],
+        "pin": [
+          35.814,
+          139.634
+        ],
+        "pinL": [
+          35.814,
+          139.634
+        ],
+        "pinR": [
+          35.8142,
+          139.6341
+        ],
+        "bend": "slight-right",
+        "bendInt": 0.04,
+        "advice": "右ラフの草地を避けてフェアウェイ中央キープ。"
+      },
+      {
+        "h": 12,
+        "par": 3,
+        "yard": 495,
+        "tee": [
+          35.812,
+          139.632
+        ],
+        "pin": [
+          35.815,
+          139.635
+        ],
+        "pinL": [
+          35.815,
+          139.635
+        ],
+        "pinR": [
+          35.8152,
+          139.6351
+        ],
+        "bend": "straight",
+        "bendInt": 0,
+        "advice": "風の計算が鍵を握るパー3。グリーン中央をデッドに狙う。"
+      },
+      {
+        "h": 13,
+        "par": 4,
+        "yard": 495,
+        "tee": [
+          35.812999999999995,
+          139.633
+        ],
+        "pin": [
+          35.815999999999995,
+          139.636
+        ],
+        "pinL": [
+          35.815999999999995,
+          139.636
+        ],
+        "pinR": [
+          35.816199999999995,
+          139.6361
+        ],
+        "bend": "straight",
+        "bendInt": 0,
+        "advice": "バーディを狙える雄大なロング。2打目はフェアウェイセンターへ。"
+      },
+      {
+        "h": 14,
+        "par": 4,
+        "yard": 495,
+        "tee": [
+          35.814,
+          139.63400000000001
+        ],
+        "pin": [
+          35.817,
+          139.637
+        ],
+        "pinL": [
+          35.817,
+          139.637
+        ],
+        "pinR": [
+          35.8172,
+          139.6371
+        ],
+        "bend": "left",
+        "bendInt": 0.05,
+        "advice": "ドッグレッグを意識しすぎずセンター狙い。グリーン手前花道から。"
+      },
+      {
+        "h": 15,
+        "par": 3,
+        "yard": 495,
+        "tee": [
+          35.815,
+          139.635
+        ],
+        "pin": [
+          35.818,
+          139.63799999999998
+        ],
+        "pinL": [
+          35.818,
+          139.63799999999998
+        ],
+        "pinR": [
+          35.8182,
+          139.63809999999998
+        ],
+        "bend": "straight",
+        "bendInt": 0,
+        "advice": "距離のあるタフなミドル。セカンドは花道を使って手前から。"
+      },
+      {
+        "h": 16,
+        "par": 4,
+        "yard": 495,
+        "tee": [
+          35.815999999999995,
+          139.636
+        ],
+        "pin": [
+          35.818999999999996,
+          139.63899999999998
+        ],
+        "pinL": [
+          35.818999999999996,
+          139.63899999999998
+        ],
+        "pinR": [
+          35.819199999999995,
+          139.63909999999998
+        ],
+        "bend": "straight",
+        "bendInt": 0,
+        "advice": "池と風が絡む美しいショート。1番手大きめでしっかりと。"
+      },
+      {
+        "h": 17,
+        "par": 4,
+        "yard": 495,
+        "tee": [
+          35.817,
+          139.637
+        ],
+        "pin": [
+          35.82,
+          139.64
+        ],
+        "pinL": [
+          35.82,
+          139.64
+        ],
+        "pinR": [
+          35.8202,
+          139.6401
+        ],
+        "bend": "straight",
+        "bendInt": 0,
+        "advice": "正確性が求められるホール。ピン手前の安全サイドへ。"
+      },
+      {
+        "h": 18,
+        "par": 3,
+        "yard": 495,
+        "tee": [
+          35.818,
+          139.638
+        ],
+        "pin": [
+          35.821,
+          139.641
+        ],
+        "pinL": [
+          35.821,
+          139.641
+        ],
+        "pinR": [
+          35.8212,
+          139.6411
+        ],
+        "bend": "slight-right",
+        "bendInt": 0.05,
+        "advice": "ドラマが生まれるフィニッシングロング。彩湖の風を背に受けて快心のフィニッシュ！"
+      }
+    ],
+    "manualHoles": {
+      "golf_manual_hole_toda_public_1_L": {
+        "tee": [
+          35.80955442585673,
+          139.62803900241855
+        ],
+        "pin": [
+          35.807159515443665,
+          139.632263481617
+        ],
+        "par": 4,
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T00:21:47.017Z"
+      }
+    },
+    "calibrations": {
+      "golf_calib_pin_toda_public_5_L": {
+        "pin": [
+          35.808,
+          139.628
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_15_L": {
+        "pin": [
+          35.818,
+          139.63799999999998
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_12_R": {
+        "pin": [
+          35.8152,
+          139.6351
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_16_white": {
+        "tee": [
+          35.815999999999995,
+          139.636
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_6_L": {
+        "pin": [
+          35.809,
+          139.629
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_9_L": {
+        "pin": [
+          35.812,
+          139.63199999999998
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_14_white": {
+        "tee": [
+          35.814,
+          139.63400000000001
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_11_white": {
+        "tee": [
+          35.811,
+          139.631
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_7_white": {
+        "tee": [
+          35.806999999999995,
+          139.627
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_10_R": {
+        "pin": [
+          35.813199999999995,
+          139.63309999999998
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_6_R": {
+        "pin": [
+          35.8092,
+          139.6291
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_10_L": {
+        "pin": [
+          35.812999999999995,
+          139.63299999999998
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_5_white": {
+        "tee": [
+          35.805,
+          139.625
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_8_L": {
+        "pin": [
+          35.811,
+          139.631
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_10_white": {
+        "tee": [
+          35.809999999999995,
+          139.63
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_1_white": {
+        "tee": [
+          35.80955442585673,
+          139.62803900241855
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_9_white": {
+        "tee": [
+          35.809,
+          139.629
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_12_white": {
+        "tee": [
+          35.812,
+          139.632
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_14_L": {
+        "pin": [
+          35.817,
+          139.637
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_1_L": {
+        "pin": [
+          35.807159515443665,
+          139.632263481617
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_8_R": {
+        "pin": [
+          35.8112,
+          139.6311
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_7_R": {
+        "pin": [
+          35.810199999999995,
+          139.6301
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_9_R": {
+        "pin": [
+          35.8122,
+          139.63209999999998
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_11_L": {
+        "pin": [
+          35.814,
+          139.634
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_13_white": {
+        "tee": [
+          35.812999999999995,
+          139.633
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_18_R": {
+        "pin": [
+          35.8212,
+          139.6411
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_17_white": {
+        "tee": [
+          35.817,
+          139.637
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_7_L": {
+        "pin": [
+          35.809999999999995,
+          139.63
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_5_R": {
+        "pin": [
+          35.8082,
+          139.6281
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_16_R": {
+        "pin": [
+          35.819199999999995,
+          139.63909999999998
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_4_white": {
+        "tee": [
+          35.803999999999995,
+          139.624
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_8_white": {
+        "tee": [
+          35.808,
+          139.62800000000001
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_4_L": {
+        "pin": [
+          35.806999999999995,
+          139.62699999999998
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_6_white": {
+        "tee": [
+          35.806,
+          139.626
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_17_R": {
+        "pin": [
+          35.8202,
+          139.6401
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_14_R": {
+        "pin": [
+          35.8172,
+          139.6371
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_11_R": {
+        "pin": [
+          35.8142,
+          139.6341
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_18_white": {
+        "tee": [
+          35.818,
+          139.638
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_2_L": {
+        "pin": [
+          35.805,
+          139.625
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_13_R": {
+        "pin": [
+          35.816199999999995,
+          139.6361
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_1_R": {
+        "pin": [
+          35.80685716175294,
+          139.6322653792163
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:41:16.718Z"
+      },
+      "golf_calib_pin_toda_public_12_L": {
+        "pin": [
+          35.815,
+          139.635
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_13_L": {
+        "pin": [
+          35.815999999999995,
+          139.636
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_toda_public_1_white_R": {
+        "tee": null,
+        "pin": [
+          35.80685716175294,
+          139.6322653792163
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:41:16.718Z"
+      },
+      "golf_calib_pin_toda_public_4_R": {
+        "pin": [
+          35.807199999999995,
+          139.62709999999998
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_2_white": {
+        "tee": [
+          35.802,
+          139.622
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_15_white": {
+        "tee": [
+          35.815,
+          139.635
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_15_R": {
+        "pin": [
+          35.8182,
+          139.63809999999998
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_17_L": {
+        "pin": [
+          35.82,
+          139.64
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_3_R": {
+        "pin": [
+          35.8062,
+          139.62609999999998
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_2_R": {
+        "pin": [
+          35.8052,
+          139.6251
+        ],
+        "greenSide": "R",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_tee_toda_public_3_white": {
+        "tee": [
+          35.803,
+          139.623
+        ],
+        "teeType": "white",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_3_L": {
+        "pin": [
+          35.806,
+          139.62599999999998
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_18_L": {
+        "pin": [
+          35.821,
+          139.641
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      },
+      "golf_calib_pin_toda_public_16_L": {
+        "pin": [
+          35.818999999999996,
+          139.63899999999998
+        ],
+        "greenSide": "L",
+        "updatedAt": "2026-10-21T01:38:05.997Z"
+      }
+    },
+    "ips": {},
+    "shots": [
+      {
+        "id": "s1",
+        "h": 1,
+        "d": 240
+      }
+    ],
+    "scoreCard": {
+      "1": {},
+      "2": {},
+      "3": {},
+      "4": {}
+    },
+    "userClubs": [
+      {
+        "id": "1W",
+        "name": "1W (ドライバー)",
+        "dist": 230
+      },
+      {
+        "id": "3W",
+        "name": "3W (スプーン)",
+        "dist": 210
+      },
+      {
+        "id": "5W",
+        "name": "5W (クリーク)",
+        "dist": 195
+      },
+      {
+        "id": "7W",
+        "name": "7W (ヘブン)",
+        "dist": 185
+      },
+      {
+        "id": "3U",
+        "name": "3U (ユーティリティ)",
+        "dist": 180
+      },
+      {
+        "id": "4U",
+        "name": "4U (ユーティリティ)",
+        "dist": 170
+      },
+      {
+        "id": "5U",
+        "name": "5U (ユーティリティ)",
+        "dist": 160
+      },
+      {
+        "id": "5I",
+        "name": "5I (アイアン)",
+        "dist": 170
+      },
+      {
+        "id": "6I",
+        "name": "6I (アイアン)",
+        "dist": 160
+      },
+      {
+        "id": "7I",
+        "name": "7I (アイアン)",
+        "dist": 150
+      },
+      {
+        "id": "8I",
+        "name": "8I (アイアン)",
+        "dist": 140
+      },
+      {
+        "id": "9I",
+        "name": "9I (アイアン)",
+        "dist": 130
+      },
+      {
+        "id": "PW",
+        "name": "PW (ピッチング)",
+        "dist": 115
+      },
+      {
+        "id": "AW",
+        "name": "AW (アプローチ)",
+        "dist": 100
+      },
+      {
+        "id": "SW",
+        "name": "SW (サンド)",
+        "dist": 80
+      },
+      {
+        "id": "LW",
+        "name": "LW (ロブ)",
+        "dist": 65
+      },
+      {
+        "id": "PT",
+        "name": "PT (パター)",
+        "dist": 15
+      }
+    ],
+    "currentTeeType": "white",
+    "currentGreenSide": "R",
+    "currentSubCourseId": "out_in",
+    "updatedAt": "2026-10-21T01:41:16.752Z",
+    "lastUpdatedBy": "PC_p6gqn"
+  }
+}
