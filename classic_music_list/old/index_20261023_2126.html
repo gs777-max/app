@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opus Salon — クラシック音楽 探索・解説＆プレイヤー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#12142a;--panel:#1b1e3a;--panel2:#242848;--line:#343964;--ink:#ece8f4;--mute:#9a9bc0;--brass:#d8b36a;--rose:#c77d9a}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Noto Sans JP',system-ui,sans-serif;line-height:1.6}
+  button,input,select{font:inherit;color:inherit}
+  button{cursor:pointer;background:none;border:0;padding:0}
+  .hidden{display:none!important}
+  .serif{font-family:'Cormorant Garamond','Noto Serif JP',serif}
+  .wrap{max-width:72rem;margin:0 auto;padding:0 1rem}
+  .muted{color:var(--mute)} .rose{color:var(--rose)} .sm{font-size:.78rem;margin:0}
+  h1,h2,h3,h4,p,dl,dd{margin:0}
+  header{padding-top:2rem;padding-bottom:1.25rem}
+  h1{font-size:clamp(2.25rem,6vw,3.25rem);color:var(--brass);font-weight:700;line-height:1.1}
+  .lead{margin-top:.25rem;font-size:.9rem;color:var(--mute)}
+  .inp{width:100%;padding:.75rem 1rem;border-radius:.6rem;outline:0;background:var(--panel);border:1px solid var(--line)}
+  .inp:focus{border-color:var(--brass)}
+  #q{margin-top:1.25rem}
+  .chips{margin-top:1rem;display:flex;flex-wrap:wrap;gap:.5rem}
+  .chip{border:1px solid var(--line);color:var(--mute);border-radius:99px;padding:.35rem 1rem;font-size:.88rem;transition:.15s}
+  .chip:hover{color:var(--ink);border-color:var(--brass)}
+  .chip.on{background:var(--brass);color:#1a1630;border-color:var(--brass);font-weight:700}
+  main{padding-bottom:4rem}
+  section{margin-top:2.25rem;scroll-margin-top:1rem}
+  h2{font-size:1.6rem;font-weight:700;margin-bottom:.75rem}
+  .bar{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:.75rem;margin-bottom:.75rem}
+  .bar h2{margin:0}.bar .inp{width:min(100%,18rem);padding:.5rem .75rem;font-size:.9rem}
+  .grid{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+  .grid.w{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+  .full{grid-column:1/-1}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:.8rem;text-align:left;transition:.15s;color:var(--ink)}
+  button.card:hover{border-color:var(--brass)}
+  .card.sel{box-shadow:0 0 0 2px var(--brass)}
+  .cc{display:flex;align-items:center;gap:.75rem;padding:.75rem}
+  .cc .pt{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;background:var(--panel2)}
+  .cc .ct{min-width:0}
+  .cn{font-size:1.15rem;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .wc{display:flex;flex-direction:column;gap:.25rem;padding:1rem}
+  .wt{font-size:1.15rem;font-weight:700;line-height:1.35}
+  .tags{margin-top:.5rem;display:flex;flex-wrap:wrap;gap:.4rem}
+  .tag{font-size:.75rem;padding:.1rem .5rem;border-radius:.3rem;background:var(--panel2)}
+  .tag.b{background:var(--brass);color:#1a1630}
+  footer{padding-bottom:2.5rem;font-size:.75rem;color:var(--mute)}
+  .ld{display:flex;align-items:center;gap:.75rem;padding:.75rem 0;font-size:.88rem;color:var(--mute)}
+  .spin{width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--brass);border-radius:50%;animation:sp .8s linear infinite;flex:none}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .err{padding:.75rem;border-radius:.6rem;font-size:.88rem;background:#3a2036;border:1px solid var(--rose)}
+  .err button{margin-left:.5rem;text-decoration:underline;color:var(--brass)}
+  .ov{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.72);padding:1rem;overflow-y:auto}
+  .md{position:relative;max-width:48rem;margin:1rem auto;background:var(--panel);border:1px solid var(--line);border-radius:1rem;padding:1.5rem;animation:pop .2s ease-out}
+  @keyframes pop{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .md>section{margin-top:1.5rem}
+  .md h3{font-size:1.9rem;font-weight:700;padding-right:2.5rem;line-height:1.2}
+  .md h4{font-size:1rem;margin-bottom:.5rem}
+  .x{position:absolute;top:.75rem;right:.75rem;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);color:var(--mute);font-size:1.3rem;line-height:1}
+  .x:hover{color:var(--ink);border-color:var(--brass)}
+  .basic{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.5rem}
+  .basic div{background:var(--panel2);border-radius:.5rem;padding:.6rem .75rem}
+  .basic dt{font-size:.75rem;color:var(--mute)} .basic dd{font-weight:500;font-size:.9rem}
+  .txt{font-size:.9rem;line-height:1.9;max-height:18rem;overflow-y:auto;padding-right:.5rem}
+  .txt p+p{margin-top:.75rem}
+  a{color:var(--brass)}
+  select{width:100%;padding:.5rem .75rem;border-radius:.5rem;background:var(--panel2);border:1px solid var(--line);font-size:.88rem}
+  label.l{display:block;font-size:.75rem;color:var(--mute);margin:.5rem 0 .25rem}
+  .pl{margin-top:.75rem;background:var(--panel2);border-radius:.8rem;padding:1rem}
+  .pl .tn{font-size:.88rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ctl{display:flex;align-items:center;gap:.75rem;margin-top:.75rem}
+  .play{width:44px;height:44px;border-radius:50%;background:var(--brass);color:#1a1630;font-weight:700;flex:none}
+  .tm{font-size:.75rem;width:2.6rem;font-variant-numeric:tabular-nums}
+  .vol{display:flex;align-items:center;gap:.5rem;margin-top:.75rem;font-size:.75rem;color:var(--mute)}
+  input[type=range]{accent-color:var(--brass);flex:1}.vol input{flex:none;width:7rem}
+  :focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){.md,.spin{animation:none}}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <h1 class="serif">Opus Salon</h1>
+  <p class="lead">時代と作曲家から名曲をたどり、解説を読みながらパブリックドメイン音源を試聴できます。</p>
+  <input id="q" class="inp" type="search" placeholder="作曲家を検索（例: Bach, Mozart, Chopin）" autocomplete="off">
+  <div id="epochs" class="chips" role="group" aria-label="時代区分"></div>
+</header>
+
+<main class="wrap">
+  <section aria-labelledby="ch">
+    <h2 id="ch" class="serif">作曲家</h2>
+    <div id="composers" class="grid"></div>
+  </section>
+  <section id="worksSec" class="hidden" aria-labelledby="wh">
+    <div class="bar">
+      <h2 id="wh" class="serif">作品一覧</h2>
+      <input id="wq" class="inp" type="search" placeholder="作品名・ジャンルで絞り込み">
+    </div>
+    <div id="works" class="grid w"></div>
+  </section>
+</main>
+
+<footer class="wrap">データ: OpenOpus / Wikipedia / Internet Archive（いずれもAPIキー不要）。音源は検索結果に依存し、曲名と一致しない場合があります。</footer>
+
+<div id="modal" class="ov hidden" role="dialog" aria-modal="true" aria-labelledby="mt">
+  <div class="md">
+    <button id="close" class="x" aria-label="閉じる">×</button>
+    <p id="mc" class="sm rose" style="font-size:.88rem"></p>
+    <h3 id="mt" class="serif"></h3>
+    <p id="ms" class="sm muted" style="margin-top:.25rem"></p>
+    <section><h4>基本詳細</h4><dl id="basic" class="basic"></dl></section>
+    <section><h4>楽曲の概要・歴史的背景</h4><div id="wiki"></div></section>
+    <section>
+      <h4>試聴プレイヤー</h4>
+      <div id="arch"></div>
+      <div id="player" class="pl hidden">
+        <p id="trackName" class="tn"></p>
+        <div class="ctl">
+          <button id="play" class="play" aria-label="再生">▶</button>
+          <span id="cur" class="tm" style="text-align:right">0:00</span>
+          <input id="seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="シークバー">
+          <span id="dur" class="tm">0:00</span>
+        </div>
+        <div class="vol">音量 <input id="vol" type="range" min="0" max="1" step="0.05" value="0.8" aria-label="音量"></div>
+        <audio id="audio" preload="none"></audio>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+  const API = 'https://api.openopus.org';
+  const EPOCHS = [['', '人気'], ['Medieval', '中世'], ['Renaissance', 'ルネサンス'], ['Baroque', 'バロック'], ['Classical', '古典派'],
+    ['Early Romantic', '初期ロマン派'], ['Romantic', 'ロマン派'], ['20th Century', '20世紀'], ['Post-War', '戦後'], ['21st Century', '21世紀']];
+  const EJ = Object.fromEntries(EPOCHS);
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const enc = encodeURIComponent;
+  const spinner = msg => `<div class="ld"><div class="spin"></div>${esc(msg)}</div>`;
+  const errBox = (msg, retry) => `<div class="err">${esc(msg)}${retry ? `<button data-retry="${retry}">再試行</button>` : ''}</div>`;
+  async function jget(u, ms = 15000) {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
+    try {
+      const r = await fetch(u, { signal: ctl.signal });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } catch (e) { throw new Error(e.name === 'AbortError' ? '応答がタイムアウトしました' : e.message); }
+    finally { clearTimeout(t); }
+  }
+  const fmt = t => (isFinite(t) ? Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0') : '0:00');
+  const yr = s => String(s || '').slice(0, 4);
+
+  let epoch = '', composers = [], current = null, works = [], timer, listTok = 0, workTok = 0, modalTok = 0;
+
+  /* ---------- 時代チップ ---------- */
+  $('epochs').innerHTML = EPOCHS.map(([k, v]) => `<button class="chip ${k === epoch ? 'on' : ''}" data-e="${k}">${v}</button>`).join('');
+  $('epochs').addEventListener('click', e => {
+    const b = e.target.closest('[data-e]'); if (!b) return;
+    epoch = b.dataset.e;
+    document.querySelectorAll('#epochs .chip').forEach(x => x.classList.toggle('on', x === b));
+    loadComposers();
+  });
+  $('q').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(loadComposers, 350); });
+
+  /* ---------- 作曲家 ---------- */
+  async function loadComposers() {
+    const tok = ++listTok, q = $('q').value.trim(), box = $('composers');
+    box.innerHTML = `<div class="full">${spinner('作曲家を読み込み中…')}</div>`;
+    try {
+      let url;
+      if (q.length >= 2) url = `${API}/composer/list/search/${enc(q)}.json`;
+      else if (epoch) url = `${API}/composer/list/epoch/${enc(epoch)}.json`;
+      else url = `${API}/composer/list/pop.json`;
+      const j = await jget(url);
+      if (tok !== listTok) return;
+      if (!Array.isArray(j.composers)) throw new Error('データ形式が不正です');
+      composers = j.composers.filter(c => !epoch || c.epoch === epoch);
+      renderComposers(q);
+    } catch (e) {
+      if (tok !== listTok) return;
+      box.innerHTML = `<div class="full">${errBox('作曲家一覧を取得できませんでした。(' + e.message + ')', 'composers')}</div>`;
+    }
+  }
+  function renderComposers(q) {
+    const box = $('composers');
+    if (!composers.length) { box.innerHTML = `<p class="full sm muted" style="font-size:.9rem">${q ? '「' + esc(q) + '」に一致する作曲家が見つかりません。英語表記（例: Beethoven）でもお試しください。' : 'この時代の作曲家が見つかりません。'}</p>`; return; }
+    box.innerHTML = composers.map((c, i) => `
+      <button data-i="${i}" class="card cc ${current && current.id === c.id ? 'sel' : ''}">
+        <img class="pt" src="${esc(c.portrait)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+        <div class="ct">
+          <p class="cn serif">${esc(c.name)}</p>
+          <p class="sm muted">${esc(yr(c.birth))}–${esc(yr(c.death))}</p>
+          <p class="sm rose">${esc(EJ[c.epoch] || c.epoch)}・${esc(c.country || '')}</p>
+        </div>
+      </button>`).join('');
+  }
+  $('composers').addEventListener('click', e => {
+    if (e.target.closest('[data-retry]')) return loadComposers();
+    const b = e.target.closest('[data-i]'); if (b) selectComposer(composers[+b.dataset.i]);
+  });
+
+  /* ---------- 作品 ---------- */
+  async function selectComposer(c) {
+    current = c; renderComposers($('q').value.trim());
+    const tok = ++workTok, sec = $('worksSec'), box = $('works');
+    sec.classList.remove('hidden'); $('wq').value = '';
+    $('wh').textContent = `${c.complete_name || c.name} の作品`;
+    box.innerHTML = `<div class="full">${spinner('作品を読み込み中…')}</div>`;
+    sec.scrollIntoView({ block: 'start' });
+    try {
+      const j = await jget(`${API}/work/list/composer/${c.id}/genre/all.json`);
+      if (tok !== workTok) return;
+      if (!Array.isArray(j.works)) throw new Error('作品データがありません');
+      works = j.works.slice().sort((a, b) => (+b.recommended || 0) - (+a.recommended || 0) || (+b.popular || 0) - (+a.popular || 0));
+      renderWorks();
+    } catch (e) {
+      if (tok !== workTok) return;
+      box.innerHTML = `<div class="full">${errBox('作品リストを取得できませんでした。(' + e.message + ')', 'works')}</div>`;
+    }
+  }
+  function renderWorks() {
+    const q = $('wq').value.trim().toLowerCase(), box = $('works');
+    const list = works.filter(w => !q || (w.title + ' ' + (w.subtitle || '') + ' ' + w.genre + ' ' + (w.searchterms || '')).toLowerCase().includes(q));
+    if (!list.length) { box.innerHTML = `<p class="full sm muted" style="font-size:.9rem">条件に合う作品がありません。</p>`; return; }
+    box.innerHTML = list.slice(0, 120).map(w => {
+      const m = meta(w);
+      return `<button data-w="${esc(w.id)}" class="card wc">
+        <span class="wt serif">${esc(w.title)}</span>
+        ${w.subtitle ? `<span class="sm muted">${esc(w.subtitle)}</span>` : ''}
+        <span class="tags">
+          <span class="tag rose">${esc(w.genre)}</span>
+          ${m.opus ? `<span class="tag">${esc(m.opus)}</span>` : ''}
+          ${m.key ? `<span class="tag">${esc(m.key)}</span>` : ''}
+          ${+w.recommended ? `<span class="tag b">おすすめ</span>` : ''}
+        </span></button>`;
+    }).join('') + (list.length > 120 ? `<p class="full sm muted">上位120件を表示中。絞り込み検索をご利用ください。</p>` : '');
+  }
+  $('wq').addEventListener('input', renderWorks);
+  $('works').addEventListener('click', e => {
+    if (e.target.closest('[data-retry]') && current) return selectComposer(current);
+    const b = e.target.closest('[data-w]'); if (!b) return;
+    const w = works.find(x => String(x.id) === b.dataset.w); if (w) openModal(w, current);
+  });
+
+  function meta(w) {
+    const s = w.title + ' ' + (w.subtitle || '');
+    const opus = (s.match(/\b(Op\.?\s?\d+[a-z]?(?:\s?(?:No|Nr)\.?\s?\d+)?|BWV\s?\d+[a-z]?|K\.?\s?\d+[a-z]?|D\.?\s?\d+[a-z]?|Hob\.?\s?[IVX]+[:/]\s?\w+|RV\s?\d+|WoO\s?\d+|HWV\s?\d+)/) || [])[1] || '';
+    const key = (s.match(/\bin ([A-G](?:[- ]?(?:sharp|flat))? (?:major|minor))/i) || [])[1] || '';
+    return { opus: opus.replace(/\s+/g, ' '), key };
+  }
+
+  /* ---------- モーダル ---------- */
+  const audio = $('audio'); let tracks = [], tIdx = 0;
+  function openModal(w, c) {
+    const tok = ++modalTok, m = meta(w);
+    $('mc').textContent = `${c.complete_name || c.name}（${EJ[c.epoch] || c.epoch}）`;
+    $('mt').textContent = w.title; $('ms').textContent = w.subtitle || '';
+    const rows = [['作曲家', c.complete_name || c.name], ['時代', EJ[c.epoch] || c.epoch], ['ジャンル', w.genre], ['作品番号', m.opus || '（情報なし）'], ['調性', m.key || '（情報なし）'], ['生没年', `${yr(c.birth)}–${yr(c.death)}`]];
+    $('basic').innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('');
+    $('wiki').innerHTML = spinner('Wikipediaから解説を取得中…');
+    $('arch').innerHTML = spinner('Internet Archiveで音源を検索中…');
+    stopPlayer(); $('player').classList.add('hidden');
+    $('modal').classList.remove('hidden'); $('modal').scrollTop = 0; document.body.style.overflow = 'hidden'; $('close').focus();
+    loadWiki(w, c, tok); loadArchive(w, c, tok);
+  }
+  function closeModal() { modalTok++; stopPlayer(); $('modal').classList.add('hidden'); document.body.style.overflow = ''; }
+  $('close').onclick = closeModal;
+  $('modal').addEventListener('mousedown', e => { if (e.target === $('modal')) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('modal').classList.contains('hidden')) closeModal(); });
+
+  async function wikiFind(q) {
+    const u = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${enc(q)}&gsrlimit=1&prop=extracts|info&inprop=url&exintro=1&explaintext=1&exsentences=10&format=json&origin=*`;
+    const j = await jget(u);
+    const p = j.query && j.query.pages && Object.values(j.query.pages)[0];
+    return p && p.extract && p.extract.trim().length > 80 ? { title: p.title, text: p.extract.trim(), url: p.fullurl } : null;
+  }
+  async function loadWiki(w, c, tok) {
+    const box = $('wiki');
+    try {
+      const clean = w.title.replace(/\(.*?\)/g, '').trim();
+      let r = await wikiFind(`${clean} ${c.complete_name || c.name}`), fallback = false;
+      if (!r && tok === modalTok) r = await wikiFind(`${clean} ${c.name} composition`);
+      if (!r && tok === modalTok) { r = await wikiFind(c.complete_name || c.name); fallback = true; }
+      if (tok !== modalTok) return;
+      if (!r) { box.innerHTML = errBox('この楽曲に関する解説が見つかりませんでした。'); return; }
+      box.innerHTML = `${fallback ? `<p class="sm rose" style="margin-bottom:.5rem">楽曲の個別記事が見つからなかったため、作曲家の解説を表示しています。</p>` : ''}
+        <div class="txt">${r.text.split(/\n+/).map(p => `<p>${esc(p)}</p>`).join('')}</div>
+        <p class="sm muted" style="margin-top:.5rem">出典: Wikipedia「${esc(r.title)}」（英語版） <a href="${esc(r.url)}" target="_blank" rel="noopener">記事を開く</a></p>`;
+    } catch (e) {
+      if (tok === modalTok) box.innerHTML = errBox('Wikipediaから解説を取得できませんでした。(' + e.message + ')');
+    }
+  }
+
+  async function archSearch(q) {
+    const u = `https://archive.org/advancedsearch.php?q=${enc(q + ' AND mediatype:audio')}&fl[]=identifier&fl[]=title&sort[]=downloads+desc&rows=10&output=json`;
+    const j = await jget(u);
+    return (j.response && j.response.docs) || [];
+  }
+  async function loadArchive(w, c, tok) {
+    const box = $('arch');
+    try {
+      const t = w.title.replace(/\(.*?\)/g, '').split(/ in |,/)[0].trim();
+      let docs = await archSearch(`${c.name} ${t}`), fallback = false;
+      if (!docs.length && tok === modalTok) { docs = await archSearch(`${c.name} ${w.genre}`); fallback = true; }
+      if (tok !== modalTok) return;
+      if (!docs.length) { box.innerHTML = errBox('再生できるパブリックドメイン音源が見つかりませんでした。'); return; }
+      box.innerHTML = `${fallback ? `<p class="sm rose" style="margin-bottom:.5rem">この曲の音源は見つからなかったため、同じ作曲家・ジャンルの音源を表示しています。</p>` : ''}
+        <label class="l" for="recSel">録音を選択</label>
+        <select id="recSel">${docs.map(d => `<option value="${esc(d.identifier)}">${esc(d.title || d.identifier)}</option>`).join('')}</select>
+        <div id="trackBox"></div>`;
+      const sel = $('recSel');
+      sel.onchange = () => loadItem(sel.value, tok);
+      loadItem(sel.value, tok);
+    } catch (e) {
+      if (tok === modalTok) box.innerHTML = errBox('音源の検索に失敗しました。(' + e.message + ')');
+    }
+  }
+  async function loadItem(id, tok) {
+    const tb = $('trackBox'); if (!tb) return;
+    stopPlayer(); $('player').classList.add('hidden');
+    tb.innerHTML = spinner('トラック情報を取得中…');
+    try {
+      const j = await jget(`https://archive.org/metadata/${enc(id)}`);
+      if (tok !== modalTok) return;
+      tracks = (j.files || []).filter(f => /\.mp3$/i.test(f.name))
+        .map(f => ({ title: f.title || f.name.replace(/^.*\//, '').replace(/\.mp3$/i, ''), url: `https://archive.org/download/${enc(id)}/${f.name.split('/').map(enc).join('/')}` }));
+      if (!tracks.length) { tb.innerHTML = errBox('この録音にはMP3が含まれていません。別の録音を選んでください。'); return; }
+      tb.innerHTML = `<label class="l" for="trkSel">トラック（${tracks.length}件）</label>
+        <select id="trkSel">${tracks.map((t, i) => `<option value="${i}">${esc(t.title)}</option>`).join('')}</select>`;
+      $('trkSel').onchange = e => setTrack(+e.target.value, false);
+      $('player').classList.remove('hidden');
+      setTrack(0, false);
+    } catch (e) {
+      if (tok === modalTok) tb.innerHTML = errBox('トラック情報を取得できませんでした。(' + e.message + ')');
+    }
+  }
+
+  /* ---------- プレイヤー ---------- */
+  function setTrack(i, autoplay) {
+    tIdx = i; const t = tracks[i]; if (!t) return;
+    if ($('trkSel')) $('trkSel').value = i;
+    audio.src = t.url; audio.volume = +$('vol').value;
+    $('trackName').textContent = t.title; $('seek').value = 0; $('cur').textContent = '0:00'; $('dur').textContent = '0:00';
+    if (autoplay) audio.play().catch(() => {});
+  }
+  function stopPlayer() { audio.pause(); if (audio.getAttribute('src')) { audio.removeAttribute('src'); audio.load(); } $('play').textContent = '▶'; }
+  $('play').onclick = () => {
+    if (!audio.getAttribute('src')) return;
+    if (audio.paused) audio.play().catch(e => { $('trackName').textContent = '⚠ 再生できませんでした: ' + e.message; });
+    else audio.pause();
+  };
+  audio.addEventListener('play', () => { $('play').textContent = '❚❚'; $('play').setAttribute('aria-label', '一時停止'); });
+  audio.addEventListener('pause', () => { $('play').textContent = '▶'; $('play').setAttribute('aria-label', '再生'); });
+  audio.addEventListener('loadedmetadata', () => { $('dur').textContent = fmt(audio.duration); });
+  audio.addEventListener('timeupdate', () => {
+    $('cur').textContent = fmt(audio.currentTime);
+    if (audio.duration) $('seek').value = (audio.currentTime / audio.duration) * 100;
+  });
+  audio.addEventListener('ended', () => { if (tIdx + 1 < tracks.length) setTrack(tIdx + 1, true); });
+  audio.addEventListener('error', () => { if (audio.getAttribute('src')) $('trackName').textContent = '⚠ このトラックは再生できません。別のトラックをお試しください。'; });
+  $('seek').addEventListener('input', e => { if (audio.duration) audio.currentTime = (e.target.value / 100) * audio.duration; });
+  $('vol').addEventListener('input', e => { audio.volume = +e.target.value; });
+
+  loadComposers();
+})();
+</script>
+</body>
+</html>
