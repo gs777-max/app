@@ -17,7 +17,7 @@
   .serif{font-family:'Cormorant Garamond','Noto Serif JP',serif}
   .wrap{max-width:72rem;margin:0 auto;padding:0 1rem}
   .muted{color:var(--mute)} .rose{color:var(--rose)} .sm{font-size:.78rem;margin:0}
-  h1,h2,h3,h4,p,dl,dd{margin:0}
+  h1,h2,h3,h4,p,dl,dd,ul{margin:0}
   header{padding-top:2rem;padding-bottom:1.25rem}
   .top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
   h1{font-size:clamp(2.25rem,6vw,3.25rem);color:var(--brass);font-weight:700;line-height:1.1}
@@ -29,28 +29,41 @@
   .chip{border:1px solid var(--line);color:var(--mute);border-radius:99px;padding:.35rem 1rem;font-size:.88rem;transition:.15s;white-space:nowrap}
   .chip:hover{color:var(--ink);border-color:var(--brass)}
   .chip.on{background:var(--brass);color:#1a1630;border-color:var(--brass);font-weight:700}
+  .chip.fv{border-color:var(--rose);color:var(--rose)}
+  .chip.fv.on{background:var(--rose);color:#1a1630;border-color:var(--rose)}
   main{padding-bottom:4rem}
   section{margin-top:2.25rem;scroll-margin-top:1rem}
   h2{font-size:1.6rem;font-weight:700;margin-bottom:.75rem}
-  .bar{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:.75rem;margin-bottom:.75rem}
-  .bar h2{margin:0}.bar .inp{width:min(100%,18rem);padding:.5rem .75rem;font-size:.9rem}
+  .bar{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:.75rem;margin-bottom:.5rem}
+  .bar h2{margin:0}
+  .ctrls{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+  .ctrls .inp{width:min(100%,15rem);padding:.5rem .75rem;font-size:.9rem}
+  .ctrls select{width:auto}
+  #ystat{min-height:1.2rem;margin-bottom:.5rem}
   .grid{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
   .grid.w{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
   .full{grid-column:1/-1}
+  .cw{position:relative;display:flex}
+  .cw>.card{flex:1;min-width:0}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:.8rem;text-align:left;transition:.15s;color:var(--ink)}
   button.card:hover{border-color:var(--brass)}
   .card.sel{box-shadow:0 0 0 2px var(--brass)}
-  .cc{display:flex;align-items:center;gap:.75rem;padding:.75rem}
+  .star{position:absolute;top:.35rem;right:.4rem;width:34px;height:34px;border-radius:50%;font-size:1.25rem;line-height:1;color:var(--brass)}
+  .star.off{color:var(--mute)}
+  .star:hover{background:var(--panel2)}
+  .cc{display:flex;align-items:center;gap:.75rem;padding:.75rem 2.6rem .75rem .75rem}
   .cc .pt{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;background:var(--panel2)}
   .cc .ct{min-width:0}
   .cn{font-size:1.1rem;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .wc{display:flex;flex-direction:column;gap:.25rem;padding:1rem}
+  .wc{display:flex;flex-direction:column;gap:.25rem;padding:1rem 2.6rem 1rem 1rem}
   .wt{font-size:1.1rem;font-weight:700;line-height:1.4}
   .tags{margin-top:.5rem;display:flex;flex-wrap:wrap;gap:.4rem}
   .tag{font-size:.75rem;padding:.1rem .5rem;border-radius:.3rem;background:var(--panel2)}
   .tag.b{background:var(--brass);color:#1a1630}
+  .tag.s{color:var(--brass)}
   footer{padding-bottom:2.5rem;font-size:.75rem;color:var(--mute)}
   .ld{display:flex;align-items:center;gap:.75rem;padding:.75rem 0;font-size:.88rem;color:var(--mute)}
+  .ld.s{padding:0;font-size:.78rem}.ld.s .spin{width:14px;height:14px;border-width:2px}
   .spin{width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--brass);border-radius:50%;animation:sp .8s linear infinite;flex:none}
   @keyframes sp{to{transform:rotate(360deg)}}
   .err{padding:.75rem;border-radius:.6rem;font-size:.88rem;background:#3a2036;border:1px solid var(--rose)}
@@ -66,6 +79,10 @@
   .basic{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.5rem}
   .basic div{background:var(--panel2);border-radius:.5rem;padding:.6rem .75rem}
   .basic dt{font-size:.75rem;color:var(--mute)} .basic dd{font-weight:500;font-size:.9rem}
+  .stars{font-size:1.5rem;color:var(--brass);letter-spacing:.1em}
+  .dl{background:var(--panel2);border-radius:.6rem;padding:.9rem 1rem;font-size:.88rem}
+  .dl h5{margin:.75rem 0 .25rem;font-size:.82rem;color:var(--rose)}
+  .dl ul{padding-left:1.2rem}.dl li{margin:.2rem 0;line-height:1.7}
   .txt{font-size:.9rem;line-height:1.9;max-height:18rem;overflow-y:auto;padding-right:.5rem}
   .txt p+p{margin-top:.75rem}
   a{color:var(--brass)}
@@ -95,20 +112,24 @@
 </header>
 
 <main class="wrap">
-  <section>
-    <h2 class="serif" data-ja="作曲家" data-en="Composers"></h2>
+  <section id="compSec">
+    <h2 id="ch" class="serif"></h2>
     <div id="composers" class="grid"></div>
   </section>
   <section id="worksSec" class="hidden">
     <div class="bar">
       <h2 id="wh" class="serif"></h2>
-      <input id="wq" class="inp" type="search" data-phja="作品名・ジャンルで絞り込み" data-phen="Filter by title or genre">
+      <div class="ctrls">
+        <select id="sortSel" aria-label="Sort"></select>
+        <input id="wq" class="inp" type="search" data-phja="作品名・ジャンルで絞り込み" data-phen="Filter by title or genre">
+      </div>
     </div>
+    <div id="ystat" class="sm muted"></div>
     <div id="works" class="grid w"></div>
   </section>
 </main>
 
-<footer class="wrap" data-ja="データ: OpenOpus / Wikipedia / Internet Archive（いずれもAPIキー不要）。作品名・作曲家名の日本語表記は自動変換のため、一部は英語のまま、または不正確な場合があります。音源は検索結果に依存し、曲名と一致しないことがあります。" data-en="Data: OpenOpus / Wikipedia / Internet Archive (no API keys). Recordings depend on search results and may not match the work exactly."></footer>
+<footer class="wrap" data-ja="データ: OpenOpus / Wikipedia / Wikidata / Internet Archive（いずれもAPIキー不要）。日本語表記・作曲年・ピアノ難易度・知名度は自動推定を含む目安であり（知名度はOpenOpusの人気・おすすめ指定とWikipediaの言語版数から算出）、不正確な場合があります（「約」は推定）。お気に入りはこのブラウザ内（localStorage）に保存されます。" data-en="Data: OpenOpus / Wikipedia / Wikidata / Internet Archive (no API keys). Years, piano difficulty and fame are estimates and may be inaccurate (fame is derived from OpenOpus popular/recommended flags and the number of Wikipedia language editions) (“c.” = estimated). Favorites are stored in this browser (localStorage)."></footer>
 
 <div id="modal" class="ov hidden" role="dialog" aria-modal="true" aria-labelledby="mt">
   <div class="md">
@@ -116,7 +137,9 @@
     <p id="mc" class="sm rose" style="font-size:.88rem"></p>
     <h3 id="mt" class="serif"></h3>
     <p id="ms" class="sm muted" style="margin-top:.25rem"></p>
+    <button id="favBtn" class="chip fv" style="margin-top:.75rem"></button>
     <section><h4 data-ja="基本詳細" data-en="Details"></h4><dl id="basic" class="basic"></dl></section>
+    <section><h4 data-ja="ピアノ演奏の難易度" data-en="Piano difficulty"></h4><div id="diff"></div></section>
     <section><h4 data-ja="楽曲の概要・歴史的背景" data-en="Overview & historical background"></h4><div id="wiki"></div></section>
     <section>
       <h4 data-ja="試聴プレイヤー" data-en="Audio player"></h4>
@@ -150,13 +173,83 @@
   const KEYRE = /\b([A-G])(?:[- ]?(sharp|flat))? (major|minor)\b/i;
   const keyJa = (k, a, m) => (a ? (a.toLowerCase() === 'sharp' ? '嬰' : '変') : '') + KEYL[k.toUpperCase()] + (m.toLowerCase() === 'major' ? '長調' : '短調');
 
+  /* ---------- ピアノ難易度（ルールによる目安） ---------- */
+  const FACT = {
+    fast: ['速いパッセージ・音階・アルペジオが長く続き、指の独立性と持久力が必要', 'Long fast passages, scales and arpeggios demand finger independence and stamina'],
+    leap: ['大きな跳躍や広い音域の移動が多く、正確な打鍵と手の移動が求められる', 'Wide leaps and large register shifts require accurate hand movement'],
+    stretch: ['オクターヴの連続や10度の和音など、大きな手の広がりが必要', 'Octaves and wide chords require a large hand span'],
+    poly: ['複数の声部を弾き分ける対位法的な書法で、各声部のコントロールが難しい', 'Contrapuntal writing requires controlling several independent voices'],
+    rhythm: ['複雑なリズム（3対2など）や左右の独立が必要', 'Complex rhythms and hand independence are required'],
+    long: ['曲が長く、構成の把握・集中力・暗譜の負担が大きい', 'The piece is long, demanding concentration, memory and structural grasp'],
+    expr: ['音色・強弱・テンポの揺れなど、繊細な音楽的表現が求められる', 'Delicate control of tone, dynamics and rubato is required'],
+    orch: ['オーケストラ（または2台ピアノ）との合わせが必要で、独奏より要求が増える', 'Ensemble playing with orchestra (or a second piano) adds demands'],
+    harm: ['複雑な和声や臨時記号が多く、譜読みに時間がかかる', 'Dense harmony and many accidentals make reading harder'],
+    trill: ['トリルや装飾音など細かい技巧が必要', 'Trills and ornaments require refined technique'],
+    ped: ['ペダリングの工夫（半ペダルなど）が必要', 'Careful pedalling is needed'],
+    simple: ['音数が少なく、基本的な音型で書かれている', 'Few notes and basic patterns'],
+    short: ['曲が短く、構成が分かりやすい', 'Short and easy to grasp structurally'],
+    slow: ['テンポが穏やかで、落ち着いて音符を読める', 'A calm tempo allows relaxed reading'],
+    clear: ['旋律と伴奏の形が明快で、手の形を覚えやすい', 'Clear melody-and-accompaniment textures are easy to learn']
+  };
+  const HARD = new Set('fast,leap,stretch,poly,rhythm,long,expr,orch,harm,trill,ped'.split(','));
+  const LEVEL = [null, ['初級', 'Beginner'], ['初級〜中級', 'Elementary–Intermediate'], ['中級', 'Intermediate'], ['上級', 'Advanced'], ['最上級', 'Virtuoso']];
+  const RULES = [
+    ['Beethoven','Moonlight|Op\\.? ?27\\b',4,'expr,ped,fast'],['Beethoven','Path[eé]tique|Op\\.? ?13\\b',4,'fast,stretch,expr'],['Beethoven','Appassionata|Op\\.? ?57\\b',5,'fast,stretch,long,expr'],
+    ['Beethoven','Hammerklavier|Op\\.? ?106\\b',5,'poly,long,fast,leap'],['Beethoven','Waldstein|Op\\.? ?53\\b',5,'fast,leap,trill'],['Beethoven','F[uü]r Elise|WoO ?59',2,'short,clear'],
+    ['Beethoven','Piano Concerto.*(No\\.? ?5|Emperor)',5,'orch,fast,long,stretch'],['Beethoven','Piano Concerto',4,'orch,long,fast'],['Beethoven','Sonata',4,'long,expr,fast'],
+    ['Mozart','K\\.? ?545|facile',2,'clear,short,slow'],['Mozart','K\\.? ?331|Turkish|Alla Turca',3,'fast,clear,trill'],['Mozart','Fantasia|Fantasy|K\\.? ?475',4,'expr,leap,long'],
+    ['Mozart','Piano Concerto',4,'orch,expr,trill'],['Mozart','Sonata',3,'clear,trill,expr'],
+    ['Bach','Goldberg|BWV ?988',5,'poly,long,rhythm,fast'],['Bach','Anna Magdalena|Anh|Minuet in G',1,'simple,short,clear'],['Bach','Invention|BWV ?7[78]\\d',3,'poly,rhythm'],
+    ['Bach','Sinfonia',4,'poly,rhythm'],['Bach','Well[- ]Tempered|BWV ?8[4-9]\\d',4,'poly,expr'],['Bach','Chromatic Fantasy',5,'fast,leap,expr'],['Bach','Partita|Suite|Toccata|Italian Concerto',4,'poly,fast,trill'],
+    ['Chopin','[EÉ]tude',5,'fast,stretch,leap,rhythm'],['Chopin','Fantaisie[- ]Impromptu|Op\\.? ?66',5,'rhythm,fast,expr'],['Chopin','Ballade|Scherzo|Barcarolle|Sonata|Concerto|Heroic|Op\\.? ?53',5,'fast,leap,long,expr'],
+    ['Chopin','Polonaise',4,'stretch,fast,expr'],['Chopin','Nocturne',3,'expr,ped,trill,rhythm'],['Chopin','Waltz|Valse',3,'fast,trill,expr'],['Chopin','Mazurka',3,'rhythm,expr'],
+    ['Chopin','Prelude',3,'expr'],['Chopin','Impromptu|Berceuse|Fantasy|Fantaisie',4,'expr,fast,trill'],
+    ['Liszt','Campanella|Transcendental|Hungarian Rhapsody|Sonata in B|Concerto|Mazeppa|Mephisto',5,'fast,leap,stretch,long'],['Liszt','Liebestr',4,'stretch,expr,leap'],['Liszt','Consolation|Sospiro',3,'stretch,expr'],
+    ['Debussy','Clair de lune|Arabesque|Suite bergamasque|Children|R[eê]verie',3,'expr,ped,harm'],['Debussy','Prelude|Estampes|Pour le piano',4,'expr,ped,harm'],['Debussy','Images|[EÉ]tude',5,'fast,harm,expr,ped'],
+    ['Rachmanin','Concerto|Paganini|[EÉ]tude|Op\\.? ?(33|39)',5,'fast,stretch,leap,long'],['Rachmanin','Prelude',4,'stretch,expr,harm'],
+    ['Schumann','Album for the Young|Op\\.? ?68\\b',2,'simple,clear,expr'],['Schumann','Kinderszenen|Op\\.? ?15\\b',3,'expr,rhythm'],['Schumann','Fantasie|Kreisleriana|Symphonic|Carnaval|Davidsb|Concerto',5,'fast,leap,long,rhythm'],
+    ['Schubert','Impromptu|Moment',3,'expr,rhythm'],['Schubert','Wanderer|D\\.? ?760',5,'fast,leap,long,stretch'],['Schubert','Sonata',4,'long,expr'],
+    ['Brahms','Intermezzo|Op\\.? ?(117|118|119)',3,'expr,harm'],['Brahms','Sonata|Concerto|Paganini|Handel',5,'stretch,long,rhythm,orch'],
+    ['Satie','Gymnop|Gnossienne',2,'simple,slow,clear'],['Ravel','Gaspard|Jeux d.eau|Miroirs|Concerto',5,'fast,leap,harm,expr'],['Ravel','Pavane|Sonatine|Tombeau|Mother Goose',3,'expr,harm'],
+    ['Mussorgsky','Pictures',5,'stretch,long,expr,leap'],['Tchaikovsky','Piano Concerto',5,'orch,stretch,fast,long'],['Tchaikovsky','Seasons|Album for the Young|Children',2,'simple,expr'],
+    ['Mendelssohn','Songs without Words|Lieder ohne Worte',3,'expr,clear'],['Mendelssohn','Rondo capriccioso|Variations s[eé]rieuses|Concerto',4,'fast,expr,orch'],
+    ['Grieg','Lyric',2,'clear,expr'],['Grieg','Concerto',4,'orch,stretch,long'],['Prokofiev','Sonata|Concerto|Toccata',5,'fast,rhythm,leap,harm'],
+    ['Scriabin','[EÉ]tude|Sonata',5,'rhythm,stretch,harm,expr'],['Scarlatti','Sonata|K\\.? ?\\d+|L\\.? ?\\d+',3,'fast,leap,trill'],['Haydn','Sonata|Concerto',3,'clear,trill'],
+    ['Clementi','Sonatina',2,'simple,clear'],['Bart','Allegro barbaro|Sonata|Concerto',5,'rhythm,harm,fast'],['Bart','Mikrokosmos|Romanian|For Children',2,'simple,rhythm'],
+    ['Joplin','',3,'rhythm,stretch'],['Gershwin','Rhapsody in Blue',4,'rhythm,fast,stretch']
+  ].map(([a, b, s, f]) => [new RegExp(a, 'i'), new RegExp(b, 'i'), s, f.split(',')]);
+  const FORMS = [[/Etude|Étude|Study|Studies/i, 4, 'fast,leap'], [/Concerto/i, 4, 'orch,long'], [/Toccata|Rhapsody|Ballade|Scherzo|Fantasy|Fantasia|Fantaisie/i, 4, 'fast,expr'],
+    [/Fugue|Invention|Sinfonia/i, 4, 'poly'], [/Sonatina|Bagatelle|Minuet|Menuet|Album for the Young|Children|Little|Easy|Lullaby|Gymnop|Gnossienne|Romance|Songs? without|Lyric/i, 2, 'simple,clear'],
+    [/Waltz|Valse|Mazurka|Nocturne|Prelude|Impromptu|Intermezzo|Moment|Dance|Polka|March/i, 3, 'expr'], [/Sonata/i, 4, 'long,expr'], [/Variation/i, 3, 'fast,expr'], [/Suite|Partita|Pieces|Pictures/i, 3, 'expr']];
+  const HARDC = /Liszt|Rachmanin|Scriabin|Alkan|Balakirev|Godowsky|Medtner|Ligeti|Busoni|Sorabji|Ravel|Prokofiev|Stravinsky|Messiaen|Bart/i;
+  function diffOf(w, c) {
+    const t = w.title + ' ' + (w.subtitle || ''), cn = (c.name || '') + ' ' + (c.complete_name || '');
+    const isPiano = w.genre === 'Keyboard' || /piano/i.test(t);
+    if (isPiano) {
+      for (const [cr, tr, s, f] of RULES) if (cr.test(cn) && tr.test(t)) return { stars: s, f, arr: false };
+      let s = 3, f = ['expr'];
+      for (const [re, st, fs] of FORMS) if (re.test(t)) { s = st; f = fs.split(','); break; }
+      if (s >= 3 && HARDC.test(cn)) { s = Math.min(5, s + 1); f = f.concat(['fast', 'stretch']); }
+      return { stars: s, f: [...new Set(f)], arr: false };
+    }
+    if (/Symphon|Mass|Requiem|Opera|Ballet|Oratorio|Passion|Cantata/i.test(t) || w.genre === 'Stage') return { stars: 4, f: ['long', 'harm'], arr: true };
+    if (/Song|Lied|Lieder|Aria/i.test(t) || w.genre === 'Vocal') return { stars: 2, f: ['clear'], arr: true };
+    return { stars: 3, f: ['expr'], arr: true };
+  }
+  const starStr = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const enc = encodeURIComponent;
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+    del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
   let lang = 'ja'; try { if (localStorage.getItem('lang') === 'en') lang = 'en'; } catch (e) {}
   const L = (j, e) => lang === 'ja' ? j : e;
   const tx = (j, e) => `<span data-ja="${esc(j)}" data-en="${esc(e)}">${esc(L(j, e))}</span>`;
-  const spinner = (j, e) => `<div class="ld"><div class="spin"></div>${tx(j, e)}</div>`;
+  const spinner = (j, e, s) => `<div class="ld ${s ? 's' : ''}"><div class="spin"></div>${tx(j, e)}</div>`;
   const errBox = (j, e, det, retry) => `<div class="err">${tx(j, e)}${det ? ` (${esc(det)})` : ''}${retry ? `<button data-retry="${retry}">${tx('再試行', 'Retry')}</button>` : ''}</div>`;
   async function jget(u, ms = 15000) {
     const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
@@ -170,10 +263,17 @@
   const fmt = t => (isFinite(t) ? Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0') : '0:00');
   const yr = s => String(s || '').slice(0, 4);
 
+  /* ---------- お気に入り・キャッシュ ---------- */
+  const slimC = c => ({ id: c.id, name: c.name, complete_name: c.complete_name, epoch: c.epoch, country: c.country, birth: c.birth, death: c.death, portrait: c.portrait });
+  let favC = store.get('opus.favC', []), favW = store.get('opus.favW', []);
+  const isFavC = c => favC.some(x => String(x.id) === String(c.id));
+  const isFavW = w => favW.some(x => String(x.w.id) === String(w.id));
+
   /* ---------- 日本語化ヘルパー ---------- */
-  const JA = {}; // composer id -> 日本語名（'' = 見つからず）
+  const JA = store.get('opus.ja', {}); // composer id -> 日本語名（'' = 見つからず）
   async function ensureJa(list) {
     const need = list.filter(c => !(c.id in JA));
+    if (!need.length) return;
     for (let i = 0; i < need.length; i += 40) {
       const chunk = need.slice(i, i + 40), names = chunk.map(c => c.complete_name || c.name);
       try {
@@ -183,8 +283,9 @@
         (q.redirects || []).forEach(x => red[x.from] = x.to);
         (q.pages || []).forEach(p => { if (p.langlinks && p.langlinks[0]) ja[p.title] = p.langlinks[0].title; });
         chunk.forEach((c, k) => { let t = names[k]; t = norm[t] || t; t = red[t] || t; JA[c.id] = (ja[t] || '').replace(/\s*\(.*?\)\s*$/, ''); });
-      } catch (e) { chunk.forEach(c => { JA[c.id] = ''; }); }
+      } catch (e) { /* 失敗時は保存せず次回再試行 */ }
     }
+    store.set('opus.ja', JA);
   }
   const cshort = c => lang === 'ja' ? (JA[c.id] || c.name) : c.name;
   const cfull = c => lang === 'ja' ? (JA[c.id] || c.complete_name || c.name) : (c.complete_name || c.name);
@@ -202,18 +303,103 @@
   }
   const wTitle = w => L(jaTitle(w.title), w.title);
   const wSub = w => w.subtitle ? L(jaTitle(w.subtitle), w.subtitle) : '';
-  function meta(w) {
+  function rawMeta(w) {
     const s = w.title + ' ' + (w.subtitle || '');
-    const opus = (s.match(/\b(Op\.?\s?\d+[a-z]?(?:\s?(?:No|Nr)\.?\s?\d+)?|BWV\s?\d+[a-z]?|K\.?\s?\d+[a-z]?|D\.?\s?\d+[a-z]?|Hob\.?\s?[IVX]+[:/]\s?\w+|RV\s?\d+|WoO\s?\d+|HWV\s?\d+)/) || [])[1] || '';
-    const km = s.match(/\bin ([A-G])(?:[- ]?(sharp|flat))? (major|minor)\b/i);
-    const o = opus.replace(/\s+/g, ' ');
-    return { opus: lang === 'ja' ? o.replace(/^Op\.?\s?/i, '作品 ') : o, key: km ? L(keyJa(km[1], km[2], km[3]), `${km[1].toUpperCase()}${km[2] ? '-' + km[2].toLowerCase() : ''} ${km[3].toLowerCase()}`) : '' };
+    const opus = ((s.match(/\b(Op\.?\s?\d+[a-z]?(?:\s?(?:No|Nr)\.?\s?\d+)?|BWV\s?\d+[a-z]?|K\.?\s?\d+[a-z]?|D\.?\s?\d+[a-z]?|Hob\.?\s?[IVX]+[:/]\s?\w+|RV\s?\d+|WoO\s?\d+|HWV\s?\d+)/) || [])[1] || '').replace(/\s+/g, ' ');
+    return { opus, km: s.match(/\bin ([A-G])(?:[- ]?(sharp|flat))? (major|minor)\b/i) };
+  }
+  function meta(w) {
+    const { opus, km } = rawMeta(w);
+    return { opus: lang === 'ja' ? opus.replace(/^Op\.?\s?/i, '作品 ') : opus, key: km ? L(keyJa(km[1], km[2], km[3]), `${km[1].toUpperCase()}${km[2] ? '-' + km[2].toLowerCase() : ''} ${km[3].toLowerCase()}`) : '' };
   }
 
-  let epoch = '', composers = [], current = null, works = [], timer, listTok = 0, workTok = 0, modalTok = 0, wikiTok = 0, curW = null, allP = null;
-  const wikiCache = new Map();
+  /* ---------- 作曲年（Wikidata + 推定） ---------- */
+  const Y = {}; // workId -> [year, estimated]
+  const FAME = {}; // workId -> Wikipedia言語版数（Wikidata sitelinks）
+  function fameOf(w) { // OpenOpusの人気/おすすめ指定 + Wikipedia言語版数 から★1〜5
+    const sl = FAME[w.id] || 0;
+    const pts = (+w.popular ? 3 : 0) + (+w.recommended ? 2 : 0) + (sl >= 40 ? 4 : sl >= 20 ? 3 : sl >= 10 ? 2 : sl >= 4 ? 1 : 0);
+    return pts >= 8 ? 5 : pts >= 5 ? 4 : pts >= 3 ? 3 : pts >= 1 ? 2 : 1;
+  }
+  const ydisp = i => i ? (i[1] ? L('約' + i[0] + '年', 'c. ' + i[0]) : L(i[0] + '年', String(i[0]))) : L('年代不明', 'Year n/a');
+  const normOpus = s => String(s).toLowerCase().replace(/\b(no|nr)\.?\s*/g, '/').replace(/\bkv\b/, 'k').replace(/[\s.]/g, '');
+  const normTitle = s => String(s).toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  const yearOfVal = v => { const m = String(v).replace(/^\+/, '').match(/^(-?\d{1,4})/); return m ? parseInt(m[1], 10) : null; };
+  async function qidOf(c) {
+    const k = 'opus.qid.' + c.id, cached = store.get(k, null); if (cached) return cached;
+    const j = await jget(`https://en.wikipedia.org/w/api.php?action=query&prop=pageprops&ppprop=wikibase_item&redirects=1&formatversion=2&format=json&origin=*&titles=${enc(c.complete_name || c.name)}`);
+    const p = ((j.query || {}).pages || [])[0], q = p && p.pageprops && p.pageprops.wikibase_item;
+    if (!q) throw new Error('no entity'); store.set(k, q); return q;
+  }
+  async function wikidataWorks(qid) {
+    const q = `SELECT ?w ?wLabel ?inc ?pub ?code ?sl WHERE { ?w wdt:P86 wd:${qid}. OPTIONAL{?w wdt:P571 ?inc.} OPTIONAL{?w wdt:P577 ?pub.} OPTIONAL{?w wdt:P528 ?code.} OPTIONAL{?w wikibase:sitelinks ?sl.} SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } } LIMIT 6000`;
+    const j = await jget('https://query.wikidata.org/sparql?format=json&query=' + enc(q), 30000);
+    const m = new Map();
+    ((j.results || {}).bindings || []).forEach(b => {
+      const id = b.w.value; let it = m.get(id);
+      if (!it) m.set(id, it = { label: (b.wLabel || {}).value || '', inc: [], pub: [], codes: new Set(), sl: 0 });
+      if (b.sl) it.sl = Math.max(it.sl, +b.sl.value || 0);
+      if (b.inc) { const y = yearOfVal(b.inc.value); if (y) it.inc.push(y); }
+      if (b.pub) { const y = yearOfVal(b.pub.value); if (y) it.pub.push(y); }
+      if (b.code) it.codes.add(b.code.value);
+    });
+    return [...m.values()].map(it => ({ label: it.label, codes: [...it.codes], sl: it.sl, year: it.inc.length ? Math.min(...it.inc) : it.pub.length ? Math.min(...it.pub) : null })).filter(it => it.year || it.sl);
+  }
+  function computeYears(list, items, fameOut) {
+    const byCode = new Map(), byLabel = new Map(), res = {}, pts = {};
+    items.forEach(it => { it.codes.forEach(cd => { const k = normOpus(cd); if (!byCode.has(k)) byCode.set(k, []); byCode.get(k).push(it); }); byLabel.set(normTitle(it.label), it); });
+    const overlap = (a, b) => { const A = new Set(normTitle(a).split(' ')); return normTitle(b).split(' ').filter(x => A.has(x)).length; };
+    list.forEach(w => {
+      const { opus } = rawMeta(w); let it = null;
+      if (opus) { const cands = byCode.get(normOpus(opus)); if (cands) it = cands.slice().sort((a, b) => (overlap(w.title, b.label) - overlap(w.title, a.label)) || ((b.year ? 1 : 0) - (a.year ? 1 : 0)))[0]; }
+      if (!it) it = byLabel.get(normTitle(w.title));
+      let y = it ? it.year : null;
+      if (it && it.sl && fameOut) fameOut[w.id] = it.sl;
+      if (!y) { const m = (w.title + ' ' + (w.subtitle || '')).match(/\b(1[4-9]\d{2}|20[0-2]\d)\b/); if (m && !/(Op|K|D|BWV|RV|HWV|WoO)\.?\s?$/i.test(w.title.slice(0, m.index))) y = +m[1]; }
+      if (y) { res[w.id] = [y, false]; const pm = opus.match(/^(Op|K)\.?\s?(\d+)/i); if (pm) (pts[pm[1].toLowerCase()] = pts[pm[1].toLowerCase()] || []).push([+pm[2], y]); }
+    });
+    Object.values(pts).forEach(a => a.sort((x, y) => x[0] - y[0]));
+    list.forEach(w => {
+      if (res[w.id]) return;
+      const pm = rawMeta(w).opus.match(/^(Op|K)\.?\s?(\d+)/i); if (!pm) return;
+      const a = pts[pm[1].toLowerCase()]; if (!a || !a.length) return;
+      const n = +pm[2]; let lo = null, hi = null;
+      a.forEach(p => { if (p[0] <= n) lo = p; if (p[0] >= n && !hi) hi = p; });
+      let y; if (lo && hi && hi[0] !== lo[0]) y = lo[1] + (hi[1] - lo[1]) * (n - lo[0]) / (hi[0] - lo[0]); else y = (lo || hi)[1];
+      res[w.id] = [Math.round(y), true];
+    });
+    return res;
+  }
+  const applyYearCache = cid => { const m = store.get('opus.years.' + cid, null); if (m) Object.assign(Y, m); Object.assign(FAME, store.get('opus.fame.' + cid, {})); return !!m; };
+  async function loadYears(c, list, tok) {
+    const st = $('ystat');
+    if (applyYearCache(c.id) && store.get('opus.fame.' + c.id, null)) { st.textContent = ''; return; }
+    st.innerHTML = spinner('作曲年を取得中…（Wikidata）', 'Fetching composition years (Wikidata)…', true);
+    let res;
+    try {
+      const fm = {}; res = computeYears(list, await wikidataWorks(await qidOf(c)), fm); store.set('opus.fame.' + c.id, fm); Object.assign(FAME, fm);
+      store.set('opus.years.' + c.id, res); st.textContent = '';
+    } catch (e) {
+      res = computeYears(list, []);
+      if (tok === workTok) st.innerHTML = tx('作曲年を取得できませんでした。年代不明の曲は末尾に表示されます。', 'Could not fetch composition years. Works without a year are listed last.');
+    }
+    Object.assign(Y, res);
+    if (tok !== workTok) return;
+    renderWorks();
+    if (!$('modal').classList.contains('hidden') && curW) fillModal();
+  }
+
+  let epoch = '', view = 'browse', composers = [], current = null, works = [], timer, listTok = 0, workTok = 0, modalTok = 0, wikiTok = 0, curW = null, curC = null, allP = null;
+  let sortKey = store.get('opus.sort', 'yearAsc');
+  const wikiCache = new Map(), WC = new Map();
+  const compOf = w => WC.get(String(w.id)) || current;
 
   /* ---------- 言語切替 ---------- */
+  function renderSortOptions() {
+    const o = [['yearAsc', '作曲年：古い順', 'Year: oldest first'], ['yearDesc', '作曲年：新しい順', 'Year: newest first'], ['titleAsc', '名前順：昇順', 'Title: A → Z'], ['titleDesc', '名前順：降順', 'Title: Z → A'], ['diffAsc', 'ピアノ難易度：易しい順', 'Piano difficulty: easiest first'], ['diffDesc', 'ピアノ難易度：難しい順', 'Piano difficulty: hardest first'], ['fameDesc', '知名度：高い順', 'Fame: highest first'], ['fameAsc', '知名度：低い順', 'Fame: lowest first'], ['rec', 'おすすめ順', 'Recommended first']];
+    $('sortSel').innerHTML = o.map(([k, j, e]) => `<option value="${k}" ${k === sortKey ? 'selected' : ''}>${esc(L(j, e))}</option>`).join('');
+    $('sortSel').setAttribute('aria-label', L('並べ替え', 'Sort'));
+  }
   function applyStatic() {
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-ja]').forEach(e => { e.textContent = e.dataset[lang]; });
@@ -222,24 +408,40 @@
     $('close').setAttribute('aria-label', L('閉じる', 'Close'));
     $('seek').setAttribute('aria-label', L('シークバー', 'Seek')); $('vol').setAttribute('aria-label', L('音量', 'Volume'));
     document.title = L('Opus Salon — クラシック音楽 探索・解説＆プレイヤー', 'Opus Salon — Classical Music Explorer & Player');
+    $('ch').textContent = view === 'favC' ? L('お気に入り作曲家', 'Favorite composers') : L('作曲家', 'Composers');
+    renderSortOptions();
   }
   $('langBtn').onclick = async () => {
     lang = lang === 'ja' ? 'en' : 'ja';
     try { localStorage.setItem('lang', lang); } catch (e) {}
     applyStatic(); renderEpochs();
-    if (lang === 'ja') await ensureJa(current ? composers.concat(current) : composers);
+    if (lang === 'ja') await ensureJa(composers.concat(current ? [current] : [], favW.map(x => x.c)));
     renderComposers($('q').value.trim());
-    if (current) { updateWorksTitle(); renderWorks(); }
+    updateWorksTitle(); if (!$('worksSec').classList.contains('hidden')) renderWorks();
     if (!$('modal').classList.contains('hidden') && curW) { fillModal(); loadWiki(); }
   };
+  $('sortSel').onchange = e => { sortKey = e.target.value; store.set('opus.sort', sortKey); renderWorks(); };
 
-  /* ---------- 時代チップ ---------- */
+  /* ---------- 時代・お気に入りチップ ---------- */
   function renderEpochs() {
-    $('epochs').innerHTML = EPOCHS.map(([k, j, e]) => `<button class="chip ${k === epoch ? 'on' : ''}" data-e="${k}">${L(j, e)}</button>`).join('');
+    $('epochs').innerHTML =
+      `<button class="chip fv ${view === 'favC' ? 'on' : ''}" data-v="favC">★ ${esc(L('お気に入り作曲家', 'Favorite composers'))} (${favC.length})</button>` +
+      `<button class="chip fv ${view === 'favW' ? 'on' : ''}" data-v="favW">★ ${esc(L('お気に入り楽曲', 'Favorite works'))} (${favW.length})</button>` +
+      EPOCHS.map(([k, j, e]) => `<button class="chip ${view === 'browse' && k === epoch ? 'on' : ''}" data-e="${k}">${L(j, e)}</button>`).join('');
+  }
+  function setView(v) {
+    view = v; current = v === 'favW' ? null : current; works = v === 'favW' ? [] : works;
+    $('compSec').classList.toggle('hidden', v === 'favW');
+    $('ch').textContent = v === 'favC' ? L('お気に入り作曲家', 'Favorite composers') : L('作曲家', 'Composers');
+    renderEpochs();
+    if (v === 'favW') showFavWorks();
+    else { if (v === 'favC' || !current) $('worksSec').classList.add('hidden'); loadComposers(); }
   }
   $('epochs').addEventListener('click', e => {
+    const v = e.target.closest('[data-v]'); if (v) return setView(view === v.dataset.v ? 'browse' : v.dataset.v);
     const b = e.target.closest('[data-e]'); if (!b) return;
-    epoch = b.dataset.e; renderEpochs(); loadComposers();
+    epoch = b.dataset.e; if (view !== 'browse') { current = null; works = []; $('worksSec').classList.add('hidden'); } view = 'browse';
+    $('compSec').classList.remove('hidden'); $('ch').textContent = L('作曲家', 'Composers'); renderEpochs(); loadComposers();
   });
   $('q').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(loadComposers, 350); });
 
@@ -252,6 +454,13 @@
   }
   async function loadComposers() {
     const tok = ++listTok, q = $('q').value.trim(), box = $('composers');
+    if (view === 'favC') { // キャッシュから即表示
+      let list = favC.slice(); if (lang === 'ja') await ensureJa(list);
+      if (tok !== listTok) return;
+      const n = q.toLowerCase();
+      composers = n ? list.filter(c => [JA[c.id], c.name, c.complete_name].join(' ').toLowerCase().includes(n)) : list;
+      return renderComposers(q);
+    }
     box.innerHTML = `<div class="full">${spinner('作曲家を読み込み中…', 'Loading composers…')}</div>`;
     try {
       let list;
@@ -277,78 +486,131 @@
   }
   function renderComposers(q) {
     const box = $('composers');
-    if (!composers.length) { box.innerHTML = `<p class="full muted" style="font-size:.9rem">${q ? tx(`「${q}」に一致する作曲家が見つかりません。`, `No composers match "${q}".`) : tx('この時代の作曲家が見つかりません。', 'No composers found for this era.')}</p>`; return; }
-    box.innerHTML = composers.map((c, i) => `
-      <button data-i="${i}" class="card cc ${current && current.id === c.id ? 'sel' : ''}">
+    if (!composers.length) { box.innerHTML = `<p class="full muted" style="font-size:.9rem">${view === 'favC' && !favC.length ? tx('お気に入りの作曲家はまだありません。作曲家カードの ☆ で追加できます。', 'No favorite composers yet. Use ☆ on a composer card.') : q ? tx(`「${q}」に一致する作曲家が見つかりません。`, `No composers match "${q}".`) : tx('この時代の作曲家が見つかりません。', 'No composers found for this era.')}</p>`; return; }
+    box.innerHTML = composers.map((c, i) => { const f = isFavC(c); return `
+      <div class="cw"><button data-i="${i}" class="card cc ${current && current.id === c.id ? 'sel' : ''}">
         <img class="pt" src="${esc(c.portrait)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
         <div class="ct">
           <p class="cn serif">${esc(cshort(c))}</p>
           <p class="sm muted">${esc(yr(c.birth))}–${esc(yr(c.death))}</p>
           <p class="sm rose">${esc(epochLabel(c.epoch))}・${esc(countryLabel(c.country || ''))}</p>
-        </div>
-      </button>`).join('');
+        </div></button>
+        <button class="star ${f ? '' : 'off'}" data-fc="${i}" aria-label="${esc(f ? L('お気に入りから外す', 'Remove favorite') : L('お気に入りに追加', 'Add favorite'))}">${f ? '★' : '☆'}</button></div>`; }).join('');
   }
   $('composers').addEventListener('click', e => {
     if (e.target.closest('[data-retry]')) return loadComposers();
+    const f = e.target.closest('[data-fc]'); if (f) return toggleFavC(composers[+f.dataset.fc]);
     const b = e.target.closest('[data-i]'); if (b) selectComposer(composers[+b.dataset.i]);
   });
+  function toggleFavC(c) {
+    if (isFavC(c)) { favC = favC.filter(x => String(x.id) !== String(c.id)); store.del('opus.works.' + c.id); }
+    else { favC.push(slimC(c)); if (current && current.id === c.id && works.length) store.set('opus.works.' + c.id, works); }
+    store.set('opus.favC', favC); renderEpochs();
+    if (view === 'favC') loadComposers(); else renderComposers($('q').value.trim());
+  }
 
   /* ---------- 作品 ---------- */
-  const updateWorksTitle = () => { $('wh').textContent = current ? L(`${cfull(current)} の作品`, `Works by ${cfull(current)}`) : ''; };
+  const updateWorksTitle = () => { $('wh').textContent = view === 'favW' ? L('お気に入り楽曲', 'Favorite works') : current ? L(`${cfull(current)} の作品`, `Works by ${cfull(current)}`) : ''; };
+  const workSource = () => view === 'favW' ? favW.map(x => x.w) : works;
+  function showFavWorks() {
+    $('worksSec').classList.remove('hidden'); $('ystat').textContent = ''; $('wq').value = '';
+    favW.forEach(x => { WC.set(String(x.w.id), x.c); applyYearCache(x.c.id); });
+    ensureJa(favW.map(x => x.c)).then(() => { if (view === 'favW') renderWorks(); });
+    updateWorksTitle(); renderWorks();
+  }
   async function selectComposer(c) {
     current = c; renderComposers($('q').value.trim());
     const tok = ++workTok, sec = $('worksSec'), box = $('works');
-    sec.classList.remove('hidden'); $('wq').value = ''; updateWorksTitle();
-    box.innerHTML = `<div class="full">${spinner('作品を読み込み中…', 'Loading works…')}</div>`;
+    sec.classList.remove('hidden'); $('wq').value = ''; $('ystat').textContent = ''; updateWorksTitle();
+    const cached = store.get('opus.works.' + c.id, null);
+    if (cached) { works = cached; works.forEach(w => WC.set(String(w.id), c)); applyYearCache(c.id); renderWorks(); }
+    else box.innerHTML = `<div class="full">${spinner('作品を読み込み中…', 'Loading works…')}</div>`;
     sec.scrollIntoView({ block: 'start' });
     try {
       const j = await jget(`${API}/work/list/composer/${c.id}/genre/all.json`);
       if (tok !== workTok) return;
       if (!Array.isArray(j.works)) throw new Error('invalid data');
-      works = j.works.slice().sort((a, b) => (+b.recommended || 0) - (+a.recommended || 0) || (+b.popular || 0) - (+a.popular || 0));
-      renderWorks();
+      works = j.works; works.forEach(w => WC.set(String(w.id), c));
+      if (isFavC(c)) store.set('opus.works.' + c.id, works);
+      renderWorks(); loadYears(c, works, tok);
     } catch (e) {
       if (tok !== workTok) return;
-      box.innerHTML = `<div class="full">${errBox('作品リストを取得できませんでした。', 'Could not load works.', e.message, 'works')}</div>`;
+      if (!cached) box.innerHTML = `<div class="full">${errBox('作品リストを取得できませんでした。', 'Could not load works.', e.message, 'works')}</div>`;
+      else loadYears(c, works, tok);
     }
+  }
+  function sortList(list) {
+    const dec = list.map(w => ({ w, t: wTitle(w), y: Y[w.id] ? Y[w.id][0] : null, d: diffOf(w, compOf(w) || {}).stars, f: fameOf(w) })), loc = lang === 'ja' ? 'ja' : 'en';
+    const rec = (a, b) => ((+b.w.recommended || 0) - (+a.w.recommended || 0)) || ((+b.w.popular || 0) - (+a.w.popular || 0));
+    const byY = d => (a, b) => (a.y == null && b.y == null) ? rec(a, b) : a.y == null ? 1 : b.y == null ? -1 : (d * (a.y - b.y) || rec(a, b));
+    const cmp = { yearAsc: byY(1), yearDesc: byY(-1), titleAsc: (a, b) => a.t.localeCompare(b.t, loc), titleDesc: (a, b) => b.t.localeCompare(a.t, loc), diffAsc: (a, b) => (a.d - b.d) || byY(1)(a, b), diffDesc: (a, b) => (b.d - a.d) || byY(1)(a, b), fameDesc: (a, b) => (b.f - a.f) || byY(1)(a, b), fameAsc: (a, b) => (a.f - b.f) || byY(1)(a, b), rec }[sortKey] || byY(1);
+    return dec.sort(cmp).map(x => x.w);
   }
   function renderWorks() {
     const q = $('wq').value.trim().toLowerCase(), box = $('works');
-    const list = works.filter(w => !q || [w.title, w.subtitle, w.genre, w.searchterms, jaTitle(w.title), jaTitle(w.subtitle), GENRES[w.genre]].join(' ').toLowerCase().includes(q));
-    if (!list.length) { box.innerHTML = `<p class="full muted" style="font-size:.9rem">${tx('条件に合う作品がありません。', 'No matching works.')}</p>`; return; }
-    box.innerHTML = list.slice(0, 120).map(w => {
-      const m = meta(w);
-      return `<button data-w="${esc(w.id)}" class="card wc">
+    const src = workSource();
+    const list = sortList(src.filter(w => !q || [w.title, w.subtitle, w.genre, w.searchterms, jaTitle(w.title), jaTitle(w.subtitle), GENRES[w.genre]].join(' ').toLowerCase().includes(q)));
+    if (!list.length) { box.innerHTML = `<p class="full muted" style="font-size:.9rem">${view === 'favW' && !favW.length ? tx('お気に入りの楽曲はまだありません。楽曲カードの ☆ で追加できます。', 'No favorite works yet. Use ☆ on a work card.') : tx('条件に合う作品がありません。', 'No matching works.')}</p>`; return; }
+    box.innerHTML = list.slice(0, 150).map(w => {
+      const m = meta(w), d = diffOf(w, compOf(w) || {}), f = isFavW(w), c = compOf(w);
+      return `<div class="cw"><button data-w="${esc(w.id)}" class="card wc">
         <span class="wt serif">${esc(wTitle(w))}</span>
         ${w.subtitle ? `<span class="sm muted">${esc(wSub(w))}</span>` : ''}
+        ${view === 'favW' && c ? `<span class="sm rose">${esc(cshort(c))}</span>` : ''}
         <span class="tags">
+          <span class="tag s">${esc(L('ピアノ難度', 'Piano'))} ${starStr(d.stars)}${d.arr ? esc(L('（編曲想定）', ' (arr.)')) : ''}</span>
+          <span class="tag s">${esc(L('知名度', 'Fame'))} ${starStr(fameOf(w))}</span>
+          <span class="tag">${esc(ydisp(Y[w.id]))}</span>
           <span class="tag rose">${esc(genreLabel(w.genre))}</span>
           ${m.opus ? `<span class="tag">${esc(m.opus)}</span>` : ''}
           ${m.key ? `<span class="tag">${esc(m.key)}</span>` : ''}
           ${+w.recommended ? `<span class="tag b">${esc(L('おすすめ', 'Recommended'))}</span>` : ''}
-        </span></button>`;
-    }).join('') + (list.length > 120 ? `<p class="full sm muted">${tx('上位120件を表示中。絞り込み検索をご利用ください。', 'Showing the first 120. Use the filter to narrow down.')}</p>` : '');
+        </span></button>
+        <button class="star ${f ? '' : 'off'}" data-fw="${esc(w.id)}" aria-label="${esc(f ? L('お気に入りから外す', 'Remove favorite') : L('お気に入りに追加', 'Add favorite'))}">${f ? '★' : '☆'}</button></div>`;
+    }).join('') + (list.length > 150 ? `<p class="full sm muted">${tx('先頭150件を表示中。絞り込み検索をご利用ください。', 'Showing the first 150. Use the filter to narrow down.')}</p>` : '');
   }
   $('wq').addEventListener('input', renderWorks);
   $('works').addEventListener('click', e => {
     if (e.target.closest('[data-retry]') && current) return selectComposer(current);
+    const id = e.target.closest('[data-fw]'); if (id) { const w = workSource().find(x => String(x.id) === id.dataset.fw); return w && toggleFavW(w); }
     const b = e.target.closest('[data-w]'); if (!b) return;
-    const w = works.find(x => String(x.id) === b.dataset.w); if (w) openModal(w, current);
+    const w = workSource().find(x => String(x.id) === b.dataset.w); if (w) openModal(w, compOf(w));
   });
+  function toggleFavW(w) {
+    if (isFavW(w)) favW = favW.filter(x => String(x.w.id) !== String(w.id));
+    else {
+      const c = compOf(w); if (!c) return;
+      favW.push({ w, c: slimC(c) });
+      const pc = store.get('opus.wikic', {}); ['ja', 'en'].forEach(l => { const k = l + '|' + w.id; if (wikiCache.has(k)) pc[k] = wikiCache.get(k); }); store.set('opus.wikic', pc);
+    }
+    store.set('opus.favW', favW); renderEpochs(); renderWorks(); updateFavBtn();
+  }
 
   /* ---------- モーダル ---------- */
   const audio = $('audio'); let tracks = [], tIdx = 0;
+  function updateFavBtn() { if (!curW) return; const f = isFavW(curW); $('favBtn').textContent = f ? L('★ お気に入り登録済み（クリックで解除）', '★ Favorite (click to remove)') : L('☆ お気に入りに追加', '☆ Add to favorites'); $('favBtn').classList.toggle('on', f); }
+  $('favBtn').onclick = () => { if (curW) toggleFavW(curW); };
   function fillModal() {
-    const w = curW, c = current, m = meta(w);
+    const w = curW, c = curC, m = meta(w), d = diffOf(w, c);
     $('mc').textContent = `${cfull(c)}（${epochLabel(c.epoch)}）`;
     $('mt').textContent = wTitle(w);
     $('ms').textContent = lang === 'ja' ? [wSub(w), '原題: ' + w.title].filter(Boolean).join(' ／ ') : (w.subtitle || '');
     const none = L('（情報なし）', '(n/a)');
-    const rows = [[L('作曲家', 'Composer'), cfull(c)], [L('時代', 'Era'), epochLabel(c.epoch)], [L('ジャンル', 'Genre'), genreLabel(w.genre)], [L('作品番号', 'Catalog no.'), m.opus || none], [L('調性', 'Key'), m.key || none], [L('生没年', 'Years'), `${yr(c.birth)}–${yr(c.death)}`]];
+    const rows = [[L('作曲家', 'Composer'), cfull(c)], [L('時代', 'Era'), epochLabel(c.epoch)], [L('ジャンル', 'Genre'), genreLabel(w.genre)], [L('知名度', 'Fame'), starStr(fameOf(w))], [L('作曲年', 'Composed'), ydisp(Y[w.id])], [L('作品番号', 'Catalog no.'), m.opus || none], [L('調性', 'Key'), m.key || none], [L('生没年', 'Years'), `${yr(c.birth)}–${yr(c.death)}`]];
     $('basic').innerHTML = rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
+    const hard = d.f.filter(x => HARD.has(x)), easy = d.f.filter(x => !HARD.has(x)), li = a => a.map(x => `<li>${esc(L(FACT[x][0], FACT[x][1]))}</li>`).join('');
+    $('diff').innerHTML = `<p class="stars" aria-label="${d.stars}/5">${starStr(d.stars)}</p>
+      <p style="margin:.25rem 0 .6rem;font-size:.9rem"><b>${esc(L(LEVEL[d.stars][0], LEVEL[d.stars][1]))}</b>${esc(L(`（5段階中 ${d.stars}）`, ` (${d.stars} of 5)`))}</p>
+      <div class="dl">
+        ${d.arr ? `<p>${esc(L('ピアノ独奏曲ではないため、ピアノ編曲・ピアノ譜で弾く場合の目安です。編曲の内容によって大きく変わります。', 'This is not a solo piano work; the rating assumes a piano arrangement or reduction and varies greatly by arrangement.'))}</p>` : ''}
+        ${hard.length ? `<h5>${esc(L('難しい理由', 'Why it is difficult'))}</h5><ul>${li(hard)}</ul>` : ''}
+        ${easy.length ? `<h5>${esc(L('易しい理由', 'Why it is approachable'))}</h5><ul>${li(easy)}</ul>` : ''}
+        <p class="sm muted" style="margin-top:.75rem">${esc(L('※ 作曲家・曲種・作品名にもとづく目安です。楽章・版・編曲によって難易度は変わります。', '* A rough guide based on composer, form and title. Difficulty varies by movement, edition and arrangement.'))}</p>
+      </div>`;
+    updateFavBtn();
   }
   function openModal(w, c) {
-    const tok = ++modalTok; curW = w;
+    const tok = ++modalTok; curW = w; curC = c;
     fillModal();
     $('arch').innerHTML = spinner('Internet Archiveで音源を検索中…', 'Searching Internet Archive…');
     stopPlayer(); $('player').classList.add('hidden');
@@ -369,6 +631,7 @@
   }
   async function wikiGet(w, c) {
     const key = lang + '|' + w.id; if (wikiCache.has(key)) return wikiCache.get(key);
+    const saved = store.get('opus.wikic', {})[key]; if (saved) { wikiCache.set(key, saved); return saved; }
     const base = w.title.replace(/\(.*?\)/g, '').split(/ in |,/)[0].trim();
     const en = async missJa => {
       let x = await wikiFind('en', `${base} ${c.complete_name || c.name}`), fb = false;
@@ -382,11 +645,11 @@
       else { r = await wikiFind('ja', cfull(c)); if (r) r = { ...r, lang: 'ja', fb: true }; }
       if (!r) r = await en(true);
     } else r = await en(false);
-    if (r) wikiCache.set(key, r);
+    if (r) { wikiCache.set(key, r); if (isFavW(w)) { const pc = store.get('opus.wikic', {}); pc[key] = r; store.set('opus.wikic', pc); } }
     return r;
   }
   async function loadWiki() {
-    const tok = ++wikiTok, box = $('wiki'), w = curW, c = current;
+    const tok = ++wikiTok, box = $('wiki'), w = curW, c = curC;
     box.innerHTML = spinner('Wikipediaから解説を取得中…', 'Fetching description from Wikipedia…');
     try {
       const r = await wikiGet(w, c);
