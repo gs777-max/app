@@ -95,6 +95,18 @@
   .tm{font-size:.75rem;width:2.6rem;font-variant-numeric:tabular-nums}
   .vol{display:flex;align-items:center;gap:.5rem;margin-top:.75rem;font-size:.75rem;color:var(--mute)}
   input[type=range]{accent-color:var(--brass);flex:1}.vol input{flex:none;width:7rem}
+  details.rnd{padding:.9rem 1rem}
+  details.rnd summary{cursor:pointer;font-weight:700;color:var(--brass)}
+  .rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin:.9rem 0 .5rem;align-items:end}
+  .rgrid label{display:flex;flex-direction:column;gap:.25rem;font-size:.78rem;color:var(--mute)}
+  .rgrid label.rchk{flex-direction:row;align-items:center;gap:.5rem;color:var(--ink);font-size:.85rem}
+  .rgrid label.rchk input{width:18px;height:18px;accent-color:var(--brass)}
+  #rList{margin:.4rem 0 0;padding-left:1.4rem;font-size:.85rem;max-height:14rem;overflow-y:auto}
+  #rList li{margin:.25rem 0}#rList li.cur{color:var(--brass);font-weight:700}
+  .rbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#161935;border-top:1px solid var(--line);padding:.6rem 1rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+  .rbar .rinfo{flex:1;min-width:10rem}.rbar .tn{font-size:.9rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rbar input[type=range]{flex:1;min-width:8rem}
+  body.rb{padding-bottom:5.5rem}
   :focus-visible{outline:2px solid var(--brass);outline-offset:2px}
   @media (prefers-reduced-motion:reduce){.md,.spin{animation:none}}
 </style>
@@ -112,6 +124,28 @@
 </header>
 
 <main class="wrap">
+  <section id="rndSec">
+    <details id="rndBox" class="card rnd">
+      <summary data-ja="🎲 ランダム再生（停止タイマー・作曲家指定・気分と天気で選曲）" data-en="🎲 Random play (timer, composer, mood & weather)"></summary>
+      <div class="rgrid">
+        <label><span data-ja="作曲家" data-en="Composer"></span><select id="rSrc"><option value="all">all</option></select></label>
+        <label><span data-ja="停止時間" data-en="Stop after"></span><select id="rTime"></select></label>
+        <label><span data-ja="気分" data-en="Mood"></span><select id="rMood"></select></label>
+        <label><span data-ja="天気" data-en="Weather"></span><select id="rWx"></select></label>
+        <button id="rWxBtn" class="chip" data-ja="現在地の天気を取得" data-en="Get weather for my location"></button>
+        <label class="rchk"><input type="checkbox" id="rScene" checked><span data-ja="今日の気分・天気に合うリラックス曲だけを流す" data-en="Only play relaxing pieces that fit today’s mood & weather"></span></label>
+      </div>
+      <p id="rWxMsg" class="sm muted" style="min-height:1.2rem"></p>
+      <div class="ctrls" style="margin:.5rem 0">
+        <button id="rStart" class="chip on" data-ja="▶ ランダム再生を開始" data-en="▶ Start random play"></button>
+        <button id="rNext" class="chip" data-ja="⏭ 次の曲" data-en="⏭ Next"></button>
+        <button id="rStop" class="chip" data-ja="■ 停止" data-en="■ Stop"></button>
+      </div>
+      <p id="rStatus" class="sm" style="min-height:1.2rem"></p>
+      <h4 style="margin-top:.75rem;font-size:.95rem" data-ja="再生リスト（同じ曲は再生されません）" data-en="Play list (no repeats)"></h4>
+      <ol id="rList"></ol>
+    </details>
+  </section>
   <section id="compSec">
     <h2 id="ch" class="serif"></h2>
     <div id="composers" class="grid"></div>
@@ -130,6 +164,15 @@
 </main>
 
 <footer class="wrap" data-ja="データ: OpenOpus / Wikipedia / Wikidata / Internet Archive（いずれもAPIキー不要）。日本語表記・作曲年・ピアノ難易度・知名度は自動推定を含む目安であり（知名度はOpenOpusの人気・おすすめ指定とWikipediaの言語版数から算出）、不正確な場合があります（「約」は推定）。お気に入りはこのブラウザ内（localStorage）に保存されます。" data-en="Data: OpenOpus / Wikipedia / Wikidata / Internet Archive (no API keys). Years, piano difficulty and fame are estimates and may be inaccurate (fame is derived from OpenOpus popular/recommended flags and the number of Wikipedia language editions) (“c.” = estimated). Favorites are stored in this browser (localStorage)."></footer>
+
+<div id="rbar" class="rbar hidden">
+  <div class="rinfo"><p id="rNow" class="tn"></p><p id="rRemain" class="sm muted"></p></div>
+  <button id="rPlay" class="play" aria-label="Play/Pause">❚❚</button>
+  <button id="rSkip" class="chip" aria-label="Next">⏭</button>
+  <button id="rEnd" class="chip" aria-label="Stop">■</button>
+  <input id="rSeek" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek">
+  <audio id="raudio" preload="none"></audio>
+</div>
 
 <div id="modal" class="ov hidden" role="dialog" aria-modal="true" aria-labelledby="mt">
   <div class="md">
@@ -237,6 +280,90 @@
     return { stars: 3, f: ['expr'], arr: true };
   }
   const starStr = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+  const WK = new Map(), RC = new Map(); // 作品キャッシュ / ランダム再生用の作曲家レジストリ
+
+  /* ---------- 補完カタログ（OpenOpusに無い・見つからない超有名な作曲家と曲） ---------- */
+  const CUS_C = [
+    ['paganini', 'Paganini', 'Niccolò Paganini', 'Early Romantic', 'Italy', '1782-10-27', '1840-05-27', 'Paganini'],
+    ['pachelbel', 'Pachelbel', 'Johann Pachelbel', 'Baroque', 'Germany', '1653-09-01', '1706-03-03', 'Pachelbel'],
+    ['satie', 'Satie', 'Erik Satie', '20th Century', 'France', '1866-05-17', '1925-07-01', 'Satie'],
+    ['holst', 'Holst', 'Gustav Holst', '20th Century', 'United Kingdom', '1874-09-21', '1934-05-25', 'Holst'],
+    ['barber', 'Barber', 'Samuel Barber', '20th Century', 'USA', '1910-03-09', '1981-01-23', 'Barber'],
+    ['elgar', 'Elgar', 'Edward Elgar', 'Romantic', 'United Kingdom', '1857-06-02', '1934-02-23', 'Elgar'],
+    ['orff', 'Orff', 'Carl Orff', '20th Century', 'Germany', '1895-07-10', '1982-03-29', 'Orff'],
+    ['rimsky', 'Rimsky-Korsakov', 'Nikolai Rimsky-Korsakov', 'Romantic', 'Russia', '1844-03-18', '1908-06-21', 'Rimsky'],
+    ['strauss2', 'Strauss II', 'Johann Strauss II', 'Romantic', 'Austria', '1825-10-25', '1899-06-03', 'Johann Strauss'],
+    ['offenbach', 'Offenbach', 'Jacques Offenbach', 'Romantic', 'France', '1819-06-20', '1880-10-05', 'Offenbach'],
+    ['khachaturian', 'Khachaturian', 'Aram Khachaturian', '20th Century', 'Armenia', '1903-06-06', '1978-05-01', 'Khachaturian']
+  ].map(([k, name, complete_name, epoch, country, birth, death, re]) => ({ id: 'x-' + k, name, complete_name, epoch, country, birth, death, portrait: '', custom: true, re: new RegExp(re, 'i') }));
+  const CUS_W = [
+    ['Chopin', 'Nocturne in E-flat major, Op. 9 No. 2', '', 'Keyboard', 1832, 'Op\\.? ?9\\b.*(No\\.? ?2|/2)|Nocturne.*E-flat.*Op\\.? ?9'],
+    ['Chopin', 'Étude in E major, Op. 10 No. 3 "Tristesse"', '', 'Keyboard', 1832, 'Tristesse|Op\\.? ?10\\b.*(No\\.? ?3|/3)'],
+    ['Chopin', 'Waltz in D-flat major, Op. 64 No. 1 "Minute Waltz"', '', 'Keyboard', 1847, 'Minute|Op\\.? ?64\\b.*(No\\.? ?1|/1)'],
+    ['Liszt', 'Grandes études de Paganini, S. 141 No. 3 "La Campanella"', 'Based on the Rondo (3rd movement) of Paganini\'s Violin Concerto No. 2', 'Keyboard', 1851, 'Campanella'],
+    ['Liszt', 'Liebesträume, S. 541 No. 3 in A-flat major', 'Nocturne', 'Keyboard', 1850, 'Liebestr'],
+    ['Liszt', 'Hungarian Rhapsody No. 2 in C-sharp minor, S. 244', '', 'Keyboard', 1847, 'Hungarian Rhapsody.*No\\.? ?2\\b'],
+    ['Liszt', 'Un sospiro (3 Études de concert, S. 144 No. 3)', '', 'Keyboard', 1849, 'Sospiro'],
+    ['Paganini', 'Violin Concerto No. 2 in B minor, Op. 7 "La Campanella"', 'Third movement: Rondo "La Campanella"', 'Orchestral', 1826, 'Concerto.*No\\.? ?2\\b|Op\\.? ?7\\b'],
+    ['Paganini', 'Caprice No. 24 in A minor, Op. 1', 'Theme and variations', 'Chamber', 1817, 'Caprice.*24|No\\.? ?24\\b'],
+    ['Paganini', 'Violin Concerto No. 1 in D major, Op. 6', '', 'Orchestral', 1817, 'Concerto.*No\\.? ?1\\b|Op\\.? ?6\\b'],
+    ['Beethoven', 'Für Elise (Bagatelle in A minor, WoO 59)', '', 'Keyboard', 1810, 'F[uü]r Elise|WoO ?59'],
+    ['Beethoven', 'Piano Sonata No. 14 in C-sharp minor, Op. 27 No. 2 "Moonlight"', '', 'Keyboard', 1801, 'Moonlight|Op\\.? ?27\\b.*(No\\.? ?2|/2)'],
+    ['Beethoven', 'Symphony No. 9 in D minor, Op. 125 "Choral"', 'Ode to Joy', 'Orchestral', 1824, 'Op\\.? ?125|Symphony.*No\\.? ?9\\b'],
+    ['Beethoven', 'Symphony No. 5 in C minor, Op. 67', '', 'Orchestral', 1808, 'Op\\.? ?67\\b|Symphony.*No\\.? ?5\\b'],
+    ['Mozart', 'Eine kleine Nachtmusik, K. 525', 'Serenade No. 13 in G major', 'Orchestral', 1787, 'Nachtmusik|K\\.? ?525'],
+    ['Mozart', 'Piano Sonata No. 11 in A major, K. 331 "Alla turca"', 'Rondo alla turca', 'Keyboard', 1783, 'K\\.? ?331|Turca|Turkish'],
+    ['Bach', 'Orchestral Suite No. 3 in D major, BWV 1068', 'Air on the G string', 'Orchestral', 1731, 'BWV ?1068|Air on'],
+    ['Bach', 'Toccata and Fugue in D minor, BWV 565', '', 'Keyboard', 1704, 'BWV ?565|Toccata and Fugue'],
+    ['Bach', 'Cantata BWV 147: Jesu, Joy of Man\'s Desiring', '', 'Vocal', 1723, 'BWV ?147|Jesu'],
+    ['Vivaldi', 'The Four Seasons, Op. 8: Spring (Concerto in E major, RV 269)', '', 'Orchestral', 1725, 'Four Seasons|RV ?269|Spring'],
+    ['Pachelbel', 'Canon in D major', 'Canon and Gigue for three violins and basso continuo', 'Chamber', 1680, 'Canon'],
+    ['Handel', 'Messiah, HWV 56: Hallelujah chorus', '', 'Vocal', 1741, 'Hallelujah|HWV ?56|Messiah'],
+    ['Debussy', 'Suite bergamasque, L. 75: Clair de lune', '', 'Keyboard', 1890, 'Clair de lune|Bergamasque'],
+    ['Debussy', 'Arabesque No. 1 in E major, L. 66', '', 'Keyboard', 1891, 'Arabesque'],
+    ['Satie', 'Gymnopédie No. 1', '', 'Keyboard', 1888, 'Gymnop'],
+    ['Tchaikovsky', 'Swan Lake, Op. 20', 'Ballet', 'Stage', 1876, 'Swan Lake|Op\\.? ?20\\b'],
+    ['Tchaikovsky', 'The Nutcracker, Op. 71: Suite', 'Ballet', 'Stage', 1892, 'Nutcracker|Op\\.? ?71\\b'],
+    ['Tchaikovsky', 'Piano Concerto No. 1 in B-flat minor, Op. 23', '', 'Orchestral', 1875, 'Op\\.? ?23\\b|Piano Concerto.*No\\.? ?1\\b'],
+    ['Dvo', 'Symphony No. 9 in E minor, Op. 95 "From the New World"', '', 'Orchestral', 1893, 'New World|Op\\.? ?95\\b'],
+    ['Rachmanin', 'Piano Concerto No. 2 in C minor, Op. 18', '', 'Orchestral', 1901, 'Op\\.? ?18\\b|Piano Concerto.*No\\.? ?2\\b'],
+    ['Rachmanin', 'Prelude in C-sharp minor, Op. 3 No. 2', '', 'Keyboard', 1892, 'Op\\.? ?3\\b.*(No\\.? ?2|/2)|C-sharp minor.*Op\\.? ?3'],
+    ['Ravel', 'Boléro', '', 'Orchestral', 1928, 'Bol[eé]ro'],
+    ['Ravel', 'Pavane pour une infante défunte', '', 'Keyboard', 1899, 'Pavane'],
+    ['Grieg', 'Peer Gynt Suite No. 1, Op. 46: Morning Mood', '', 'Orchestral', 1875, 'Peer Gynt|Op\\.? ?46\\b'],
+    ['Saint-Sa', 'Le Carnaval des animaux: The Swan (Le Cygne)', '', 'Chamber', 1886, 'Cygne|Swan|Carnaval|Carnival'],
+    ['Saint-Sa', 'Danse macabre, Op. 40', '', 'Orchestral', 1874, 'Macabre'],
+    ['Mussorgsky', 'Pictures at an Exhibition', '', 'Keyboard', 1874, 'Pictures'],
+    ['Rimsky', 'Flight of the Bumblebee', 'From The Tale of Tsar Saltan', 'Orchestral', 1900, 'Bumble'],
+    ['Rimsky', 'Scheherazade, Op. 35', '', 'Orchestral', 1888, 'Scheherazade|Op\\.? ?35\\b'],
+    ['Holst', 'The Planets, Op. 32: Jupiter', '', 'Orchestral', 1916, 'Planets|Op\\.? ?32\\b'],
+    ['Barber', 'Adagio for Strings, Op. 11', '', 'Orchestral', 1936, 'Adagio'],
+    ['Elgar', 'Enigma Variations, Op. 36: Nimrod', '', 'Orchestral', 1899, 'Enigma|Nimrod|Op\\.? ?36\\b'],
+    ['Elgar', 'Pomp and Circumstance March No. 1, Op. 39', '', 'Orchestral', 1901, 'Pomp'],
+    ['Orff', 'Carmina Burana: O Fortuna', '', 'Vocal', 1936, 'Carmina|Fortuna'],
+    ['Schubert', 'Ave Maria, D. 839', '', 'Vocal', 1825, 'Ave Maria|D\\.? ?839'],
+    ['Brahms', 'Hungarian Dance No. 5 in G minor', '', 'Orchestral', 1869, 'Hungarian Dance'],
+    ['Brahms', 'Lullaby (Wiegenlied), Op. 49 No. 4', '', 'Vocal', 1868, 'Wiegenlied|Lullaby|Op\\.? ?49\\b'],
+    ['Schumann', 'Kinderszenen, Op. 15 No. 7: Träumerei', '', 'Keyboard', 1838, 'Tr[aä]umerei|Kinderszenen'],
+    ['Johann Strauss', 'The Blue Danube (An der schönen blauen Donau), Op. 314', '', 'Orchestral', 1867, 'Danube|Donau'],
+    ['Offenbach', 'Orpheus in the Underworld: Can-Can', '', 'Stage', 1858, 'Can-?Can|Orpheus'],
+    ['Khachaturian', 'Gayane: Sabre Dance', '', 'Stage', 1942, 'Sabre'],
+    ['Bizet', 'Carmen: Suite (Habanera, Toreador)', '', 'Stage', 1875, 'Carmen'],
+    ['Verdi', 'La traviata', 'Opera', 'Stage', 1853, 'Traviata'],
+    ['Puccini', 'Turandot: Nessun dorma', '', 'Stage', 1926, 'Turandot|Nessun']
+  ].map(([cr, title, subtitle, genre, y, dup], i) => ({ cre: new RegExp(cr, 'i'), dup: new RegExp(dup, 'i'), w: { id: 'x-w' + i, title, subtitle, genre, popular: '1', recommended: '1', searchterms: '', custom: true, y } }));
+  function mergeCustom(c, works) {
+    const key = (c.name || '') + ' ' + (c.complete_name || ''), out = (works || []).slice();
+    CUS_W.forEach(cw => {
+      if (cw.cre.test(key) && !out.some(w => w.id === cw.w.id) && !out.some(w => cw.dup.test(w.title + ' ' + (w.subtitle || '')))) out.push(cw.w);
+    });
+    return out;
+  }
+  function applyCustomYears(list) { (list || []).forEach(w => { if (w.custom) Y[w.id] = [w.y, false]; }); }
+  function addCustomComposers(list, q, ep) {
+    const n = (q || '').toLowerCase();
+    return list.concat(CUS_C.filter(cc => !list.some(c => cc.re.test(c.name + ' ' + (c.complete_name || ''))) && (!n || (cc.name + ' ' + cc.complete_name).toLowerCase().includes(n)) && (!ep || cc.epoch === ep)));
+  }
 
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -264,7 +391,7 @@
   const yr = s => String(s || '').slice(0, 4);
 
   /* ---------- お気に入り・キャッシュ ---------- */
-  const slimC = c => ({ id: c.id, name: c.name, complete_name: c.complete_name, epoch: c.epoch, country: c.country, birth: c.birth, death: c.death, portrait: c.portrait });
+  const slimC = c => ({ id: c.id, name: c.name, complete_name: c.complete_name, epoch: c.epoch, country: c.country, birth: c.birth, death: c.death, portrait: c.portrait, custom: c.custom });
   let favC = store.get('opus.favC', []), favW = store.get('opus.favW', []);
   const isFavC = c => favC.some(x => String(x.id) === String(c.id));
   const isFavW = w => favW.some(x => String(x.w.id) === String(w.id));
@@ -373,7 +500,7 @@
   const applyYearCache = cid => { const m = store.get('opus.years.' + cid, null); if (m) Object.assign(Y, m); Object.assign(FAME, store.get('opus.fame.' + cid, {})); return !!m; };
   async function loadYears(c, list, tok) {
     const st = $('ystat');
-    if (applyYearCache(c.id) && store.get('opus.fame.' + c.id, null)) { st.textContent = ''; return; }
+    if (applyYearCache(c.id) && store.get('opus.fame.' + c.id, null)) { applyCustomYears(list); st.textContent = ''; if (tok === workTok) renderWorks(); return; }
     st.innerHTML = spinner('作曲年を取得中…（Wikidata）', 'Fetching composition years (Wikidata)…', true);
     let res;
     try {
@@ -383,7 +510,7 @@
       res = computeYears(list, []);
       if (tok === workTok) st.innerHTML = tx('作曲年を取得できませんでした。年代不明の曲は末尾に表示されます。', 'Could not fetch composition years. Works without a year are listed last.');
     }
-    Object.assign(Y, res);
+    Object.assign(Y, res); applyCustomYears(list);
     if (tok !== workTok) return;
     renderWorks();
     if (!$('modal').classList.contains('hidden') && curW) fillModal();
@@ -409,7 +536,7 @@
     $('seek').setAttribute('aria-label', L('シークバー', 'Seek')); $('vol').setAttribute('aria-label', L('音量', 'Volume'));
     document.title = L('Opus Salon — クラシック音楽 探索・解説＆プレイヤー', 'Opus Salon — Classical Music Explorer & Player');
     $('ch').textContent = view === 'favC' ? L('お気に入り作曲家', 'Favorite composers') : L('作曲家', 'Composers');
-    renderSortOptions();
+    renderSortOptions(); renderRndStatic(); if ($('rndBox').open) renderRndSources();
   }
   $('langBtn').onclick = async () => {
     lang = lang === 'ja' ? 'en' : 'ja';
@@ -465,14 +592,14 @@
     try {
       let list;
       if (/[^\x00-\x7F]/.test(q)) {
-        list = await allComposers(); await ensureJa(list);
+        list = addCustomComposers(await allComposers(), '', epoch); await ensureJa(list);
         const n = q.toLowerCase();
         list = list.filter(c => (JA[c.id] || '').toLowerCase().includes(n) || (c.complete_name || '').toLowerCase().includes(n));
       } else {
         const url = q.length >= 2 ? `${API}/composer/list/search/${enc(q)}.json` : epoch ? `${API}/composer/list/epoch/${enc(epoch)}.json` : `${API}/composer/list/pop.json`;
         const j = await jget(url);
         if (!Array.isArray(j.composers)) throw new Error('invalid data');
-        list = j.composers;
+        list = addCustomComposers(j.composers, q.length >= 2 ? q : '', epoch);
       }
       if (tok !== listTok) return;
       composers = list.filter(c => !epoch || c.epoch === epoch);
@@ -523,16 +650,20 @@
     const tok = ++workTok, sec = $('worksSec'), box = $('works');
     sec.classList.remove('hidden'); $('wq').value = ''; $('ystat').textContent = ''; updateWorksTitle();
     const cached = store.get('opus.works.' + c.id, null);
-    if (cached) { works = cached; works.forEach(w => WC.set(String(w.id), c)); applyYearCache(c.id); renderWorks(); }
+    if (cached) { works = mergeCustom(c, cached); works.forEach(w => WC.set(String(w.id), c)); applyYearCache(c.id); applyCustomYears(works); renderWorks(); }
     else box.innerHTML = `<div class="full">${spinner('作品を読み込み中…', 'Loading works…')}</div>`;
     sec.scrollIntoView({ block: 'start' });
+    if (c.custom) {
+      works = mergeCustom(c, []); works.forEach(w => WC.set(String(w.id), c)); WK.set(String(c.id), works);
+      applyYearCache(c.id); applyCustomYears(works); renderWorks(); loadYears(c, works, tok); return;
+    }
     try {
       const j = await jget(`${API}/work/list/composer/${c.id}/genre/all.json`);
       if (tok !== workTok) return;
       if (!Array.isArray(j.works)) throw new Error('invalid data');
-      works = j.works; works.forEach(w => WC.set(String(w.id), c));
+      works = mergeCustom(c, j.works); works.forEach(w => WC.set(String(w.id), c)); WK.set(String(c.id), works);
       if (isFavC(c)) store.set('opus.works.' + c.id, works);
-      renderWorks(); loadYears(c, works, tok);
+      applyYearCache(c.id); applyCustomYears(works); renderWorks(); loadYears(c, works, tok);
     } catch (e) {
       if (tok !== workTok) return;
       if (!cached) box.innerHTML = `<div class="full">${errBox('作品リストを取得できませんでした。', 'Could not load works.', e.message, 'works')}</div>`;
@@ -736,6 +867,206 @@
   audio.addEventListener('error', () => { if (audio.getAttribute('src')) $('trackName').textContent = '⚠ ' + L('このトラックは再生できません。別のトラックをお試しください。', 'This track cannot be played. Try another track.'); });
   $('seek').addEventListener('input', e => { if (audio.duration) audio.currentTime = (e.target.value / 100) * audio.duration; });
   $('vol').addEventListener('input', e => { audio.volume = +e.target.value; });
+
+  /* ---------- ランダム再生 ---------- */
+  const TIMES = [30, 60, 120, 180, 240, 300, 360, 420, 480], TH = 3, BASEVOL = 0.8;
+  const MOODS = [['auto', 'おまかせ（天気・時間帯）', 'Auto (weather & time)'], ['calm', '穏やか', 'Calm'], ['cozy', 'しっとり落ち着く', 'Cozy & mellow'], ['bright', 'さわやか', 'Fresh & bright'], ['sleep', 'おやすみ前', 'Before sleep'], ['focus', '集中', 'Focus'], ['cheer', 'ほどよく明るく', 'Gently cheerful']];
+  const WXS = [['', '指定なし（時間帯のみ）', 'Not set (time of day)'], ['sunny', '晴れ', 'Sunny'], ['cloudy', '曇り', 'Cloudy'], ['rain', '雨', 'Rain'], ['snow', '雪', 'Snow'], ['night', '夜', 'Night']];
+  // [日本語名, 英語名, 加点キーワード, 加点する作曲家, 短調の加減点, 長調の加減点]
+  const PROF = {
+    calm: ['穏やか', 'Calm', /Adagio|Andante|Largo|Romance|Pastoral|Serenade|\bAir\b|Canon|Pavane|Intermezzo|Lyric|Songs? without/i, null, 0, 1],
+    cozy: ['しっとり落ち着く', 'Cozy & mellow', /Nocturne|Prelude|Gymnop|Gnossienne|R[eê]verie|Clair de lune|Elegy|Romance|Adagio|Vocalise|Consolation|Tr[aä]umerei/i, /Chopin|Debussy|Satie|Faur|Schumann|Rachmanin/i, 1, 0],
+    quiet: ['静かな冬', 'Quiet winter', /Seasons|Winter|Lyric|Pastoral|Berceuse|Lullaby|Adagio|Nocturne|Canon|\bAir\b|Ave Maria/i, /Grieg|Tchaikovsky|Sibelius|Satie|Schubert/i, 0, 0],
+    bright: ['さわやか', 'Fresh & bright', /Spring|Pastoral|Morning|Serenade|Eine kleine|Arabesque|Minuet|Waltz|Pavane|\bAir\b|Canon|Allegretto|Andante|Romance|Four Seasons|Rondo/i, /Mozart|Haydn|Vivaldi|Mendelssohn|Debussy|Ravel/i, 0, 1],
+    sleep: ['おやすみ前', 'Before sleep', /Lullaby|Berceuse|Nocturne|Gymnop|Clair de lune|R[eê]verie|Adagio|Tr[aä]umerei|Moonlight|Meditation|Vocalise|Ave Maria|Wiegenlied/i, /Satie|Chopin|Debussy|Brahms|Schubert|Faur/i, 0, 0],
+    focus: ['集中', 'Focus', /Invention|Fugue|Well[- ]Tempered|Goldberg|Partita|Suite|Sonatina|Prelude|Canon|Sinfonia|Sonata/i, /Bach|Mozart|Haydn|Handel|Scarlatti|Vivaldi|Satie|Pachelbel/i, 0, 0],
+    cheer: ['ほどよく明るく', 'Gently cheerful', /Spring|Waltz|Dance|Turkish|Turca|Minuet|Eine kleine|Rondo|Morning|Overture|Four Seasons|Danube|Serenade/i, /Mozart|Haydn|Vivaldi|Strauss|Mendelssohn|Dvo/i, 0, 1]
+  };
+  const BASE_POS = /Adagio|Andante|Largo|Lullaby|Berceuse|Nocturne|\bAir\b|Romance|Pavane|Gymnop/i;
+  const BASE_NEG = /Presto|Furioso|Finale|[EÉ]tude|Toccata|March|Requiem|Dies irae|Storm|Appassionata|Hammerklavier|Campanella|Bol[eé]ro|Fortuna|Macabre|Sabre|Can-?can|Bumble|Transcendental|Rhapsody|Mephisto|Scherzo|Heroic|Fantaisie[- ]Impromptu|Ballade|Planets|Swan Lake/i;
+  const RELAX_COMP = /Chopin|Debussy|Satie|Bach|Mozart|Schumann|Schubert|Brahms|Grieg|Faur|Ravel|Beethoven|Tchaikovsky|Dvo|Rachmanin|Pachelbel|Vivaldi|Handel|Saint-Sa|Elgar|Barber|Mendelssohn|Liszt|Haydn|Scarlatti|Sibelius|Borodin|Massenet|Puccini|Bizet|Clementi/i;
+  const ra = $('raudio'), R = { on: false, busy: false, endAt: 0, tick: null, played: new Set(), urls: new Set(), bad: new Set(), list: [], errs: 0 };
+  ra.volume = BASEVOL;
+  const wkey = (w, c) => c.id + '|' + normTitle(w.title);
+  const hms = s => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s % 60).padStart(2, '0'); };
+  const setRStatus = html => { $('rStatus').innerHTML = html; };
+
+  function renderRndStatic() {
+    const t = $('rTime').value || '60', m = $('rMood').value || 'auto', w = $('rWx').value || '';
+    $('rTime').innerHTML = TIMES.map(v => `<option value="${v}">${esc(v < 60 ? L(v + '分', v + ' min') : L(v / 60 + '時間', v / 60 + (v === 60 ? ' hour' : ' hours')))}</option>`).join('');
+    $('rMood').innerHTML = MOODS.map(([k, j, e]) => `<option value="${k}">${esc(L(j, e))}</option>`).join('');
+    $('rWx').innerHTML = WXS.map(([k, j, e]) => `<option value="${k}">${esc(L(j, e))}</option>`).join('');
+    $('rTime').value = t; $('rMood').value = m; $('rWx').value = w;
+    renderRList();
+  }
+  let popP = null;
+  function popComposers() {
+    if (!popP) popP = jget(`${API}/composer/list/pop.json`).then(j => addCustomComposers(j.composers || [], '', '')).catch(e => { popP = null; throw e; });
+    return popP;
+  }
+  async function renderRndSources() {
+    const sel = $('rSrc'), prev = sel.value || 'all';
+    let pop = []; try { pop = await popComposers(); } catch (e) {}
+    const all = new Map(); [...pop, ...favC, ...composers, ...(current ? [current] : [])].forEach(c => all.set(String(c.id), c));
+    if (lang === 'ja') await ensureJa([...all.values()]);
+    RC.clear(); all.forEach((c, id) => RC.set(id, c));
+    const opts = [...all.values()].sort((a, b) => cshort(a).localeCompare(cshort(b), lang === 'ja' ? 'ja' : 'en'));
+    sel.innerHTML = `<option value="all">${esc(L('おまかせ（人気の作曲家すべて）', 'Any (popular composers)'))}</option>
+      <option value="favC">${esc(L('お気に入り作曲家すべて', 'All favorite composers'))} (${favC.length})</option>
+      <option value="favW">${esc(L('お気に入り楽曲から', 'From favorite works'))} (${favW.length})</option>
+      <optgroup label="${esc(L('作曲家を指定', 'Pick a composer'))}">${opts.map(c => `<option value="c:${esc(c.id)}">${esc(cshort(c))}</option>`).join('')}</optgroup>`;
+    sel.value = [...sel.options].some(o => o.value === prev) ? prev : 'all';
+  }
+  $('rndBox').addEventListener('toggle', () => { if ($('rndBox').open) renderRndSources(); });
+
+  /* 気分・天気 */
+  const wxFromCode = (code, day) => !day ? 'night' : code <= 1 ? 'sunny' : (code <= 3 || code === 45 || code === 48) ? 'cloudy' : ((code >= 71 && code <= 77) || code === 85 || code === 86) ? 'snow' : 'rain';
+  $('rWxBtn').onclick = () => {
+    const msg = $('rWxMsg');
+    if (!navigator.geolocation) { msg.textContent = L('この環境では位置情報を使えません。天気を手動で選んでください。', 'Geolocation is unavailable. Please choose the weather manually.'); return; }
+    msg.textContent = L('現在地の天気を取得中…', 'Getting local weather…');
+    navigator.geolocation.getCurrentPosition(async pos => {
+      try {
+        const j = await jget(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude.toFixed(2)}&longitude=${pos.coords.longitude.toFixed(2)}&current=weather_code,is_day&timezone=auto`);
+        const k = wxFromCode(j.current.weather_code, j.current.is_day);
+        $('rWx').value = k; const x = WXS.find(v => v[0] === k);
+        msg.textContent = L('現在地の天気: ', 'Local weather: ') + L(x[1], x[2]) + '（Open-Meteo）';
+      } catch (e) { msg.textContent = L('天気を取得できませんでした。手動で選んでください。', 'Could not get the weather. Please choose manually.') + ' (' + e.message + ')'; }
+    }, () => { msg.textContent = L('位置情報を取得できませんでした。天気を手動で選んでください。', 'Could not get your location. Please choose the weather manually.'); }, { timeout: 10000 });
+  };
+  function profileKey() {
+    const m = $('rMood').value; if (m !== 'auto') return m;
+    const wx = $('rWx').value;
+    if (wx === 'night') return 'sleep'; if (wx === 'rain') return 'cozy'; if (wx === 'snow') return 'quiet'; if (wx === 'sunny') return 'bright'; if (wx === 'cloudy') return 'calm';
+    const h = new Date().getHours(); return (h >= 21 || h < 5) ? 'sleep' : 'calm';
+  }
+  function scoreWork(w, c, p) {
+    const t = w.title + ' ' + (w.subtitle || ''), cn = (c.name || '') + ' ' + (c.complete_name || '');
+    let s = 0;
+    if (BASE_NEG.test(t)) s -= 4;
+    if (/Concerto|Symphon|Opera|Mass\b|Requiem/i.test(t) && !p[2].test(t)) s -= 1;
+    if (BASE_POS.test(t)) s += 1;
+    if (p[2].test(t)) s += 3;
+    if (p[3] && p[3].test(cn)) s += 2;
+    const km = rawMeta(w).km; if (km) s += /minor/i.test(km[3]) ? p[4] : p[5];
+    if (w.genre === 'Keyboard') s += 1;
+    return s;
+  }
+
+  /* 選曲 */
+  async function getWorks(c) {
+    const k = String(c.id); if (WK.has(k)) return WK.get(k);
+    let ws = [];
+    if (!c.custom) {
+      ws = store.get('opus.works.' + c.id, null);
+      if (!ws) { const j = await jget(`${API}/work/list/composer/${c.id}/genre/all.json`); ws = Array.isArray(j.works) ? j.works : []; }
+    }
+    ws = mergeCustom(c, ws); ws.forEach(w => WC.set(String(w.id), c)); applyCustomYears(ws); WK.set(k, ws); return ws;
+  }
+  async function rComposers(src, scene) {
+    if (src === 'favC') return favC;
+    if (src.startsWith('c:')) { const c = RC.get(src.slice(2)); return c ? [c] : []; }
+    let list = await popComposers();
+    if (scene) { const f = list.filter(c => RELAX_COMP.test(c.name + ' ' + (c.complete_name || ''))); if (f.length) list = f; }
+    return list;
+  }
+  async function findAudio(w, c) {
+    const t = w.title.replace(/\(.*?\)/g, '').replace(/["“”]/g, '').split(/ in |,/)[0].trim(), op = rawMeta(w).opus;
+    for (const q of (op ? [`${c.name} ${t} ${op}`, `${c.name} ${t}`] : [`${c.name} ${t}`])) {
+      let docs = []; try { docs = await archSearch(q); } catch (e) { continue; }
+      for (const d of docs.slice(0, 4)) {
+        try {
+          const j = await jget(`https://archive.org/metadata/${enc(d.identifier)}`);
+          for (const f of (j.files || []).filter(f => /\.mp3$/i.test(f.name))) {
+            const url = `https://archive.org/download/${enc(d.identifier)}/${f.name.split('/').map(enc).join('/')}`;
+            if (!R.urls.has(url)) return { url, rec: d.title || d.identifier };
+          }
+        } catch (e) { /* 次の候補へ */ }
+      }
+    }
+    return null;
+  }
+  async function pickNext() {
+    const src = $('rSrc').value || 'all', scene = $('rScene').checked, p = PROF[profileKey()];
+    let sawAny = false;
+    for (let attempt = 0; attempt < 16 && R.on; attempt++) {
+      let c, w;
+      if (src === 'favW') {
+        const pool = favW.filter(x => !R.played.has(wkey(x.w, x.c)) && !R.bad.has(wkey(x.w, x.c)));
+        if (!pool.length) return sawAny ? 'fail' : 'done';
+        const x = pool[Math.random() * pool.length | 0]; c = x.c; w = x.w;
+      } else {
+        const comps = await rComposers(src, scene);
+        if (!comps.length) return 'none';
+        c = comps[Math.random() * comps.length | 0];
+        let ws; try { ws = await getWorks(c); } catch (e) { continue; }
+        let cand = ws.filter(x => !R.played.has(wkey(x, c)) && !R.bad.has(wkey(x, c)));
+        if (scene) cand = cand.filter(x => scoreWork(x, c, p) >= TH);
+        if (!cand.length) { if (src.startsWith('c:')) return sawAny ? 'fail' : (R.played.size ? 'done' : 'none'); continue; }
+        w = cand[Math.random() * cand.length | 0];
+      }
+      sawAny = true;
+      const au = await findAudio(w, c);
+      if (!R.on) return null;
+      if (!au) { R.bad.add(wkey(w, c)); continue; }
+      R.played.add(wkey(w, c)); R.urls.add(au.url);
+      return { w, c, au, prof: scene ? profileKey() : '' };
+    }
+    return R.on ? 'fail' : null;
+  }
+  async function playNext() {
+    if (!R.on || R.busy) return;
+    R.busy = true; $('rNow').textContent = L('選曲中…', 'Choosing a piece…');
+    let p = null; try { p = await pickNext(); } catch (e) { p = 'fail'; }
+    R.busy = false;
+    if (!R.on) return;
+    if (typeof p === 'string' || !p) return endRandom(p || 'fail');
+    R.list.push(p); renderRList();
+    $('rNow').textContent = `${wTitle(p.w)} — ${cshort(p.c)}`;
+    ra.src = p.au.url; ra.volume = BASEVOL;
+    try { await ra.play(); } catch (e) { if (e.name === 'NotAllowedError') setRStatus(esc(L('ブラウザが自動再生をブロックしました。▶ ボタンを押してください。', 'Autoplay was blocked. Press ▶.'))); }
+  }
+  function renderRList() {
+    $('rList').innerHTML = R.list.map((p, i) => `<li class="${R.on && i === R.list.length - 1 ? 'cur' : ''}">${esc(wTitle(p.w))} — ${esc(cshort(p.c))}（${esc(ydisp(Y[p.w.id]))}） <span class="sm muted">${esc(p.au.rec)}</span></li>`).join('');
+    const li = $('rList').lastElementChild; if (li && R.on) li.scrollIntoView({ block: 'nearest' });
+  }
+  function rTick() {
+    const left = (R.endAt - Date.now()) / 1000;
+    if (left <= 0) return endRandom('timeup');
+    $('rRemain').textContent = L('停止まで ', 'Stops in ') + hms(left);
+  }
+  function endRandom(reason) {
+    const was = R.on; R.on = false; R.busy = false; clearInterval(R.tick);
+    const msgs = { timeup: ['設定した停止時間になったため、再生を終了しました。', 'The stop time has been reached; playback ended.'], done: ['条件に合う曲をすべて再生しました（同じ曲は流していません）。', 'All matching pieces have been played (no repeats).'], none: ['条件に合う曲が見つかりませんでした。シーン選曲をオフにするか、作曲家・気分を変えてください。', 'No matching pieces. Turn off scene filtering or change the composer/mood.'], fail: ['再生できる音源が見つかりませんでした。作曲家や条件を変えてお試しください。', 'No playable recording was found. Try another composer or setting.'], error: ['再生エラーが続いたため停止しました。', 'Stopped after repeated playback errors.'], user: ['停止しました。', 'Stopped.'] };
+    const m = msgs[reason] || msgs.user; setRStatus(esc(L(m[0], m[1])));
+    if (!was) return;
+    let n = 10; const f = setInterval(() => {
+      n--; ra.volume = Math.max(0, BASEVOL * n / 10);
+      if (n <= 0) { clearInterval(f); ra.pause(); ra.removeAttribute('src'); ra.load(); ra.volume = BASEVOL; if (!R.on) { $('rbar').classList.add('hidden'); document.body.classList.remove('rb'); } }
+    }, reason === 'timeup' ? 300 : 40);
+    renderRList();
+  }
+  function startRandom() {
+    if (R.on) endRandom('user');
+    stopPlayer(); ra.volume = BASEVOL;
+    Object.assign(R, { on: true, busy: false, endAt: Date.now() + (+$('rTime').value) * 60000, played: new Set(), urls: new Set(), bad: new Set(), list: [], errs: 0 });
+    const scene = $('rScene').checked, p = PROF[profileKey()];
+    setRStatus(esc(scene ? L('選曲シーン: ', 'Scene: ') + L(p[0], p[1]) : L('シーン選曲: オフ（すべての曲から）', 'Scene filtering: off (any piece)')));
+    $('rbar').classList.remove('hidden'); document.body.classList.add('rb');
+    clearInterval(R.tick); R.tick = setInterval(rTick, 1000); rTick(); renderRList(); playNext();
+  }
+  $('rStart').onclick = startRandom;
+  $('rNext').onclick = $('rSkip').onclick = () => { if (R.on && !R.busy) { ra.pause(); playNext(); } };
+  $('rStop').onclick = $('rEnd').onclick = () => endRandom('user');
+  $('rPlay').onclick = () => { if (!ra.getAttribute('src')) return; ra.paused ? ra.play().catch(() => {}) : ra.pause(); };
+  ra.addEventListener('play', () => { $('rPlay').textContent = '❚❚'; stopPlayer(); });
+  ra.addEventListener('pause', () => { $('rPlay').textContent = '▶'; });
+  ra.addEventListener('playing', () => { R.errs = 0; });
+  ra.addEventListener('ended', () => { if (R.on) playNext(); });
+  ra.addEventListener('error', () => { if (!R.on || !ra.getAttribute('src')) return; R.errs++; if (R.errs >= 6) endRandom('error'); else playNext(); });
+  ra.addEventListener('timeupdate', () => { if (ra.duration) $('rSeek').value = (ra.currentTime / ra.duration) * 100; });
+  $('rSeek').addEventListener('input', e => { if (ra.duration) ra.currentTime = (e.target.value / 100) * ra.duration; });
+  audio.addEventListener('play', () => { if (R.on && !ra.paused) ra.pause(); });
 
   applyStatic(); renderEpochs(); loadComposers();
 })();
