@@ -284,6 +284,61 @@
     .pbar-vol-ctrl input[type=range]{width:4.5rem}
   }
   @media (prefers-reduced-motion:reduce){.md,.spin,.toast{animation:none;transition:none}}
+
+  /* RList & Star item styling (attachment match) */
+  #rList{margin:.4rem 0 0;padding-left:1.2rem;font-size:.85rem;max-height:16rem;overflow-y:auto}
+  .rlist-item{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+  .rlist-content{flex:1;min-width:0;line-height:1.4}
+  .rlist-star{flex:0 0 auto;width:32px;height:32px;font-size:1.2rem;color:var(--brass);display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;transition:.15s}
+  .rlist-star:hover{background:var(--panel2);transform:scale(1.15)}
+  .rlist-star.off{color:var(--mute)}
+  
+  /* Inline Star button for bottom player bar */
+  .star-btn-inline{font-size:1.15rem;color:var(--brass);cursor:pointer;padding:0 .3rem;display:inline-flex;align-items:center;justify-content:center;transition:.15s}
+  .star-btn-inline:hover{transform:scale(1.2)}
+  .star-btn-inline.off{color:var(--mute)}
+
+  /* Search Works Section */
+  #searchWorksSec{margin-top:1.8rem;background:rgba(27,30,58,.6);padding:1.2rem;border-radius:.9rem;border:1px solid var(--line-lit)}
+  .search-badge{background:var(--cyan);color:#121a2d;padding:.15rem .5rem;border-radius:.3rem;font-size:.74rem;font-weight:700;margin-left:.5rem}
+
+
+  /* Album work row play button */
+  .album-work-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.35rem .2rem;border-bottom:1px solid rgba(255,255,255,0.05);transition:background .15s}
+  .album-work-row:hover{background:rgba(255,255,255,0.03)}
+  .album-work-title{cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .album-work-title:hover{color:var(--brass)}
+  .album-work-btns{display:flex;align-items:center;gap:.35rem;flex:none}
+  .btn-work-play{font-size:.78rem;padding:.2rem .6rem;border-radius:.3rem;background:var(--brass);color:#1a1630;font-weight:700}
+  .btn-work-play:hover{filter:brightness(1.15)}
+  
+  /* Quick play button on work cards */
+  .quick-play{position:absolute;top:.35rem;right:2.5rem;width:34px;height:34px;border-radius:50%;font-size:.9rem;color:var(--brass);display:flex;align-items:center;justify-content:center;z-index:3;transition:.15s}
+  .quick-play:hover{background:var(--panel2);transform:scale(1.15);color:var(--ink)}
+
+  /* Favorite header action buttons */
+  .fav-actions{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+
+
+/* 👑 超有名曲タグ・ハイライト */
+.chip.famous-chip {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.15);
+  transition: all .2s ease;
+}
+.chip.famous-chip:hover {
+  background: rgba(245, 158, 11, 0.22);
+  transform: translateY(-1px);
+}
+.chip.famous-chip.on {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #fff !important;
+  border-color: #b45309 !important;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+}
 </style>
 </head>
 <body>
@@ -304,7 +359,7 @@
     </div>
   </div>
   <p class="lead" data-ja="時代と作曲家から名曲をたどり、解説や楽譜・音源を楽しみながらピアノ演奏の上達に役立てられます。" data-en="Explore masterpieces by era & composer, enjoy audio & sheet music, and practice piano with AB-repeat & metronome."></p>
-  <input id="q" class="inp" type="search" autocomplete="off" data-phja="作曲家を検索（例: バッハ、モーツァルト、Chopin）" data-phen="Search composers (e.g. Bach, Mozart, Chopin)">
+  <input id="q" class="inp" type="search" autocomplete="off" data-phja="作曲家・曲名を検索（例: ノクターン、ラ・カンパネラ、月光、モーツァルト）" data-phen="Search composers (e.g. Bach, Mozart, Chopin)">
   <div id="epochs" class="chips" role="group" aria-label="Era"></div>
 </header>
 
@@ -334,6 +389,16 @@
   </section>
 
   <!-- 作曲家セクション -->
+  
+  <!-- 楽曲横断検索結果セクション -->
+  <section id="searchWorksSec" class="hidden">
+    <div class="bar">
+      <h2 id="swHead" class="serif">🔍 <span data-ja="楽曲の検索結果" data-en="Work Search Results">楽曲の検索結果</span> <span id="swCount" class="search-badge">0件</span></h2>
+      <button id="swClose" class="chip sm" style="padding:.2rem .6rem">✕ <span data-ja="検索結果を閉じる" data-en="Close">閉じる</span></button>
+    </div>
+    <div id="searchWorksList" class="grid w" style="margin-top:.8rem"></div>
+  </section>
+  
   <section id="compSec">
     <h2 id="ch" class="serif"></h2>
     <div id="composers" class="grid"></div>
@@ -342,7 +407,13 @@
   <!-- 作品一覧セクション -->
   <section id="worksSec" class="hidden">
     <div class="bar">
-      <h2 id="wh" class="serif"></h2>
+      <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+        <h2 id="wh" class="serif"></h2>
+        <div id="favPlayBar" class="fav-actions hidden">
+          <button id="btnPlayFavAll" class="chip on" style="font-size:.85rem;padding:.35rem .9rem">▶ <span data-ja="お気に入りを全曲再生" data-en="Play all favorites">お気に入りを全曲再生</span></button>
+          <button id="btnShuffleFav" class="chip" style="font-size:.85rem;padding:.35rem .8rem">🔀 <span data-ja="シャッフル再生" data-en="Shuffle">シャッフル再生</span></button>
+        </div>
+      </div>
       <div class="ctrls">
         <select id="sortSel" aria-label="Sort"></select>
         <input id="wq" class="inp" type="search" data-phja="作品名・ジャンルで絞り込み" data-phen="Filter by title or genre">
@@ -378,6 +449,7 @@
       <div class="pbar-title-wrap">
         <span id="pbModeBadge" class="pbar-badge">通常再生</span>
         <span id="pbTitle" class="pbar-title">楽曲未選択</span>
+        <button id="pbStarBtn" class="star-btn-inline off" title="お気に入り・アルバムに追加" aria-label="お気に入り・アルバムに追加">☆</button>
       </div>
       <div class="pbar-sub-wrap">
         <span id="pbComposer" class="pbar-composer">—</span>
@@ -596,13 +668,999 @@
 <script>
 (() => {
   const API = 'https://api.openopus.org';
+
+  /* ==========================================================
+     👑 誰もが知る「超有名な曲」50選+ カタログデータ
+     ========================================================== */
+  const SUPER_FAMOUS_WORKS = [
+    {
+      w: {
+        id: "sf_chopin_nocturne_9_2",
+        title: "Nocturne in E-flat major, Op. 9 No. 2",
+        subtitle: "夜想曲 第2番 変ホ長調 作品9の2",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "chopin nocturne no.2 op.9-2 ショパン 夜想曲 ノクターン ノタクーン のくたーん のたくーん",
+        desc_ja: "甘美で繊細な旋律が世界中で愛される、ショパンの最も有名な夜想曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/e/e6/Frederic_Chopin_-_Nocturne_Op_9_No_2_E_Flat_Major.ogg"
+      },
+      c: { id: "86", name: "Chopin", complete_name: "Frédéric Chopin", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/86.jpg" }
+    },
+    {
+      w: {
+        id: "sf_liszt_campanella",
+        title: "La campanella in G-sharp minor, S. 141 No. 3",
+        subtitle: "パガニーニによる大練習曲 第3番「ラ・カンパネラ」",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "liszt la campanella paganini リスト ラ・カンパネラ ラカンパネラ カンパネルラ ら・かんぱねるら らかんぱねるら かんぱねら 鐘",
+        desc_ja: "高音で鳴り響く小さな鐘の音を描いた、超絶技巧ピアノの極致。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Liszt_-_La_Campanella.ogg"
+      },
+      c: { id: "128", name: "Liszt", complete_name: "Franz Liszt", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/128.jpg" }
+    },
+    {
+      w: {
+        id: "sf_beethoven_elise",
+        title: "Für Elise in A minor, WoO 59",
+        subtitle: "エリーゼのために バガテル イ短調",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "beethoven fur elise bagatelle ベートーヴェン エリーゼのために えりーぜ",
+        desc_ja: "哀愁を帯びた愛らしい冒頭テーマで親しまれる、ピアノの不滅の小品。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/9/90/Beethoven_-_Fur_Elise.ogg"
+      },
+      c: { id: "19", name: "Beethoven", complete_name: "Ludwig van Beethoven", epoch: "Early Romantic", portrait: "https://assets.openopus.org/portraits/19.jpg" }
+    },
+    {
+      w: {
+        id: "sf_beethoven_moonlight",
+        title: "Piano Sonata No. 14 in C-sharp minor, Op. 27 No. 2 \"Moonlight\"",
+        subtitle: "ピアノソナタ第14番 嬰ハ短調「月光」第1楽章 アダージョ・ソステヌート",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "beethoven moonlight sonata no.14 op.27-2 ベートーヴェン 月光ソナタ げっこう",
+        desc_ja: "静まり返る夜の湖面に揺れる月光のような、幻想的で深い静寂の調べ。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/c/c8/Beethoven_Moonlight_1st_movement.ogg"
+      },
+      c: { id: "19", name: "Beethoven", complete_name: "Ludwig van Beethoven", epoch: "Early Romantic", portrait: "https://assets.openopus.org/portraits/19.jpg" }
+    },
+    {
+      w: {
+        id: "sf_beethoven_sym5",
+        title: "Symphony No. 5 in C minor, Op. 67 \"Fate\"",
+        subtitle: "交響曲第5番 ハ短調「運命」第1楽章",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "beethoven symphony no.5 fate op.67 ベートーヴェン 運命 うんめい だだだだーん",
+        desc_ja: "「運命はこのように扉を叩く」と語られた、歴史上最も有名な4つの音符。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/d/da/Beethoven_Symphony_5_1st_movement.ogg"
+      },
+      c: { id: "19", name: "Beethoven", complete_name: "Ludwig van Beethoven", epoch: "Early Romantic", portrait: "https://assets.openopus.org/portraits/19.jpg" }
+    },
+    {
+      w: {
+        id: "sf_beethoven_sym9",
+        title: "Symphony No. 9 in D minor, Op. 125 \"Choral\"",
+        subtitle: "交響曲第9番 ニ短調「合唱付き」第4楽章（歓喜の歌）",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "beethoven symphony no.9 choral ode to joy ベートーヴェン 第九 歓喜の歌 だいく かんきのうた",
+        desc_ja: "人類の兄弟愛と自由を高らかに歌い上げる、年末の風物詩としても名高い最高傑作。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/c/ce/Beethoven_Symphony_9_Ode_to_Joy.ogg"
+      },
+      c: { id: "19", name: "Beethoven", complete_name: "Ludwig van Beethoven", epoch: "Early Romantic", portrait: "https://assets.openopus.org/portraits/19.jpg" }
+    },
+    {
+      w: {
+        id: "sf_mozart_turkish",
+        title: "Piano Sonata No. 11 in A major, K. 331: III. Alla Turca",
+        subtitle: "ピアノソナタ第11番 イ長調「トルコ行進曲」",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "mozart turkish march alla turca k.331 モーツァルト トルコ行進曲 とるここうしんきょく",
+        desc_ja: "オスマン軍楽隊のエキゾチックな響きを取り入れた、軽快で華やかな行進曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/2/23/Mozart_Alla_Turca.ogg"
+      },
+      c: { id: "148", name: "Mozart", complete_name: "Wolfgang Amadeus Mozart", epoch: "Classical", portrait: "https://assets.openopus.org/portraits/148.jpg" }
+    },
+    {
+      w: {
+        id: "sf_mozart_eine",
+        title: "Serenade No. 13 in G major, K. 525 \"Eine kleine Nachtmusik\"",
+        subtitle: "セレナード第13番 ト長調「アイネ・クライネ・ナハトムジーク」第1楽章",
+        genre: "Chamber",
+        popular: "1",
+        recommended: "1",
+        searchterms: "mozart eine kleine nachtmusik k.525 モーツァルト アイネクライネナハトムジーク 小夜曲",
+        desc_ja: "モーツァルトの晴れやかな天才性が輝く、クラシック屈指の爽快なアンサンブル。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/b/b5/Mozart_-_Eine_kleine_Nachtmusik_-_1._Allegro.ogg"
+      },
+      c: { id: "148", name: "Mozart", complete_name: "Wolfgang Amadeus Mozart", epoch: "Classical", portrait: "https://assets.openopus.org/portraits/148.jpg" }
+    },
+    {
+      w: {
+        id: "sf_mozart_lacrimosa",
+        title: "Requiem in D minor, K. 626: Sequentia. Lacrimosa",
+        subtitle: "レクイエム ニ短調「涙の日（ラクリモーサ）」",
+        genre: "Vocal",
+        popular: "1",
+        recommended: "1",
+        searchterms: "mozart requiem lacrimosa k.626 モーツァルト レクイエム 涙の日 なみだのひ",
+        desc_ja: "モーツァルトが死の床で書き残した、痛切な美しさに満ちた永遠の祈り。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/b/b8/Mozart_Requiem_Lacrimosa.ogg"
+      },
+      c: { id: "148", name: "Mozart", complete_name: "Wolfgang Amadeus Mozart", epoch: "Classical", portrait: "https://assets.openopus.org/portraits/148.jpg" }
+    },
+    {
+      w: {
+        id: "sf_bach_air",
+        title: "Orchestral Suite No. 3 in D major, BWV 1068: II. Air",
+        subtitle: "管弦楽組曲第3番 ニ長調より「G線上のアリア」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "bach air on the g string bwv 1068 バッハ G線上のアリア じーせんじょうのありあ",
+        desc_ja: "ヴァイオリンのG線1本でも奏でられることから名付けられた、静謐で崇高な名曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Air_on_the_G_String_-_Johann_Sebastian_Bach.ogg"
+      },
+      c: { id: "10", name: "Bach", complete_name: "Johann Sebastian Bach", epoch: "Baroque", portrait: "https://assets.openopus.org/portraits/10.jpg" }
+    },
+    {
+      w: {
+        id: "sf_bach_toccata",
+        title: "Toccata and Fugue in D minor, BWV 565",
+        subtitle: "トッカータとフーガ ニ短調 BWV 565",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "bach toccata and fugue in d minor bwv 565 バッハ トッカータとフーガ オルガン パイプオルガン",
+        desc_ja: "劇的なオルガンの咆哮で始まり、荘厳なフーガへと展開するバロックの象徴。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/8/87/Toccata_and_Fugue_in_D_minor_BWV_565.ogg"
+      },
+      c: { id: "10", name: "Bach", complete_name: "Johann Sebastian Bach", epoch: "Baroque", portrait: "https://assets.openopus.org/portraits/10.jpg" }
+    },
+    {
+      w: {
+        id: "sf_bach_jesu",
+        title: "Herz und Mund und Tat und Leben, BWV 147: Jesu, Joy of Man's Desiring",
+        subtitle: "カンタータ第147番より「主よ、人の望みの喜びよ」",
+        genre: "Vocal",
+        popular: "1",
+        recommended: "1",
+        searchterms: "bach jesu joy of mans desiring bwv 147 バッハ 主よ人の望みの喜びよ しゅよひとののぞみのよろこびよ",
+        desc_ja: "流れるような美しい旋律が心を洗う、結婚式や祝祭でも愛奏される傑作。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/2/29/Jesu%2C_Joy_of_Man%27s_Desiring.ogg"
+      },
+      c: { id: "10", name: "Bach", complete_name: "Johann Sebastian Bach", epoch: "Baroque", portrait: "https://assets.openopus.org/portraits/10.jpg" }
+    },
+    {
+      w: {
+        id: "sf_bach_cello1",
+        title: "Cello Suite No. 1 in G major, BWV 1007: I. Prelude",
+        subtitle: "無伴奏チェロ組曲第1番 ト長調「プレリュード」",
+        genre: "Chamber",
+        popular: "1",
+        recommended: "1",
+        searchterms: "bach cello suite no.1 prelude bwv 1007 バッハ 無伴奏チェロ組曲 プレリュード",
+        desc_ja: "一本のチェロが豊穣なハーモニーを紡ぎ出す、弦楽器音楽の至高の到達点。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/7/77/Bach_-_Cello_Suite_No._1_in_G_Major_-_BWV_1007_-_I._Prelude.ogg"
+      },
+      c: { id: "10", name: "Bach", complete_name: "Johann Sebastian Bach", epoch: "Baroque", portrait: "https://assets.openopus.org/portraits/10.jpg" }
+    },
+    {
+      w: {
+        id: "sf_pachelbel_canon",
+        title: "Canon and Gigue in D major, P. 37",
+        subtitle: "パッヘルベルのカノン（カノンとジーグ ニ長調）",
+        genre: "Chamber",
+        popular: "1",
+        recommended: "1",
+        searchterms: "pachelbel canon in d パッヘルベル カノン かのん カノンコード",
+        desc_ja: "現代ポップスにも受け継がれる黄金のコード進行を持つ、安らぎの不朽の名作。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/8/8c/Pachelbel%27s_Canon.ogg"
+      },
+      c: { id: "154", name: "Pachelbel", complete_name: "Johann Pachelbel", epoch: "Baroque", portrait: "https://assets.openopus.org/portraits/154.jpg" }
+    },
+    {
+      w: {
+        id: "sf_vivaldi_spring",
+        title: "The Four Seasons: Concerto No. 1 in E major \"Spring\", RV 269",
+        subtitle: "ヴァイオリン協奏曲「四季」より「春」第1楽章 アレグロ",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "vivaldi four seasons spring rv 269 ヴィヴァルディ 四季 春 はる",
+        desc_ja: "小鳥のさえずりや小川のせせらぎが聞こえてくるような、生命感あふれる春の賛歌。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/3/3c/Vivaldi_Spring_mvt_1_Allegro.ogg"
+      },
+      c: { id: "196", name: "Vivaldi", complete_name: "Antonio Vivaldi", epoch: "Baroque", portrait: "https://assets.openopus.org/portraits/196.jpg" }
+    },
+    {
+      w: {
+        id: "sf_debussy_clair",
+        title: "Suite bergamasque: III. Clair de lune",
+        subtitle: "ベルガマスク組曲より第3曲「月の光」",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "debussy clair de lune suite bergamasque ドビュッシー 月の光 つきのひかり",
+        desc_ja: "印象派音楽の代名詞。夜の光と影が織りなす夢幻の色彩世界。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/2/22/Debussy_-_Clair_de_Lune.ogg"
+      },
+      c: { id: "62", name: "Debussy", complete_name: "Claude Debussy", epoch: "Post-Romantic", portrait: "https://assets.openopus.org/portraits/62.jpg" }
+    },
+    {
+      w: {
+        id: "sf_satie_gymnopedie1",
+        title: "Trois Gymnopédies: No. 1, Lent et douloureux",
+        subtitle: "ジムノペディ 第1番",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "satie gymnopedie no.1 サティ ジムノペディ じむのぺでぃ",
+        desc_ja: "削ぎ落とされた透明な和音が静かに漂う、現代アンビエントの先駆的傑作。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/7/75/Erik_Satie_-_Gymnopedie_No_1.ogg"
+      },
+      c: { id: "167", name: "Satie", complete_name: "Erik Satie", epoch: "Modern", portrait: "https://assets.openopus.org/portraits/167.jpg" }
+    },
+    {
+      w: {
+        id: "sf_chopin_fantasie",
+        title: "Fantaisie-Impromptu in C-sharp minor, Op. posth. 66",
+        subtitle: "幻想即興曲 嬰ハ短調 遺作 作品66",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "chopin fantaisie impromptu op.66 ショパン 幻想即興曲 げんそうそっきょうきょく",
+        desc_ja: "怒涛のように駆け巡る急速なパッセージと、中間部の優美な歌の劇的コントラスト。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/5/53/Chopin_Fantaisie-Impromptu.ogg"
+      },
+      c: { id: "86", name: "Chopin", complete_name: "Frédéric Chopin", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/86.jpg" }
+    },
+    {
+      w: {
+        id: "sf_chopin_polonaise6",
+        title: "Polonaise in A-flat major, Op. 53 \"Heroic\"",
+        subtitle: "ポロネーズ第6番 変イ長調「英雄ポロネーズ」",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "chopin heroic polonaise op.53 ショパン 英雄ポロネーズ えいゆうぽろねーず",
+        desc_ja: "祖国ポーランドへの熱き誇りと圧倒的な壮麗さを誇る、ショパンの最高峰ポロネーズ。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/2/21/Chopin_Polonaise_Op_53.ogg"
+      },
+      c: { id: "86", name: "Chopin", complete_name: "Frédéric Chopin", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/86.jpg" }
+    },
+    {
+      w: {
+        id: "sf_chopin_minute_waltz",
+        title: "Waltz in D-flat major, Op. 64 No. 1 \"Minute Waltz\"",
+        subtitle: "ワルツ第6番 変ニ長調「子犬のワルツ」",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "chopin minute waltz op.64 no.1 ショパン 子犬のワルツ こいぬのわるつ",
+        desc_ja: "子犬が自分の尻尾を追いかけてくるくる回る姿を描いたとされる、愛らしい名曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Chopin_Minute_Waltz.ogg"
+      },
+      c: { id: "86", name: "Chopin", complete_name: "Frédéric Chopin", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/86.jpg" }
+    },
+    {
+      w: {
+        id: "sf_chopin_etude_10_3",
+        title: "Étude in E major, Op. 10 No. 3 \"Tristesse\"",
+        subtitle: "練習曲 作品10の3 ホ長調「別れの曲」",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "chopin etude op.10 no.3 tristesse ショパン 別れの曲 わかれのきょく",
+        desc_ja: "「これほど美しい旋律は生涯書いたことがない」とショパン自身が語った珠玉の歌。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/9/9c/Chopin_Etude_Op._10_No._3.ogg"
+      },
+      c: { id: "86", name: "Chopin", complete_name: "Frédéric Chopin", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/86.jpg" }
+    },
+    {
+      w: {
+        id: "sf_chopin_revolutionary",
+        title: "Étude in C minor, Op. 10 No. 12 \"Revolutionary\"",
+        subtitle: "練習曲 作品10の12 ハ短調「革命のエチュード」",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "chopin revolutionary etude op.10 no.12 ショパン 革命のエチュード かくめい",
+        desc_ja: "ワルシャワ陥落の報に激高したショパンが放った、左手の咆哮が凄絶な練習曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/3/30/Chopin_-_Etude_Op._10%2C_No._12.ogg"
+      },
+      c: { id: "86", name: "Chopin", complete_name: "Frédéric Chopin", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/86.jpg" }
+    },
+    {
+      w: {
+        id: "sf_liszt_liebestraum",
+        title: "Liebesträume No. 3 in A-flat major, S. 541 / 3",
+        subtitle: "愛の夢 第3番「おお、愛しうる限り愛せ」",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "liszt liebestraum no.3 s.541 リスト 愛の夢 あいのゆめ",
+        desc_ja: "ロマン派の熱い情熱と甘美な憧れが溢れる、ピアノ名曲中の名曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Liszt_Liebestraum_No._3.ogg"
+      },
+      c: { id: "128", name: "Liszt", complete_name: "Franz Liszt", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/128.jpg" }
+    },
+    {
+      w: {
+        id: "sf_tchaikovsky_swan_lake",
+        title: "Swan Lake Suite, Op. 20a: Scene",
+        subtitle: "バレエ組曲「白鳥の湖」より「情景」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "tchaikovsky swan lake op.20a チャイコフスキー 白鳥の湖 はくちょうのみずうみ",
+        desc_ja: "オーボエの哀しくも気高い旋律が湖上の白鳥たちを浮かび上がらせる、不朽のバレエ音楽。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/4/4d/Tchaikovsky_Swan_Lake_Scene.ogg"
+      },
+      c: { id: "189", name: "Tchaikovsky", complete_name: "Pyotr Ilyich Tchaikovsky", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/189.jpg" }
+    },
+    {
+      w: {
+        id: "sf_tchaikovsky_flowers",
+        title: "The Nutcracker Suite, Op. 71a: Waltz of the Flowers",
+        subtitle: "バレエ組曲「くるみ割り人形」より「花のワルツ」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "tchaikovsky nutcracker waltz of the flowers チャイコフスキー くるみ割り人形 花のワルツ",
+        desc_ja: "ハープの華麗なカデンツァからホルンの優雅な旋律へと広がる、おとぎ話の華麗な舞踏会。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Tchaikovsky_Waltz_of_the_Flowers.ogg"
+      },
+      c: { id: "189", name: "Tchaikovsky", complete_name: "Pyotr Ilyich Tchaikovsky", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/189.jpg" }
+    },
+    {
+      w: {
+        id: "sf_tchaikovsky_sugar_plum",
+        title: "The Nutcracker Suite, Op. 71a: Dance of the Sugar Plum Fairy",
+        subtitle: "バレエ組曲「くるみ割り人形」より「金平糖の精の踊り」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "tchaikovsky dance of the sugar plum fairy チャイコフスキー 金平糖の精の踊り こんぺいとう",
+        desc_ja: "チェレスタの神秘的な鈴のような音色が幻想的な世界へと誘う名曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/Tchaikovsky_Dance_of_the_Sugar_Plum_Fairy.ogg"
+      },
+      c: { id: "189", name: "Tchaikovsky", complete_name: "Pyotr Ilyich Tchaikovsky", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/189.jpg" }
+    },
+    {
+      w: {
+        id: "sf_tchaikovsky_pconc1",
+        title: "Piano Concerto No. 1 in B-flat minor, Op. 23: I. Allegro non troppo",
+        subtitle: "ピアノ協奏曲第1番 変ロ短調「冒頭導入部」",
+        genre: "Concertante",
+        popular: "1",
+        recommended: "1",
+        searchterms: "tchaikovsky piano concerto no.1 op.23 チャイコフスキー ピアノ協奏曲第1番",
+        desc_ja: "ホルンのファンファーレと重厚なピアノの和音打鍵で幕を開ける、協奏曲の王道。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/0/08/Tchaikovsky_Piano_Concerto_1_intro.ogg"
+      },
+      c: { id: "189", name: "Tchaikovsky", complete_name: "Pyotr Ilyich Tchaikovsky", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/189.jpg" }
+    },
+    {
+      w: {
+        id: "sf_rachmaninoff_pconc2",
+        title: "Piano Concerto No. 2 in C minor, Op. 18: I. Moderato",
+        subtitle: "ピアノ協奏曲第2番 ハ短調 第1楽章",
+        genre: "Concertante",
+        popular: "1",
+        recommended: "1",
+        searchterms: "rachmaninoff piano concerto no.2 op.18 ラフマニノフ ピアノ協奏曲第2番",
+        desc_ja: "鐘のように響くピアノの独奏からロシアの大地を思わせる悲壮で雄大な主題へ。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/9/91/Rachmaninoff_Piano_Concerto_No._2_in_C_minor%2C_Op._18_-_I._Moderato.ogg"
+      },
+      c: { id: "159", name: "Rachmaninoff", complete_name: "Sergei Rachmaninoff", epoch: "Post-Romantic", portrait: "https://assets.openopus.org/portraits/159.jpg" }
+    },
+    {
+      w: {
+        id: "sf_rachmaninoff_var18",
+        title: "Rhapsody on a Theme of Paganini, Op. 43: Variation XVIII",
+        subtitle: "パガニーニの主題による狂詩曲 第18変奏 アンダンテ・カンタービレ",
+        genre: "Concertante",
+        popular: "1",
+        recommended: "1",
+        searchterms: "rachmaninoff rhapsody on a theme of paganini variation 18 ラフマニノフ パガニーニの主題による狂詩曲 第18変奏",
+        desc_ja: "主題を上下反転させて生まれた奇跡のメロディ。息をのむほど甘美なロマンティシズム。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/6/69/Rachmaninoff_Rhapsody_on_a_Theme_of_Paganini_Var_18.ogg"
+      },
+      c: { id: "159", name: "Rachmaninoff", complete_name: "Sergei Rachmaninoff", epoch: "Post-Romantic", portrait: "https://assets.openopus.org/portraits/159.jpg" }
+    },
+    {
+      w: {
+        id: "sf_elgar_pomp",
+        title: "Pomp and Circumstance Marches, Op. 39: March No. 1 in D major",
+        subtitle: "行進曲「威風堂々」第1番（希望と栄光の国）",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "elgar pomp and circumstance march no.1 エルガー 威風堂々 いふうどうどう",
+        desc_ja: "イギリスの「第2の国歌」とも称される、堂々たる高貴なトリオ旋律が胸を打つ大行進曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/6/67/Elgar_Pomp_and_Circumstance_March_No_1.ogg"
+      },
+      c: { id: "68", name: "Elgar", complete_name: "Edward Elgar", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/68.jpg" }
+    },
+    {
+      w: {
+        id: "sf_elgar_salut",
+        title: "Salut d'Amour in E major, Op. 12",
+        subtitle: "愛の挨拶 作品12",
+        genre: "Chamber",
+        popular: "1",
+        recommended: "1",
+        searchterms: "elgar salut damour op.12 エルガー 愛の挨拶 あいのあいさつ",
+        desc_ja: "婚約者アリスへの真心の愛を込めて贈られた、優しさと温もりに満ちた小品。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/a/ab/Elgar_Salut_d%27Amour.ogg"
+      },
+      c: { id: "68", name: "Elgar", complete_name: "Edward Elgar", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/68.jpg" }
+    },
+    {
+      w: {
+        id: "sf_holst_jupiter",
+        title: "The Planets, Op. 32: IV. Jupiter, the Bringer of Jollity",
+        subtitle: "組曲「惑星」より「木星（快楽をもたらす者）」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "holst the planets jupiter op.32 ホルスト 惑星 木星 もくせい ジュピター",
+        desc_ja: "中間部の雄大な讃美歌（平原綾香「Jupiter」の原曲）で知られる壮大な宇宙絵巻。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Holst_The_Planets_Jupiter.ogg"
+      },
+      c: { id: "109", name: "Holst", complete_name: "Gustav Holst", epoch: "Modern", portrait: "https://assets.openopus.org/portraits/109.jpg" }
+    },
+    {
+      w: {
+        id: "sf_dvorak_new_world",
+        title: "Symphony No. 9 in E minor, Op. 95 \"From the New World\": II. Largo",
+        subtitle: "交響曲第9番「新世界より」第2楽章 ラルゴ（家路 / 遠き山に日は落ちて）",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "dvorak symphony no.9 from the new world largo ドヴォルザーク 新世界より 家路 いえじ しんせかい",
+        desc_ja: "イングリッシュホルンが郷愁を誘う、夕暮れの風景と故郷への想いを描いた名章。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/5/5a/Dvorak_Symphony_9_Largo.ogg"
+      },
+      c: { id: "66", name: "Dvořák", complete_name: "Antonín Dvořák", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/66.jpg" }
+    },
+    {
+      w: {
+        id: "sf_brahms_hungarian5",
+        title: "Hungarian Dances, WoO 1: No. 5 in F-sharp minor",
+        subtitle: "ハンガリー舞踊 第5番 嬰ヘ短調",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "brahms hungarian dance no.5 woo 1 ブラームス ハンガリー舞踊 第5番 はんがりーぶよう",
+        desc_ja: "情熱的なテンポの緩急とジプシー音楽のエキゾチックな高揚感がたまらない名曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/9/90/Brahms_Hungarian_Dance_No._5.ogg"
+      },
+      c: { id: "30", name: "Brahms", complete_name: "Johannes Brahms", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/30.jpg" }
+    },
+    {
+      w: {
+        id: "sf_ravel_bolero",
+        title: "Boléro, M. 81",
+        subtitle: "ボレロ（一貫したリズムとクレッシェンド）",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "ravel bolero m.81 ラヴェル ボレロ ぼれろ",
+        desc_ja: "小太鼓の執拗な反復リズムに乗せて次々と楽器が重なり、圧倒的クライマックスへ至る管弦楽の奇跡。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/4/4e/Ravel_Bolero.ogg"
+      },
+      c: { id: "160", name: "Ravel", complete_name: "Maurice Ravel", epoch: "Post-Romantic", portrait: "https://assets.openopus.org/portraits/160.jpg" }
+    },
+    {
+      w: {
+        id: "sf_ravel_pavane",
+        title: "Pavane pour une infante défunte, M. 19",
+        subtitle: "亡き王女のためのパヴァーヌ",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "ravel pavane pour une infante defunte ラヴェル 亡き王女のためのパヴァーヌ なきおうじょ",
+        desc_ja: "スペイン宮廷の古風な哀愁と洗練された気品が漂う、極上の瞑想曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/0/07/Ravel_Pavane_pour_une_infante_defunte.ogg"
+      },
+      c: { id: "160", name: "Ravel", complete_name: "Maurice Ravel", epoch: "Post-Romantic", portrait: "https://assets.openopus.org/portraits/160.jpg" }
+    },
+    {
+      w: {
+        id: "sf_handel_hallelujah",
+        title: "Messiah, HWV 56: Part II, 44. Hallelujah Chorus",
+        subtitle: "オラトリオ「メサイア」より「ハレルヤ・コーラス」",
+        genre: "Vocal",
+        popular: "1",
+        recommended: "1",
+        searchterms: "handel messiah hallelujah chorus hwv 56 ヘンデル メサイア ハレルヤ はれるや",
+        desc_ja: "英国王も起立して聴き入ったという逸話を持つ、人類至高の歓喜の賛歌。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/3/3b/Handel_Messiah_Hallelujah.ogg"
+      },
+      c: { id: "100", name: "Handel", complete_name: "George Frideric Handel", epoch: "Baroque", portrait: "https://assets.openopus.org/portraits/100.jpg" }
+    },
+    {
+      w: {
+        id: "sf_schubert_ave_maria",
+        title: "Ellens dritter Gesang, D. 839 \"Ave Maria\"",
+        subtitle: "アヴェ・マリア（エレンの歌 第3番 作品52の6）",
+        genre: "Vocal",
+        popular: "1",
+        recommended: "1",
+        searchterms: "schubert ave maria ellens gesang d.839 シューベルト アヴェマリア あべまりあ",
+        desc_ja: "聖母マリアに捧げられたかのように清らかで神々しい、歌曲王シューベルトの至宝。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/4/4c/Schubert_Ave_Maria.ogg"
+      },
+      c: { id: "171", name: "Schubert", complete_name: "Franz Schubert", epoch: "Early Romantic", portrait: "https://assets.openopus.org/portraits/171.jpg" }
+    },
+    {
+      w: {
+        id: "sf_moussorgsky_promenade",
+        title: "Pictures at an Exhibition: Promenade",
+        subtitle: "組曲「展覧会の絵」より「プロムナード」",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "mussorgsky pictures at an exhibition promenade ムソルグスキー 展覧会の絵 プロムナード",
+        desc_ja: "画廊を歩き回る作者の足取りを描いた、ロシア的で堂々たる変拍子テーマ。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/9/91/Mussorgsky_Pictures_at_an_Exhibition_Promenade.ogg"
+      },
+      c: { id: "147", name: "Mussorgsky", complete_name: "Modest Mussorgsky", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/147.jpg" }
+    },
+    {
+      w: {
+        id: "sf_mussorgsky_great_gate",
+        title: "Pictures at an Exhibition: The Great Gate of Kiev",
+        subtitle: "組曲「展覧会の絵」より「キエフの大門」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "mussorgsky great gate of kiev キエフの大門 ムソルグスキー ラヴェル",
+        desc_ja: "大鐘の乱打とコサックの祈りが轟く、組曲の壮大な大団円。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/d/dd/Mussorgsky_The_Great_Gate_of_Kiev.ogg"
+      },
+      c: { id: "147", name: "Mussorgsky", complete_name: "Modest Mussorgsky", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/147.jpg" }
+    },
+    {
+      w: {
+        id: "sf_jstrauss2_blue_danube",
+        title: "An der schönen blauen Donau, Op. 314",
+        subtitle: "円舞曲「美しく青きドナウ」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "strauss blue danube waltz op.314 ヨハンシュトラウス 美しく青きドナウ ワルツ",
+        desc_ja: "オーストリアの第2の国歌。ウィーン・フィルのニューイヤーコンサートでもお馴染みの名曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Strauss_The_Blue_Danube.ogg"
+      },
+      c: { id: "184", name: "Strauss II", complete_name: "Johann Strauss II", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/184.jpg" }
+    },
+    {
+      w: {
+        id: "sf_jstrauss2_radetzky",
+        title: "Radetzky March, Op. 228",
+        subtitle: "ラデツキー行進曲",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "strauss radetzky march op.228 ラデツキー行進曲 手拍子 てびょうし",
+        desc_ja: "聴衆が手拍子で参加する世界で一番盛り上がる行進曲（父ヨハン・シュトラウス1世作曲）。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/c/c5/Radetzky_March.ogg"
+      },
+      c: { id: "184", name: "Strauss II", complete_name: "Johann Strauss II", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/184.jpg" }
+    },
+    {
+      w: {
+        id: "sf_saint_saens_swan",
+        title: "The Carnival of the Animals: XIII. The Swan",
+        subtitle: "組曲「動物の謝肉祭」より「白鳥」",
+        genre: "Chamber",
+        popular: "1",
+        recommended: "1",
+        searchterms: "saint saens carnival of animals the swan サンサーンス 白鳥 はくちょう チェロ",
+        desc_ja: "水面を優雅に進む白鳥の姿をチェロが情感豊かに描く、屈指の美旋律。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/8/87/Saint-Saens_The_Swan.ogg"
+      },
+      c: { id: "166", name: "Saint-Saëns", complete_name: "Camille Saint-Saëns", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/166.jpg" }
+    },
+    {
+      w: {
+        id: "sf_bizet_habanera",
+        title: "Carmen Suite No. 2: Habanera (L'amour est un oiseau rebelle)",
+        subtitle: "歌劇「カルメン」より「ハバネラ（恋は野の鳥）」",
+        genre: "Vocal",
+        popular: "1",
+        recommended: "1",
+        searchterms: "bizet carmen habanera ビゼー カルメン ハバネラ はばねら",
+        desc_ja: "妖艶なカルメンが歌う、自由で危険な愛の誘惑の歌。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/8/86/Bizet_Carmen_Habanera.ogg"
+      },
+      c: { id: "24", name: "Bizet", complete_name: "Georges Bizet", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/24.jpg" }
+    },
+    {
+      w: {
+        id: "sf_bizet_toreador",
+        title: "Carmen Suite No. 1: Les Toréadors",
+        subtitle: "歌劇「カルメン」より「闘牛士の歌（トレアドール）」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "bizet carmen toreador ビゼー カルメン 闘牛士の歌 とうぎゅうし",
+        desc_ja: "熱狂する闘牛場と英雄エスカミーリョの勇姿を描く、躍動感あふれる行進曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/6/67/Bizet_Carmen_Toreador_Song.ogg"
+      },
+      c: { id: "24", name: "Bizet", complete_name: "Georges Bizet", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/24.jpg" }
+    },
+    {
+      w: {
+        id: "sf_rossini_william_tell",
+        title: "William Tell Overture: Finale (March of the Swiss Soldiers)",
+        subtitle: "歌劇「ウィリアム・テル」序曲より「スイス軍の行進（フィナーレ）」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "rossini william tell overture finale ロッシーニ ウィリアムテル序曲 スイス軍の行進 運動会",
+        desc_ja: "運動会やCMでお馴染み、トランペットのファンファーレに導かれ猛スピードで駆ける大名曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/1/18/Rossini_William_Tell_Overture.ogg"
+      },
+      c: { id: "163", name: "Rossini", complete_name: "Gioachino Rossini", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/163.jpg" }
+    },
+    {
+      w: {
+        id: "sf_offenbach_can_can",
+        title: "Orphée aux enfers: Galop infernal (Can-can)",
+        subtitle: "喜歌劇「天国と地獄」序曲より「カンカン（地獄のギャロップ）」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "offenbach orphee aux enfers can can オッフェンバック 天国と地獄 カンカン かんかん カックロ",
+        desc_ja: "誰もが体を動かしたくなる、陽気で痛快無比なフレンチ・カンカンの名曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/3/3f/Offenbach_Orpheus_in_the_Underworld_Overture.ogg"
+      },
+      c: { id: "153", name: "Offenbach", complete_name: "Jacques Offenbach", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/153.jpg" }
+    },
+    {
+      w: {
+        id: "sf_mascagni_intermezzo",
+        title: "Cavalleria rusticana: Intermezzo sinfonico",
+        subtitle: "歌劇「カヴァレリア・ルスティカーナ」間奏曲",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "mascagni cavalleria rusticana intermezzo マスカーニ カヴァレリアルスティカーナ 間奏曲",
+        desc_ja: "シチリアの青空と敬虔な祈りを描き、映画「ゴッドファーザーIII」でも使われた至福の間奏曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/2/23/Mascagni_Cavalleria_Rusticana_Intermezzo.ogg"
+      },
+      c: { id: "135", name: "Mascagni", complete_name: "Pietro Mascagni", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/135.jpg" }
+    },
+    {
+      w: {
+        id: "sf_mendelssohn_vconc",
+        title: "Violin Concerto in E minor, Op. 64: I. Allegro molto appassionato",
+        subtitle: "ヴァイオリン協奏曲 ホ短調 作品64 第1楽章",
+        genre: "Concertante",
+        popular: "1",
+        recommended: "1",
+        searchterms: "mendelssohn violin concerto in e minor op.64 メンデルスゾーン メンコン ヴァイオリン協奏曲",
+        desc_ja: "「メンコン」の愛称で親しまれる、甘美な哀愁と情熱がほとばしる名協奏曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/e/ea/Mendelssohn_Violin_Concerto_1st_movement.ogg"
+      },
+      c: { id: "140", name: "Mendelssohn", complete_name: "Felix Mendelssohn", epoch: "Early Romantic", portrait: "https://assets.openopus.org/portraits/140.jpg" }
+    },
+    {
+      w: {
+        id: "sf_mendelssohn_wedding",
+        title: "A Midsummer Night's Dream, Op. 61: Wedding March",
+        subtitle: "劇付随音楽「真夏の夜の夢」より「結婚行進曲」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "mendelssohn wedding march midsummer nights dream メンデルスゾーン 結婚行進曲 けっこんこうしんきょく",
+        desc_ja: "チャペルの扉が開いた瞬間に鳴り響く、世界中の結婚式で祝福を彩る名曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/c/c5/Mendelssohn_Wedding_March.ogg"
+      },
+      c: { id: "140", name: "Mendelssohn", complete_name: "Felix Mendelssohn", epoch: "Early Romantic", portrait: "https://assets.openopus.org/portraits/140.jpg" }
+    },
+    {
+      w: {
+        id: "sf_grieg_morning",
+        title: "Peer Gynt Suite No. 1, Op. 46: I. Morning Mood",
+        subtitle: "組曲「ペール・ギュント」第1組曲より「朝（朝の気分）」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "grieg peer gynt morning mood op.46 グリーグ ペールギュント 朝 あさ",
+        desc_ja: "フルートとオーボエが爽やかに太陽の昇る光景を歌い上げる、朝の清々しい名曲。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/e/e6/Grieg_Peer_Gynt_Morning_Mood.ogg"
+      },
+      c: { id: "98", name: "Grieg", complete_name: "Edvard Grieg", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/98.jpg" }
+    },
+    {
+      w: {
+        id: "sf_grieg_in_the_hall",
+        title: "Peer Gynt Suite No. 1, Op. 46: IV. In the Hall of the Mountain King",
+        subtitle: "組曲「ペール・ギュント」より「山の魔王の宮殿にて」",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "grieg in the hall of the mountain king peer gynt グリーグ 山の魔王の宮殿にて やまのまおう",
+        desc_ja: "足音のような静寂から始まり、加速しながら狂乱の怒号へと突き進むスリリングな名章。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/8/83/Grieg_In_the_Hall_of_the_Mountain_King.ogg"
+      },
+      c: { id: "98", name: "Grieg", complete_name: "Edvard Grieg", epoch: "Romantic", portrait: "https://assets.openopus.org/portraits/98.jpg" }
+    },
+    {
+      w: {
+        id: "sf_sibelius_finlandia",
+        title: "Finlandia, Op. 26",
+        subtitle: "交響詩「フィンランディア」（フィンランディア賛歌）",
+        genre: "Orchestral",
+        popular: "1",
+        recommended: "1",
+        searchterms: "sibelius finlandia op.26 シベリウス フィンランディア ふぃんらんでぃあ",
+        desc_ja: "圧政に苦しむフィンランド国民を鼓舞した、後半の清廉な賛歌が胸を打つ傑作。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/Sibelius_Finlandia.ogg"
+      },
+      c: { id: "176", name: "Sibelius", complete_name: "Jean Sibelius", epoch: "Post-Romantic", portrait: "https://assets.openopus.org/portraits/176.jpg" }
+    },
+    {
+      w: {
+        id: "sf_debussy_arabesque1",
+        title: "Deux arabesques, L. 66: No. 1 in E major",
+        subtitle: "アラベスク 第1番 ホ長調",
+        genre: "Keyboard",
+        popular: "1",
+        recommended: "1",
+        searchterms: "debussy arabesque no.1 ドビュッシー アラベスク第1番 あらべすく",
+        desc_ja: "水面に描かれる波紋のように滑らかな音の連なりが美しい、若きドビュッシーの名作。",
+        audio_url: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Debussy_Arabesque_1.ogg"
+      },
+      c: { id: "62", name: "Debussy", complete_name: "Claude Debussy", epoch: "Post-Romantic", portrait: "https://assets.openopus.org/portraits/62.jpg" }
+    }
+  ];
+
+
+  /* ==========================================================
+     🔍 表記揺れ正規化・ファジー検索ヘルパー（ひらがな/カタカナ/同義語/誤記救済）
+     ========================================================== */
+  function hiraToKata(str) {
+    return (str || '').replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+  }
+  function kataToHira(str) {
+    return (str || '').replace(/[\u30A1-\u30F6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+  }
+  function stripPunct(str) {
+    return (str || '').toLowerCase()
+      .replace(/[・\s\-_.,'"!?～~／/：:;「」『』()（）\[\]【】]/g, '');
+  }
+
+  // 同義語・誤記・通称マッピング辞書
+  const SEARCH_SYNONYMS = {
+    'ノタクーン': ['ノクターン', 'nocturne', '夜想曲', 'ショパン'],
+    'のたくーん': ['ノクターン', 'nocturne', '夜想曲', 'ショパン'],
+    'ノクターン': ['nocturne', '夜想曲'],
+    'のくたーん': ['nocturne', '夜想曲', 'ノクターン'],
+    '夜想曲': ['nocturne', 'ノクターン'],
+    'ら・カンパネルラ': ['ラ・カンパネラ', 'カンパネルラ', 'カンパネラ', 'campanella', 'リスト'],
+    'ラ・カンパネルラ': ['ラ・カンパネラ', 'カンパネルラ', 'カンパネラ', 'campanella', 'リスト'],
+    'カンパネルラ': ['ラ・カンパネラ', 'カンパネラ', 'campanella', 'リスト'],
+    'かんぱねるら': ['ラ・カンパネラ', 'カンパネラ', 'campanella', 'リスト'],
+    'らかんぱねるら': ['ラ・カンパネラ', 'カンパネラ', 'campanella', 'リスト'],
+    'ラ・カンパネラ': ['カンパネラ', 'campanella', 'リスト'],
+    'カンパネラ': ['ラ・カンパネラ', 'campanella'],
+    'かんぱねら': ['ラ・カンパネラ', 'campanella'],
+    'らかんぱねら': ['ラ・カンパネラ', 'campanella'],
+    'エリーゼ': ['fur elise', 'エリーゼのために', 'ベートーヴェン'],
+    'えりーぜ': ['fur elise', 'エリーゼのために', 'ベートーヴェン'],
+    '運命': ['symphony no. 5', '運命', 'ベートーヴェン'],
+    'うんめい': ['symphony no. 5', '運命', 'ベートーヴェン'],
+    '月光': ['moonlight', '月光', 'ベートーヴェン'],
+    'げっこう': ['moonlight', '月光', 'ベートーヴェン'],
+    'カノン': ['canon', 'カノン', 'パッヘルベル'],
+    'かのん': ['canon', 'カノン', 'パッヘルベル'],
+    'トルコ行進曲': ['turkish march', 'rondo alla turca', 'モーツァルト'],
+    'とるここうしんきょく': ['turkish march', 'rondo alla turca', 'モーツァルト'],
+    '白鳥の湖': ['swan lake', '白鳥の湖', 'チャイコフスキー'],
+    'はくちょうのみずうみ': ['swan lake', 'チャイコフスキー'],
+    'くるみ割り人形': ['nutcracker', 'くるみ割り人形', 'チャイコフスキー'],
+    'くるみわりにんぎょう': ['nutcracker', 'チャイコフスキー'],
+    'ジムノペディ': ['gymnopedie', 'ジムノペディ', 'サティ'],
+    'じむのぺでぃ': ['gymnopedie', 'ジムノペディ', 'サティ'],
+    'ボレロ': ['bolero', 'ボレロ', 'ラヴェル'],
+    'ぼれろ': ['bolero', 'ボレロ', 'ラヴェル'],
+    '月の光': ['clair de lune', '月の光', 'ドビュッシー'],
+    'つきのひかり': ['clair de lune', '月の光', 'ドビュッシー'],
+    '威風堂々': ['pomp and circumstance', '威風堂々', 'エルガー'],
+    'いふうどうどう': ['pomp and circumstance', '威風堂々', 'エルガー'],
+    '愛の挨拶': ['salut d\'amour', '愛の挨拶', 'エルガー'],
+    'あいのあいさつ': ['salut d\'amour', '愛の挨拶', 'エルガー'],
+    '木星': ['jupiter', '木星', 'ホルスト'],
+    'もくせい': ['jupiter', '木星', 'ホルスト'],
+    'ジュピター': ['jupiter', '木星', 'ホルスト'],
+    'じゅぴたー': ['jupiter', '木星', 'ホルスト'],
+    '新世界より': ['from the new world', '新世界より', 'ドヴォルザーク'],
+    'しんせかいより': ['from the new world', '新世界より', 'ドヴォルザーク'],
+    '新世界': ['new world', '新世界より'],
+    'しんせかい': ['new world', '新世界より'],
+    'G線上のアリア': ['air on the g string', 'g線上のアリア', 'バッハ'],
+    'じーせんじょうのありあ': ['air on the g string', 'g線上のアリア', 'バッハ'],
+    'アヴェ・マリア': ['ave maria', 'アヴェ・マリア', 'シューベルト'],
+    'あべまりあ': ['ave maria', 'アヴェ・マリア', 'シューベルト'],
+    'ハレルヤ': ['hallelujah', 'メサイア', 'ヘンデル'],
+    'はれるや': ['hallelujah', 'メサイア', 'ヘンデル']
+  };
+
+  // レーベンシュタイン距離
+  function levenshtein(a, b) {
+    if (a === b) return 0;
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    const v0 = new Array(b.length + 1);
+    const v1 = new Array(b.length + 1);
+    for (let i = 0; i <= b.length; i++) v0[i] = i;
+    for (let i = 0; i < a.length; i++) {
+      v1[0] = i + 1;
+      for (let j = 0; j < b.length; j++) {
+        const cost = a[i] === b[j] ? 0 : 1;
+        v1[j + 1] = Math.min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost);
+      }
+      for (let j = 0; j <= b.length; j++) v0[j] = v1[j];
+    }
+    return v1[b.length];
+  }
+
+  // 統合ファジーマッチ判定
+  function fuzzyMatches(targetStr, rawQuery) {
+    if (!targetStr || !rawQuery) return false;
+    const qClean = stripPunct(rawQuery);
+    const tClean = stripPunct(targetStr);
+    if (!qClean) return false;
+    if (tClean.includes(qClean)) return true;
+
+    // カタカナ・ひらがな相互変換での部分一致
+    const qKata = hiraToKata(qClean);
+    const tKata = hiraToKata(tClean);
+    if (tKata.includes(qKata)) return true;
+
+    const qHira = kataToHira(qClean);
+    const tHira = kataToHira(tClean);
+    if (tHira.includes(qHira)) return true;
+
+    // 同義語辞書の走査
+    for (const [key, synList] of Object.entries(SEARCH_SYNONYMS)) {
+      const kClean = stripPunct(key);
+      const kKata = hiraToKata(kClean);
+      if (qClean === kClean || qKata === kKata || qClean.includes(kClean) || kClean.includes(qClean)) {
+        for (const syn of synList) {
+          const sClean = stripPunct(syn);
+          const sKata = hiraToKata(sClean);
+          if (tClean.includes(sClean) || tKata.includes(sKata)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    // レーベンシュタイン距離（タイプミス救済: ノタクーン vs ノクターン等）
+    if (qKata.length >= 3) {
+      const len = qKata.length;
+      for (let i = 0; i <= tKata.length - Math.min(tKata.length, len - 1); i++) {
+        const sub = tKata.slice(i, i + len + 1);
+        const dist = levenshtein(sub, qKata);
+        if (dist <= 1 || (len >= 5 && dist <= 2)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+
   const EPOCHS = [['', '人気', 'Popular'], ['Medieval', '中世', 'Medieval'], ['Renaissance', 'ルネサンス', 'Renaissance'], ['Baroque', 'バロック', 'Baroque'],
     ['Classical', '古典派', 'Classical'], ['Early Romantic', '初期ロマン派', 'Early Romantic'], ['Romantic', 'ロマン派', 'Romantic'],
     ['20th Century', '20世紀', '20th Century'], ['Post-War', '戦後', 'Post-War'], ['21st Century', '21世紀', '21st Century']];
   const GENRES = { Keyboard: '鍵盤楽曲', Chamber: '室内楽', Orchestral: '管弦楽', Stage: '舞台作品', Vocal: '声楽', Popular: '人気曲', Recommended: 'おすすめ' };
   const COUNTRIES = { Germany: 'ドイツ', Austria: 'オーストリア', France: 'フランス', Italy: 'イタリア', Russia: 'ロシア', Poland: 'ポーランド', England: 'イギリス', 'United Kingdom': 'イギリス', UK: 'イギリス', Scotland: 'スコットランド', Ireland: 'アイルランド', 'Czech Republic': 'チェコ', Czechia: 'チェコ', Bohemia: 'ボヘミア', Hungary: 'ハンガリー', Norway: 'ノルウェー', Sweden: 'スウェーデン', Denmark: 'デンマーク', Finland: 'フィンランド', Spain: 'スペイン', Portugal: 'ポルトガル', Netherlands: 'オランダ', Belgium: 'ベルギー', Switzerland: 'スイス', USA: 'アメリカ', 'United States': 'アメリカ', Canada: 'カナダ', Mexico: 'メキシコ', Brazil: 'ブラジル', Argentina: 'アルゼンチン', Cuba: 'キューバ', Ukraine: 'ウクライナ', Romania: 'ルーマニア', Bulgaria: 'ブルガリア', Greece: 'ギリシャ', Croatia: 'クロアチア', Serbia: 'セルビア', Slovakia: 'スロバキア', Slovenia: 'スロベニア', Estonia: 'エストニア', Latvia: 'ラトビア', Lithuania: 'リトアニア', Armenia: 'アルメニア', Georgia: 'ジョージア', Azerbaijan: 'アゼルバイジャン', Australia: 'オーストラリア', Japan: '日本', China: '中国', Korea: '韓国', 'South Korea': '韓国', Israel: 'イスラエル', Turkey: 'トルコ', Venezuela: 'ベネズエラ', Iceland: 'アイスランド', Belarus: 'ベラルーシ' };
-  const WORDS = [['Symphonies','交響曲'],['Symphony','交響曲'],['Concertos','協奏曲'],['Concerto','協奏曲'],['Concertino','小協奏曲'],['Sonatas','ソナタ'],['Sonata','ソナタ'],['Sonatina','ソナチネ'],['Suites','組曲'],['Suite','組曲'],['Overture','序曲'],['Quartets','四重奏曲'],['Quartet','四重奏曲'],['Quintet','五重奏曲'],['Sextet','六重奏曲'],['Septet','七重奏曲'],['Octet','八重奏曲'],['Trios','三重奏曲'],['Trio','三重奏曲'],['Duo','二重奏曲'],['Mass','ミサ曲'],['Requiem','レクイエム'],['Opera','オペラ'],['Ballet','バレエ'],['Preludes','前奏曲'],['Prelude','前奏曲'],['Fugue','フーガ'],['Fugues','フーガ'],['Etudes','練習曲'],['Études','練習曲'],['Etude','練習曲'],['Étude','練習曲'],['Nocturnes','夜想曲'],['Nocturne','夜想曲'],['Waltzes','ワルツ'],['Waltz','ワルツ'],['Polonaise','ポロネーズ'],['Mazurkas','マズルカ'],['Mazurka','マズルカ'],['Ballade','バラード'],['Scherzo','スケルツォ'],['Rhapsody','狂詩曲'],['Fantasy','幻想曲'],['Fantasia','幻想曲'],['Variations','変奏曲'],['Variation','変奏曲'],['Cantata','カンタータ'],['Oratorio','オラトリオ'],['Passion','受難曲'],['Magnificat','マニフィカト'],['Minuet','メヌエット'],['Serenade','セレナーデ'],['Divertimento','ディヴェルティメント'],['Impromptus','即興曲'],['Impromptu','即興曲'],['Rondo','ロンド'],['Toccata','トッカータ'],['Partita','パルティータ'],['Partitas','パルティータ'],['Aria','アリア'],['Songs','歌曲'],['Song','歌曲'],['Lieder','歌曲'],['Piano','ピアノ'],['Violin','ヴァイオリン'],['Viola','ヴィオラ'],['Cello','チェロ'],['Flute','フルート'],['Clarinet','クラリネット'],['Oboe','オーボエ'],['Bassoon','ファゴット'],['Horn','ホルン'],['Trumpet','トランペット'],['Organ','オルガン'],['Harpsichord','チェンバロ'],['Guitar','ギター'],['Harp','ハープ'],['String','弦楽'],['Strings','弦楽'],['Orchestra','管弦楽'],['Orchestral','管弦楽'],['Chamber','室内楽'],['Choral','合唱'],['Brandenburg','ブランデンブルク'],['Goldberg','ゴルトベルク'],['Moonlight','月光'],['Appassionata','熱情'],['Pathétique','悲愴'],['Pathetique','悲愴'],['Eroica','英雄'],['Pastoral','田園'],['Emperor','皇帝'],['Spring','春'],['Winter','冬'],['Summer','夏'],['Autumn','秋'],['Jupiter','ジュピター'],['Surprise','驚愕'],['Clock','時計'],['Unfinished','未完成'],['Italian','イタリア'],['Scottish','スコットランド'],['Reformation','宗教改革'],['Rhenish','ライン'],['Trout','ます'],['Kreutzer','クロイツェル'],['Waldstein','ワルトシュタイン'],['Hammerklavier','ハンマークラヴィーア'],['Great','ザ・グレイト'],['Seasons','四季'],['Complete','全集'],['Works','作品集'],['and','と'],['for','—']]
-    .sort((a, b) => b[0].length - a[0].length).map(([e, j]) => [new RegExp('(?<![A-Za-z])' + e + '(?![A-Za-z])', 'gi'), j]);
+  
+  const NICKNAMES = [
+    [/Campanella/i, 'ラ・カンパネラ（鐘）', 'La Campanella'],
+    [/Eine kleine Nachtmusik|Nachtmusik/i, 'アイネ・クライネ・ナハトムジーク', 'Eine kleine Nachtmusik'],
+    [/F[uü]r Elise|WoO ?59/i, 'エリーゼのために', 'Für Elise'],
+    [/Moonlight/i, '月光', 'Moonlight'],
+    [/Path[eé]tique/i, '悲愴', 'Pathétique'],
+    [/Appassionata/i, '熱情', 'Appassionata'],
+    [/Waldstein/i, 'ワルトシュタイン', 'Waldstein'],
+    [/Hammerklavier/i, 'ハンマークラヴィーア', 'Hammerklavier'],
+    [/Emperor/i, '皇帝', 'Emperor'],
+    [/Eroica/i, '英雄', 'Eroica'],
+    [/Pastoral/i, '田園', 'Pastoral'],
+    [/Fate|Op\.? ?67\b/i, '運命', 'Fate'],
+    [/Choral|Op\.? ?125\b/i, '第九（合唱付き）', 'Ode to Joy (Choral)'],
+    [/Alla [tT]urca|Turkish/i, 'トルコ行進曲', 'Turkish March'],
+    [/Tristesse/i, '別れの曲', 'Tristesse'],
+    [/Revolutionary/i, '革命のエチュード', 'Revolutionary'],
+    [/Minute\s*Waltz/i, '子犬のワルツ（小犬のワルツ）', 'Minute Waltz'],
+    [/Raindrop/i, '雨だれの前奏曲', 'Raindrop'],
+    [/Heroic/i, '英雄ポロネーズ', 'Heroic Polonaise'],
+    [/Military/i, '軍隊ポロネーズ', 'Military Polonaise'],
+    [/Fantaisie[- ]Impromptu/i, '幻想即興曲', 'Fantaisie-Impromptu'],
+    [/Liebestr[aä]um/i, '愛の夢', 'Liebestraum'],
+    [/Bumblebee/i, '熊蜂の飛行', 'Flight of the Bumblebee'],
+    [/Danube|Donau/i, '美しく青きドナウ', 'The Blue Danube'],
+    [/Air on the G string/i, 'G線上のアリア', 'Air on the G string'],
+    [/Jesu,\s*Joy/i, '主よ、人の望みの喜びよ', "Jesu, Joy of Man's Desiring"],
+    [/Toccata and Fugue in D minor/i, 'トッカータとフーガ ニ短調', 'Toccata and Fugue in D minor'],
+    [/Goldberg/i, 'ゴルトベルク変奏曲', 'Goldberg Variations'],
+    [/Canon in D/i, 'カノン（パッヘルベルのカノン）', 'Canon in D'],
+    [/Clair de lune/i, '月の光', 'Clair de lune'],
+    [/Gymnop[eé]die/i, 'ジムノペディ', 'Gymnopédie'],
+    [/Gnossienne/i, 'グノシエンヌ', 'Gnossienne'],
+    [/Tr[aä]umerei/i, 'トロイメライ（夢）', 'Träumerei'],
+    [/Swan Lake/i, '白鳥の湖', 'Swan Lake'],
+    [/Nutcracker/i, 'くるみ割り人形', 'The Nutcracker'],
+    [/New World/i, '新世界より', 'From the New World'],
+    [/Bol[eé]ro/i, 'ボレロ', 'Boléro'],
+    [/Pavane pour une infante/i, '亡き王女のためのパヴァーヌ', 'Pavane for a Dead Princess'],
+    [/The Swan|Le Cygne/i, '白鳥（動物の謝肉祭）', 'The Swan'],
+    [/Danse [mM]acabre/i, '死の舞踏', 'Danse Macabre'],
+    [/Pictures at an Exhibition/i, '展覧会の絵', 'Pictures at an Exhibition'],
+    [/Planets.*Jupiter|Jupiter/i, '木星（ジュピター / 惑星）', 'Jupiter'],
+    [/Adagio for Strings/i, '弦楽のためのアダージョ', 'Adagio for Strings'],
+    [/Pomp and Circumstance/i, '威風堂々', 'Pomp and Circumstance'],
+    [/Carmina Burana|Fortuna/i, 'おお、運命の女神よ（カルミナ・ブラーナ）', 'O Fortuna'],
+    [/Hungarian Dance/i, 'ハンガリー舞曲', 'Hungarian Dance'],
+    [/Habanera/i, '恋は野の鳥（ハバネラ）', 'Habanera'],
+    [/Toreador/i, '闘牛士の歌（カルメン）', 'Toreador Song'],
+    [/La traviata/i, '乾杯の歌（椿姫）', 'Brindisi (La Traviata)'],
+    [/Nessun dorma/i, '誰も寝てはならぬ', 'Nessun dorma'],
+    [/Ave Maria/i, 'アヴェ・マリア', 'Ave Maria'],
+    [/Rhapsody in Blue/i, 'ラプソディ・イン・ブルー', 'Rhapsody in Blue'],
+    [/The Entertainer/i, 'ジ・エンターテイナー', 'The Entertainer']
+  ];
+
+  const WORDS = [
+    ['Symphonies','交響曲'],['Symphony','交響曲'],['Concertos','協奏曲'],['Concerto','協奏曲'],['Concertino','小協奏曲'],
+    ['Sonatas','ソナタ（奏鳴曲）'],['Sonata','ソナタ（奏鳴曲）'],['Sonatinas','ソナチネ（小奏鳴曲）'],['Sonatina','ソナチネ（小奏鳴曲）'],['Sonatine','ソナチネ（小奏鳴曲）'],
+    ['Suites','組曲'],['Suite','組曲'],['Overture','序曲'],['Quartets','四重奏曲'],['Quartet','四重奏曲'],
+    ['Quintet','五重奏曲'],['Sextet','六重奏曲'],['Septet','七重奏曲'],['Octet','八重奏曲'],['Trios','三重奏曲'],['Trio','三重奏曲'],['Duo','二重奏曲'],
+    ['Mass','ミサ曲'],['Requiem','レクイエム（鎮魂歌）'],['Opera','オペラ（歌劇）'],['Ballet','バレエ（舞踊劇）'],
+    ['Preludes','前奏曲（プレリュード）'],['Prelude','前奏曲（プレリュード）'],['Fugue','フーガ（遁走曲）'],['Fugues','フーガ（遁走曲）'],
+    ['Etudes','練習曲（エチュード）'],['Études','練習曲（エチュード）'],['Etude','練習曲（エチュード）'],['Étude','練習曲（エチュード）'],
+    ['Nocturnes','夜想曲（ノクターン）'],['Nocturne','夜想曲（ノクターン）'],['Waltzes','ワルツ（円舞曲）'],['Waltz','ワルツ（円舞曲）'],['Valse','ワルツ（円舞曲）'],
+    ['Polonaises','ポロネーズ'],['Polonaise','ポロネーズ'],['Mazurkas','マズルカ'],['Mazurka','マズルカ'],['Ballade','バラード（譚詩曲）'],['Ballades','バラード（譚詩曲）'],
+    ['Scherzo','スケルツォ（諧謔曲）'],['Scherzos','スケルツォ（諧謔曲）'],['Rhapsody','狂詩曲（ラプソディ）'],['Rhapsodies','狂詩曲（ラプソディ）'],
+    ['Fantasy','幻想曲（ファンタジー）'],['Fantasia','幻想曲（ファンタジー）'],['Fantaisie','幻想曲（ファンタジー）'],
+    ['Variations','変奏曲'],['Variation','変奏曲'],['Cantata','カンタータ（交声曲）'],['Oratorio','オラトリオ（聖譚曲）'],
+    ['Passion','受難曲'],['Magnificat','マニフィカト'],['Minuet','メヌエット'],['Menuet','メヌエット'],
+    ['Serenade','セレナーデ（小夜曲）'],['Divertimento','ディヴェルティメント（嬉遊曲）'],
+    ['Impromptus','即興曲（アンプロンプチュ）'],['Impromptu','即興曲（アンプロンプチュ）'],['Rondo','ロンド（輪舞曲）'],
+    ['Toccata','トッカータ'],['Partita','パルティータ'],['Partitas','パルティータ'],['Aria','アリア（詠唱）'],
+    ['Songs','歌曲'],['Song','歌曲'],['Lieder','歌曲'],['Piano','ピアノ'],['Violin','ヴァイオリン'],['Viola','ヴィオラ'],
+    ['Cello','チェロ'],['Flute','フルート'],['Clarinet','クラリネット'],['Oboe','オーボエ'],['Bassoon','ファゴット'],
+    ['Horn','ホルン'],['Trumpet','トランペット'],['Organ','オルガン'],['Harpsichord','チェンバロ'],['Guitar','ギター'],['Harp','ハープ'],
+    ['String','弦楽'],['Strings','弦楽'],['Orchestra','管弦楽'],['Orchestral','管弦楽'],['Chamber','室内楽'],['Choral','合唱'],
+    ['Allegro moderato','アレグロ・モデラート（中庸に速く）'],['Allegro','アレグロ（快活に・速く）'],
+    ['Andante','アンダンテ（歩くような速さで）'],['Adagio','アダージョ（ゆるやかに）'],['Largo','ラルゴ（幅広くゆるやかに）'],
+    ['Presto','プレスト（急速に）'],['Moderato','モデラート（中庸の速さで）'],['Vivace','ヴィヴァーチェ（活発に）'],
+    ['Lento','レント（遅く）'],['Grave','グラーヴェ（重々しく）'],['Maestoso','マエストーソ（堂々と）'],
+    ['Brandenburg','ブランデンブルク'],['Goldberg','ゴルトベルク'],['Moonlight','月光'],['Appassionata','熱情'],
+    ['Pathétique','悲愴'],['Pathetique','悲愴'],['Eroica','英雄'],['Pastoral','田園'],['Emperor','皇帝'],
+    ['Spring','春'],['Winter','冬'],['Summer','夏'],['Autumn','秋'],['Jupiter','ジュピター'],['Surprise','驚愕'],
+    ['Clock','時計'],['Unfinished','未完成'],['Italian','イタリア'],['Scottish','スコットランド'],['Reformation','宗教改革'],
+    ['Rhenish','ライン'],['Trout','ます'],['Kreutzer','クロイツェル'],['Waldstein','ワルトシュタイン'],['Hammerklavier','ハンマークラヴィーア'],
+    ['Great','ザ・グレイト'],['Seasons','四季'],['Complete','全集'],['Works','作品集'],['and','と'],['for','—']].sort((a, b) => b[0].length - a[0].length).map(([e, j]) => [new RegExp('(?<![A-Za-z])' + e + '(?![A-Za-z])', 'gi'), j]);
   const KEYL = { C: 'ハ', D: 'ニ', E: 'ホ', F: 'ヘ', G: 'ト', A: 'イ', B: 'ロ' };
   const KEYRE = /\b([A-G])(?:[- ]?(sharp|flat))? (major|minor)\b/i;
   const keyJa = (k, a, m) => (a ? (a.toLowerCase() === 'sharp' ? '嬰' : '変') : '') + KEYL[k.toUpperCase()] + (m.toLowerCase() === 'major' ? '長調' : '短調');
@@ -1094,6 +2152,20 @@
     showToast(L('ABリピートをクリアしました', 'AB repeat cleared'));
   }
 
+  function updatePbStarBtn() {
+    const btn = $('pbStarBtn');
+    if (!btn || !curW) return;
+    const isF = isFavW(curW);
+    btn.textContent = isF ? '★' : '☆';
+    btn.classList.toggle('off', !isF);
+    btn.title = isF ? L('★ お気に入り登録済み（アルバム振り分け）', '★ Favorited (manage albums)') : L('☆ お気に入り・アルバムに追加', '☆ Add to favorites / album');
+  }
+  if ($('pbStarBtn')) {
+    $('pbStarBtn').onclick = e => {
+      if (curW && curC) openFavPopup(curW, curC, e.target);
+    };
+  }
+
   // 1曲ループトグル
   $('pbLoopBtn').onclick = () => {
     isOneLoop = !isOneLoop;
@@ -1276,9 +2348,56 @@
     $('pbSeek').value = 0; $('pbCur').textContent = '0:00'; $('pbDur').textContent = '0:00';
     clearAB();
 
-    updateMediaSessionMeta(t.title || wTitle(curW), cfull(curC), wTitle(curW), curC.portrait);
+    updateMediaSessionMeta(t.title || wTitle(curW), cfull(curC), wTitle(curW), curC.portrait); updatePbStarBtn();
     if (autoplay) audio.play().catch(() => {});
   }
+
+
+  // お気に入り楽曲（favW）の連続再生
+  function startFavoritePlayback(startIdx = 0, shuffle = false) {
+    if (!favW.length) {
+      alert(L('お気に入り楽曲が登録されていません。曲カードの ☆ ボタンで追加してください。', 'No favorite works. Add works using the ☆ button.'));
+      return;
+    }
+    currentMode = 'playlist';
+    let pool = favW.slice();
+    if (shuffle) {
+      pool.sort(() => Math.random() - 0.5);
+    }
+    currentPlaylist = { id: 'fav_playlist', name: L('お気に入り楽曲', 'Favorite Works'), items: pool };
+    currentQueue = pool;
+    currentQueueIdx = startIdx;
+    $('queueCount').textContent = currentQueue.length;
+    $('pbModeBadge').textContent = `★ ${L('お気に入り楽曲', 'Favorites')} (${currentQueue.length})`;
+    $('playerBar').classList.remove('hidden');
+    document.body.classList.add('pb-active');
+    playQueueIndex(startIdx);
+  }
+
+  // アルバム指定位置からの再生
+  function startPlaylistFromIndex(pl, idx = 0, shuffle = false) {
+    if (!pl || !pl.items.length) return;
+    currentMode = 'playlist';
+    let pool = pl.items.slice();
+    if (shuffle) {
+      const selected = pool[idx];
+      pool = pool.filter((_, i) => i !== idx).sort(() => Math.random() - 0.5);
+      pool.unshift(selected);
+      idx = 0;
+    }
+    currentPlaylist = pl;
+    currentQueue = pool;
+    currentQueueIdx = idx;
+    $('queueCount').textContent = currentQueue.length;
+    $('pbModeBadge').textContent = `${L('アルバム:', 'Album:')} ${pl.name}`;
+    $('playerBar').classList.remove('hidden');
+    document.body.classList.add('pb-active');
+    playQueueIndex(idx);
+  }
+
+  // お気に入りバーのボタンイベント
+  if ($('btnPlayFavAll')) $('btnPlayFavAll').onclick = () => startFavoritePlayback(0, false);
+  if ($('btnShuffleFav')) $('btnShuffleFav').onclick = () => startFavoritePlayback(0, true);
 
   // プレイリスト（アルバム）連続再生モード
   async function startPlaylistPlayback(pl) {
@@ -1324,7 +2443,7 @@
     $('pbSeek').value = 0;
     clearAB();
 
-    updateMediaSessionMeta(wTitle(curW), cfull(curC), currentPlaylist ? currentPlaylist.name : 'Album', curC.portrait);
+    updateMediaSessionMeta(wTitle(curW), cfull(curC), currentPlaylist ? currentPlaylist.name : 'Album', curC.portrait); updatePbStarBtn();
     audio.play().catch(() => {});
   }
 
@@ -1711,13 +2830,23 @@
     setAudioSpeed(parseFloat($('pbSpeedSel').value) || 1.0);
     clearAB();
 
-    updateMediaSessionMeta(wTitle(p.w), cfull(p.c), 'Random Classical', p.c.portrait);
+    updateMediaSessionMeta(wTitle(p.w), cfull(p.c), 'Random Classical', p.c.portrait); updatePbStarBtn();
     try { await audio.play(); } catch (e) {
       if (e.name === 'NotAllowedError') setRStatus(esc(L('ブラウザが自動再生をブロックしました。▶ ボタンを押してください。', 'Autoplay was blocked. Press ▶.')));
     }
   }
   function renderRList() {
-    $('rList').innerHTML = R.list.map((p, i) => `<li class="${R.on && i === R.list.length - 1 ? 'cur' : ''}">${esc(wTitle(p.w))} — ${esc(cshort(p.c))}（${esc(ydisp(Y[p.w.id]))}） <span class="sm muted">${esc(p.au.rec)}</span></li>`).join('');
+    $('rList').innerHTML = R.list.map((p, i) => {
+      const isF = isFavW(p.w);
+      return `<li class="rlist-item ${R.on && i === R.list.length - 1 ? 'cur' : ''}">
+        <div class="rlist-content">
+          <span class="bold">${i + 1}. ${esc(wTitle(p.w))}</span>
+          <span class="muted"> ― ${esc(cfull(p.c))}（${esc(ydisp(Y[p.w.id]))}）</span>
+          <span class="sm muted" style="margin-left:.35rem">${esc(p.au.rec)}</span>
+        </div>
+        <button class="rlist-star ${isF ? '' : 'off'}" data-rfw="${i}" title="${isF ? '★ お気に入り登録済み・アルバム振り分け' : '☆ お気に入り・アルバムに追加'}" aria-label="${isF ? '★ お気に入り登録済み・アルバム振り分け' : '☆ お気に入り・アルバムに追加'}">${isF ? '★' : '☆'}</button>
+      </li>`;
+    }).join('');
     const li = $('rList').lastElementChild; if (li && R.on) li.scrollIntoView({ block: 'nearest' });
   }
   function rTick() {
@@ -1744,6 +2873,15 @@
     document.body.classList.add('pb-active');
     clearInterval(R.tick); R.tick = setInterval(rTick, 1000); rTick(); renderRList(); playNextRandomTrack();
   }
+    $('rList').addEventListener('click', e => {
+    const star = e.target.closest('[data-rfw]');
+    if (star) {
+      e.stopPropagation();
+      const item = R.list[+star.dataset.rfw];
+      if (item) openFavPopup(item.w, item.c, star);
+      return;
+    }
+  });
   $('rStart').onclick = startRandom;
   $('rNext').onclick = () => { if (R.on && !R.busy) { audio.pause(); playNextRandomTrack(); } };
   $('rStop').onclick = () => endRandom('user');
@@ -1848,18 +2986,49 @@
 
   function renderAlbumCards() {
     const box = $('albumList');
-    if (!playlists.length) {
-      box.innerHTML = `<p class="full muted" style="padding:1.5rem 0">${esc(L('作成されたアルバムはまだありません。上の入力欄から作成してください。', 'No albums created yet. Use the field above to create one.'))}</p>`;
-      return;
-    }
-    box.innerHTML = playlists.map(pl => `
+    
+    // 1. お気に入り楽曲カード（デフォルトアルバム）
+    let favHtml = `
+      <div class="album-card" style="border-color:var(--rose)">
+        <div class="album-card-top">
+          <div>
+            <div class="album-card-title serif" style="color:var(--rose)">★ ${esc(L('お気に入り楽曲（デフォルト）', 'Favorite Works (Default)'))}</div>
+            <div class="album-card-meta">${favW.length} ${esc(L('曲', 'tracks'))}</div>
+          </div>
+          <div style="display:flex;gap:.4rem">
+            <button class="chip on btn-play-fav" id="btnPlayFavModal">▶ ${esc(L('再生', 'Play'))}</button>
+            <button class="chip btn-shuffle-fav" id="btnShuffleFavModal">🔀</button>
+          </div>
+        </div>
+        <div class="album-card-actions">
+          <button class="chip btn-toggle-pl-items" data-togglepl="fav_default">📋 ${esc(L('曲リスト開閉', 'View tracks'))}</button>
+        </div>
+        <div id="plItems_fav_default" class="album-works-exp hidden">
+          ${favW.length ? favW.map((it, idx) => `
+            <div class="album-work-row">
+              <span class="album-work-title" data-playfavidx="${idx}">${esc(wTitle(it.w))} — <span class="muted">${esc(cshort(it.c))}</span></span>
+              <div class="album-work-btns">
+                <button class="btn-work-play" data-playfavidx="${idx}">▶</button>
+                <button class="album-work-del" data-delfav="${esc(it.w.id)}" title="${esc(L('お気に入りから解除', 'Remove'))}">✕</button>
+              </div>
+            </div>
+          `).join('') : `<p class="muted sm">${esc(L('お気に入り楽曲がまだありません', 'No favorite songs yet'))}</p>`}
+        </div>
+      </div>
+    `;
+
+    // 2. ユーザー作成アルバムカード
+    let albumsHtml = playlists.map(pl => `
       <div class="album-card" data-album="${esc(pl.id)}">
         <div class="album-card-top">
           <div>
             <div class="album-card-title serif">${esc(pl.name)}</div>
             <div class="album-card-meta">${esc(pl.items.length)} ${esc(L('曲', 'tracks'))}</div>
           </div>
-          <button class="chip on btn-play-album" data-playpl="${esc(pl.id)}">▶ ${esc(L('再生', 'Play'))}</button>
+          <div style="display:flex;gap:.4rem">
+            <button class="chip on btn-play-album" data-playpl="${esc(pl.id)}">▶ ${esc(L('再生', 'Play'))}</button>
+            <button class="chip btn-shuffle-pl" data-shufflepl="${esc(pl.id)}">🔀</button>
+          </div>
         </div>
         <div class="album-card-actions">
           <button class="chip btn-rename-pl" data-renamepl="${esc(pl.id)}">✏️ ${esc(L('名前変更', 'Rename'))}</button>
@@ -1867,22 +3036,77 @@
           <button class="chip btn-toggle-pl-items" data-togglepl="${esc(pl.id)}">📋 ${esc(L('曲リスト開閉', 'View tracks'))}</button>
         </div>
         <div id="plItems_${esc(pl.id)}" class="album-works-exp hidden">
-          ${pl.items.length ? pl.items.map(it => `
+          ${pl.items.length ? pl.items.map((it, idx) => `
             <div class="album-work-row">
-              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(wTitle(it.w))} — <span class="muted">${esc(cshort(it.c))}</span></span>
-              <button class="album-work-del" data-delw="${esc(it.w.id)}" data-frompl="${esc(pl.id)}" title="${esc(L('このアルバムから削除', 'Remove from album'))}">✕</button>
+              <span class="album-work-title" data-playitemidx="${idx}" data-itempl="${esc(pl.id)}">${esc(wTitle(it.w))} — <span class="muted">${esc(cshort(it.c))}</span></span>
+              <div class="album-work-btns">
+                <button class="btn-work-play" data-playitemidx="${idx}" data-itempl="${esc(pl.id)}">▶</button>
+                <button class="album-work-del" data-delw="${esc(it.w.id)}" data-frompl="${esc(pl.id)}" title="${esc(L('このアルバムから削除', 'Remove from album'))}">✕</button>
+              </div>
             </div>
           `).join('') : `<p class="muted sm">${esc(L('曲がありません', 'No songs'))}</p>`}
         </div>
       </div>
     `).join('');
 
+    box.innerHTML = favHtml + albumsHtml;
+
+    // お気に入り再生（モーダル内）
+    const favPlayBtn = $('btnPlayFavModal');
+    if (favPlayBtn) favPlayBtn.onclick = () => { $('albumModal').classList.add('hidden'); startFavoritePlayback(0, false); };
+    const favShuffleBtn = $('btnShuffleFavModal');
+    if (favShuffleBtn) favShuffleBtn.onclick = () => { $('albumModal').classList.add('hidden'); startFavoritePlayback(0, true); };
+
+    // お気に入り曲の個別再生
+    box.querySelectorAll('[data-playfavidx]').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        $('albumModal').classList.add('hidden');
+        startFavoritePlayback(+btn.dataset.playfavidx, false);
+      };
+    });
+
+    // お気に入り曲の解除
+    box.querySelectorAll('[data-delfav]').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const wid = btn.dataset.delfav;
+        const w = favW.find(x => String(x.w.id) === wid)?.w;
+        if (w) toggleFavW(w);
+        renderAlbumCards();
+      };
+    });
+
+    // アルバム全曲再生
     box.querySelectorAll('[data-playpl]').forEach(btn => {
       btn.onclick = () => {
         const pl = getPlaylist(btn.dataset.playpl);
         if (pl) {
           $('albumModal').classList.add('hidden');
-          startPlaylistPlayback(pl);
+          startPlaylistFromIndex(pl, 0, false);
+        }
+      };
+    });
+
+    // アルバムシャッフル再生
+    box.querySelectorAll('[data-shufflepl]').forEach(btn => {
+      btn.onclick = () => {
+        const pl = getPlaylist(btn.dataset.shufflepl);
+        if (pl) {
+          $('albumModal').classList.add('hidden');
+          startPlaylistFromIndex(pl, 0, true);
+        }
+      };
+    });
+
+    // アルバム内の個別曲再生
+    box.querySelectorAll('[data-playitemidx]').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const pl = getPlaylist(btn.dataset.itempl);
+        if (pl) {
+          $('albumModal').classList.add('hidden');
+          startPlaylistFromIndex(pl, +btn.dataset.playitemidx, false);
         }
       };
     });
@@ -1948,10 +3172,11 @@
   }
 
   /* ---------- 作品 ---------- */
-  const updateWorksTitle = () => { $('wh').textContent = view === 'favW' ? L('お気に入り楽曲', 'Favorite works') : current ? L(`${cfull(current)} の作品`, `Works by ${cfull(current)}`) : ''; };
+  const updateWorksTitle = () => { $('wh').textContent = view === 'favW' ? L('お気に入り楽曲', 'Favorite works') : view === 'famous' ? L('👑 誰もが知る超有名な名曲 50選+', '👑 World-Famous Classical Masterpieces (50+)') : current ? L(`${cfull(current)} の作品`, `Works by ${cfull(current)}`) : ''; };
   const workSource = () => view === 'favW' ? favW.map(x => x.w) : works;
   function showFavWorks() {
     $('worksSec').classList.remove('hidden'); $('ystat').textContent = ''; $('wq').value = '';
+    if ($('favPlayBar')) $('favPlayBar').classList.remove('hidden');
     favW.forEach(x => { WC.set(String(x.w.id), x.c); applyYearCache(x.c.id); });
     ensureJa(favW.map(x => x.c)).then(() => { if (view === 'favW') renderWorks(); });
     updateWorksTitle(); renderWorks();
@@ -1959,7 +3184,7 @@
   async function selectComposer(c) {
     current = c; renderComposers($('q').value.trim());
     const tok = ++workTok, sec = $('worksSec'), box = $('works');
-    sec.classList.remove('hidden'); $('wq').value = ''; $('ystat').textContent = ''; updateWorksTitle();
+    sec.classList.remove('hidden'); $('wq').value = ''; $('ystat').textContent = ''; if ($('favPlayBar')) $('favPlayBar').classList.add('hidden'); updateWorksTitle();
     const cached = store.get('opus.works.' + c.id, null);
     if (cached) { works = mergeCustom(c, cached); works.forEach(w => WC.set(String(w.id), c)); applyYearCache(c.id); applyCustomYears(works); renderWorks(); }
     else box.innerHTML = `<div class="full">${spinner('作品を読み込み中…', 'Loading works…')}</div>`;
@@ -1998,6 +3223,7 @@
       return `<div class="cw"><button data-w="${esc(w.id)}" class="card wc">
         <span class="wt serif">${esc(wTitle(w))}</span>
         ${w.subtitle ? `<span class="sm muted">${esc(wSub(w))}</span>` : ''}
+          ${w.desc_ja ? `<span class="sm" style="color:var(--text-muted);font-size:0.82rem;margin-top:0.25rem;line-height:1.4">${esc(w.desc_ja)}</span>` : ''}
         ${view === 'favW' && c ? `<span class="sm rose">${esc(cshort(c))}</span>` : ''}
         <span class="tags">
           <span class="tag s">${esc(L('ピアノ難度', 'Piano'))} ${starStr(d.stars)}${d.arr ? esc(L('（編曲想定）', ' (arr.)')) : ''}</span>
@@ -2008,12 +3234,32 @@
           ${m.key ? `<span class="tag">${esc(m.key)}</span>` : ''}
           ${+w.recommended ? `<span class="tag b">${esc(L('おすすめ', 'Recommended'))}</span>` : ''}
         </span></button>
+        <button class="quick-play" data-qp="${esc(w.id)}" title="${esc(L('すぐに再生', 'Play now'))}" aria-label="${esc(L('すぐに再生', 'Play now'))}">▶</button>
         <button class="star ${f ? '' : 'off'}" data-fw="${esc(w.id)}" aria-label="${esc(f ? L('お気に入り・アルバム振り分け', 'Favorites & Albums') : L('お気に入り・アルバム振り分け', 'Favorites & Albums'))}">${f ? '★' : '☆'}</button></div>`;
     }).join('') + (list.length > 150 ? `<p class="full sm muted">${tx('先頭150件を表示中。絞り込み検索をご利用ください。', 'Showing the first 150. Use the filter to narrow down.')}</p>` : '');
   }
   $('wq').addEventListener('input', renderWorks);
   $('works').addEventListener('click', e => {
     if (e.target.closest('[data-retry]') && current) return selectComposer(current);
+    
+    // クイック再生ボタン
+    const qp = e.target.closest('[data-qp]');
+    if (qp) {
+      e.stopPropagation();
+      const wid = qp.dataset.qp;
+      const w = workSource().find(x => String(x.id) === wid);
+      const c = compOf(w);
+      if (w && c) {
+        if (view === 'favW') {
+          const idx = favW.findIndex(x => String(x.w.id) === wid);
+          if (idx !== -1) startFavoritePlayback(idx, false);
+        } else {
+          startPlaylistFromIndex({ id: 'single_' + w.id, name: wTitle(w), items: [{ w, c }] }, 0);
+        }
+      }
+      return;
+    }
+
     const starBtn = e.target.closest('[data-fw]');
     if (starBtn) {
       const w = workSource().find(x => String(x.id) === starBtn.dataset.fw);
@@ -2030,7 +3276,7 @@
       favW.push({ w, c: slimC(c) });
       const pc = store.get('opus.wikic', {}); ['ja', 'en'].forEach(l => { const k = l + '|' + w.id; if (wikiCache.has(k)) pc[k] = wikiCache.get(k); }); store.set('opus.wikic', pc);
     }
-    store.set('opus.favW', favW); renderEpochs(); renderWorks(); updateFavBtn();
+    store.set('opus.favW', favW); renderEpochs(); renderWorks(); updateFavBtn(); updatePbStarBtn(); renderRList();
   }
 
   /* ---------- モーダル ---------- */
@@ -2161,20 +3407,46 @@
   };
   $('sortSel').onchange = e => { sortKey = e.target.value; store.set('opus.sort', sortKey); renderWorks(); };
 
-  /* ---------- 時代・お気に入りチップ ---------- */
+  /* ---------- 時代・お気に入り・超名曲チップ ---------- */
   function renderEpochs() {
     $('epochs').innerHTML =
+      `<button class="chip famous-chip ${view === 'famous' ? 'on' : ''}" data-v="famous">👑 ${esc(L('超有名な曲 (50選+)', 'Super Famous (50+)'))}</button>` +
       `<button class="chip fv ${view === 'favC' ? 'on' : ''}" data-v="favC">★ ${esc(L('お気に入り作曲家', 'Favorite composers'))} (${favC.length})</button>` +
       `<button class="chip fv ${view === 'favW' ? 'on' : ''}" data-v="favW">★ ${esc(L('お気に入り楽曲', 'Favorite works'))} (${favW.length})</button>` +
       EPOCHS.map(([k, j, e]) => `<button class="chip ${view === 'browse' && k === epoch ? 'on' : ''}" data-e="${k}">${L(j, e)}</button>`).join('');
   }
   function setView(v) {
-    view = v; current = v === 'favW' ? null : current; works = v === 'favW' ? [] : works;
-    $('compSec').classList.toggle('hidden', v === 'favW');
+    view = v;
+    current = (v === 'favW' || v === 'famous') ? null : current;
+    works = (v === 'favW' || v === 'famous') ? [] : works;
+    $('compSec').classList.toggle('hidden', v === 'favW' || v === 'famous');
     $('ch').textContent = v === 'favC' ? L('お気に入り作曲家', 'Favorite composers') : L('作曲家', 'Composers');
     renderEpochs();
-    if (v === 'favW') showFavWorks();
-    else { if (v === 'favC' || !current) $('worksSec').classList.add('hidden'); loadComposers(); }
+    if (v === 'favW') {
+      showFavWorks();
+    } else if (v === 'famous') {
+      showFamousWorks();
+    } else {
+      if (v === 'favC' || !current) $('worksSec').classList.add('hidden');
+      loadComposers();
+    }
+  }
+
+  function showFamousWorks() {
+    $('worksSec').classList.remove('hidden');
+    $('ystat').textContent = '';
+    $('wq').value = '';
+    if ($('favPlayBar')) $('favPlayBar').classList.remove('hidden');
+    // SUPER_FAMOUS_WORKS の全楽曲を作曲家メタ情報とともに works 配列に設定
+    works = SUPER_FAMOUS_WORKS.map(item => {
+      WC.set(String(item.w.id), item.c);
+      return item.w;
+    });
+    SUPER_FAMOUS_WORKS.forEach(item => {
+      applyYearCache(item.c.id);
+    });
+    updateWorksTitle();
+    renderWorks();
   }
   $('epochs').addEventListener('click', e => {
     const v = e.target.closest('[data-v]'); if (v) return setView(view === v.dataset.v ? 'browse' : v.dataset.v);
@@ -2182,7 +3454,117 @@
     epoch = b.dataset.e; if (view !== 'browse') { current = null; works = []; $('worksSec').classList.add('hidden'); } view = 'browse';
     $('compSec').classList.remove('hidden'); $('ch').textContent = L('作曲家', 'Composers'); renderEpochs(); loadComposers();
   });
-  $('q').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(loadComposers, 350); });
+  // 楽曲・作曲家の横断検索
+  async function searchAcrossAll(q) {
+    const swSec = $('searchWorksSec'), swBox = $('searchWorksList'), swCount = $('swCount');
+    if (!q || q.length < 1) {
+      swSec.classList.add('hidden');
+      return;
+    }
+    const rawQuery = q.trim();
+
+    // 収集済み・既知の作品プール
+    const pool = [];
+    const seenWorkIds = new Set();
+    const addWorksFrom = (ws, c) => {
+      (ws || []).forEach(w => {
+        if (!seenWorkIds.has(String(w.id))) {
+          seenWorkIds.add(String(w.id));
+          WC.set(String(w.id), c);
+          pool.push({ w, c });
+        }
+      });
+    };
+
+    // 0. 👑 超名曲カタログ（50選+）を最優先で常時プールに投入（未キャッシュ時でも確実に即ヒット！）
+    SUPER_FAMOUS_WORKS.forEach(item => addWorksFrom([item.w], item.c));
+
+    // 1. お気に入り・カスタム作品
+    favW.forEach(x => addWorksFrom([x.w], x.c));
+    CUS_W.forEach(cw => {
+      const matchComp = CUS_C.find(c => c.name === cw.cre.source) || { id: 'c_custom', name: 'Classical Composer', complete_name: 'Classical Composer', epoch: 'Romantic' };
+      addWorksFrom([cw.w], matchComp);
+    });
+
+    // 2. キャッシュ済み作品
+    WK.forEach((ws, cid) => {
+      const comp = RC.get(cid) || composers.find(c => String(c.id) === cid);
+      if (comp) addWorksFrom(ws, comp);
+    });
+
+    // 検索フィルタ（統合ファジーマッチ・表記揺れ吸収）
+    const matched = pool.filter(({ w, c }) => {
+      const titleEn = w.title || '';
+      const titleJa = jaTitle(w.title || '');
+      const subEn = w.subtitle || '';
+      const subJa = jaTitle(w.subtitle || '');
+      const compName = (c.name || '') + ' ' + (c.complete_name || '') + ' ' + (JA[c.id] || '');
+      const genre = (GENRES[w.genre] || '') + ' ' + (w.genre || '');
+      const terms = w.searchterms || '';
+      const descJa = w.desc_ja || '';
+
+      // 1. 通常部分一致（小文字比較）
+      const qLower = rawQuery.toLowerCase();
+      const allText = (titleEn + ' ' + titleJa + ' ' + subEn + ' ' + subJa + ' ' + compName + ' ' + genre + ' ' + terms + ' ' + descJa).toLowerCase();
+      if (allText.includes(qLower)) return true;
+
+      // 2. 表記揺れ・ファジーマッチ（ひらがな/カタカナ相互変換、記号除去、同義語・タイプミス救済「ノタクーン」「ら・カンパネルラ」等）
+      if (fuzzyMatches(titleEn, rawQuery) ||
+          fuzzyMatches(titleJa, rawQuery) ||
+          fuzzyMatches(subEn, rawQuery) ||
+          fuzzyMatches(subJa, rawQuery) ||
+          fuzzyMatches(compName, rawQuery) ||
+          fuzzyMatches(genre, rawQuery) ||
+          fuzzyMatches(terms, rawQuery) ||
+          fuzzyMatches(descJa, rawQuery)) {
+        return true;
+      }
+      return false;
+    });
+
+    if (matched.length > 0) {
+      swSec.classList.remove('hidden');
+      swCount.textContent = matched.length + L('件', ' found');
+      swBox.innerHTML = matched.slice(0, 30).map(({ w, c }) => {
+        const m = meta(w), d = diffOf(w, c), f = isFavW(w);
+        return `<div class="cw"><button data-w="${esc(w.id)}" class="card wc">
+          <span class="wt serif">${esc(wTitle(w))}</span>
+          ${w.subtitle ? `<span class="sm muted">${esc(wSub(w))}</span>` : ''}
+          ${w.desc_ja ? `<span class="sm" style="color:var(--text-muted);font-size:0.82rem;margin-top:0.25rem;line-height:1.4">${esc(w.desc_ja)}</span>` : ''}
+          <span class="sm rose bold">${esc(cfull(c))}</span>
+          <span class="tags">
+            <span class="tag s">${esc(L('ピアノ難度', 'Piano'))} ${starStr(d.stars)}</span>
+            <span class="tag s">${esc(L('知名度', 'Fame'))} ${starStr(fameOf(w))}</span>
+            <span class="tag">${esc(ydisp(Y[w.id]))}</span>
+            <span class="tag rose">${esc(genreLabel(w.genre))}</span>
+          </span></button>
+          <button class="star ${f ? '' : 'off'}" data-fw="${esc(w.id)}" aria-label="${esc(f ? L('お気に入り・アルバム振り分け', 'Favorites & Albums') : L('お気に入り・アルバム振り分け', 'Favorites & Albums'))}">${f ? '★' : '☆'}</button></div>`;
+      }).join('');
+    } else {
+      swSec.classList.add('hidden');
+    }
+  }
+
+  $('swClose').onclick = () => $('searchWorksSec').classList.add('hidden');
+  $('searchWorksList').addEventListener('click', e => {
+    const starBtn = e.target.closest('[data-fw]');
+    if (starBtn) {
+      const wid = starBtn.dataset.fw;
+      const c = WC.get(wid) || current;
+      // find in DOM or cache
+      const w = favW.find(x => String(x.w.id) === wid)?.w || (current ? works.find(x => String(x.id) === wid) : null) || CUS_W.find(cw => cw.w.id === wid)?.w;
+      if (w && c) openFavPopup(w, c, starBtn);
+      return;
+    }
+    const b = e.target.closest('[data-w]');
+    if (!b) return;
+    const wid = b.dataset.w;
+    const c = WC.get(wid) || current;
+    const w = favW.find(x => String(x.w.id) === wid)?.w || (current ? works.find(x => String(x.id) === wid) : null) || CUS_W.find(cw => cw.w.id === wid)?.w;
+    if (w && c) openModal(w, c);
+  });
+
+  $('q').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { loadComposers(); searchAcrossAll($('q').value.trim()); }, 300); });
 
   function allComposers() {
     if (!allP) allP = Promise.all(EPOCHS.slice(1).map(([k]) => jget(`${API}/composer/list/epoch/${enc(k)}.json`).then(j => j.composers || [])))
