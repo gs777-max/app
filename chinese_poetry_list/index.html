@@ -75,6 +75,14 @@ canvas#bd{width:100%;height:auto;border:2px solid var(--ink);box-shadow:0 12px 3
 .sc{display:inline-block;background:var(--ink);color:var(--paper2);padding:1px 9px;margin:2px;font-size:.85rem}
 .note{font-size:.85rem;color:var(--mute);line-height:1.8}
 @media(max-width:640px){.hero img{width:100%;opacity:.35}.hero .in{padding:30px 0 26px}.tab{padding:8px 10px;font-size:.88rem}}
+.btn{min-height:38px}
+:focus-visible{outline:3px solid #b8322a;outline-offset:2px}
+#toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:#1c1b19;color:#f3edde;padding:8px 18px;z-index:99;opacity:0;pointer-events:none;transition:.3s}
+#toast.on{opacity:1}
+.totop{position:fixed;right:14px;bottom:16px;z-index:40;background:#f3edde;display:none}
+.totop.on{display:block}
+.stat2{font-size:.9rem;color:#3b3935}
+@media(max-width:640px){.tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}.tab{white-space:nowrap}.btn{padding:8px 11px}.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}.card{min-height:220px;padding:10px}}
 </style>
 </head>
 <body>
@@ -94,7 +102,7 @@ canvas#bd{width:100%;height:auto;border:2px solid var(--ink);box-shadow:0 12px 3
 <div class="bar">
 <input id="q" placeholder="例：爛柯・手談・烏鷺・杜甫" size="22"><button class="btn" id="qgo">検索</button>
 <span style="color:#6b6458">飛花令</span><input id="hk" maxlength="1" size="2" placeholder="棋"><button class="btn" id="hkgo">一字で詠む</button>
-<button class="btn" id="vt">縦書き/横書き</button><button class="btn" id="favf">★お気に入りのみ</button><button class="btn" id="comf">解説付きのみ</button><button class="btn" id="dexb">用語図鑑</button>
+<button class="btn" id="vt">縦書き/横書き</button><select id="eraf" aria-label="時代"><option value="">全時代</option><option value="唐">唐</option><option value="宋">宋</option></select><button class="btn" id="rnd">ランダムで一首</button><button class="btn" id="rs">リセット</button><button class="btn" id="favf">★お気に入りのみ</button><button class="btn" id="comf">解説付きのみ</button><button class="btn" id="dexb">用語図鑑</button>
 <span id="dexp" style="font-size:.85rem;color:#6b6458"></span><div class="prog"><i id="dexbar"></i></div>
 </div>
 <div class="bar">飛花令の候補：<span id="hkc"></span></div>
@@ -107,7 +115,7 @@ canvas#bd{width:100%;height:auto;border:2px solid var(--ink);box-shadow:0 12px 3
 <div class="bcol" id="bcol"><canvas id="bd" width="760" height="760"></canvas></div>
 <div class="side">
 <div class="bar"><button class="btn" id="b19">19路</button><button class="btn" id="b9">9路</button><button class="btn" id="mute">🔊 打音ON</button><button class="btn" id="star">星の宇宙的意味</button><button class="btn" id="undo">一手戻す</button><button class="btn" id="rst">初手に戻す</button></div>
-<div id="whisper">交点をクリックすると、石が鳴り、盤が宇宙を語ります。</div>
+<div id="bstat" class="stat2"></div><div id="whisper">交点をクリックすると、石が鳴り、盤が宇宙を語ります。</div>
 <div class="omi"><h3 style="color:var(--red)">今日の一句・心境おみくじ</h3>
 <div class="bar" id="moods"></div><div id="omiout"></div></div>
 </div></div>
@@ -119,14 +127,14 @@ canvas#bd{width:100%;height:auto;border:2px solid var(--ink);box-shadow:0 12px 3
 </section>
 
 <section id="t4" class="sec">
-<p class="note">あなたが書いた現代文の内容だけを素材に、漢詩を組み立てます。入力から読み取った情景語（縁側・友・碁・夕暮れ・雨・茶…）以外の内容は加えません。</p>
+<p class="note">あなたが書いた現代文の内容だけを素材に、漢詩を作ります。「AI作詩」はどんな文章にも対応し、行数・字数・押韻をプログラムで検査します。「内蔵エンジン」は17種の情景語を読み取る方式で、オフラインでも動きます。</p>
 <label class="lab">現代文（コメント）</label>
 <textarea id="src" placeholder="例：休日に友人と縁側で碁を打ち、気づけば夕暮れになっていた"></textarea>
 <div class="fl" style="margin:6px 0"><span class="chip ex">休日に友人と縁側で碁を打ち、気づけば夕暮れになっていた</span><span class="chip ex">大石を取られて悔しいが、次こそ勝ちたい</span><span class="chip ex">雨の夜、静かに茶を飲みながら一人で棋譜を並べる</span></div>
 <div class="fl" style="margin-top:8px"><span class="lab" style="margin:0">行数</span><select id="nl"><option value="1">1行</option><option value="4">4行（絶句）</option><option value="5" selected>5行</option><option value="7">7行</option><option value="8">8行（律詩）</option></select>
 <span class="lab" style="margin:0">1行の字数</span><select id="nc"><option value="5">五言</option><option value="7" selected>七言</option></select>
 <span class="lab" style="margin:0">文体（LLMプロンプト用）</span><select id="tone"><option value="0">白居易風「閑適・静寂」</option><option value="1">杜甫風「憂愁・真剣勝負」</option><option value="2">蘇軾・爛柯風「達観・仙界」</option></select></div>
-<div class="fl" style="margin-top:10px"><button class="btn red" id="mk">この内容で漢詩にする</button><button class="btn" id="cp">LLM用プロンプトをコピー</button></div>
+<div class="fl" style="margin-top:10px"><select id="mode" aria-label="作詩方式"><option value="ai">AI作詩（自由な文章に対応）</option><option value="local">内蔵エンジン（オフライン可）</option></select><button class="btn red" id="mk">この内容で漢詩にする</button><button class="btn" id="cp">LLM用プロンプトをコピー</button></div>
 <div id="gen"></div>
 </section>
 </div>
@@ -139,6 +147,11 @@ canvas#bd{width:100%;height:auto;border:2px solid var(--ink);box-shadow:0 12px 3
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ST={g(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},s(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+async function copyText(t){try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}toast('コピーしました')}
+function toast(m){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t)}t.textContent=m;t.className='on';clearTimeout(t._t);t._t=setTimeout(()=>t.className='',1600)}
+let SMP=null;
+try{if(window.claude&&claude.use)claude.use('sample').then(x=>{SMP=x||null;if(typeof cur!=='undefined'&&cur&&$('#modal').classList.contains('on'))drawModal();const m=$('#mode');if(m&&!SMP){m.querySelector('[value=ai]').textContent='AI作詩（この版では利用不可）'}}).catch(()=>{})}catch(e){}
+function parseJ(t){t=String(t||'').replace(/```json|```/g,'');const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<a)throw new Error('format');return JSON.parse(t.slice(a,b+1))}
 const rb=(w,r)=>`<ruby>${w}<rt>${r}</rt></ruby>`;
 
 /* ---------- 用語図鑑 ---------- */
@@ -214,10 +227,10 @@ let EXT=[],vert=true,favOnly=false,favs=ST.g('rk_fav',[]),shown=POEMS.slice();
 
 /* ---------- ギャラリー ---------- */
 function hl(s,ch){return ch?esc(s).split(esc(ch)).join(`<b style="color:#c93a2b">${esc(ch)}</b>`):esc(s)}
-let lim=60,lastCh='',comOnly=false;
-function renderGrid(list,ch){shown=list;lastCh=ch;let L=favOnly?list.filter(p=>favs.includes(p.id)):list;if(comOnly)L=L.filter(p=>p.kundoku.length);const tot=L.length;L=L.slice(0,lim);
+let lim=60,lastCh='',comOnly=false,eraSel='';
+function renderGrid(list,ch){shown=list;lastCh=ch;let L=favOnly?list.filter(p=>favs.includes(p.id)):list;if(comOnly)L=L.filter(p=>p.kundoku.length);if(eraSel)L=L.filter(p=>(p.era||'').includes(eraSel));const tot=L.length;L=L.slice(0,lim);
 $('#grid').innerHTML=L.length?L.map(p=>`<div class="card" onclick="openPoem('${p.id}')"><h3>${esc(p.title)}</h3><div class="au">${esc(p.au)}　${esc(p.era||'')}</div>
-<div class="pv ${vert?'v':''}">${p.lines.slice(0,vert?4:3).map(l=>`<div>${hl(l,ch)}</div>`).join('')}</div>${p.go?'<span class="seal">碁詩</span>':''}${favs.includes(p.id)?'<span style="position:absolute;right:10px;top:6px;color:#c93a2b">★</span>':''}</div>`).join('')+(tot>lim?`<div style="grid-column:1/-1;text-align:center"><button class="btn" onclick="lim+=60;renderGrid(shown,lastCh)">もっと見る（${lim}/${tot}首）</button></div>`:''):'<p>該当する詩がありません。</p>'}
+<div class="pv ${vert?'v':''}">${p.lines.slice(0,vert?4:3).map(l=>`<div>${hl(l,ch)}</div>`).join('')}</div>${p.kundoku.length?`<span class="seal">${p.ai?'AI解':'解説'}</span>`:''}${favs.includes(p.id)?'<span style="position:absolute;right:10px;top:6px;color:#c93a2b">★</span>':''}</div>`).join('')+(tot>lim?`<div style="grid-column:1/-1;text-align:center"><button class="btn" onclick="lim+=60;renderGrid(shown,lastCh)">もっと見る（${lim}/${tot}首）</button></div>`:''):'<p>該当する詩がありません。</p>'}
 function localSearch(q){q=q.trim();if(!q)return POEMS.slice();return POEMS.filter(p=>(p.title+p.au+p.lines.join('')+p.kundoku.join('')+p.terms.join('')+p.kai).includes(q))}
 async function extSearch(q){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),3000);
 try{const r=await fetch('https://poetry.palemoky.com/api/v1/poems/search?q='+encodeURIComponent(q),{signal:ac.signal});if(!r.ok)throw 0;const d=await r.json();
@@ -227,7 +240,7 @@ return{id:'x'+Date.now()+i,title:x.title||x.rhythmic||'無題',au:(x.author&&x.a
 catch(e){return[]}finally{clearTimeout(t)}}
 async function doSearch(q,ch){lim=60;$('#stat').textContent='検索中…';const loc=localSearch(q);renderGrid(loc,ch);
 const ex=await extSearch(q||ch);EXT=ex;const all=loc.concat(ex.filter(e=>!loc.some(l=>l.title===e.title&&l.au===e.au)));
-renderGrid(all,ch);$('#stat').textContent=`${all.length}首${ex.length?'（外部データ'+ex.length+'首を含む）':''}`}
+renderGrid(all,ch);$('#stat').textContent=`${all.length}首${ex.length?'（外部データ'+ex.length+'首を含む）':'（内蔵データから検索）'}`}
 function hika(ch){lim=60;ch=ch.trim().slice(0,1);if(!ch)return;const m=POEMS.filter(p=>p.lines.join('').includes(ch)).sort(()=>Math.random()-.5);
 renderGrid(m,ch);$('#stat').textContent=m.length?`飛花令「${ch}」：${m.length}首が見つかりました`:`「${ch}」を含む内蔵詩はありません。外部APIも確認中…`;
 if(!m.length)extSearch(ch).then(ex=>{EXT=ex;renderGrid(ex,ch);$('#stat').textContent=ex.length?`飛花令「${ch}」：外部データ${ex.length}首`:`「${ch}」を含む詩は見つかりませんでした`})}
@@ -237,6 +250,10 @@ $('#hkgo').onclick=()=>hika($('#hk').value);
 $('#vt').onclick=()=>{vert=!vert;renderGrid(shown)};
 $('#favf').onclick=()=>{favOnly=!favOnly;$('#favf').style.background=favOnly?'#c5a059':'';renderGrid(shown)};
 $('#comf').onclick=()=>{comOnly=!comOnly;$('#comf').style.background=comOnly?'#1c1b19':'';$('#comf').style.color=comOnly?'#f3edde':'';renderGrid(shown,lastCh)};
+$('#eraf').onchange=()=>{eraSel=$('#eraf').value;lim=60;renderGrid(shown,lastCh)};
+$('#hk').onkeydown=e=>{if(e.key==='Enter')hika($('#hk').value)};
+$('#rnd').onclick=()=>openPoem(POEMS[Math.floor(Math.random()*POEMS.length)].id);
+$('#rs').onclick=()=>{$('#q').value='';$('#hk').value='';lim=60;comOnly=false;favOnly=false;eraSel='';$('#eraf').value='';['#comf','#favf'].forEach(i=>{$(i).style.background='';$(i).style.color=''});renderGrid(POEMS);$('#stat').textContent=`収録 ${POEMS.length}首（解説付き7首＋原文収録${POEMS.length-7}首）`};
 $('#dexb').onclick=openDex;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$$('.modal').forEach(m=>m.classList.remove('on'))});
 
@@ -246,12 +263,23 @@ function openPoem(id){cur=find(id);if(!cur)return;drawModal();$('#modal').classL
 function drawModal(){const p=cur,f=favs.includes(p.id);
 $('#mb').innerHTML=`<button class="x" onclick="$('#modal').classList.remove('on')">×</button>
 <h2>${esc(p.title)} <span class="seal" style="width:24px;height:38px">${esc(p.au.slice(0,2))}</span></h2><div style="color:#6b6458">${esc(p.au)}　${esc(p.era||'')}</div>
-<div class="fl" style="margin:8px 0"><button class="btn" onclick="mvert=!mvert;drawModal()">縦/横切替</button><button class="btn" onclick="togFav('${p.id}')">${f?'★ 解除':'☆ お気に入り'}</button><button class="btn" onclick="openCard(cur)">書画カード作成</button></div>
+${p.ai?'<div class="note">※ 書き下し・現代語訳・解説はAIが生成したものです。内容は参考とし、原典でご確認ください。</div>':''}<div class="fl" style="margin:8px 0"><button class="btn" onclick="mvert=!mvert;drawModal()">縦/横切替</button><button class="btn" onclick="togFav('${p.id}')">${f?'★ 解除':'☆ お気に入り'}</button><button class="btn" onclick="openCard(cur)">書画カード作成</button><button class="btn" onclick="aiPrompt()">AI訳プロンプト</button><button class="btn" onclick="navPoem(-1)">← 前</button><button class="btn" onclick="navPoem(1)">次 →</button>${SMP&&(!p.kundoku.length||p.ai)?`<button class="btn red" onclick="genAI()">${p.ai?'AI解説を再生成':'AIで解説を生成'}</button>`:''}</div><div id="aist" class="note"></div>
 <h4>① 原文</h4><div class="vbox"><div class="${mvert?'v':''}" style="${mvert?'font-size:1.5rem;line-height:2.2;letter-spacing:.12em;max-height:400px':'font-size:1.2rem;line-height:2'}">${p.lines.map(l=>`<div>${esc(l)}</div>`).join('')}</div></div>
-<h4>② 書き下し文</h4>${p.kundoku.length?p.kundoku.map(l=>`<p>${esc(l)}</p>`).join(''):'<p>—</p>'}
-<h4>③ 現代語訳</h4><p>${esc(p.gendai)||'—'}</p>
+<h4>② 書き下し文</h4>${p.kundoku.length?p.kundoku.map(l=>`<p>${esc(l)}</p>`).join(''):'<p class="note">この詩は原文のみ収録です。「AIで解説を生成」（公開ページ）か、「AI訳プロンプト」をAIに貼って、書き下し・現代語訳・解説を得られます。</p>'}
+<h4>③ 現代語訳</h4><p>${esc(p.gendai)||'（未収録）'}</p>
 <h4>④ 背景・鑑賞</h4><p>${esc(p.kai)}</p>
 <h4>⑤ 囲碁用語・宇宙観タグ</h4>${p.terms.length?p.terms.map(t=>`<span class="chip" onclick="openTerm('${t}')">${rb(t,TM[t].r)}</span>`).join(''):'—'}`}
+const AIK='rk_ai';let AIC=ST.g(AIK,{});
+const pkey=p=>p.title+'|'+p.au+'|'+p.lines[0];
+function setAI(p,c){p.kundoku=(c.kundoku||[]).map(String);p.gendai=String(c.gendai||'');p.kai=String(c.kai||p.kai||'');p.terms=(c.terms||[]).filter(t=>TM[t]);p.ai=1}
+async function genAI(){const p=cur,st=$('#aist');if(!SMP){st.textContent='AI機能はこの公開ページでのみ使えます。';return}
+st.textContent='AIが解説を作成中…（数秒〜十数秒かかります）';
+const pr=`あなたは唐宋詩と日本の漢文訓読に精通した研究者です。次の漢詩を日本語で解説してください。\n\n題：${p.title}\n作者（データ上の表記）：${p.au}\n時代：${p.era||''}\n本文（${p.lines.length}句、1行1句）：\n${p.lines.map((l,i)=>(i+1)+'. '+l).join('\n')}\n\n条件：\n- 簡体字の本文は、旧字体の漢字に直して書き下す。\n- 書き下し文は歴史的仮名遣いに近い格調ある訓読調で、句と同数の配列にする。\n- 不確かな点は断定せず「とされる」「と考えられる」とし、作者表記や本文が疑わしい場合はその旨を書く。\n- 解説(kai)は、作者・背景・情景・構成（起承転結など）を200〜350字で。\n- terms は次の語から、詩中に関係するものだけを選ぶ（無ければ空配列）：${TERMS.map(t=>t.id).join('、')}\n\nJSONのみを出力：{\"kundoku\":[...],\"gendai\":\"現代語訳\",\"kai\":\"解説\",\"terms\":[...]}`;
+try{const r=await SMP(pr,{modelTier:'default'});const j=parseJ(r.text);if(!Array.isArray(j.kundoku)||!j.gendai)throw new Error('format');setAI(p,j);AIC[pkey(p)]=j;ST.s(AIK,AIC);drawModal();renderGrid(shown,lastCh)}
+catch(e){st.textContent=e&&e.code==='not_granted'?'AIの利用が許可されませんでした。':e&&e.code==='rate_limited'?'しばらく待ってからもう一度お試しください。':'解説の生成に失敗しました。もう一度お試しください。'}}
+function navPoem(d){const i=shown.findIndex(x=>x.id===cur.id);const n=shown[(i+d+shown.length)%shown.length];if(n){cur=n;drawModal();$('#modal').scrollTop=0}}
+function aiPrompt(){copyText(`次の漢詩について、(1)書き下し文 (2)現代語訳 (3)作者と時代背景 (4)鑑賞の要点 (5)囲碁に関する語の解説、を日本語で丁寧に示してください。\n\n『${cur.title}』${cur.au}\n${cur.lines.join('\n')}`)}
+new MutationObserver(()=>{document.body.style.overflow=$$('.modal.on').length?'hidden':''}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class']});
 function togFav(id){favs=favs.includes(id)?favs.filter(x=>x!==id):favs.concat(id);ST.s('rk_fav',favs);drawModal();renderGrid(shown)}
 $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on')}));
 
@@ -280,20 +308,21 @@ function dlCard(){const a=document.createElement('a');a.download=(cardPoem.title
 $$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x===b));$$('.sec').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t));if(b.dataset.t==='t2')drawBoard()});
 
 /* ---------- 碁盤 ---------- */
-let N=19,stones=[],showStar=false,mute=false,AC=null;
+const GR=Array.from({length:60},(_,i)=>(i*37%60)/60*760);let hov=null;let N=19,stones=[],showStar=false,mute=false,AC=null;
 const cv=$('#bd'),cx=cv.getContext('2d');
 const PH=['閑敲棋子落灯花','竹陰対坐意悠悠','山僧対棋坐　局上竹陰清','時聞下子声','戦罷両奩分黒白','聞道長安似弈棋','莫将戯事擾真情','懐旧空吟聞笛賦'];
 const STARS=()=>N==19?[3,9,15]:[2,4,6];
 function pad(){return 760/(N+1)}
 function drawBoard(){const w=760,p=pad();cx.clearRect(0,0,w,w);const g=cx.createLinearGradient(0,0,w,w);g.addColorStop(0,'#dcc79c');g.addColorStop(1,'#c4a874');cx.fillStyle=g;cx.fillRect(0,0,w,w);
-cx.strokeStyle='#7a5a2a22';cx.lineWidth=2;for(let i=0;i<60;i++){cx.beginPath();const y=Math.random()*w;cx.moveTo(0,y);cx.bezierCurveTo(200,y+8,500,y-8,w,y+4);cx.stroke()}
+cx.strokeStyle='#7a5a2a22';cx.lineWidth=2;for(let i=0;i<60;i++){cx.beginPath();const y=GR[i];cx.moveTo(0,y);cx.bezierCurveTo(200,y+8,500,y-8,w,y+4);cx.stroke()}
 cx.strokeStyle='#3a2a12';cx.lineWidth=1.3;for(let i=1;i<=N;i++){cx.beginPath();cx.moveTo(p,i*p);cx.lineTo(N*p,i*p);cx.moveTo(i*p,p);cx.lineTo(i*p,N*p);cx.stroke()}
 cx.lineWidth=3;cx.strokeRect(p,p,(N-1)*p,(N-1)*p);
 STARS().forEach(a=>STARS().forEach(b=>{cx.fillStyle=showStar?'#c93a2b':'#2a1c0a';cx.beginPath();cx.arc((a+1)*p,(b+1)*p,showStar?9:5,0,7);cx.fill()}));
 if(showStar){cx.font="bold 22px 'Shippori Mincho',serif";cx.fillStyle='#fff';cx.textAlign='center';const s=STARS(),m=(s[1]+1)*p,lo=(s[0]+1)*p,hi=(s[2]+1)*p;[['春',lo,lo],['夏',hi,lo],['秋',hi,hi],['冬',lo,hi],['天元',m,m]].forEach(([t,a,b])=>{cx.fillStyle='#121212cc';cx.fillRect(a-24,b-34,48,26);cx.fillStyle='#e8c97a';cx.fillText(t,a,b-14)})}
 stones.forEach((s,i)=>{const X=(s.x+1)*p,Y=(s.y+1)*p,r=p*.46;const rg=cx.createRadialGradient(X-r*.3,Y-r*.3,r*.1,X,Y,r);if(s.c){rg.addColorStop(0,'#fff');rg.addColorStop(1,'#cfcabd')}else{rg.addColorStop(0,'#555');rg.addColorStop(1,'#0a0a0a')}
 cx.fillStyle='#0005';cx.beginPath();cx.arc(X+2,Y+3,r,0,7);cx.fill();cx.fillStyle=rg;cx.beginPath();cx.arc(X,Y,r,0,7);cx.fill();
-if(i==stones.length-1){cx.strokeStyle='#c93a2b';cx.lineWidth=3;cx.beginPath();cx.arc(X,Y,r*.4,0,7);cx.stroke()}})}
+if(i==stones.length-1){cx.strokeStyle='#c93a2b';cx.lineWidth=3;cx.beginPath();cx.arc(X,Y,r*.4,0,7);cx.stroke()}});if(hov&&!stones.some(s=>s.x==hov.x&&s.y==hov.y)){const X=(hov.x+1)*p,Y=(hov.y+1)*p;cx.globalAlpha=.45;cx.fillStyle=stones.length%2?'#f4f0e6':'#111';cx.beginPath();cx.arc(X,Y,p*.46,0,7);cx.fill();cx.globalAlpha=1}
+$('#bstat').textContent=`${stones.length}手　次は${stones.length%2?'白':'黒'}`}
 function snd(){if(mute)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.setValueAtTime(1500,t);o.frequency.exponentialRampToValueAtTime(520,t+.09);g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.16);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+.17);
 const b=AC.createBuffer(1,AC.sampleRate*.03,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g2=AC.createGain();f.type='bandpass';f.frequency.value=3200;g2.gain.value=.6;s.buffer=b;s.connect(f).connect(g2).connect(AC.destination);s.start(t)}catch(e){}}
 function cosmic(x,y,n){const m=(N-1)/2,s=STARS();let t='';
@@ -307,6 +336,8 @@ if(x<0||y<0||x>=N||y>=N||stones.some(s=>s.x==x&&s.y==y))return;const n=stones.le
 const d=document.createElement('div');d.className='rip';d.style.left=(e.clientX-r.left)+'px';d.style.top=(e.clientY-r.top)+'px';$('#bcol').appendChild(d);setTimeout(()=>d.remove(),900);
 const w=$('#whisper');w.style.animation='none';w.offsetHeight;w.style.animation='';
 w.innerHTML=`<div style="color:var(--red);font-size:1.15rem;letter-spacing:.1em">「${PH[(n+x+y)%PH.length]}」</div><div style="margin-top:6px;line-height:1.8">${n}手目（${x+1}, ${y+1}）— ${cosmic(x,y,n)}</div>`});
+cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect(),k=760/r.width,p=pad(),x=Math.round(((e.clientX-r.left)*k)/p)-1,y=Math.round(((e.clientY-r.top)*k)/p)-1;hov=(x>=0&&y>=0&&x<N&&y<N)?{x,y}:null;drawBoard()});
+cv.addEventListener('mouseleave',()=>{hov=null;drawBoard()});
 function setN(n){N=n;stones=[];drawBoard()}
 $('#b19').onclick=()=>setN(19);$('#b9').onclick=()=>setN(9);$('#rst').onclick=()=>setN(N);$('#undo').onclick=()=>{stones.pop();drawBoard()};
 $('#mute').onclick=()=>{mute=!mute;$('#mute').textContent=mute?'🔇 打音OFF':'🔊 打音ON'};
@@ -328,29 +359,42 @@ const QZ=[[
 ['言葉を使わず石で語り合うことを何という？',['手談','口論','筆談','坐談'],0,'『世説新語』に由来する碁の別称です。'],
 ['碁を打てば憂いを忘れる、という意味の別称は？',['忘憂','不惑','無尽','閑居'],0,'「忘憂」は没入して憂いを忘れる碁の異名です。'],
 ['座ったまま俗世を離れる、という意味の碁の別称は？',['坐隠','坐禅','隠居','座興'],0,'王坦之が囲碁を「坐隠」と称したと伝わります。'],
-['標準的な碁盤（19路盤）の交点の数は？',['361','81','256','400'],0,'19×19＝361。天元1と周囲360にたとえる解釈もあります。']],
+['標準的な碁盤（19路盤）の交点の数は？',['361','81','256','400'],0,'19×19＝361。天元1と周囲360にたとえる解釈もあります。'],
+['「楸枰」の「楸」とは何の木？',['ひさぎ（楸）','松','桜','竹'],0,'楸（ひさぎ）の木で作った盤が「楸枰」です。'],
+['碁を打つ楽しみを、橘の実の中の仙人にたとえた語は？',['橘中の楽','爛柯の楽','烏鷺の楽','方円の楽'],0,'橘の中で老人たちが碁を打っていたという故事に由来します。'],
+['碁盤の中央の交点を何という？',['天元','星','辺','隅'],0,'中央の天元は、北極星にたとえられます。'],
+['「方円」の「円」にあたるものは？',['碁石','碁盤','碁笥','碁石の袋'],0,'四角い盤（方）に対し、丸い石が「円」です。']],
 [
 ['杜甫が「長安は弈棋に似たり」と詠んだ背景は？',['戦乱後の政局のめまぐるしい交代','碁会の盛況','碁の師への感謝','隠棲の喜び'],0,'安史の乱後の世情を、石が入れ替わる碁にたとえた時勢批判です。'],
 ['趙師秀『約客』で「灯花」を落とすために使ったものは？',['碁石','扇','筆','箸'],0,'来ない客を待ち、碁石で燈芯を軽く叩いて灯花を落としました。'],
 ['劉禹錫が「爛柯の人」に託したのは？',['長い左遷の末に帰郷した隔世の感','碁の上達','仙人への憧れ','碁会の誘い'],0,'二十三年ぶりに戻った世の変化への戸惑いを表します。'],
 ['白居易『池上』で碁の対局者の気配を伝えるのは？',['石を打つ音','話し声','笑い声','鐘の音'],0,'竹に隠れて姿は見えず、時折の打石音だけが聞こえます。'],
 ['王安石『棋』の主題は？',['勝敗への執着を離れること','碁の必勝法','戦の喩え','碁盤の材質'],0,'終局後に石を分ければ勝敗は残らない、という達観です。'],
-['杜甫『江村』で老妻が碁盤の代わりにしたものは？',['紙に引いた線','板','砂','布']  ,0,'紙に線を引いて手作りの棋局にしました。']],
+['杜甫『江村』で老妻が碁盤の代わりにしたものは？',['紙に引いた線','板','砂','布']  ,0,'紙に線を引いて手作りの棋局にしました。'],
+['劉禹錫『酬楽天』の「沈舟側畔千帆過」が表すものは？',['自分が沈んでも世は前へ進むこと','船旅の楽しさ','碁の必勝法','友との別れ'],0,'不遇の身を嘆きつつ、時代の前進を肯定する名句です。'],
+['杜甫「聞道長安似弈棋」は『秋興八首』のどれ？',['其四','其一','其五','其八'],0,'其四の冒頭句です。'],
+['白居易『池上』で碁を打っているのは？',['山の僧','漁師','官吏','子ども'],0,'「山僧 棋に対して坐し」と詠まれます。'],
+['趙師秀『約客』の季節はいつ？',['梅雨','冬','初秋','春の盛り'],0,'「黄梅の時節」は梅の実が熟す梅雨の頃です。']],
 [
 ['「天円地方」で、方形の碁盤が表すものは？',['地','天','太陽','月'],0,'丸い石が天、四角い盤が地とされます。'],
 ['「三百六十と一」の「一」にあたるものは？',['天元','星','辺','隅'],0,'天元（中央）が不動の一、周囲が三百六十と解されます。'],
 ['橘の実の中で老人が碁を打っていた故事に由来する語は？',['橘中の楽','爛柯','手談','烏鷺'],0,'巴邛の橘の中で碁を打つ老人たちの話（『幽怪録』）です。'],
 ['碁を打つ隠者として知られる「商山の四皓」の「皓」の意味は？',['白（白髪）','黒','賢','古'],0,'「皓」は白い意で、白髪の四人の老隠者を指します。'],
 ['囲碁十訣に含まれる教えは？',['捨小就大','一撃必殺','先手必勝','速戦即決'],0,'小を捨てて大に就く。大局を重んじる教えです。'],
-['『易経』の陰陽に対応づけられる碁石の見立ては？',['黒と白','上と下','天と地のみ','春と秋のみ'],0,'黒白は陰陽の対立と調和を表すと見られます。']]];
+['『易経』の陰陽に対応づけられる碁石の見立ては？',['黒と白','上と下','天と地のみ','春と秋のみ'],0,'黒白は陰陽の対立と調和を表すと見られます。'],
+['橘中の楽の故事を載せる書物は？',['幽怪録','論語','史記','老子'],0,'唐代の志怪小説『幽怪録』に見えます。'],
+['「坐隠」「手談」が載る書物は？',['世説新語','水滸伝','紅楼夢','西遊記'],0,'魏晋の逸話集『世説新語』に、碁の別称として見えます。'],
+['「爛柯」の故事が載る書物は？',['述異記','孫子','荘子','史記'],0,'南朝の志怪『述異記』に見える王質の話です。'],
+['碁盤の四隅を見立てる解釈があるものは？',['四季','五行のみ','十二支のみ','七曜'],0,'四隅を春夏秋冬に見立てる解釈があります。']]];
 const RANK=(r,n)=>r>=1?['中押し勝ち','爛柯の仙人・九段']:r>=.83?['三目半勝ち','坐隠の雅士・五段']:r>=.67?['半目勝ち','手談の客・初段']:r>=.5?['半目勝負','烏鷺の徒・級位者']:['投了','再挑戦で盤に向かう人'];
 let qs=[],qi=0,sc=0,lv=0;
 const bestK=()=>ST.g('rk_best',{});
 function showBest(){const b=bestK();$('#best').textContent='最高段位：'+['初級','中級','上級'].map((n,i)=>n+'＝'+(b[i]||'未挑戦')).join(' / ')}showBest();
 $$('[data-lv]').forEach(b=>b.onclick=()=>{lv=+b.dataset.lv;qs=QZ[lv].map(q=>{const o=q[1].map((t,i)=>[t,i==q[2]]).sort(()=>Math.random()-.5);return{q:q[0],o,e:q[3]}}).sort(()=>Math.random()-.5);qi=0;sc=0;showQ()});
-function showQ(){const q=qs[qi];$('#quiz').innerHTML=`<div style="color:var(--red)">第${qi+1}問 / ${qs.length}</div><h3 style="margin:8px 0">${esc(q.q)}</h3>`+q.o.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o[0])}</button>`).join('')+'<div id="ex"></div>';
+function showQ(){const q=qs[qi];$('#quiz').innerHTML=`<div style="color:var(--red)">第${qi+1}問 / ${qs.length}　正解 ${sc}</div><div class="prog" style="margin:6px 0"><i style="width:${qi/qs.length*100}%"></i></div><h3 style="margin:8px 0">${esc(q.q)}</h3>`+q.o.map((o,i)=>`<button class="opt" data-i="${i}">${i+1}. ${esc(o[0])}</button>`).join('')+'<div id="ex"></div>';
 $$('.opt').forEach(b=>b.onclick=()=>{if($('#ex').innerHTML)return;const ok=q.o[b.dataset.i][1];if(ok)sc++;b.classList.add(ok?'ok':'ng');$$('.opt').forEach((x,i)=>{if(q.o[i][1])x.classList.add('ok')});
 $('#ex').innerHTML=`<div class="exp"><b>${ok?'正解':'不正解'}</b>　${esc(q.e)}</div><button class="btn" style="margin-top:8px" id="nx">${qi+1<qs.length?'次の一手':'結果を見る'}</button>`;$('#nx').onclick=()=>{qi++;qi<qs.length?showQ():fin()}})}
+document.addEventListener('keydown',e=>{if(!$('#t3').classList.contains('on'))return;const n=+e.key;if(n>=1&&n<=4){const o=$$('.opt')[n-1];if(o)o.click()}else if(e.key==='Enter'&&$('#nx'))$('#nx').click()});
 function fin(){const [a,t]=RANK(sc/qs.length,qs.length),b=bestK(),sc2=sc/qs.length;if(!b[lv]||sc2>(b['s'+lv]||0)){b[lv]=t;b['s'+lv]=sc2;ST.s('rk_best',b)}showBest();
 const tx=encodeURIComponent(`『爛柯の盤』囲碁漢詩クイズ（${['初級','中級','上級'][lv]}）で${sc}/${qs.length}問正解、${a}！称号【${t}】 #爛柯の盤 #囲碁 #漢詩`);
 $('#quiz').innerHTML=`<h2 style="color:var(--red)">${a}</h2><h3>称号【${t}】</h3><p>${sc} / ${qs.length} 問正解</p><div class="fl"><a class="btn" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=${tx}">Xで投稿</a><button class="btn" onclick="$('[data-lv=\\'${lv}\\']').click()">もう一局</button></div>`}
@@ -391,14 +435,39 @@ const nm={1:'一行詩',4:'絶句風（4句）',5:'五句の古風',7:'七句の
 const short=L.length<nL?`入力から読み取れる情景が${used.length}つだったため、${L.length}行にとどめました。場面や気持ちを書き足すと、${nL}行まで伸ばせます。`:'';
 return{id:'gen',title:'作詩工房の一首',au:'擬似作詩',era:nm,go:0,lines:L.map(x=>x[0]),kundoku:L.map(x=>x[1]),gendai:src,terms:[],used,short,
 kai:`${nm}。読み取った情景：${used.join('・')}。`+(L.length>1?'偶数句末の押韻字は下平七陽韻（長・香・光・涼・堂・忙・霜・茫など）です。':'')+'語彙と句型の組み合わせによる擬似作詩のため、平仄の厳密な点検は下のプロンプトでAIに依頼してください。'}}
-$('#mk').onclick=()=>{const p=compose();if(!p)return;window._gp=p;
-$('#gen').innerHTML=`<div class="poemout"><div style="margin-bottom:8px">読み取った情景：${p.used.map(u=>`<span class="sc">${esc(u)}</span>`).join('')}</div><div class="vbox"><div class="v" style="font-size:1.4rem;line-height:2.1;letter-spacing:.12em;max-height:360px">${p.lines.map(l=>`<div>${esc(l)}</div>`).join('')}</div></div><h4 style="color:#b8322a">書き下し</h4>${p.kundoku.map(l=>`<p>${esc(l)}</p>`).join('')}<h4 style="color:#b8322a">韻目解説</h4><p>${esc(p.kai)}</p>${p.short?`<p class="note">${esc(p.short)}</p>`:''}<button class="btn" style="margin-top:8px" onclick="openCard(window._gp)">書画カード作成</button></div>`};
-$$('.ex').forEach(c=>c.onclick=()=>$('#src').value=c.textContent);
+function showGen(p){window._gp=p;
+$('#gen').innerHTML=`<div class="poemout"><div style="margin-bottom:8px">読み取った情景：${p.used.map(u=>`<span class="sc">${esc(u)}</span>`).join('')}</div><div class="vbox"><div class="v" style="font-size:1.4rem;line-height:2.1;letter-spacing:.12em;max-height:360px">${p.lines.map(l=>`<div>${esc(l)}</div>`).join('')}</div></div><h4 style="color:#b8322a">書き下し</h4>${p.kundoku.map(l=>`<p>${esc(l)}</p>`).join('')}<h4 style="color:#b8322a">韻目解説</h4><p>${esc(p.kai)}</p>${p.short?`<p class="note">${esc(p.short)}</p>`:''}<button class="btn" style="margin-top:8px" onclick="openCard(window._gp)">書画カード作成</button> <button class="btn" style="margin-top:8px" onclick="copyText(window._gp.lines.join('\n')+'\n\n'+window._gp.kundoku.join('\n'))">詩をコピー</button></div>`;$('#gen').scrollIntoView({behavior:'smooth',block:'nearest'})};
+const NM={1:'一行詩',4:'絶句風（4句）',5:'五句の古風',7:'七句の古風',8:'律詩風（8句）'};
+async function aiCompose(src){const nL=+$('#nl').value,c=+$('#nc').value,t=$('#tone').selectedOptions[0].text;
+const base=`あなたは唐宋詩に精通した漢詩人です。次の現代文の内容だけを素材に漢詩を作ってください。現代文に無い情景・人物・出来事は加えないでください。\n\n【現代文】\n${src}\n\n【行数】${nL}行\n【1行の字数】${c}字（漢字のみ。句読点・空白なし）\n【文体】${t}\n\n【条件】\n1. ちょうど${nL}行、各行ちょうど${c}字。\n2. 偶数句末で平水韻の同一韻目の字で押韻する（1行の場合は不問）。\n3. 平仄・二四不同・孤平に配慮する。\n4. 囲碁の語（棋・楸枰・手談・烏鷺・爛柯など）は、現代文に碁の話があるときだけ使う。\n5. kundoku は各行の書き下し文（行数と同数）、scenes は現代文から取った情景語、kai は押韻字・韻目・工夫の簡潔な解説。\n\nJSONのみを出力：{\"lines\":[...],\"kundoku\":[...],\"scenes\":[...],\"kai\":\"...\"}`;
+let err='';
+for(let k=0;k<2;k++){const r=await SMP(base+err,{modelTier:'default',cache:false});let j;try{j=parseJ(r.text)}catch(e){err='\n\n前回は有効なJSONではありませんでした。JSONのみを出力してください。';continue}
+const L=(j.lines||[]).map(x=>String(x).replace(/[\s，。、,.！？「」]/g,''));const bad=[];
+if(L.length!==nL)bad.push(`行数が${L.length}行でした（${nL}行にする）`);
+L.forEach((x,i)=>{const n=[...x].length;if(n!==c)bad.push(`${i+1}行目が${n}字でした（${c}字にする）`);else if(!/^[\u3400-\u9fff]+$/.test(x))bad.push(`${i+1}行目に漢字以外があります`)});
+if(bad.length){err='\n\n前回の出力の問題：'+bad.join('、')+'。必ず修正して再出力してください。';continue}
+const K=j.kundoku||[];
+return{id:'gen',title:'作詩工房の一首',au:'AI作詩',era:NM[nL]+(c==5?'・五言':'・七言'),go:0,lines:L,kundoku:L.map((_,i)=>String(K[i]||'')),gendai:src,terms:[],used:(j.scenes||[]).map(String).slice(0,8),short:'AIが作った詩です。平仄の厳密な点検は保証されないため、必要に応じて下のプロンプトで再点検してください。',kai:String(j.kai||'')}}
+throw new Error('invalid')}
+$('#mk').onclick=async()=>{const src=$('#src').value.trim();if(!src){$('#gen').innerHTML='<p class="note">現代文を入力してください。</p>';return}
+const b=$('#mk');
+if($('#mode').value==='ai'&&SMP){b.disabled=true;b.textContent='作詩中…';
+try{showGen(await aiCompose(src))}catch(e){const p=compose();if(p){p.short='AI作詩を利用できなかったため、内蔵エンジンで作りました（'+(e&&e.code==='not_granted'?'AIの利用が許可されませんでした':e&&e.code==='rate_limited'?'利用回数の上限です':'生成に失敗しました')+'）。'+(p.short||'');showGen(p)}}
+finally{b.disabled=false;b.textContent='この内容で漢詩にする'}}
+else{const p=compose();if(!p)return;if($('#mode').value==='ai')p.short='AI作詩は公開ページでのみ使えるため、内蔵エンジンで作りました。'+(p.short||'');showGen(p)}};
+$('#src').value=ST.g('rk_src','');$('#src').addEventListener('input',()=>ST.s('rk_src',$('#src').value));
+$('#src').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')$('#mk').click()});
+$$('.ex').forEach(c=>c.onclick=()=>{$('#src').value=c.textContent;ST.s('rk_src',c.textContent)});
 $('#cp').onclick=async()=>{const nl=$('#nl').value,nc=$('#nc').value,t=$('#tone').selectedOptions[0].text,s=$('#src').value.trim()||'（ここに現代文を入力）';
 const pr=`あなたは唐宋詩に精通した漢詩人です。次の現代文の内容だけを素材に、漢詩を作ってください。現代文に無い情景・人物・出来事は加えないでください。\n\n【現代文】\n${s}\n\n【行数】${nl}行\n【1行の字数】${nc}言（1行${nc}字）\n【世界観・文体】${t}\n\n【厳守条件】\n1. 行数・字数を上記どおりにする。\n2. 押韻は平水韻の同一韻目（下平声を推奨）とし、偶数句末を必ず踏む。1行の場合は韻を問わない。\n3. 平仄を明示し、二四不同・二六対を守り、孤平と下三連を避ける。4句・8句の場合は絶句・律詩の規則に従い、律詩は頷聯・頸聯を対句にする。\n4. 5行・7行の場合は古風（古体詩）として、偶数句で押韻する。\n5. 囲碁の語（棋・楸枰・手談・烏鷺・爛柯など）は、現代文に碁の内容があるときだけ用いる。\n\n【出力形式】\n(1) 原文　(2) 各句の平仄表記と押韻字・韻目　(3) 書き下し文　(4) 現代語訳　(5) 現代文のどの語をどの句に対応させたかの説明　(6) 別案を1つ`;
 try{await navigator.clipboard.writeText(pr)}catch(e){const a=document.createElement('textarea');a.value=pr;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}
-$('#cp').textContent='コピーしました';setTimeout(()=>$('#cp').textContent='LLM用プロンプトをコピー',1800)};
+toast('プロンプトをコピーしました')};
 
+$$('.tab').forEach(b=>{b.setAttribute('role','tab');b.addEventListener('click',()=>{try{history.replaceState(null,'','#'+b.dataset.t)}catch(e){}})});
+{const h0=(location.hash||'').slice(1);if(/^t[1-4]$/.test(h0)){const b=$(`.tab[data-t="${h0}"]`);b&&b.click()}}
+const tt=document.createElement('button');tt.className='btn totop';tt.textContent='↑';tt.setAttribute('aria-label','先頭へ');tt.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});document.body.appendChild(tt);
+addEventListener('scroll',()=>tt.classList.toggle('on',scrollY>500));
+POEMS.forEach(p=>{const c=AIC[pkey(p)];if(c&&!p.kundoku.length)setAI(p,c)});
 dexUpd();renderGrid(POEMS);$('#stat').textContent=`収録 ${POEMS.length}首（解説付き7首＋原文収録${POEMS.length-7}首）`;
 </script>
 </body>
