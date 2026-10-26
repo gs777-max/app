@@ -1,0 +1,4736 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blue Note &amp; Bossa Salon — JAZZ・ボサノバ・映画音楽 探索＆ピアノ練習プレイヤー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e17;--panel:#121626;--panel2:#1a2035;--panel3:#232b45;
+    --line:#28324e;--line-lit:#3f4e78;
+    --ink:#f4ede4;--mute:#949cb8;--brass:#e2b467;--brass-lit:#f9d89c;--rose:#d8757e;--cyan:#54c2c5;--green:#5ec284;
+    --shadow:0 14px 36px rgba(0,0,0,.55);
+  }
+  body{background:radial-gradient(circle at 50% 0%, #161c31 0%, #0b0e17 75%)}
+  .qp-btn{position:absolute;top:.35rem;right:2.8rem;width:34px;height:34px;border-radius:50%;background:var(--brass);color:#121626;font-size:.85rem;font-weight:700;line-height:1;z-index:3;display:flex;align-items:center;justify-content:center;transition:.15s;padding-left:2px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+  .qp-btn:hover{filter:brightness(1.18);transform:scale(1.1)}
+  .wc{padding-right:5.2rem!important}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Noto Sans JP',system-ui,-apple-system,sans-serif;line-height:1.6;-webkit-tap-highlight-color:transparent}
+  button,input,select{font:inherit;color:inherit}
+  button{cursor:pointer;background:none;border:0;padding:0}
+  .hidden{display:none!important}
+  .serif{font-family:'Cormorant Garamond','Noto Serif JP',serif}
+  .wrap{max-width:74rem;margin:0 auto;padding:0 1rem}
+  .muted{color:var(--mute)} .rose{color:var(--rose)} .brass{color:var(--brass)} .sm{font-size:.78rem;margin:0}
+  .bold{font-weight:700}
+  h1,h2,h3,h4,h5,p,dl,dd,ul,ol{margin:0}
+
+  /* Header & Navigation */
+  header{padding-top:1.8rem;padding-bottom:1.2rem}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+  .logo-area{display:flex;align-items:baseline;gap:.8rem}
+  h1{font-size:clamp(2.2rem,5.5vw,3.2rem);color:var(--brass);font-weight:700;line-height:1.1;letter-spacing:.02em}
+  .header-actions{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+  .lead{margin-top:.35rem;font-size:.9rem;color:var(--mute)}
+  .inp{width:100%;padding:.75rem 1rem;border-radius:.6rem;outline:0;background:var(--panel);border:1px solid var(--line);transition:border-color .15s}
+  .inp:focus{border-color:var(--brass)}
+  #q{margin-top:1.2rem}
+  .chips{margin-top:.9rem;display:flex;flex-wrap:wrap;gap:.5rem}
+  .chip{border:1px solid var(--line);color:var(--mute);border-radius:99px;padding:.35rem .95rem;font-size:.86rem;transition:.15s;white-space:nowrap;display:inline-flex;align-items:center;gap:.35rem;user-select:none}
+  .chip:hover{color:var(--ink);border-color:var(--brass)}
+  .chip.on{background:var(--brass);color:#1a1630;border-color:var(--brass);font-weight:700}
+  .chip.fv{border-color:var(--rose);color:var(--rose)}
+  .chip.fv.on{background:var(--rose);color:#1a1630;border-color:var(--rose)}
+  .chip.pl-chip{border-color:var(--cyan);color:var(--cyan)}
+  .chip.pl-chip.on{background:var(--cyan);color:#121a2d;border-color:var(--cyan);font-weight:700}
+
+  main{padding-bottom:10rem}
+  body.pb-active main{padding-bottom:12rem}
+  body.pb-expanded main{padding-bottom:24rem}
+  section{margin-top:2rem;scroll-margin-top:1rem}
+  h2{font-size:1.55rem;font-weight:700;margin-bottom:.75rem}
+  .bar{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:.75rem;margin-bottom:.5rem}
+  .bar h2{margin:0}
+  .ctrls{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+  .ctrls .inp{width:min(100%,15rem);padding:.5rem .75rem;font-size:.88rem}
+  .ctrls select{width:auto}
+  #ystat{min-height:1.2rem;margin-bottom:.5rem}
+
+  /* Grid & Cards */
+  .grid{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+  .grid.w{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+  .full{grid-column:1/-1}
+  .cw{position:relative;display:flex}
+  .cw>.card{flex:1;min-width:0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:.8rem;text-align:left;transition:.18s;color:var(--ink);position:relative}
+  button.card:hover{border-color:var(--brass);transform:translateY(-1px)}
+  .card.sel{box-shadow:0 0 0 2px var(--brass)}
+  .star{position:absolute;top:.35rem;right:.4rem;width:36px;height:36px;border-radius:50%;font-size:1.25rem;line-height:1;color:var(--brass);z-index:3;display:flex;align-items:center;justify-content:center}
+  .star.off{color:var(--mute)}
+  .star:hover{background:var(--panel2);transform:scale(1.1)}
+  .cc{display:flex;align-items:center;gap:.75rem;padding:.75rem 2.6rem .75rem .75rem}
+  .cc .pt{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;background:var(--panel2)}
+  .cc .ct{min-width:0}
+  .cn{font-size:1.1rem;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .wc{display:flex;flex-direction:column;gap:.25rem;padding:1rem 2.7rem 1rem 1rem}
+  .wt{font-size:1.1rem;font-weight:700;line-height:1.4}
+  .tags{margin-top:.5rem;display:flex;flex-wrap:wrap;gap:.4rem}
+  .tag{font-size:.75rem;padding:.12rem .5rem;border-radius:.3rem;background:var(--panel2)}
+  .tag.b{background:var(--brass);color:#1a1630;font-weight:700}
+  .tag.s{color:var(--brass)}
+  footer{padding-bottom:2.5rem;font-size:.76rem;color:var(--mute)}
+  .ld{display:flex;align-items:center;gap:.75rem;padding:.75rem 0;font-size:.88rem;color:var(--mute)}
+  .ld.s{padding:0;font-size:.78rem}.ld.s .spin{width:14px;height:14px;border-width:2px}
+  .spin{width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--brass);border-radius:50%;animation:sp .8s linear infinite;flex:none}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .err{padding:.75rem;border-radius:.6rem;font-size:.88rem;background:#3a2036;border:1px solid var(--rose)}
+  .err button{margin-left:.5rem;text-decoration:underline;color:var(--brass)}
+
+  /* Modal Base */
+  .ov{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);padding:1rem;overflow-y:auto;display:flex;align-items:flex-start;justify-content:center}
+  .md{position:relative;width:100%;max-width:48rem;margin:1.5rem auto;background:var(--panel);border:1px solid var(--line);border-radius:1rem;padding:1.6rem;animation:pop .2s ease-out;box-shadow:var(--shadow)}
+  @keyframes pop{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .md>section{margin-top:1.5rem}
+  .md h3{font-size:1.75rem;font-weight:700;padding-right:2.5rem;line-height:1.3}
+  .md h4{font-size:1.05rem;margin-bottom:.55rem;display:flex;align-items:center;gap:.4rem}
+  .x{position:absolute;top:.75rem;right:.75rem;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);color:var(--mute);font-size:1.3rem;line-height:1;display:flex;align-items:center;justify-content:center;transition:.15s}
+  .x:hover{color:var(--ink);border-color:var(--brass);background:var(--panel2)}
+  .basic{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.5rem}
+  .basic div{background:var(--panel2);border-radius:.5rem;padding:.6rem .75rem}
+  .basic dt{font-size:.75rem;color:var(--mute)} .basic dd{font-weight:500;font-size:.9rem}
+  .stars{font-size:1.45rem;color:var(--brass);letter-spacing:.1em}
+  .dl{background:var(--panel2);border-radius:.6rem;padding:.9rem 1rem;font-size:.88rem}
+  .dl h5{margin:.75rem 0 .25rem;font-size:.82rem;color:var(--rose)}
+  .dl ul{padding-left:1.2rem}.dl li{margin:.2rem 0;line-height:1.7}
+  .txt{font-size:.9rem;line-height:1.9;max-height:18rem;overflow-y:auto;padding-right:.5rem}
+  .txt p+p{margin-top:.75rem}
+  a{color:var(--brass);text-decoration:none}
+  a:hover{text-decoration:underline}
+  select{width:100%;padding:.5rem .75rem;border-radius:.5rem;background:var(--panel2);border:1px solid var(--line);font-size:.88rem;outline:0}
+  select:focus{border-color:var(--brass)}
+  label.l{display:block;font-size:.78rem;color:var(--mute);margin:.6rem 0 .3rem}
+  .pl-modal{margin-top:.75rem;background:var(--panel2);border-radius:.8rem;padding:1rem;border:1px solid var(--line)}
+
+  /* IMSLP sheet music banner */
+  .imslp-box{margin-top:1rem;padding:.75rem 1rem;background:var(--panel2);border:1px solid var(--line-lit);border-radius:.7rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+  .imslp-info{display:flex;align-items:center;gap:.6rem}
+  .imslp-link{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem 1rem;border-radius:99px;background:var(--brass);color:#1a1630;font-weight:700;font-size:.86rem;transition:.15s}
+  .imslp-link:hover{filter:brightness(1.1);text-decoration:none}
+
+  /* Random Play Details */
+  details.rnd{padding:.9rem 1rem}
+  details.rnd summary{cursor:pointer;font-weight:700;color:var(--brass);user-select:none}
+  .rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin:.9rem 0 .5rem;align-items:end}
+  .rgrid label{display:flex;flex-direction:column;gap:.25rem;font-size:.78rem;color:var(--mute)}
+  .rgrid label.rchk{flex-direction:row;align-items:center;gap:.5rem;color:var(--ink);font-size:.85rem}
+  .rgrid label.rchk input{width:18px;height:18px;accent-color:var(--brass)}
+  #rList{margin:.4rem 0 0;padding-left:1.4rem;font-size:.85rem;max-height:14rem;overflow-y:auto}
+  #rList li{margin:.25rem 0}#rList li.cur{color:var(--brass);font-weight:700}
+
+  /* ==========================================================================
+     GLOBAL BOTTOM PLAYER BAR (#playerBar)
+     ========================================================================== */
+  .pbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:90;
+    background:rgba(20,23,48,.96);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-top:1px solid rgba(216,179,106,.3);
+    box-shadow:0 -8px 28px rgba(0,0,0,.45);
+    padding:.45rem .8rem calc(.45rem + env(safe-area-inset-bottom, 0px));
+    display:flex;flex-direction:column;gap:.35rem;
+    transition:transform .2s ease;
+  }
+  .pbar-progress-row{display:flex;align-items:center;gap:.6rem;width:100%}
+  .pbar-slider-wrap{position:relative;flex:1;display:flex;align-items:center}
+  .pbar-slider-wrap input[type=range]{width:100%;margin:0;accent-color:var(--brass);cursor:pointer;height:6px}
+  
+  /* AB Repeat Visual Markers */
+  .ab-pin{
+    position:absolute;top:-18px;transform:translateX(-50%);
+    font-size:.68rem;font-weight:700;padding:1px 5px;border-radius:3px;
+    pointer-events:none;z-index:5;line-height:1.2;
+  }
+  #abMarkerA{background:var(--cyan);color:#121a2d}
+  #abMarkerB{background:var(--rose);color:#1a1630}
+  .ab-region{
+    position:absolute;top:50%;transform:translateY(-50%);height:4px;
+    background:rgba(100,196,216,.38);pointer-events:none;border-radius:2px;z-index:2;
+  }
+
+  .pbar-main-row{
+    display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap;
+  }
+  .pbar-track-info{flex:1 1 200px;min-width:0}
+  .pbar-title-wrap{display:flex;align-items:center;gap:.5rem}
+  .pbar-badge{font-size:.7rem;padding:.1rem .45rem;border-radius:.3rem;background:var(--panel3);color:var(--brass);white-space:nowrap;font-weight:700}
+  .pbar-title{font-size:.92rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  .pbar-sub-wrap{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--mute);margin-top:.1rem}
+  .pbar-composer{color:var(--rose);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* Control buttons */
+  .pbar-controls{display:flex;align-items:center;gap:.45rem;flex:0 0 auto}
+  .pbar-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:.45rem;color:var(--ink);transition:.15s;user-select:none;
+  }
+  .pbar-btn:hover{background:var(--panel2);color:var(--brass)}
+  .icon-btn{width:36px;height:36px;font-size:1.1rem}
+  .text-icon-btn{padding:0 .55rem;height:34px;font-size:.78rem;font-weight:700;background:var(--panel2);border:1px solid var(--line)}
+  .play{width:42px;height:42px;border-radius:50%;background:var(--brass);color:#1a1630;font-weight:700;font-size:1.15rem;display:flex;align-items:center;justify-content:center;transition:.15s;flex:none}
+  .play:hover{transform:scale(1.06);filter:brightness(1.08)}
+  .tm{font-size:.76rem;font-variant-numeric:tabular-nums;color:var(--mute);min-width:2.6rem}
+
+  /* Options: Speed, Loop, Volume, Tools */
+  .pbar-options{display:flex;align-items:center;gap:.5rem;flex:0 0 auto;flex-wrap:wrap}
+  .opt-chip{font-size:.78rem;padding:.3rem .6rem;border:1px solid var(--line);border-radius:.4rem;background:var(--panel2);color:var(--mute)}
+  .opt-chip.active{background:var(--brass);color:#1a1630;border-color:var(--brass);font-weight:700}
+  .pbar-speed-label{display:inline-flex;align-items:center;gap:.3rem;font-size:.78rem}
+  .pbar-speed-sel{padding:.25rem .45rem;font-size:.8rem;border-radius:.4rem;background:var(--panel2);border:1px solid var(--line);width:auto}
+  .pbar-vol-ctrl{display:inline-flex;align-items:center;gap:.35rem}
+  .pbar-vol-icon{cursor:pointer;font-size:.9rem}
+  .pbar-vol-ctrl input[type=range]{width:5.5rem;accent-color:var(--brass);height:5px}
+
+  /* ==========================================================================
+     Piano Practice Tools Panel (AB Repeat & Metronome)
+     ========================================================================== */
+  .piano-panel{
+    border-top:1px solid var(--line);
+    margin-top:.4rem;padding-top:.7rem;
+    animation:fadeIn .2s ease-out;
+  }
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .piano-panel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:.8rem}
+  .piano-subbox{background:var(--panel2);border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem}
+  .box-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.5rem;gap:.5rem}
+  .box-head h5{font-size:.88rem;color:var(--brass);display:flex;align-items:center;gap:.3rem}
+  .ab-buttons{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+  .ab-buttons .chip{font-size:.8rem;padding:.25rem .65rem}
+
+  /* Metronome styles */
+  .metro-bpm-val{font-size:1.1rem;font-weight:700;color:var(--cyan);font-variant-numeric:tabular-nums}
+  .metro-controls{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+  .metro-play-btn{width:36px;height:36px;font-size:1rem;background:var(--cyan);color:#121a2d}
+  .metro-slider-wrap{display:flex;align-items:center;gap:.25rem;flex:1 1 180px}
+  .metro-slider-wrap input[type=range]{flex:1;accent-color:var(--cyan);height:5px}
+  .sm-btn{padding:.2rem .45rem;border-radius:.3rem;background:var(--panel3);font-size:.74rem;border:1px solid var(--line)}
+  .sm-btn:hover{background:var(--brass);color:#1a1630}
+  .metro-select{width:auto;font-size:.8rem;padding:.25rem .4rem;background:var(--panel3);border:1px solid var(--line)}
+  .metro-indicator{display:flex;align-items:center;gap:4px;padding:2px 6px;background:var(--panel3);border-radius:99px}
+  .metro-dot{width:9px;height:9px;border-radius:50%;background:#383d66;transition:background .08s, transform .08s}
+  .metro-dot.flash{background:var(--cyan);transform:scale(1.35);box-shadow:0 0 8px var(--cyan)}
+  .metro-dot.flash-accent{background:var(--brass);transform:scale(1.45);box-shadow:0 0 10px var(--brass)}
+
+  /* Queue panel inside pbar */
+  .pbar-queue-panel{
+    border-top:1px solid var(--line);
+    margin-top:.4rem;padding-top:.6rem;max-height:12rem;overflow-y:auto;
+  }
+  .queue-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+  .queue-head h5{font-size:.85rem;color:var(--brass)}
+  .queue-ol{margin:0;padding-left:1.4rem;font-size:.82rem}
+  .queue-ol li{margin:.25rem 0;cursor:pointer}
+  .queue-ol li:hover{color:var(--brass)}
+  .queue-ol li.cur{color:var(--brass);font-weight:700}
+
+  /* ==========================================================================
+     Album / Playlist Popup & Modals
+     ========================================================================== */
+  /* Dropdown popup for adding to playlist */
+  .fav-popup{
+    position:absolute;top:40px;right:0;width:230px;
+    background:var(--panel);border:1px solid var(--brass);border-radius:.6rem;
+    box-shadow:0 8px 24px rgba(0,0,0,.6);z-index:60;padding:.6rem;
+    animation:fadeIn .15s ease-out;
+  }
+  .fav-popup-title{font-size:.82rem;font-weight:700;color:var(--brass);margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between}
+  .fav-popup-list{max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:.35rem;margin-bottom:.6rem}
+  .fav-popup-item{display:flex;align-items:center;gap:.45rem;font-size:.82rem;cursor:pointer;padding:.2rem .3rem;border-radius:.3rem}
+  .fav-popup-item:hover{background:var(--panel2)}
+  .fav-popup-item input{accent-color:var(--brass);cursor:pointer}
+  .fav-popup-new{display:flex;gap:.3rem}
+  .fav-popup-new input{flex:1;font-size:.78rem;padding:.3rem .5rem;border-radius:.3rem;background:var(--panel2);border:1px solid var(--line);outline:0}
+  .fav-popup-new button{padding:.3rem .6rem;background:var(--brass);color:#1a1630;border-radius:.3rem;font-size:.78rem;font-weight:700}
+
+  /* Album Management Modal */
+  .album-card-list{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:1rem}
+  .album-card{background:var(--panel2);border:1px solid var(--line);border-radius:.8rem;padding:1rem;display:flex;flex-direction:column;gap:.6rem}
+  .album-card:hover{border-color:var(--cyan)}
+  .album-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem}
+  .album-card-title{font-size:1.1rem;font-weight:700;color:var(--ink)}
+  .album-card-meta{font-size:.78rem;color:var(--mute)}
+  .album-card-actions{display:flex;align-items:center;gap:.4rem;margin-top:.4rem;flex-wrap:wrap}
+  .album-card-actions .chip{font-size:.8rem;padding:.25rem .7rem}
+  .album-works-exp{margin-top:.5rem;border-top:1px dashed var(--line);padding-top:.5rem;max-height:180px;overflow-y:auto;font-size:.82rem}
+  .album-work-row{display:flex;align-items:center;justify-content:space-between;padding:.25rem 0}
+  .album-work-del{color:var(--rose);font-size:.9rem;padding:0 .4rem}
+  .album-work-del:hover{filter:brightness(1.2)}
+
+  /* Toast notification */
+  .toast{
+    position:fixed;top:1.5rem;left:50%;transform:translateX(-50%) translateY(-20px);
+    background:var(--panel);border:1px solid var(--brass);color:var(--ink);
+    padding:.6rem 1.4rem;border-radius:99px;font-size:.88rem;box-shadow:var(--shadow);
+    z-index:200;opacity:0;pointer-events:none;transition:all .25s ease;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* Responsive tweaks */
+  @media (max-width: 768px){
+    .pbar{padding:.4rem .6rem calc(.4rem + env(safe-area-inset-bottom, 0px))}
+    .pbar-main-row{gap:.4rem}
+    .pbar-track-info{flex:1 1 100%;margin-bottom:.2rem}
+    .pbar-controls{flex:1;justify-content:space-around}
+    .pbar-options{width:100%;justify-content:space-between;margin-top:.2rem}
+    .pbar-vol-ctrl input[type=range]{width:4.5rem}
+  }
+  @media (prefers-reduced-motion:reduce){.md,.spin,.toast{animation:none;transition:none}}
+
+  /* RList & Star item styling (attachment match) */
+  #rList{margin:.4rem 0 0;padding-left:1.2rem;font-size:.85rem;max-height:16rem;overflow-y:auto}
+  .rlist-item{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+  .rlist-content{flex:1;min-width:0;line-height:1.4}
+  .rlist-star{flex:0 0 auto;width:32px;height:32px;font-size:1.2rem;color:var(--brass);display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;transition:.15s}
+  .rlist-star:hover{background:var(--panel2);transform:scale(1.15)}
+  .rlist-star.off{color:var(--mute)}
+  
+  /* Inline Star button for bottom player bar */
+  .star-btn-inline{font-size:1.15rem;color:var(--brass);cursor:pointer;padding:0 .3rem;display:inline-flex;align-items:center;justify-content:center;transition:.15s}
+  .star-btn-inline:hover{transform:scale(1.2)}
+  .star-btn-inline.off{color:var(--mute)}
+
+  /* Search Works Section */
+  #searchWorksSec{margin-top:1.8rem;background:rgba(27,30,58,.6);padding:1.2rem;border-radius:.9rem;border:1px solid var(--line-lit)}
+  .search-badge{background:var(--cyan);color:#121a2d;padding:.15rem .5rem;border-radius:.3rem;font-size:.74rem;font-weight:700;margin-left:.5rem}
+
+
+  /* Album work row play button */
+  .album-work-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.35rem .2rem;border-bottom:1px solid rgba(255,255,255,0.05);transition:background .15s}
+  .album-work-row:hover{background:rgba(255,255,255,0.03)}
+  .album-work-title{cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .album-work-title:hover{color:var(--brass)}
+  .album-work-btns{display:flex;align-items:center;gap:.35rem;flex:none}
+  .btn-work-play{font-size:.78rem;padding:.2rem .6rem;border-radius:.3rem;background:var(--brass);color:#1a1630;font-weight:700}
+  .btn-work-play:hover{filter:brightness(1.15)}
+  
+  /* Quick play button on work cards */
+  .quick-play{position:absolute;top:.35rem;right:2.5rem;width:34px;height:34px;border-radius:50%;font-size:.9rem;color:var(--brass);display:flex;align-items:center;justify-content:center;z-index:3;transition:.15s}
+  .quick-play:hover{background:var(--panel2);transform:scale(1.15);color:var(--ink)}
+
+  /* Favorite header action buttons */
+  .fav-actions{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+
+
+/* 👑 超有名曲タグ・ハイライト */
+.chip.famous-chip {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.15);
+  transition: all .2s ease;
+}
+.chip.famous-chip:hover {
+  background: rgba(245, 158, 11, 0.22);
+  transform: translateY(-1px);
+}
+.chip.famous-chip.on {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #fff !important;
+  border-color: #b45309 !important;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="top">
+    <div class="logo-area">
+      <h1 class="serif">Blue Note &amp; Bossa Salon</h1>
+    </div>
+    <div class="header-actions">
+      <button id="btnOpenAlbums" class="chip pl-chip" aria-label="アルバム・プレイリスト管理">
+        <span>📁</span> <span data-ja="アルバム管理" data-en="Playlists">アルバム管理</span> (<span id="plCount">0</span>)
+      </button>
+      <button id="btnQuickPractice" class="chip" aria-label="ピアノ練習ツール">
+        <span>🎹</span> <span data-ja="ピアノ練習ツール" data-en="Piano Practice">ピアノ練習</span>
+      </button>
+      <button id="langBtn" class="chip" aria-label="Language / 言語">English</button>
+    </div>
+  </div>
+  <p class="lead" data-ja="時代と作曲家から名曲をたどり、解説や楽譜・音源を楽しみながらピアノ演奏の上達に役立てられます。" data-en="Explore masterpieces by era & composer, enjoy audio & sheet music, and practice piano with AB-repeat & metronome."></p>
+  <input id="q" class="inp" type="search" autocomplete="off" data-phja="作曲家・曲名を検索（例: ノクターン、ラ・カンパネラ、月光、モーツァルト）" data-phen="Search composers (e.g. Bach, Mozart, Chopin)">
+  <div id="epochs" class="chips" role="group" aria-label="Era"></div>
+</header>
+
+<main class="wrap">
+  <!-- ランダム再生セクション -->
+  <section id="rndSec">
+    <details id="rndBox" class="card rnd">
+      <summary data-ja="🎲 ランダム再生（停止タイマー・作曲家指定・気分と天気で選曲）" data-en="🎲 Random play (timer, composer, mood & weather)"></summary>
+      <div class="rgrid">
+        <label><span data-ja="作曲家" data-en="Composer"></span><select id="rSrc"><option value="all">all</option></select></label>
+        <label><span data-ja="停止時間" data-en="Stop after"></span><select id="rTime"></select></label>
+        <label><span data-ja="気分" data-en="Mood"></span><select id="rMood"></select></label>
+        <label><span data-ja="天気" data-en="Weather"></span><select id="rWx"></select></label>
+        <button id="rWxBtn" class="chip" data-ja="現在地の天気を取得" data-en="Get weather for my location"></button>
+        <label class="rchk"><input type="checkbox" id="rScene" checked><span data-ja="今日の気分・天気に合うリラックス曲だけを流す" data-en="Only play relaxing pieces that fit today’s mood & weather"></span></label>
+      </div>
+      <p id="rWxMsg" class="sm muted" style="min-height:1.2rem"></p>
+      <div class="ctrls" style="margin:.5rem 0">
+        <button id="rStart" class="chip on" data-ja="▶ ランダム再生を開始" data-en="▶ Start random play"></button>
+        <button id="rNext" class="chip" data-ja="⏭ 次の曲" data-en="⏭ Next"></button>
+        <button id="rStop" class="chip" data-ja="■ 停止" data-en="■ Stop"></button>
+      </div>
+      <p id="rStatus" class="sm" style="min-height:1.2rem"></p>
+      <h4 style="margin-top:.75rem;font-size:.95rem" data-ja="再生履歴リスト" data-en="Play history (no repeats)"></h4>
+      <ol id="rList"></ol>
+    </details>
+  </section>
+
+  <!-- 作曲家セクション -->
+  
+  <!-- 楽曲横断検索結果セクション -->
+  <section id="searchWorksSec" class="hidden">
+    <div class="bar">
+      <h2 id="swHead" class="serif">🔍 <span data-ja="楽曲の検索結果" data-en="Work Search Results">楽曲の検索結果</span> <span id="swCount" class="search-badge">0件</span></h2>
+      <button id="swClose" class="chip sm" style="padding:.2rem .6rem">✕ <span data-ja="検索結果を閉じる" data-en="Close">閉じる</span></button>
+    </div>
+    <div id="searchWorksList" class="grid w" style="margin-top:.8rem"></div>
+  </section>
+  
+  <section id="compSec">
+    <h2 id="ch" class="serif"></h2>
+    <div id="composers" class="grid"></div>
+  </section>
+
+  <!-- 作品一覧セクション -->
+  <section id="worksSec" class="hidden">
+    <div class="bar">
+      <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+        <h2 id="wh" class="serif"></h2>
+        <div id="favPlayBar" class="fav-actions hidden">
+          <button id="btnPlayFavAll" class="chip on" style="font-size:.85rem;padding:.35rem .9rem">▶ <span data-ja="お気に入りを全曲再生" data-en="Play all favorites">お気に入りを全曲再生</span></button>
+          <button id="btnShuffleFav" class="chip" style="font-size:.85rem;padding:.35rem .8rem">🔀 <span data-ja="シャッフル再生" data-en="Shuffle">シャッフル再生</span></button>
+        </div>
+      </div>
+      <div class="ctrls">
+        <select id="sortSel" aria-label="Sort"></select>
+        <input id="wq" class="inp" type="search" data-phja="作品名・ジャンルで絞り込み" data-phen="Filter by title or genre">
+      </div>
+    </div>
+    <div id="ystat" class="sm muted"></div>
+    <div id="works" class="grid w"></div>
+  </section>
+</main>
+
+<footer class="wrap" data-ja="データ: OpenOpus / Wikipedia / Wikidata / Internet Archive / IMSLP（APIキー不要）。日本語表記・作曲年・ピアノ難易度・知名度は自動推定を含む目安です。お気に入り・作成したアルバムはこのブラウザ内（localStorage）に安全に保存されます。" data-en="Data: OpenOpus / Wikipedia / Wikidata / Internet Archive / IMSLP (no API keys). Years, piano difficulty & fame are estimates. Playlists and favorites are stored locally in this browser (localStorage)."></footer>
+
+<!-- ==========================================================================
+     GLOBAL BOTTOM PLAYER BAR (#playerBar)
+     ========================================================================== -->
+<div id="playerBar" class="pbar hidden" role="region" aria-label="音楽プレイヤー">
+  <!-- プログレスバー & ABピン -->
+  <div class="pbar-progress-row">
+    <span id="pbCur" class="tm" style="text-align:right">0:00</span>
+    <div class="pbar-slider-wrap">
+      <input id="pbSeek" type="range" min="0" max="100" step="0.1" value="0" aria-label="シークバー">
+      <div id="abMarkerA" class="ab-pin hidden">A</div>
+      <div id="abMarkerB" class="ab-pin hidden">B</div>
+      <div id="abRegion" class="ab-region hidden"></div>
+    </div>
+    <span id="pbDur" class="tm">0:00</span>
+  </div>
+
+  <!-- メイン操作部 -->
+  <div class="pbar-main-row">
+    <!-- 曲情報 -->
+    <div class="pbar-track-info">
+      <div class="pbar-title-wrap">
+        <span id="pbModeBadge" class="pbar-badge">通常再生</span>
+        <span id="pbTitle" class="pbar-title">楽曲未選択</span>
+        <button id="pbStarBtn" class="star-btn-inline off" title="お気に入り・アルバムに追加" aria-label="お気に入り・アルバムに追加">☆</button>
+      </div>
+      <div class="pbar-sub-wrap">
+        <span id="pbComposer" class="pbar-composer">—</span>
+        <span id="pbExtra" class="sm muted"></span>
+      </div>
+    </div>
+
+    <!-- コントロールボタン群 -->
+    <div class="pbar-controls">
+      <button id="pbPrev" class="pbar-btn icon-btn" title="前の曲 / トラック" aria-label="前へ">⏮</button>
+      <button id="pbRwd10" class="pbar-btn text-icon-btn" title="10秒巻き戻し (左矢印キー)" aria-label="10秒巻き戻し">⏪ 10</button>
+      <button id="pbPlay" class="play" title="再生 / 一時停止 (スペースキー)" aria-label="再生/一時停止">▶</button>
+      <button id="pbFwd10" class="pbar-btn text-icon-btn" title="10秒早送り (右矢印キー)" aria-label="10秒早送り">10 ⏩</button>
+      <button id="pbNext" class="pbar-btn icon-btn" title="次の曲 / トラック" aria-label="次へ">⏭</button>
+      <button id="pbStop" class="pbar-btn icon-btn" title="停止" aria-label="停止">⏹</button>
+    </div>
+
+    <!-- オプション設定（ループ・速度・音量・ツール） -->
+    <div class="pbar-options">
+      <!-- 1曲ループトグル -->
+      <button id="pbLoopBtn" class="pbar-btn opt-chip" title="1曲ループ再生のON/OFF">🔂 1曲ループ</button>
+
+      <!-- 再生速度変更 -->
+      <label class="pbar-speed-label" title="再生速度（音程保持）">
+        <span class="sm muted" data-ja="速度:" data-en="Speed:">速度:</span>
+        <select id="pbSpeedSel" class="pbar-speed-sel" aria-label="再生速度">
+          <option value="0.5">0.5×</option>
+          <option value="1.0" selected>1.0×</option>
+          <option value="1.5">1.5×</option>
+          <option value="2.0">2.0×</option>
+          <option value="3.0">3.0×</option>
+        </select>
+      </label>
+
+      <!-- 音量スライダー -->
+      <div class="pbar-vol-ctrl">
+        <span id="pbMuteBtn" class="pbar-vol-icon" title="ミュート切替">🔊</span>
+        <input id="pbVol" type="range" min="0" max="1" step="0.05" value="0.8" aria-label="音量">
+      </div>
+
+      <!-- ツール展開ボタン -->
+      <button id="pbPianoToolBtn" class="chip" title="ABリピート & メトロノームを展開">🎹 <span data-ja="練習ツール" data-en="Practice">練習ツール</span></button>
+      <button id="pbQueueBtn" class="chip" title="再生リストの表示">☰ <span id="queueCount">0</span></button>
+    </div>
+  </div>
+
+  <!-- ピアノ練習パネル（ABリピート & メトロノーム） -->
+  <div id="pianoPracticePanel" class="piano-panel hidden">
+    <div class="piano-panel-grid">
+      <!-- ABリピート -->
+      <div class="piano-subbox">
+        <div class="box-head">
+          <h5>🔁 <span data-ja="ABリピート（部分ループ練習）" data-en="AB Repeat (Section Loop)">ABリピート（部分ループ練習）</span></h5>
+          <span id="abStatusText" class="sm muted" data-ja="未設定（特定フレーズの集中反復に最適）" data-en="Not set (ideal for drilling difficult phrases)">未設定</span>
+        </div>
+        <div class="ab-buttons">
+          <button id="btnSetA" class="chip">📍 <span data-ja="A点設定 (開始)" data-en="Set A">A点設定</span></button>
+          <button id="btnSetB" class="chip">📍 <span data-ja="B点設定 (終了)" data-en="Set B">B点設定</span></button>
+          <button id="btnClearAB" class="chip">✕ <span data-ja="クリア" data-en="Clear">クリア</span></button>
+          <span id="abTimes" class="sm rose bold"></span>
+        </div>
+      </div>
+
+      <!-- 高精度メトロノーム -->
+      <div class="piano-subbox">
+        <div class="box-head">
+          <h5>⏱ <span data-ja="Web Audio メトロノーム" data-en="Web Audio Metronome">Web Audio メトロノーム</span></h5>
+          <span id="bpmDisplay" class="metro-bpm-val">120 BPM</span>
+        </div>
+        <div class="metro-controls">
+          <button id="metroToggle" class="play metro-play-btn" title="メトロノーム開始/停止" aria-label="メトロノーム開始/停止">▶</button>
+          <div class="metro-slider-wrap">
+            <button class="sm-btn" id="bpmMinus5">-5</button>
+            <button class="sm-btn" id="bpmMinus1">-1</button>
+            <input id="metroBpm" type="range" min="30" max="250" value="120" step="1" aria-label="BPMテンポ">
+            <button class="sm-btn" id="bpmPlus1">+1</button>
+            <button class="sm-btn" id="bpmPlus5">+5</button>
+          </div>
+          <select id="metroBeatSel" class="metro-select" aria-label="拍子設定">
+            <option value="0" data-ja="拍子なし" data-en="No accent">拍子なし</option>
+            <option value="2" data-ja="2拍子 (2/4)" data-en="2/4 beat">2拍子 (2/4)</option>
+            <option value="3" data-ja="3拍子 (3/4)" data-en="3/4 beat">3拍子 (3/4)</option>
+            <option value="4" selected data-ja="4拍子 (4/4)" data-en="4/4 beat">4拍子 (4/4)</option>
+            <option value="6" data-ja="6拍子 (6/8)" data-en="6/8 beat">6拍子 (6/8)</option>
+          </select>
+          <button id="metroTapBtn" class="chip" title="クリック間隔からBPMを測定">Tap BPM</button>
+          <div id="metroIndicator" class="metro-indicator" title="ビートインジケータ">
+            <span class="metro-dot"></span>
+            <span class="metro-dot"></span>
+            <span class="metro-dot"></span>
+            <span class="metro-dot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- キュー・再生リスト展開パネル -->
+  <div id="pbarQueuePanel" class="pbar-queue-panel hidden">
+    <div class="queue-head">
+      <h5 id="queueTitle" data-ja="現在の再生リスト" data-en="Current Play Queue">現在の再生リスト</h5>
+      <button id="queueClose" class="x" style="position:static;width:24px;height:24px;font-size:1rem" aria-label="閉じる">×</button>
+    </div>
+    <ol id="queueList" class="queue-ol"></ol>
+  </div>
+
+  <!-- オーディオ実体 -->
+  <audio id="mainAudio" preload="none"></audio>
+</div>
+
+<!-- ==========================================================================
+     楽曲詳細モーダル (#modal)
+     ========================================================================== -->
+<div id="modal" class="ov hidden" role="dialog" aria-modal="true" aria-labelledby="mt">
+  <div class="md">
+    <button id="close" class="x" aria-label="Close">×</button>
+    <p id="mc" class="sm rose" style="font-size:.88rem"></p>
+    <h3 id="mt" class="serif"></h3>
+    <p id="ms" class="sm muted" style="margin-top:.25rem"></p>
+    <div style="display:flex;align-items:center;gap:.6rem;margin-top:.75rem;flex-wrap:wrap">
+      <button id="favBtn" class="chip fv"></button>
+      <button id="addToAlbumBtn" class="chip pl-chip">＋ <span data-ja="アルバムに追加" data-en="Add to Album">アルバムに追加</span></button>
+    </div>
+
+    <!-- 基本詳細 -->
+    <section>
+      <h4 data-ja="基本詳細" data-en="Details">基本詳細</h4>
+      <dl id="basic" class="basic"></dl>
+    </section>
+
+    <!-- ピアノ難易度 -->
+    <section>
+      <h4 data-ja="ピアノ演奏の難易度" data-en="Piano difficulty">ピアノ演奏の難易度</h4>
+      <div id="diff"></div>
+    </section>
+
+    <!-- IMSLP 楽譜検索リンク -->
+    <section>
+      <div class="imslp-box">
+        <div class="imslp-info">
+          <span style="font-size:1.3rem">🎼</span>
+          <div>
+            <div style="font-weight:700;font-size:.92rem" data-ja="楽譜を探す（IMSLP 国際楽譜ライブラリー）" data-en="Sheet Music (IMSLP Library)">楽譜を探す（IMSLP 国際楽譜ライブラリー）</div>
+            <div class="sm muted" data-ja="パブリックドメインのピアノ譜・総譜を無料で閲覧・印刷" data-en="Free public-domain scores & arrangements">パブリックドメインのピアノ譜・総譜を無料で閲覧・印刷</div>
+          </div>
+        </div>
+        <a id="imslpLink" href="#" target="_blank" rel="noopener noreferrer" class="imslp-link">
+          <span data-ja="IMSLPで楽譜を検索 ↗" data-en="Search IMSLP Scores ↗">IMSLPで楽譜を検索 ↗</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- 楽曲の概要・歴史的背景 (Wikipedia) -->
+    <section>
+      <h4 data-ja="楽曲の概要・歴史的背景" data-en="Overview & historical background">楽曲の概要・歴史的背景</h4>
+      <div id="wiki"></div>
+    </section>
+
+    <!-- 試聴音源セレクター -->
+    <section>
+      <h4 data-ja="試聴プレイヤー（Internet Archive音源）" data-en="Audio player (Internet Archive)">試聴プレイヤー（Internet Archive音源）</h4>
+      <p class="sm muted" style="margin-bottom:.5rem" data-ja="※再生を開始すると下部プレイヤーでモーダルを閉じても継続して音楽を楽しめます。" data-en="* Audio continues playing in the bottom bar even when you close this window.">※再生を開始すると下部プレイヤーでモーダルを閉じても継続して音楽を楽しめます。</p>
+      <div id="arch"></div>
+      <div id="modalPlayer" class="pl-modal hidden">
+        <p id="mTrackName" class="tn bold" style="color:var(--brass)"></p>
+        <div class="ctrls" style="margin-top:.6rem">
+          <button id="mPlayBtn" class="chip on">▶ <span data-ja="このトラックを下部プレイヤーで再生" data-en="Play in global player">このトラックを再生</span></button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==========================================================================
+     アルバム（プレイリスト）管理モーダル (#albumModal)
+     ========================================================================== -->
+<div id="albumModal" class="ov hidden" role="dialog" aria-modal="true" aria-labelledby="albumModalTitle">
+  <div class="md">
+    <button id="albumModalClose" class="x" aria-label="Close">×</button>
+    <h3 id="albumModalTitle" class="serif">📁 <span data-ja="オリジナルアルバム（プレイリスト）管理" data-en="Playlists & Albums">オリジナルアルバム（プレイリスト）管理</span></h3>
+    <p class="sm muted" style="margin-top:.25rem" data-ja="お気に入りの楽曲を組み合わせて自分だけのアルバムを作成し、連続再生できます。" data-en="Create and organize your own custom classical playlists for listening and piano practice.">お気に入りの楽曲を組み合わせて自分だけのアルバムを作成し、連続再生できます。</p>
+
+    <!-- 新規アルバム作成フォーム -->
+    <section style="margin-top:1.2rem;background:var(--panel2);padding:1rem;border-radius:.8rem;border:1px solid var(--line)">
+      <h4 data-ja="新しいアルバムを作成" data-en="Create New Album" style="font-size:.95rem">新しいアルバムを作成</h4>
+      <div style="display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap">
+        <input id="newAlbumNameInput" class="inp" style="flex:1;min-width:180px;padding:.5rem .75rem" placeholder="アルバム名（例: ショパン名曲集、ピアノ発表会候補）" data-phja="アルバム名（例: ショパン名曲集、ピアノ発表会候補）" data-phen="Album name (e.g. Chopin Favorites, Piano Recital)">
+        <button id="btnCreateAlbum" class="chip on" style="padding:.5rem 1.2rem">＋ <span data-ja="作成" data-en="Create">作成</span></button>
+      </div>
+    </section>
+
+    <!-- アルバム一覧 -->
+    <section>
+      <h4 data-ja="あなたのアルバム一覧" data-en="Your Albums">あなたのアルバム一覧</h4>
+      <div id="albumList" class="album-card-list"></div>
+    </section>
+  </div>
+</div>
+
+<!-- トーストメッセージ -->
+<div id="toast" class="toast"></div>
+
+<!-- 楽曲カード用のアルバム選択ポップアップ（動的に位置移動して表示） -->
+<div id="favPopup" class="fav-popup hidden">
+  <div class="fav-popup-title">
+    <span data-ja="アルバムに追加 / 解除" data-en="Add / Remove Album">アルバムに追加 / 解除</span>
+    <button id="favPopupClose" style="color:var(--mute);font-size:1.1rem;cursor:pointer">×</button>
+  </div>
+  <div id="favPopupList" class="fav-popup-list"></div>
+  <div class="fav-popup-new">
+    <input id="favPopupNewInput" type="text" placeholder="新規アルバム名" data-phja="新規アルバム名" data-phen="New album name">
+    <button id="favPopupNewBtn">＋</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const API = 'https://api.openopus.org';
+
+  /* ==========================================================
+     🎵 JAZZ・ボサノバ・映画音楽 巨匠アーティスト（CUS_C: 54名）
+     1行1データのコンパクトタプル定義 + .map() 展開
+     ========================================================== */
+  const COMPOSERS_RAW = [
+  [
+    "jobim",
+    "Antônio Carlos Jobim",
+    "Antônio Carlos Brasileiro de Almeida Jobim",
+    "Bossa Nova",
+    "Brazil",
+    "1927-01-25",
+    "1994-12-08",
+    "アントニオ・カルロス・ジョビン",
+    "Tom Jobim ジョビン トムジョビン"
+  ],
+  [
+    "joao_gilberto",
+    "João Gilberto",
+    "João Gilberto Prado Pereira de Oliveira",
+    "Bossa Nova",
+    "Brazil",
+    "1931-06-10",
+    "2019-07-06",
+    "ジョアン・ジルベルト",
+    "ジョアン ボサノバの神様"
+  ],
+  [
+    "vinicius",
+    "Vinicius de Moraes",
+    "Marcus Vinicius de Moraes",
+    "Bossa Nova",
+    "Brazil",
+    "1913-10-19",
+    "1980-07-09",
+    "ヴィニシウス・ヂ・モラエス",
+    "モラエス 詩人 作詞家"
+  ],
+  [
+    "luiz_bonfa",
+    "Luiz Bonfá",
+    "Luiz Floriano Bonfá",
+    "Bossa Nova",
+    "Brazil",
+    "1922-10-17",
+    "2001-01-12",
+    "ルイス・ボンファ",
+    "ボンファ 黒いオルフェ ギタリスト"
+  ],
+  [
+    "marcos_valle",
+    "Marcos Valle",
+    "Marcos Kostenbader Valle",
+    "Bossa Nova",
+    "Brazil",
+    "1943-09-14",
+    "",
+    "マルコス・ヴァーリ",
+    "マルコス サマーサンバ"
+  ],
+  [
+    "carlos_lyra",
+    "Carlos Lyra",
+    "Carlos Eduardo Lyra Barbosa",
+    "Bossa Nova",
+    "Brazil",
+    "1939-05-11",
+    "2023-12-16",
+    "カルロス・リラ",
+    "リラ あなたと私"
+  ],
+  [
+    "roberto_menescal",
+    "Roberto Menescal",
+    "Roberto Bessa Menescal",
+    "Bossa Nova",
+    "Brazil",
+    "1937-10-25",
+    "",
+    "ロベルト・メネスカル",
+    "メネスカル 小舟"
+  ],
+  [
+    "baden_powell",
+    "Baden Powell",
+    "Baden Powell de Aquino",
+    "Bossa Nova",
+    "Brazil",
+    "1937-08-06",
+    "2000-09-26",
+    "バーデン・パウエル",
+    "パウエル ギタリスト ビリンバウ"
+  ],
+  [
+    "jorge_ben",
+    "Jorge Ben Jor",
+    "Jorge Duílio Lima Meneses",
+    "Bossa Nova",
+    "Brazil",
+    "1942-03-22",
+    "",
+    "ジョルジ・ベン",
+    "ジョルジベン マシュケナダ サンバソウル"
+  ],
+  [
+    "astrud_gilberto",
+    "Astrud Gilberto",
+    "Astrud Evangelina Weinert",
+    "Bossa Nova",
+    "Brazil",
+    "1940-03-29",
+    "2023-06-05",
+    "アストラッド・ジルベルト",
+    "アストラッド イパネマの娘 ヴォーカル"
+  ],
+  [
+    "sergio_mendes",
+    "Sérgio Mendes",
+    "Sérgio Santos Mendes",
+    "Bossa Nova",
+    "Brazil",
+    "1941-02-11",
+    "2024-09-05",
+    "セルジオ・メンデス",
+    "セルメン ブラジル66"
+  ],
+  [
+    "mancini",
+    "Henry Mancini",
+    "Enrico Nicola Mancini",
+    "Cinema Jazz",
+    "USA",
+    "1924-04-16",
+    "1994-06-14",
+    "ヘンリー・マンシーニ",
+    "マンシーニ ムーンリバー ティファニー ピンクパンサー ひまわり"
+  ],
+  [
+    "legrand",
+    "Michel Legrand",
+    "Michel Jean Legrand",
+    "Cinema Jazz",
+    "France",
+    "1932-02-24",
+    "2019-01-26",
+    "ミシェル・ルグラン",
+    "ルグラン シェルブールの雨傘 ロシュフォール 風のささやき"
+  ],
+  [
+    "francis_lai",
+    "Francis Lai",
+    "Francis Lai",
+    "Cinema Jazz",
+    "France",
+    "1932-04-26",
+    "2018-11-07",
+    "フランシス・レイ",
+    "レイ 男と女 ある愛の詩"
+  ],
+  [
+    "morricone",
+    "Ennio Morricone",
+    "Ennio Morricone",
+    "Cinema Jazz",
+    "Italy",
+    "1928-11-10",
+    "2020-07-06",
+    "エンニオ・モリコーネ",
+    "モリコーネ ニューシネマパラダイス 海の上のピアニスト"
+  ],
+  [
+    "nino_rota",
+    "Nino Rota",
+    "Nino Rota",
+    "Cinema Jazz",
+    "Italy",
+    "1911-12-03",
+    "1979-04-10",
+    "ニーノ・ロータ",
+    "ロータ ゴッドファーザー 太陽がいっぱい アマルコルド"
+  ],
+  [
+    "harold_arlen",
+    "Harold Arlen",
+    "Hyman Arluck",
+    "Cinema Jazz",
+    "USA",
+    "1905-02-15",
+    "1986-04-23",
+    "ハロルド・アーレン",
+    "アーレン 虹の彼方に オズの魔法使"
+  ],
+  [
+    "johnny_mandel",
+    "Johnny Mandel",
+    "John Alfred Mandel",
+    "Cinema Jazz",
+    "USA",
+    "1925-11-23",
+    "2020-06-29",
+    "ジョニー・マンデル",
+    "マンデル いそしぎ MASH"
+  ],
+  [
+    "herman_hupfeld",
+    "Herman Hupfeld",
+    "Herman Hupfeld",
+    "Cinema Jazz",
+    "USA",
+    "1894-02-01",
+    "1951-06-08",
+    "ハーマン・ハップフェルド",
+    "ハップフェルド カサブランカ アズタイムゴーズバイ"
+  ],
+  [
+    "justin_hurwitz",
+    "Justin Hurwitz",
+    "Justin Gabriel Hurwitz",
+    "Cinema Jazz",
+    "USA",
+    "1985-01-22",
+    "",
+    "ジャスティン・ハーウィッツ",
+    "ハーウィッツ ララランド セッション"
+  ],
+  [
+    "yuji_ohno",
+    "Yuji Ohno",
+    "Yuji Ohno (大野雄二)",
+    "Cinema Jazz",
+    "Japan",
+    "1941-05-30",
+    "",
+    "大野雄二",
+    "大野雄二 ルパン三世 カリオストロの城 犬神家"
+  ],
+  [
+    "sakamoto",
+    "Ryuichi Sakamoto",
+    "Ryuichi Sakamoto (坂本龍一)",
+    "Cinema Jazz",
+    "Japan",
+    "1952-01-17",
+    "2023-03-28",
+    "坂本龍一",
+    "教授 YMO 戦メリ ラストエンペラー"
+  ],
+  [
+    "hisaishi",
+    "Joe Hisaishi",
+    "Mamoru Fujisawa (久石譲)",
+    "Cinema Jazz",
+    "Japan",
+    "1950-12-06",
+    "",
+    "久石譲",
+    "久石譲 ジブリ 北野武 Summer 那須"
+  ],
+  [
+    "bill_evans",
+    "Bill Evans",
+    "William John Evans",
+    "Cool Jazz",
+    "USA",
+    "1929-08-16",
+    "1980-09-15",
+    "ビル・エヴァンス",
+    "エヴァンス ワルツフォーデビイ ピアノの詩人 ポートレイトインジャズ"
+  ],
+  [
+    "dave_brubeck",
+    "Dave Brubeck",
+    "David Warren Brubeck",
+    "Cool Jazz",
+    "USA",
+    "1920-12-06",
+    "2012-12-05",
+    "デイヴ・ブルーベック",
+    "ブルーベック テイクファイブ タイムアウト"
+  ],
+  [
+    "chet_baker",
+    "Chet Baker",
+    "Chesney Henry Baker Jr.",
+    "Cool Jazz",
+    "USA",
+    "1929-12-23",
+    "1988-05-13",
+    "チェット・ベイカー",
+    "チェット トランペット ヴォーカル マイファニーヴァレンタイン"
+  ],
+  [
+    "miles_davis",
+    "Miles Davis",
+    "Miles Dewey Davis III",
+    "Hard Bop",
+    "USA",
+    "1926-05-26",
+    "1991-09-28",
+    "マイルス・デイヴィス",
+    "マイルス 帝王 カインドオブブルー 死刑台のエレベーター"
+  ],
+  [
+    "john_coltrane",
+    "John Coltrane",
+    "John William Coltrane",
+    "Hard Bop",
+    "USA",
+    "1926-09-23",
+    "1967-07-17",
+    "ジョン・コルトレーン",
+    "コルトレーン トレーン ジャイアントステップス ブルートレイン 至上の愛"
+  ],
+  [
+    "art_blakey",
+    "Art Blakey",
+    "Arthur Blakey",
+    "Hard Bop",
+    "USA",
+    "1919-10-11",
+    "1990-10-16",
+    "アート・ブレイキー",
+    "ブレイキー ジャズメッセンジャーズ モーニン ドラムス"
+  ],
+  [
+    "horace_silver",
+    "Horace Silver",
+    "Horace Ward Martin Tavares Silva",
+    "Hard Bop",
+    "USA",
+    "1928-09-02",
+    "2014-06-18",
+    "ホレス・シルヴァー",
+    "シルヴァー ソングフォーマイファーザー ファンキージャズ"
+  ],
+  [
+    "bobby_timmons",
+    "Bobby Timmons",
+    "Robert Henry Timmons",
+    "Hard Bop",
+    "USA",
+    "1935-12-19",
+    "1974-03-01",
+    "ボビー・ティモンズ",
+    "ティモンズ モーニン ディスヒア 作曲家 ピアニスト"
+  ],
+  [
+    "herbie_hancock",
+    "Herbie Hancock",
+    "Herbert Jeffrey Hancock",
+    "Hard Bop",
+    "USA",
+    "1940-04-12",
+    "",
+    "ハービー・ハンコック",
+    "ハービー カンタロープ ウォーターメロンマン メイデンヴォヤージ カメレオン"
+  ],
+  [
+    "wayne_shorter",
+    "Wayne Shorter",
+    "Wayne Shorter",
+    "Hard Bop",
+    "USA",
+    "1933-08-25",
+    "2023-03-02",
+    "ウェイン・ショーター",
+    "ショーター スピークノーイーヴル フットプリンツ ウェザーリポート"
+  ],
+  [
+    "duke_ellington",
+    "Duke Ellington",
+    "Edward Kennedy Ellington",
+    "Swing",
+    "USA",
+    "1899-04-29",
+    "1974-05-24",
+    "デューク・エリントン",
+    "エリントン 公爵 A列車で行こう キャラバン サテンドール"
+  ],
+  [
+    "count_basie",
+    "Count Basie",
+    "William James Basie",
+    "Swing",
+    "USA",
+    "1904-08-21",
+    "1984-04-26",
+    "カウント・ベイシー",
+    "ベイシー カウント ビッグバンド ワンオクロックジャンプ"
+  ],
+  [
+    "glenn_miller",
+    "Glenn Miller",
+    "Alton Glenn Miller",
+    "Swing",
+    "USA",
+    "1904-03-01",
+    "1944-12-15",
+    "グレン・ミラー",
+    "ミラー ムーンライトセレナーデ インザムード"
+  ],
+  [
+    "benny_goodman",
+    "Benny Goodman",
+    "Benjamin David Goodman",
+    "Swing",
+    "USA",
+    "1909-05-30",
+    "1986-06-13",
+    "ベニー・グッドマン",
+    "グッドマン スウィングの王様 シングシングシング クラリネット"
+  ],
+  [
+    "erroll_garner",
+    "Erroll Garner",
+    "Erroll Louis Garner",
+    "Swing",
+    "USA",
+    "1921-06-15",
+    "1977-01-02",
+    "エロール・ガーナー",
+    "ガーナー ミスティ コンサートバイザシー ピアニスト"
+  ],
+  [
+    "oscar_peterson",
+    "Oscar Peterson",
+    "Oscar Emmanuel Peterson",
+    "Swing",
+    "Canada",
+    "1925-08-15",
+    "2007-12-23",
+    "オスカー・ピーターソン",
+    "ピーターソン 鍵盤の皇帝 ナイトトレイン 星に願いを"
+  ],
+  [
+    "charlie_parker",
+    "Charlie Parker",
+    "Charles Parker Jr.",
+    "Bebop",
+    "USA",
+    "1920-08-29",
+    "1955-03-12",
+    "チャーリー・パーカー",
+    "パーカー バード ビバップの開祖 ドナリー"
+  ],
+  [
+    "thelonious_monk",
+    "Thelonious Monk",
+    "Thelonious Sphere Monk",
+    "Bebop",
+    "USA",
+    "1917-10-10",
+    "1982-02-17",
+    "セロニアス・モンク",
+    "モンク ラウンドミッドナイト ブルーモンク 奇才"
+  ],
+  [
+    "dizzy_gillespie",
+    "Dizzy Gillespie",
+    "John Birks Gillespie",
+    "Bebop",
+    "USA",
+    "1917-10-21",
+    "1993-01-06",
+    "ディジー・ガレスピー",
+    "ガレスピー チュニジアの夜 ほっぺた トランペット"
+  ],
+  [
+    "bud_powell",
+    "Bud Powell",
+    "Earl Rudolph Powell",
+    "Bebop",
+    "USA",
+    "1924-09-27",
+    "1966-07-31",
+    "バド・パウエル",
+    "パウエル クレオパトラの夢 バップピアノの祖 シーングバップ"
+  ],
+  [
+    "chick_corea",
+    "Chick Corea",
+    "Armando Anthony Corea",
+    "Post-Bop",
+    "USA",
+    "1941-06-12",
+    "2021-02-09",
+    "チック・コリア",
+    "チック スペイン アルマンドのルンバ リターントゥフォーエヴァー"
+  ],
+  [
+    "keith_jarrett",
+    "Keith Jarrett",
+    "Keith Jarrett",
+    "Post-Bop",
+    "USA",
+    "1945-05-08",
+    "",
+    "キース・ジャレット",
+    "ジャレット ケルンコンサート ザケルンコンサート ソロピアノ スタンダードトリオ"
+  ],
+  [
+    "pat_metheny",
+    "Pat Metheny",
+    "Patrick Bruce Metheny",
+    "Post-Bop",
+    "USA",
+    "1954-08-12",
+    "",
+    "パット・メセニー",
+    "メセニー ギタリスト パットメセニーグループ レターフロムホーム"
+  ],
+  [
+    "scott_joplin",
+    "Scott Joplin",
+    "Scott Joplin",
+    "Early Jazz",
+    "USA",
+    "1868-11-24",
+    "1917-04-01",
+    "スコット・ジョプリン",
+    "ジョプリン ラグタイムの王 ジエンターテイナー メイプルリーフラグ スティング"
+  ],
+  [
+    "louis_armstrong",
+    "Louis Armstrong",
+    "Louis Daniel Armstrong",
+    "Early Jazz",
+    "USA",
+    "1901-08-04",
+    "1971-07-06",
+    "ルイ・アームストロング",
+    "サッチモ この素晴らしき世界 聖者の行進 ニューオーリンズ"
+  ],
+  [
+    "george_gershwin",
+    "George Gershwin",
+    "Jacob Gershwin",
+    "Standards",
+    "USA",
+    "1898-09-26",
+    "1937-07-11",
+    "ジョージ・ガーシュウィン",
+    "ガーシュウィン ラプソディインブルー サマータイム アイガットリズム"
+  ],
+  [
+    "cole_porter",
+    "Cole Porter",
+    "Cole Albert Porter",
+    "Standards",
+    "USA",
+    "1891-06-09",
+    "1964-10-15",
+    "コール・ポーター",
+    "ポーター ナイトアンドデイ あなたはしっかり私のもの"
+  ],
+  [
+    "richard_rodgers",
+    "Richard Rodgers",
+    "Richard Charles Rodgers",
+    "Standards",
+    "USA",
+    "1902-06-28",
+    "1979-12-30",
+    "リチャード・ロジャース",
+    "ロジャース サウンドオブミュージック マイファニーヴァレンタイン ブルーアイズ"
+  ],
+  [
+    "jerome_kern",
+    "Jerome Kern",
+    "Jerome David Kern",
+    "Standards",
+    "USA",
+    "1885-01-27",
+    "1945-11-11",
+    "ジェローム・カーン",
+    "カーン オールザシングスユーアー 煙が目にしみる ショウボート"
+  ],
+  [
+    "joseph_kosma",
+    "Joseph Kosma",
+    "József Kozma",
+    "Standards",
+    "France",
+    "1905-10-22",
+    "1969-08-07",
+    "ジョゼフ・コズマ",
+    "コズマ 枯葉 レフイユモルト ジャックプレヴェール"
+  ],
+  [
+    "bart_howard",
+    "Bart Howard",
+    "Howard Joseph Reigart",
+    "Standards",
+    "USA",
+    "1915-06-01",
+    "2004-02-21",
+    "バート・ハワード",
+    "ハワード フライミートゥーザムーン 月に想いを"
+  ]
+];
+
+  const CUS_C = COMPOSERS_RAW.map(([id, name, complete_name, epoch, country, birth, death, jaName, terms]) => ({
+    id: 'c_' + id,
+    name,
+    complete_name,
+    epoch,
+    country,
+    birth,
+    death,
+    portrait: '',
+    custom: true,
+    jaName,
+    terms,
+    re: new RegExp(name.split(' ').pop().replace(/[^a-zA-Z]/g, ''), 'i')
+  }));
+
+  const COMPOSER_MAP = new Map(CUS_C.map(c => [c.id.replace(/^c_/, ''), c]));
+
+  /* ==========================================================
+     👑 超有名曲＆映画主題歌カタログ（SUPER_FAMOUS_WORKS: 103曲）
+     1行1データのコンパクトタプル定義 + .map() 展開
+     ========================================================== */
+  const FAMOUS_RAW = [
+  [
+    "sf_b01",
+    "The Girl from Ipanema",
+    "Garota de Ipanema (イパネマの娘)",
+    "Bossa",
+    1962,
+    "jobim",
+    "イパネマの娘 ガロータ デ イパネマ ipanema girl bossa nova",
+    "世界中で最もカバーされたボサノバ永遠の金字塔。リオの海岸を歩く少女の美しさを描く。"
+  ],
+  [
+    "sf_b02",
+    "Wave",
+    "Vou Te Contar (波)",
+    "Bossa",
+    1967,
+    "jobim",
+    "波 ウェーブ wave vou te contar bossa",
+    "海辺のさざ波のような美しすぎるストリングスとピアノの調べ。ジョビン屈指の傑作。"
+  ],
+  [
+    "sf_b03",
+    "Desafinado",
+    "Slightly Out of Tune (デサフィナード)",
+    "Bossa",
+    1958,
+    "jobim",
+    "デサフィナード desafinado 音痴 音はずれ 恋心",
+    "「音痴だって愛はある」ボサノバ黎明期を告げた革命的なコード進行と甘いメロディ。"
+  ],
+  [
+    "sf_b04",
+    "Corcovado",
+    "Quiet Nights of Quiet Stars (コルコヴァード)",
+    "Bossa",
+    1960,
+    "jobim",
+    "コルコヴァード corcovado コルコバード quiet nights 静かな夜",
+    "リオの丘から見下ろす静寂な夜と愛を歌った至高のボサノバ・バラード。"
+  ],
+  [
+    "sf_b05",
+    "Chega de Saudade",
+    "No More Blues (想いあふれて)",
+    "Bossa",
+    1958,
+    "jobim",
+    "想いあふれて シェガヂサウダージ chega de saudade no more blues",
+    "ボサノバの誕生を告げた歴史的第1号作品。ジョアンのバチーダギターが世界を変えた。"
+  ],
+  [
+    "sf_b06",
+    "Águas de Março",
+    "Waters of March (三月の水)",
+    "Bossa",
+    1972,
+    "jobim",
+    "三月の水 aguas de marco waters of march エリスレジーナ",
+    "ブラジルの夏の終わりを告げる雨の詩情。リズミカルな言葉の連なりが心地よい名曲。"
+  ],
+  [
+    "sf_b07",
+    "One Note Samba",
+    "Samba de Uma Nota Só (ワン・ノート・サンバ)",
+    "Bossa",
+    1960,
+    "jobim",
+    "ワンノートサンバ samba de uma nota so one note samba",
+    "たった一つの音符の連続から豊かなハーモニーが広がる、ジョビンの天才的アイデア。"
+  ],
+  [
+    "sf_b08",
+    "Triste",
+    "Sadness (トリステ)",
+    "Bossa",
+    1967,
+    "jobim",
+    "トリステ triste 悲しみ 哀愁 明るい孤独",
+    "哀愁を帯びながらも軽快なスウィング感を持つ、洗練された大人のボサノバ。"
+  ],
+  [
+    "sf_b09",
+    "Insensatez",
+    "How Insensitive (ハウ・インセンシティヴ)",
+    "Bossa",
+    1961,
+    "jobim",
+    "ハウインセンシティヴ insensatez how insensitive ショパンのプレリュード",
+    "ショパンの前奏曲Op.28-4に触発された哀愁に満ちたメロディと切ない愛の余韻。"
+  ],
+  [
+    "sf_b10",
+    "Meditation",
+    "Meditação (メディテーション)",
+    "Bossa",
+    1960,
+    "jobim",
+    "メディテーション meditation meditacao 瞑想 静寂",
+    "静かな部屋で深く心を落ち着かせてくれる、内省的で温もりある旋律。"
+  ],
+  [
+    "sf_b11",
+    "Água de Beber",
+    "Drinking Water (おいしい水)",
+    "Bossa",
+    1961,
+    "jobim",
+    "おいしい水 agua de beber アグアヂベベール 水を一杯",
+    "湧き水のように瑞々しく親しみやすいグルーヴ感あふれるボサノバ名ナンバー。"
+  ],
+  [
+    "sf_b12",
+    "Só Danço Samba",
+    "Jazz n Samba (ジャズ・サンバ)",
+    "Bossa",
+    1962,
+    "jobim",
+    "ジャズサンバ so danco samba jazz n samba スタンゲッツ",
+    "「私はサンバしか踊らない」という宣言。スタン・ゲッツらとの共演でも有名な快作。"
+  ],
+  [
+    "sf_b13",
+    "Dindi",
+    "Dindi (ジンジ)",
+    "Bossa",
+    1959,
+    "jobim",
+    "ジンジ dindi 川のほとり 愛の歌 バラード",
+    "恋人への深い慈しみを歌った、優しく包み込むような究極の愛のバラード。"
+  ],
+  [
+    "sf_b14",
+    "O Grande Amor",
+    "The Great Love (大いなる愛)",
+    "Bossa",
+    1963,
+    "jobim",
+    "大いなる愛 o grande amor the great love 哀愁のボサノバ",
+    "静かな情熱と陰影あるコード進行が胸に迫る、通好みの名バラード。"
+  ],
+  [
+    "sf_b15",
+    "Samba de Verão",
+    "So Nice (サマー・サンバ)",
+    "Bossa",
+    1964,
+    "marcos_valle",
+    "サマーサンバ samba de verao so nice summer samba マルコスヴァーリ",
+    "夏の太陽と爽やかな風を感じさせる、明るくキャッチーなリオのストリートアンセム。"
+  ],
+  [
+    "sf_b16",
+    "Mas Que Nada",
+    "Mas Que Nada (マシュ・ケ・ナダ)",
+    "Bossa",
+    1963,
+    "jorge_ben",
+    "マシュケナダ mas que nada セルジオメンデス サンバ サンバソウル",
+    "「まさか！とんでもない！」のリフレインで世界を熱狂させたブラジリアン・キラーチューン。"
+  ],
+  [
+    "sf_b17",
+    "Chove Chuva",
+    "Constant Rain (雨が降る / ショヴィ・シューヴァ)",
+    "Bossa",
+    1963,
+    "jorge_ben",
+    "雨が降る chove chuva constant rain ショヴィシューヴァ",
+    "恵みの雨を願うメロディが郷愁を誘う、ジョルジ・ベンの詩情豊かな名曲。"
+  ],
+  [
+    "sf_b18",
+    "O Barquinho",
+    "Little Boat (小舟)",
+    "Bossa",
+    1961,
+    "roberto_menescal",
+    "小舟 o barquinho little boat ロベルトメネスカル 海",
+    "「日は沈み、海は青く、小舟は滑りゆく…」ボサノバの象徴的イメジャリーを描く名曲。"
+  ],
+  [
+    "sf_b19",
+    "Você e Eu",
+    "You and I (あなたと私)",
+    "Bossa",
+    1961,
+    "carlos_lyra",
+    "あなたと私 voce e eu you and i カルロスリラ デュエット",
+    "二人だけの甘い時間を軽やかにステップするように歌い上げる、愛らしいボサノバ。"
+  ],
+  [
+    "sf_b20",
+    "Minha Saudade",
+    "My Nostalgia (ミーニャ・サウダージ)",
+    "Bossa",
+    1960,
+    "joao_gilberto",
+    "ミーニャサウダージ minha saudade ジョアンジルベルト ジョアンドナート 郷愁",
+    "ジョアン・ドナートとジョアン・ジルベルトの共作による、サウダージ（郷愁）の結晶。"
+  ],
+  [
+    "sf_b21",
+    "Berimbau",
+    "Berimbau (ビリンバウ)",
+    "Bossa",
+    1963,
+    "baden_powell",
+    "ビリンバウ berimbau カポエイラ アフロブラジリアン バーデンパウエル",
+    "一弦琴ビリンバウの神秘的なリズムとバーデン・パウエルの超絶ギターが融合した傑作。"
+  ],
+  [
+    "sf_b22",
+    "Bim Bom",
+    "Bim Bom (ビン・ボン)",
+    "Bossa",
+    1956,
+    "joao_gilberto",
+    "ビンボン bim bom ジョアンジルベルト 最小限のリズム",
+    "ジョアンがリオの女性の歩くリズムから着想を得て作った、ボサノバのプロトタイプ。"
+  ],
+  [
+    "sf_b23",
+    "Batida Diferente",
+    "A Different Beat (バチーダ・ジフェレンチ)",
+    "Bossa",
+    1962,
+    "jobim",
+    "バチーダジフェレンチ batida diferente 異なったビート モダンボサ",
+    "ボサノバ特有のギターカッティングの洗練をそのまま楽曲へと昇華させた名曲。"
+  ],
+  [
+    "sf_b24",
+    "Vivo Sonhando",
+    "Dreamer (夢見る人)",
+    "Bossa",
+    1962,
+    "jobim",
+    "夢見る人 vivo sonhando dreamer ドリーマー 夢想",
+    "ふわふわと雲に乗るような浮遊感と甘美なメロディが魅力のボサノバ・スタンダード。"
+  ],
+  [
+    "sf_b25",
+    "Canto de Ossanha",
+    "Song of Ossanha (オサーニャの歌)",
+    "Bossa",
+    1966,
+    "baden_powell",
+    "オサーニャの歌 canto de ossanha アフロサンバ パウエル モラエス",
+    "アフロ・ブラジリアン宗教の神オサーニャに捧げられた、神秘的で圧倒的なサンバ。"
+  ],
+  [
+    "sf_b26",
+    "Fly Me to the Moon (Bossa Ver.)",
+    "In Other Words (フライ・ミー・トゥ・ザ・ムーン)",
+    "Bossa",
+    1962,
+    "bart_howard",
+    "フライミートゥザムーン fly me to the moon bossa nova ジャズボサ",
+    "ボサノバリズムで世界的大ヒットとなった月へのロマンティックな飛行の歌。"
+  ],
+  [
+    "sf_c01",
+    "Manhã de Carnaval",
+    "🎬 映画『黒いオルフェ』主題歌 (カーニバルの朝)",
+    "Cinema",
+    1959,
+    "luiz_bonfa",
+    "カーニバルの朝 manha de carnaval 黒いオルフェ orfeu negro ボンファ",
+    "カンヌ映画祭パルムドールに輝く名画の主題歌。切なく美しいアコースティックギターの音色。"
+  ],
+  [
+    "sf_c02",
+    "A Felicidade",
+    "🎬 映画『黒いオルフェ』挿入歌 (フェリシダージ)",
+    "Cinema",
+    1959,
+    "jobim",
+    "フェリシダージ a felicidade 黒いオルフェ 悲しみには終わりがない 幸福 ジョビン",
+    "「悲しみには終わりがないが、幸せには終わりがある」人生の真理を爽やかに奏でる名作。"
+  ],
+  [
+    "sf_c03",
+    "Un homme et une femme",
+    "🎬 映画『男と女』主題歌 (男と女)",
+    "Cinema",
+    1966,
+    "francis_lai",
+    "男と女 un homme et une femme フランシスレイ ダバダバダ クロードルルーシュ",
+    "「ダバダバダ…」のスキャットで一世を風靡した、フランス映画音楽の金字塔。"
+  ],
+  [
+    "sf_c04",
+    "Samba Saravah",
+    "🎬 映画『男と女』挿入歌 (サンバ・サラヴァ)",
+    "Cinema",
+    1966,
+    "francis_lai",
+    "サンバサラヴァ samba saravah 男と女 バーデンパウエル ピエールバルー",
+    "ピエール・バルーがブラジル音楽への深い愛をフランス語で捧げたシネマボサノバ。"
+  ],
+  [
+    "sf_c05",
+    "Moon River",
+    "🎬 映画『ティファニーで朝食を』主題歌 (ムーン・リバー)",
+    "Cinema",
+    1961,
+    "mancini",
+    "ムーンリバー moon river ティファニーで朝食を オードリーヘプバーン マンシーニ",
+    "オードリー・ヘプバーンが窓辺でギターをつま弾くシーンが不朽の名作となったバラード。"
+  ],
+  [
+    "sf_c06",
+    "Days of Wine and Roses",
+    "🎬 映画『酒とバラの日々』主題歌 (酒とバラの日々)",
+    "Cinema",
+    1962,
+    "mancini",
+    "酒とバラの日々 days of wine and roses アカデミー歌曲賞 マンシーニ ジャズバラード",
+    "ジャズプレイヤーに最も愛されるスタンダードの一つ。儚くも甘い日々の追憶を歌う。"
+  ],
+  [
+    "sf_c07",
+    "The Pink Panther Theme",
+    "🎬 映画『ピンク・パンサー』主題歌",
+    "Cinema",
+    1963,
+    "mancini",
+    "ピンクパンサー the pink panther theme マンシーニ テナーサックス コミカル",
+    "誰もが知るミステリアス＆グルーヴィなテナーサックスのリフ。ヘンリー・マンシーニの代表作。"
+  ],
+  [
+    "sf_c08",
+    "Charade",
+    "🎬 映画『シャレード』主題歌 (シャレード)",
+    "Cinema",
+    1963,
+    "mancini",
+    "シャレード charade オードリーヘプバーン ケーリーグラント マンシーニ ワルツ",
+    "パリの街を舞台にしたロマンティック・サスペンスを彩る哀愁のマイナー・ワルツ。"
+  ],
+  [
+    "sf_c09",
+    "Loss of Love (Sunflower)",
+    "🎬 映画『ひまわり』主題歌 (ひまわり / 愛のテーマ)",
+    "Cinema",
+    1970,
+    "mancini",
+    "ひまわり sunflower loss of love ソフィアローレン マンシーニ 涙のテーマ",
+    "一面のひまわり畑と引き裂かれた愛を描いた、映画音楽史上屈指の涙を誘う名旋律。"
+  ],
+  [
+    "sf_c10",
+    "Over the Rainbow",
+    "🎬 映画『オズの魔法使』主題歌 (虹の彼方に)",
+    "Cinema",
+    1939,
+    "harold_arlen",
+    "虹の彼方に over the rainbow オズの魔法使 ジュディガーランド アーレン 夢",
+    "「虹の向こうに夢見る場所がある」希望と祈りを歌い上げた、全人類の愛唱歌。"
+  ],
+  [
+    "sf_c11",
+    "Someday My Prince Will Come",
+    "🎬 映画『白雪姫』挿入歌 (いつか王子様が)",
+    "Cinema",
+    1937,
+    "bill_evans",
+    "いつか王子様が someday my prince will come ディズニー 白雪姫 ビルエヴァンス マイルス",
+    "ディズニーアニメの名曲をマイルスやビル・エヴァンスが極上のジャズワルツへと昇華。"
+  ],
+  [
+    "sf_c12",
+    "When You Wish Upon a Star",
+    "🎬 映画『ピノキオ』主題歌 (星に願いを)",
+    "Cinema",
+    1940,
+    "oscar_peterson",
+    "星に願いを when you wish upon a star ピノキオ ディズニー オスカーピーターソン",
+    "「輝く星に願うなら、夢はきっと叶う」オスカー・ピーターソンの名演でも有名なバラード。"
+  ],
+  [
+    "sf_c13",
+    "Les Parapluies de Cherbourg",
+    "🎬 映画『シェルブールの雨傘』主題歌 (I Will Wait for You)",
+    "Cinema",
+    1964,
+    "legrand",
+    "シェルブールの雨傘 les parapluies de cherbourg i will wait for you カトリーヌドヌーヴ ルグラン",
+    "全編歌で綴られた名作。戦争に引き裂かれる若い二人の悲恋をドラマティックに歌う。"
+  ],
+  [
+    "sf_c14",
+    "Chanson des jumelles",
+    "🎬 映画『ロシュフォールの恋人たち』挿入歌 (双児の姉妹の歌)",
+    "Cinema",
+    1967,
+    "legrand",
+    "ロシュフォールの恋人たち 双児の姉妹の歌 chanson des jumelles ルグラン ドヌーヴ ミュージカル",
+    "最高にポップでチャーミングなフレンチ・ジャズミュージカルの代表曲。"
+  ],
+  [
+    "sf_c15",
+    "The Windmills of Your Mind",
+    "🎬 映画『華麗なる賭け』主題歌 (風のささやき)",
+    "Cinema",
+    1968,
+    "legrand",
+    "風のささやき the windmills of your mind 華麗なる賭け スティーブマックィーン ルグラン",
+    "心の迷宮を回る風車に喩えた哲学的な詞と流麗なバロック風旋律。アカデミー主題歌賞受賞。"
+  ],
+  [
+    "sf_c16",
+    "Summer of '42",
+    "🎬 映画『おもいでの夏』主題歌 (おもいでの夏)",
+    "Cinema",
+    1971,
+    "legrand",
+    "おもいでの夏 summer of 42 ルグラン アカデミー作曲賞 ノスタルジー 青春",
+    "ひと夏の切なく甘美な初恋の記憶をピアノの柔らかなタッチで紡ぎ出す名曲。"
+  ],
+  [
+    "sf_c17",
+    "What Are You Doing the Rest of Your Life?",
+    "🎬 映画『ハッピー・エンディング』主題歌 (これからの人生)",
+    "Cinema",
+    1969,
+    "legrand",
+    "これからの人生 what are you doing the rest of your life ルグラン スタンダード",
+    "「残りの人生を僕と過ごしてくれないか」数々のジャズ名手が愛奏する至高のプロポーズソング。"
+  ],
+  [
+    "sf_c18",
+    "Générique / Ascenseur pour l'échafaud",
+    "🎬 映画『死刑台のエレベーター』メインテーマ",
+    "Cinema",
+    1958,
+    "miles_davis",
+    "死刑台のエレベーター generique ascenseur pour lechafaud マイルス ジャンヌモロー ノワール",
+    "試写フィルムを見ながらマイルスが即興演奏で吹き込んだ、フィルムノワール不滅の傑作。"
+  ],
+  [
+    "sf_c19",
+    "The Shadow of Your Smile",
+    "🎬 映画『いそしぎ』主題歌 (いそしぎ)",
+    "Cinema",
+    1965,
+    "johnny_mandel",
+    "いそしぎ the shadow of your smile エリザベステイラー ジョニーマンデル ボサノバ ジャズ",
+    "ボサノバのビートと洗練されたストリングスが交錯する、大人の切ない愛のスタンダード。"
+  ],
+  [
+    "sf_c20",
+    "As Time Goes By",
+    "🎬 映画『カサブランカ』主題歌 (アズ・タイム・ゴーズ・バイ)",
+    "Cinema",
+    1942,
+    "herman_hupfeld",
+    "アズタイムゴーズバイ as time goes by カサブランカ ハンフリーボガート ピアノ サム",
+    "「時の過ぎゆくままに…」ピアノ弾きのサムが奏でる、映画史に燦然と輝く究極のノスタルジー。"
+  ],
+  [
+    "sf_c21",
+    "Singin' in the Rain",
+    "🎬 映画『雨に唄えば』主題歌 (雨に唄えば)",
+    "Cinema",
+    1952,
+    "george_gershwin",
+    "雨に唄えば singin in the rain ジーンケリー ミュージカル タップダンス 喜び",
+    "雨の中でも恋があれば心は青空！ジーン・ケリーが水たまりを跳ねる名場面の永遠のアンセム。"
+  ],
+  [
+    "sf_c22",
+    "Speak Softly Love",
+    "🎬 映画『ゴッドファーザー』主題歌 (愛のテーマ)",
+    "Cinema",
+    1972,
+    "nino_rota",
+    "ゴッドファーザー speak softly love 愛のテーマ ニーノロータ シチリア マフィア",
+    "シチリアの乾いた風と哀愁を漂わせる、マンドリンとストリングスの圧倒的哀愁メロディ。"
+  ],
+  [
+    "sf_c23",
+    "Nuovo Cinema Paradiso",
+    "🎬 映画『ニュー・シネマ・パラダイス』メインテーマ",
+    "Cinema",
+    1988,
+    "morricone",
+    "ニューシネマパラダイス nuovo cinema paradiso モリコーネ 映画への愛 トト アルフレード",
+    "映画を愛するすべての人に捧げられた、ノスタルジーと優しさに満ちた至宝のテーマ曲。"
+  ],
+  [
+    "sf_c24",
+    "Playing Love",
+    "🎬 映画『海の上のピアニスト』挿入曲 (愛を奏でて)",
+    "Cinema",
+    1998,
+    "morricone",
+    "愛を奏でて playing love 海の上のピアニスト 1900 モリコーネ 船窓の少女",
+    "船窓から見えた少女への一目惚れの感情を、船上の天才ピアニストが即興で紡いだ奇跡の旋律。"
+  ],
+  [
+    "sf_c25",
+    "Mia & Sebastian's Theme",
+    "🎬 映画『ラ・ラ・ランド』メインテーマ",
+    "Cinema",
+    2016,
+    "justin_hurwitz",
+    "ミアとセバスチャンのテーマ mia and sebastians theme ララランド lalaland ジャズピアノ",
+    "ピアノの澄んだアルペジオから夢と情熱があふれ出す、現代ミュージカル映画の最高傑作。"
+  ],
+  [
+    "sf_c26",
+    "City of Stars",
+    "🎬 映画『ラ・ラ・ランド』主題歌 (シティ・オブ・スターズ)",
+    "Cinema",
+    2016,
+    "justin_hurwitz",
+    "シティオブスターズ city of stars ララランド アカデミー歌曲賞 夜景 デュエット",
+    "LAの夜景を背景に、孤独と夢を追う若者の心を静かに照らす哀愁のバラード。"
+  ],
+  [
+    "sf_c27",
+    "The Entertainer",
+    "🎬 映画『スティング』主題歌 (ジ・エンターテイナー)",
+    "Cinema",
+    1902,
+    "scott_joplin",
+    "ジエンターテイナー the entertainer スティング ジョプリン ラグタイム ピアノ",
+    "ポール・ニューマン主演の名画『スティング』で世界中で大リバイバルした痛快ラグタイム。"
+  ],
+  [
+    "sf_c28",
+    "Smile",
+    "🎬 映画『モダン・タイムス』テーマ曲 (スマイル)",
+    "Cinema",
+    1936,
+    "chet_baker",
+    "スマイル smile チャップリン モダンタイムス ナットキングコール 心が痛む時でも",
+    "チャールズ・チャップリン作曲。「どんなに辛い時でも微笑んで」と優しく語りかける名曲。"
+  ],
+  [
+    "sf_c29",
+    "Calling You",
+    "🎬 映画『バグダッド・カフェ』主題歌 (コーリング・ユー)",
+    "Cinema",
+    1987,
+    "chet_baker",
+    "コーリングユー calling you バグダッドカフェ 砂漠 ハイトーン ジャズバラード",
+    "砂漠のモーテルを舞台に、心の渇きを癒やす奇跡のハイトーン・ヴォーカルが響く名曲。"
+  ],
+  [
+    "sf_c30",
+    "Theme from Lupin III '78",
+    "🎬『ルパン三世 カリオストロの城』JAZZテーマ (ルパン三世のテーマ)",
+    "Cinema",
+    1978,
+    "yuji_ohno",
+    "ルパン三世のテーマ lupin iii 大野雄二 カリオストロの城 和ジャズ ビッグバンド",
+    "大野雄二が生んだ日本ジャズ・フュージョンの最高峰。スリリングで疾走感あふれるホーンセクション。"
+  ],
+  [
+    "sf_c31",
+    "Merry Christmas, Mr. Lawrence",
+    "🎬 映画『戦場のメリークリスマス』主題歌",
+    "Cinema",
+    1983,
+    "sakamoto",
+    "戦場のメリークリスマス merry christmas mr lawrence 坂本龍一 戦メリ 教授 ガムラン 東洋的",
+    "東洋と西洋の美意識が奇跡的に融合した坂本龍一の代表作。ピアノソロでも世界中で大人気。"
+  ],
+  [
+    "sf_c32",
+    "Summer",
+    "🎬 映画『菊次郎の夏』メインテーマ",
+    "Cinema",
+    1999,
+    "hisaishi",
+    "summer 菊次郎の夏 久石譲 北野武 ピアノ ノスタルジー 日本の夏",
+    "日本の夏、青空とひまわりを連想させる、爽快でどこか切ない久石譲のピアノクラシック。"
+  ],
+  [
+    "sf_j01",
+    "Autumn Leaves",
+    "Les Feuilles mortes (枯葉)",
+    "Keyboard",
+    1945,
+    "joseph_kosma",
+    "枯葉 autumn leaves les feuilles mortes ビルエヴァンス マイルス ジャズの基本",
+    "全ジャズメンが必ず通る哀愁の最高峰スタンダード。秋の木枯らしと去りゆく愛を描く。"
+  ],
+  [
+    "sf_j02",
+    "Take Five",
+    "Take Five (テイク・ファイブ)",
+    "Cool Jazz",
+    1959,
+    "dave_brubeck",
+    "テイクファイブ take five デイヴブルーベック ポールデスモンド 5拍子 変拍子 カフェ",
+    "クールなサックスと印象的なピアノリフ。5/4拍子の斬新さで全米チャートを席巻した名演。"
+  ],
+  [
+    "sf_j03",
+    "Blue Rondo à la Turk",
+    "Blue Rondo à la Turk (トルコ風ブルー・ロンド)",
+    "Cool Jazz",
+    1959,
+    "dave_brubeck",
+    "ブルーロンドアラターク blue rondo a la turk ブルーベック 9拍子 クラシックとジャズ",
+    "9/8拍子のスリリングなリズムとブルースが融合した、デイヴ・ブルーベックの傑作インスト。"
+  ],
+  [
+    "sf_j04",
+    "Waltz for Debby",
+    "Waltz for Debby (ワルツ・フォー・デビイ)",
+    "Keyboard",
+    1956,
+    "bill_evans",
+    "ワルツフォーデビイ waltz for debby ビルエヴァンス ヴィレッジヴァンガード ピアノトリオ",
+    "幼い姪デビイの愛らしさを描いた、ビル・エヴァンス生涯の最高傑作ピアノワルツ。"
+  ],
+  [
+    "sf_j05",
+    "Peace Piece",
+    "Peace Piece (ピース・ピース)",
+    "Keyboard",
+    1958,
+    "bill_evans",
+    "ピースピース peace piece ビルエヴァンス 静寂 瞑想 ソロピアノ カインドオブブルー",
+    "左手の静穏な2つの和音の反復に乗せて、右手が自在に詩的な調べを紡ぐ奇跡のソロピアノ。"
+  ],
+  [
+    "sf_j06",
+    "So What",
+    "So What (ソー・ホワット)",
+    "Hard Bop",
+    1959,
+    "miles_davis",
+    "ソーホワット so what マイルスデイヴィス カインドオブブルー モードジャズ だから何だ",
+    "モード・ジャズの幕開けを告げたベースリフと管楽器の応答。「だから何だ？」というクールな美学。"
+  ],
+  [
+    "sf_j07",
+    "Blue in Green",
+    "Blue in Green (ブルー・イン・グリーン)",
+    "Hard Bop",
+    1959,
+    "miles_davis",
+    "ブルーイングリーン blue in green マイルス ビルエヴァンス 静寂のバラード",
+    "マイルスとビル・エヴァンスの繊細な感受性が溶け合った、静寂と憂愁のバラード。"
+  ],
+  [
+    "sf_j08",
+    "Freddie Freeloader",
+    "Freddie Freeloader (フレディ・フリーローダー)",
+    "Hard Bop",
+    1959,
+    "miles_davis",
+    "フレディフリーローダー freddie freeloader マイルス ウィントンケリー ブルース",
+    "ウィントン・ケリーの弾むようなピアノイントロが最高にゴキゲンなブルース・ナンバー。"
+  ],
+  [
+    "sf_j09",
+    "My Favorite Things",
+    "🎬 映画『サウンド・オブ・ミュージック』劇中歌",
+    "Hard Bop",
+    1959,
+    "john_coltrane",
+    "マイフェイバリットシングス my favorite things コルトレーン ソプラノサックス 私のお気に入り",
+    "愛らしいワルツをコルトレーンが神秘的で熱狂的なソプラノサックスのモードで再構築。"
+  ],
+  [
+    "sf_j10",
+    "Giant Steps",
+    "Giant Steps (ジャイアント・ステップス)",
+    "Hard Bop",
+    1959,
+    "john_coltrane",
+    "ジャイアントステップス giant steps コルトレーン 超絶技巧 コルトレーンチェンジ",
+    "猛烈なスピードで転調を繰り返す「コルトレーン・チェンジ」。ジャズのアドリブ極限の金字塔。"
+  ],
+  [
+    "sf_j11",
+    "Blue Train",
+    "Blue Train (ブルー・トレイン)",
+    "Hard Bop",
+    1957,
+    "john_coltrane",
+    "ブルートレイン blue train コルトレーン ブルーノート リーモーガン カーティスフラー",
+    "ブルーノートレーベルを代表する名盤の表題曲。力強いホーンのリフが夜の街を疾走する。"
+  ],
+  [
+    "sf_j12",
+    "'Round Midnight",
+    "'Round Midnight (ラウンド・ミッドナイト)",
+    "Bebop",
+    1944,
+    "thelonious_monk",
+    "ラウンドミッドナイト round midnight モンク 真夜中 マイルス クール",
+    "真夜中の静けさと都市の孤独を表現した、セロニアス・モンク不朽の名バラード。"
+  ],
+  [
+    "sf_j13",
+    "Blue Monk",
+    "Blue Monk (ブルー・モンク)",
+    "Bebop",
+    1954,
+    "thelonious_monk",
+    "ブルーモンク blue monk モンク ブルース シンプルで深い ピアノ",
+    "歩くようなシンプルでどこかユーモラスなメロディの中に、モンクの真骨頂が光るブルース。"
+  ],
+  [
+    "sf_j14",
+    "Misty",
+    "Misty (ミスティ)",
+    "Keyboard",
+    1954,
+    "erroll_garner",
+    "ミスティ misty エロールガーナー 霧に包まれて ジャズピアノ バラード",
+    "飛行機の中で雲を見つめながら閃いたという、甘くロマンティックなピアノバラードの最高峰。"
+  ],
+  [
+    "sf_j15",
+    "Take the \"A\" Train",
+    "Take the \"A\" Train (A列車で行こう)",
+    "Swing",
+    1939,
+    "duke_ellington",
+    "A列車で行こう take the a train デュークエリントン ビリーストレイホーン ハーレム スウィング",
+    "ニューヨーク・ハーレムの熱気へと誘う軽快なスウィング。ジャズを象徴する一番の代名詞。"
+  ],
+  [
+    "sf_j16",
+    "In a Sentimental Mood",
+    "In a Sentimental Mood (イン・ア・センチメンタル・ムード)",
+    "Swing",
+    1935,
+    "duke_ellington",
+    "インアセンチメンタルムード in a sentimental mood エリントン コルトレーン ピアノイントロ",
+    "エリントンのピアノとコルトレーンのサックスのデュオでも知られる、甘美でノスタルジックな名曲。"
+  ],
+  [
+    "sf_j17",
+    "Caravan",
+    "🎬 映画『セッション (Whiplash)』劇中曲 (キャラバン)",
+    "Swing",
+    1936,
+    "duke_ellington",
+    "キャラバン caravan デュークエリントン ファンジゾール セッション ドラムソロ エキゾチック",
+    "中東のエキゾチックな旋律と猛烈なラテングルーヴ。映画『セッション』でも大団円を飾った傑作。"
+  ],
+  [
+    "sf_j18",
+    "Satin Doll",
+    "Satin Doll (サテン・ドール)",
+    "Swing",
+    1953,
+    "duke_ellington",
+    "サテンドール satin doll デュークエリントン ビリーストレイホーン 洒脱 スウィング",
+    "都会的で洗練されたコードワークとキャッチーなメロディが心地よい、大人のスウィング。"
+  ],
+  [
+    "sf_j19",
+    "It Don't Mean a Thing",
+    "スウィングしなけりゃ意味がない",
+    "Swing",
+    1931,
+    "duke_ellington",
+    "スウィングしなけりゃ意味がない it dont mean a thing エリントン ドゥワドゥワ",
+    "「スウィングがなけりゃ意味がない！」スウィング・ジャズ黄金時代の開幕を告げた不朽のアンセム。"
+  ],
+  [
+    "sf_j20",
+    "Sing, Sing, Sing",
+    "Sing, Sing, Sing (シング・シング・シング)",
+    "Swing",
+    1936,
+    "benny_goodman",
+    "シングシングシング sing sing sing ベニーグッドマン ジーンクルーパ ドラムソロ スウィングガールズ",
+    "熱狂的なフロアタムのリズムと炸裂するブラス！カーネギーホールを揺るがした熱狂のスウィング。"
+  ],
+  [
+    "sf_j21",
+    "Moonlight Serenade",
+    "Moonlight Serenade (ムーンライト・セレナーデ)",
+    "Swing",
+    1939,
+    "glenn_miller",
+    "ムーンライトセレナーデ moonlight serenade グレンミラー クラリネットリード 甘美な夜",
+    "甘美なクラリネットリードのアンサンブル。月明かりのダンスホールを思い起こさせる優雅な調べ。"
+  ],
+  [
+    "sf_j22",
+    "In the Mood",
+    "In the Mood (イン・ザ・ムード)",
+    "Swing",
+    1939,
+    "glenn_miller",
+    "インザムード in the mood グレンミラー サックスリフ スウィング 明るい",
+    "世界中で誰もが踊りだすハッピーなサックスの掛け合い！ビッグバンド史上屈指の有名曲。"
+  ],
+  [
+    "sf_j23",
+    "Summertime",
+    "Summertime (サマータイム)",
+    "Standards",
+    1935,
+    "george_gershwin",
+    "サマータイム summertime ポーギーとベス ガーシュウィン 子守唄 ブルース",
+    "オペラ『ポーギーとベス』の子守唄。数千人以上のジャズミュージシャンにカバーされた名曲。"
+  ],
+  [
+    "sf_j24",
+    "Rhapsody in Blue",
+    "Rhapsody in Blue (ラプソディ・イン・ブルー)",
+    "Standards",
+    1924,
+    "george_gershwin",
+    "ラプソディインブルー rhapsody in blue ガーシュウィン クラリネットグリッサンド シンフォニックジャズ",
+    "クラリネットのグリッサンドから始まる、クラシックとジャズが奇跡の融合を果たした歴史的大作。"
+  ],
+  [
+    "sf_j25",
+    "I Got Rhythm",
+    "I Got Rhythm (アイ・ガット・リズム)",
+    "Standards",
+    1930,
+    "george_gershwin",
+    "アイガットリズム i got rhythm ガーシュウィン リズムチェンジ ビバップの母",
+    "「リズムがあれば何もいらない！」ビバップのあらゆるコード進行の基礎となった快活な名曲。"
+  ],
+  [
+    "sf_j26",
+    "Night and Day",
+    "Night and Day (ナイト・アンド・デイ)",
+    "Standards",
+    1932,
+    "cole_porter",
+    "ナイトアンドデイ night and day コールポーター 昼も夜も あなたを想う フランクシナトラ",
+    "「昼も夜も、心にあるのは君のことばかり」洗練された都会派ソングライターの真髄。"
+  ],
+  [
+    "sf_j27",
+    "I've Got You Under My Skin",
+    "あなたはしっかり私のもの",
+    "Standards",
+    1936,
+    "cole_porter",
+    "あなたはしっかり私のもの ive got you under my skin コールポーター フランクシナトラ ボサノバ",
+    "皮膚の下に染み込むほど深く愛している…シナトラの名歌唱でも愛される情熱的なナンバー。"
+  ],
+  [
+    "sf_j28",
+    "All the Things You Are",
+    "All the Things You Are (君は我がすべて)",
+    "Standards",
+    1939,
+    "jerome_kern",
+    "オールザシングスユーアー all the things you are ジェロームカーン 美しい転調 ジャズの聖典",
+    "次々と調を変えながら息をのむ美しさを生み出す、コード進行の奇跡と讃えられるナンバー。"
+  ],
+  [
+    "sf_j29",
+    "Smoke Gets in Your Eyes",
+    "Smoke Gets in Your Eyes (煙が目にしみる)",
+    "Standards",
+    1933,
+    "jerome_kern",
+    "煙が目にしみる smoke gets in your eyes プラターズ カーン 失恋 涙 バラード",
+    "失恋の涙を「煙が目にしみただけ」と隠す切ない詞と、どこまでも優しく切ないメロディ。"
+  ],
+  [
+    "sf_j30",
+    "My Funny Valentine",
+    "My Funny Valentine (マイ・ファニー・ヴァレンタイン)",
+    "Cool Jazz",
+    1937,
+    "chet_baker",
+    "マイファニーヴァレンタイン my funny valentine チェットベイカー リチャードロジャース クールトランペット",
+    "チェット・ベイカーの儚く美しいトランペットと歌声で永遠の名作となった愛のバラード。"
+  ],
+  [
+    "sf_j31",
+    "Blue Moon",
+    "Blue Moon (ブルー・ムーン)",
+    "Standards",
+    1934,
+    "richard_rodgers",
+    "ブルームーン blue moon リチャードロジャース 孤独から愛へ 月の奇跡",
+    "滅多に起きない奇跡の出会いを「青い月」に重ねた、心温まるロマンティック・ナンバー。"
+  ],
+  [
+    "sf_j32",
+    "Moanin'",
+    "Moanin' (モーニン)",
+    "Hard Bop",
+    1958,
+    "bobby_timmons",
+    "モーニン moanin アートブレイキー ジャズメッセンジャーズ ボビーティモンズ ファンキージャズ 蕎麦屋の出前",
+    "ピアノの「ソラシドレ…」という呼びかけにバンドが応えるコール＆レスポンス。ハードバップの頂点。"
+  ],
+  [
+    "sf_j33",
+    "Song for My Father",
+    "Song for My Father (ソング・フォー・マイ・ファーザー)",
+    "Hard Bop",
+    1964,
+    "horace_silver",
+    "ソングフォーマイファーザー song for my father ホレスシルヴァー 父に捧ぐ歌 カーボベルデ ボサノバ",
+    "父の故郷カーボベルデの民俗リズムとファンキー・ジャズが融合した親しみやすい名盤。"
+  ],
+  [
+    "sf_j34",
+    "Cantaloupe Island",
+    "Cantaloupe Island (カンタロープ・アイランド)",
+    "Hard Bop",
+    1964,
+    "herbie_hancock",
+    "カンタロープアイランド cantaloupe island ハービーハンコック us3 ピアノリフ ジャズファンク",
+    "ミニマルで怪しげなピアノリフが癖になる！後にヒップホップでもサンプリングされ世界的大ヒット。"
+  ],
+  [
+    "sf_j35",
+    "Watermelon Man",
+    "Watermelon Man (ウォーターメロン・マン)",
+    "Hard Bop",
+    1962,
+    "herbie_hancock",
+    "ウォーターメロンマン watermelon man ハービーハンコック スイカ売り ソウルジャズ",
+    "幼い頃に見たシカゴのスイカ売りの荷車のリズムを描いた、ソウルフルで楽しいジャズブルース。"
+  ],
+  [
+    "sf_j36",
+    "Maiden Voyage",
+    "Maiden Voyage (処女航海)",
+    "Hard Bop",
+    1965,
+    "herbie_hancock",
+    "処女航海 maiden voyage ハービーハンコック 海洋の神秘 サスペンデッドコード モード",
+    "大海原へと旅立つ船出の神秘と広がり。サスペンデッドコードが生み出す開放的な名曲。"
+  ],
+  [
+    "sf_j37",
+    "Spain",
+    "Spain (スペイン)",
+    "Post-Bop",
+    1971,
+    "chick_corea",
+    "スペイン spain チックコリア アランフェス協奏曲 リターントゥフォーエヴァー フラメンコ",
+    "ロドリーゴの『アランフェス協奏曲』から一転、熱狂的なフラメンコジャズへ！フュージョンの最高峰。"
+  ],
+  [
+    "sf_j38",
+    "Armando's Rhumba",
+    "Armando's Rhumba (アルマンドのルンバ)",
+    "Post-Bop",
+    1976,
+    "chick_corea",
+    "アルマンドのルンバ armandos rhumba チックコリア 手拍子 ルンバ ピアノ超絶技巧",
+    "父親アルマンドに捧げられた情熱的なルンバ。手拍子とピアノの鋭いアタックが胸を打つ。"
+  ],
+  [
+    "sf_j39",
+    "Cleopatra's Dream",
+    "Cleopatra's Dream (クレオパトラの夢)",
+    "Bebop",
+    1959,
+    "bud_powell",
+    "クレオパトラの夢 cleopatras dream バドパウエル シーンインバップ 日本で一番愛されたジャズ",
+    "哀愁漂うマイナー調の美しいメロディ。日本で特に爆発的な人気を誇るピアノトリオの傑作。"
+  ],
+  [
+    "sf_j40",
+    "Birdland",
+    "Birdland (バードランド)",
+    "Post-Bop",
+    1977,
+    "wayne_shorter",
+    "バードランド birdland ウェザーリポート ジョーザヴィヌル ウェインショーター ジャコパストリアス フュージョン",
+    "ジャズクラブ「バードランド」とチャーリー・パーカーに捧ぐ、歓喜とエネルギーあふれる名曲。"
+  ],
+  [
+    "sf_j41",
+    "Footprints",
+    "Footprints (フットプリンツ)",
+    "Hard Bop",
+    1966,
+    "wayne_shorter",
+    "フットプリンツ footprints ウェインショーター マイルスデイヴィス クール 6拍子",
+    "暗闇に足跡を残すような神秘的なベースライン。ウェイン・ショーターの哲学的な代表作。"
+  ],
+  [
+    "sf_j42",
+    "The Köln Concert (Part I)",
+    "The Köln Concert (ケルン・コンサート Part I)",
+    "Post-Bop",
+    1975,
+    "keith_jarrett",
+    "ケルンコンサート the koln concert キースジャレット 完全即興 ソロピアノ ECM",
+    "調律の狂ったピアノから紡ぎ出された奇跡の完全即興演奏。ソロピアノ史上最高セールスを記録。"
+  ],
+  [
+    "sf_j43",
+    "Maple Leaf Rag",
+    "Maple Leaf Rag (メイプル・リーフ・ラグ)",
+    "Early Jazz",
+    1899,
+    "scott_joplin",
+    "メイプルリーフラグ maple leaf rag ジョプリン ラグタイム ピアノの祖",
+    "シンコペーションの軽快なビートでアメリカ中を席巻した、ラグタイムの原点にして最高傑作。"
+  ],
+  [
+    "sf_j44",
+    "What a Wonderful World",
+    "What a Wonderful World (この素晴らしき世界)",
+    "Early Jazz",
+    1967,
+    "louis_armstrong",
+    "この素晴らしき世界 what a wonderful world ルイアームストロング サッチモ 平和の祈り",
+    "サッチモの温かな歌声が世界を包む。「木々の緑、赤いバラ…なんて素晴らしい世界だろう」。"
+  ],
+  [
+    "sf_j45",
+    "Donna Lee",
+    "Donna Lee (ドナ・リー)",
+    "Bebop",
+    1947,
+    "charlie_parker",
+    "ドナリー donna lee チャーリーパーカー マイルス ジャコパストリアス ビバップ練習曲",
+    "ビバップの神髄が凝縮された超高速ユニゾンフレーズ。全ジャズ奏者の登竜門。"
+  ]
+];
+
+  const SUPER_FAMOUS_WORKS = FAMOUS_RAW.map(([id, title, subtitle, genre, year, compKey, terms, desc_ja]) => {
+    const c = COMPOSER_MAP.get(compKey) || CUS_C[0];
+    const w = {
+      id,
+      title,
+      subtitle: subtitle || '',
+      genre: genre || 'Keyboard',
+      popular: '1',
+      recommended: '1',
+      searchterms: (terms || '') + ' ' + title + ' ' + (subtitle || '') + ' ' + (c.jaName || ''),
+      desc_ja: desc_ja || ''
+    };
+    return { w, c, year };
+  });
+
+  const CUS_W = SUPER_FAMOUS_WORKS.map(item => ({
+    cre: { source: item.c.name },
+    w: item.w,
+    year: item.year
+  }));
+
+  function mergeCustom(c, list) {
+    const k = String(c.id);
+    const compName = c.name || '';
+    const out = (list || []).slice();
+    SUPER_FAMOUS_WORKS.forEach(item => {
+      if (String(item.c.id) === k || item.c.name === compName) {
+        if (!out.some(w => String(w.id) === String(item.w.id))) {
+          out.push(item.w);
+        }
+      }
+    });
+    return out;
+  }
+
+  function applyCustomYears(list) {
+    (list || []).forEach(w => {
+      const sf = SUPER_FAMOUS_WORKS.find(item => String(item.w.id) === String(w.id));
+      if (sf && sf.year) {
+        Y[w.id] = [String(sf.year), false];
+      }
+    });
+  }
+
+  function addCustomComposers(list, q, ep) {
+    const n = (q || '').toLowerCase();
+    return list.concat(CUS_C.filter(cc => !list.some(c => c.id === cc.id) && (!n || (cc.name + ' ' + (cc.complete_name || '') + ' ' + (cc.jaName || '')).toLowerCase().includes(n)) && (!ep || cc.epoch === ep)));
+  }
+
+  /* ==========================================================
+     🔍 表記揺れ正規化・ファジー検索ヘルパー
+     ========================================================== */
+  function hiraToKata(str) {
+    return (str || '').replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+  }
+  function kataToHira(str) {
+    return (str || '').replace(/[\u30A1-\u30F6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+  }
+  function stripPunct(str) {
+    return (str || '').toLowerCase()
+      .replace(/[・\s\-_.,'"!?～~／/：:;「」『』()（）\[\]【】]/g, '');
+  }
+
+  // 同義語・誤記・通称マッピング辞書
+  const SEARCH_SYNONYMS = {
+    'イパネマ': ['ipanema', 'garota de ipanema', 'イパネマの娘', 'ジョビン', 'jobim'],
+    'いぱねま': ['ipanema', 'garota de ipanema', 'イパネマの娘', 'ジョビン', 'jobim'],
+    'イパネマの娘': ['ipanema', 'garota de ipanema', 'ジョビン'],
+    'いぱねまのむすめ': ['ipanema', 'garota de ipanema', 'ジョビン'],
+    '枯葉': ['autumn leaves', 'les feuilles mortes', 'ビルエヴァンス', 'マイルス', 'コズマ'],
+    'かれは': ['autumn leaves', 'les feuilles mortes', 'ビルエヴァンス', 'マイルス', 'コズマ'],
+    'オータムリーブス': ['autumn leaves', '枯葉'],
+    '黒いオルフェ': ['manha de carnaval', 'カーニバルの朝', 'ルイスボンファ', 'フェリシダージ', 'orfeu negro'],
+    'くろいおるふぇ': ['manha de carnaval', 'カーニバルの朝', 'ルイスボンファ', 'フェリシダージ'],
+    'カーニバルの朝': ['manha de carnaval', '黒いオルフェ', 'ボンファ'],
+    'ティファニー': ['moon river', 'ムーンリバー', 'マンシーニ', 'ティファニーで朝食を'],
+    'てぃふぁにー': ['moon river', 'ムーンリバー', 'マンシーニ'],
+    'ムーンリバー': ['moon river', 'ティファニーで朝食を', 'マンシーニ'],
+    'むーんりばー': ['moon river', 'マンシーニ'],
+    'ルパン': ['lupin', '大野雄二', 'ルパン三世', 'カリオストロ'],
+    'るぱん': ['lupin', '大野雄二', 'ルパン三世'],
+    'カリオストロ': ['lupin', '大野雄二', 'ルパン三世'],
+    'ララランド': ['la la land', 'lalaland', 'ミアとセバスチャン', 'シティオブスターズ', 'ハーウィッツ'],
+    'らららんど': ['la la land', 'lalaland', 'ミアとセバスチャン', 'シティオブスターズ'],
+    'テイクファイブ': ['take five', 'デイヴブルーベック', 'ブルーベック', '5拍子'],
+    'ていくふぁいぶ': ['take five', 'ブルーベック'],
+    'ワルツフォーデビー': ['waltz for debby', 'ビルエヴァンス', 'bill evans'],
+    'わるつふぉーでびー': ['waltz for debby', 'ビルエヴァンス'],
+    'A列車': ['take the a train', 'デュークエリントン', 'エリントン', 'スウィング'],
+    'a列車': ['take the a train', 'デュークエリントン', 'スウィング'],
+    'えーれっしゃ': ['take the a train', 'デュークエリントン'],
+    'エートレイン': ['take the a train', 'デュークエリントン'],
+    '酒とバラの日々': ['days of wine and roses', 'マンシーニ'],
+    'さけばら': ['days of wine and roses', 'マンシーニ'],
+    'ピンクパンサー': ['pink panther', 'マンシーニ'],
+    'ぴんくぱんさー': ['pink panther', 'マンシーニ'],
+    'シャレード': ['charade', 'マンシーニ'],
+    'ひまわり': ['sunflower', 'loss of love', 'マンシーニ'],
+    '虹の彼方に': ['over the rainbow', 'オズの魔法使', 'アーレン'],
+    'オーバーザレインボー': ['over the rainbow', 'オズの魔法使'],
+    'いつか王子様が': ['someday My prince will come', '白雪姫', 'ビルエヴァンス'],
+    '星に願いを': ['when you wish upon a star', 'ピノキオ', 'オスカーピーターソン'],
+    'シェルブール': ['les parapluies de cherbourg', 'シェルブールの雨傘', 'ルグラン'],
+    'シェルブールの雨傘': ['les parapluies de cherbourg', 'i will wait for you', 'ルグラン'],
+    '風のささやき': ['windmills of your mind', '華麗なる賭け', 'ルグラン'],
+    'おもいでの夏': ['summer of 42', 'ルグラン'],
+    '死刑台のエレベーター': ['ascenseur pour lechafaud', 'マイルス', 'miles davis'],
+    'いそしぎ': ['shadow of your smile', 'ジョニーマンデル'],
+    'カサブランカ': ['as time goes by', 'アズタイムゴーズバイ'],
+    'アズタイムゴーズバイ': ['as time goes by', 'カサブランカ'],
+    '雨に唄えば': ['singin in the rain', 'ジーンケリー'],
+    'ゴッドファーザー': ['godfather', 'speak softly love', '愛のテーマ', 'ニーノロータ'],
+    'ニューシネマパラダイス': ['cinema paradiso', 'モリコーネ', 'morricone'],
+    '海の上のピアニスト': ['playing love', '愛を奏でて', 'モリコーネ'],
+    '戦場のメリークリスマス': ['merry christmas mr lawrence', '坂本龍一', '戦メリ'],
+    '戦メリ': ['merry christmas mr lawrence', '坂本龍一'],
+    '菊次郎の夏': ['summer', '久石譲'],
+    '波': ['wave', 'ジョビン', 'jobim'],
+    'デサフィナード': ['desafinado', 'ジョビン'],
+    '想いあふれて': ['chega de saudade', 'ジョビン', 'ジョアンジルベルト'],
+    '三月の水': ['aguas de marco', 'ジョビン'],
+    'ワンノートサンバ': ['one note samba', 'samba de uma nota so', 'ジョビン'],
+    'マシュケナダ': ['mas que nada', 'ジョルジベン', 'セルジオメンデス'],
+    'サマーサンバ': ['samba de verao', 'so nice', 'マルコスヴァーリ'],
+    'ソーホワット': ['so what', 'マイルス', 'kind of blue'],
+    'シングシングシング': ['sing sing sing', 'ベニーグッドマン'],
+    'ムーンライトセレナーデ': ['moonlight serenade', 'グレンミラー'],
+    'インザムード': ['in the mood', 'グレンミラー'],
+    'ラプソディインブルー': ['rhapsody in blue', 'ガーシュウィン'],
+    'サマータイム': ['summertime', 'ガーシュウィン'],
+    'モーニン': ['moanin', 'アートブレイキー', 'ボビーティモンズ'],
+    'スペイン': ['spain', 'チックコリア', 'chick corea'],
+    'バードランド': ['birdland', 'ウェザーリポート', 'ショーター'],
+    'カンタロープ': ['cantaloupe island', 'ハービーハンコック'],
+    'クレオパトラの夢': ['cleopatras dream', 'バドパウエル'],
+    'フライミートゥザムーン': ['fly me to the moon', 'バートハワード'],
+    'マイファニーヴァレンタイン': ['my funny valentine', 'チェットベイカー'],
+    'キャラバン': ['caravan', 'デュークエリントン', 'セッション']
+  };
+
+  // レーベンシュタイン距離
+  function levenshtein(a, b) {
+    if (a === b) return 0;
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    const v0 = new Array(b.length + 1);
+    const v1 = new Array(b.length + 1);
+    for (let i = 0; i <= b.length; i++) v0[i] = i;
+    for (let i = 0; i < a.length; i++) {
+      v1[0] = i + 1;
+      for (let j = 0; j < b.length; j++) {
+        const cost = a[i] === b[j] ? 0 : 1;
+        v1[j + 1] = Math.min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost);
+      }
+      for (let j = 0; j <= b.length; j++) v0[j] = v1[j];
+    }
+    return v1[b.length];
+  }
+
+  // 統合ファジーマッチ判定
+  function fuzzyMatches(targetStr, rawQuery) {
+    if (!targetStr || !rawQuery) return false;
+    const qClean = stripPunct(rawQuery);
+    const tClean = stripPunct(targetStr);
+    if (!qClean) return false;
+    if (tClean.includes(qClean)) return true;
+
+    // カタカナ・ひらがな相互変換での部分一致
+    const qKata = hiraToKata(qClean);
+    const tKata = hiraToKata(tClean);
+    if (tKata.includes(qKata)) return true;
+
+    const qHira = kataToHira(qClean);
+    const tHira = kataToHira(tClean);
+    if (tHira.includes(qHira)) return true;
+
+    // 同義語辞書の走査
+    for (const [key, synList] of Object.entries(SEARCH_SYNONYMS)) {
+      const kClean = stripPunct(key);
+      const kKata = hiraToKata(kClean);
+      if (qClean === kClean || qKata === kKata || qClean.includes(kClean) || kClean.includes(qClean)) {
+        for (const syn of synList) {
+          const sClean = stripPunct(syn);
+          const sKata = hiraToKata(sClean);
+          if (tClean.includes(sClean) || tKata.includes(sKata)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    // レーベンシュタイン距離（タイプミス救済: ノタクーン vs ノクターン等）
+    if (qKata.length >= 3) {
+      const len = qKata.length;
+      for (let i = 0; i <= tKata.length - Math.min(tKata.length, len - 1); i++) {
+        const sub = tKata.slice(i, i + len + 1);
+        const dist = levenshtein(sub, qKata);
+        if (dist <= 1 || (len >= 5 && dist <= 2)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+
+  const EPOCHS = [
+    ['', '人気', 'Popular'],
+    ['Bossa Nova', '🌴 ボサノバ', 'Bossa Nova'],
+    ['Cinema Jazz', '🎬 映画主題歌・シネマ', 'Cinema & Film Themes'],
+    ['Early Jazz', '初期ジャズ・ラグタイム', 'Ragtime & Early Jazz'],
+    ['Swing', 'スウィング・ビッグバンド', 'Swing & Big Band'],
+    ['Bebop', 'ビバップ', 'Bebop'],
+    ['Cool Jazz', 'クール・ピアノトリオ', 'Cool & Piano Trio'],
+    ['Hard Bop', 'ハードバップ・モード', 'Hard Bop & Modal'],
+    ['Post-Bop', 'フュージョン・現代', 'Post-Bop & Fusion'],
+    ['Standards', 'スタンダード作曲家', 'Great Songbook']
+  ];
+  const GENRES = {
+    Keyboard: 'ピアノ・ソロ / トリオ',
+    Bossa: 'ボサノバ / サンバ',
+    Cinema: '映画主題歌・テーマ',
+    Chamber: 'ジャズ・コンボ',
+    Orchestral: 'ビッグバンド / 管弦楽',
+    Vocal: 'ヴォーカル・スタンダード'
+  };
+
+  const COUNTRIES = { Germany: 'ドイツ', Austria: 'オーストリア', France: 'フランス', Italy: 'イタリア', Russia: 'ロシア', Poland: 'ポーランド', England: 'イギリス', 'United Kingdom': 'イギリス', UK: 'イギリス', Scotland: 'スコットランド', Ireland: 'アイルランド', 'Czech Republic': 'チェコ', Czechia: 'チェコ', Bohemia: 'ボヘミア', Hungary: 'ハンガリー', Norway: 'ノルウェー', Sweden: 'スウェーデン', Denmark: 'デンマーク', Finland: 'フィンランド', Spain: 'スペイン', Portugal: 'ポルトガル', Netherlands: 'オランダ', Belgium: 'ベルギー', Switzerland: 'スイス', USA: 'アメリカ', 'United States': 'アメリカ', Canada: 'カナダ', Mexico: 'メキシコ', Brazil: 'ブラジル', Argentina: 'アルゼンチン', Cuba: 'キューバ', Ukraine: 'ウクライナ', Romania: 'ルーマニア', Bulgaria: 'ブルガリア', Greece: 'ギリシャ', Croatia: 'クロアチア', Serbia: 'セルビア', Slovakia: 'スロバキア', Slovenia: 'スロベニア', Estonia: 'エストニア', Latvia: 'ラトビア', Lithuania: 'リトアニア', Armenia: 'アルメニア', Georgia: 'ジョージア', Azerbaijan: 'アゼルバイジャン', Australia: 'オーストラリア', Japan: '日本', China: '中国', Korea: '韓国', 'South Korea': '韓国', Israel: 'イスラエル', Turkey: 'トルコ', Venezuela: 'ベネズエラ', Iceland: 'アイスランド', Belarus: 'ベラルーシ' };
+  
+  const NICKNAMES = [
+    [/Ipanema/i, 'イパネマの娘', 'The Girl from Ipanema'],
+    [/Wave/i, '波', 'Wave'],
+    [/Desafinado/i, 'デサフィナード', 'Desafinado'],
+    [/Corcovado/i, 'コルコヴァード（静かな夜）', 'Corcovado'],
+    [/Chega de Saudade/i, '想いあふれて（ノー・モア・ブルース）', 'Chega de Saudade'],
+    [/Águas de Março|Waters of March/i, '三月の水', 'Waters of March'],
+    [/One Note Samba/i, 'ワン・ノート・サンバ', 'One Note Samba'],
+    [/Samba de Verão|So Nice/i, 'サマー・サンバ', 'Summer Samba (So Nice)'],
+    [/Mas Que Nada/i, 'マシュ・ケ・ナダ', 'Mas Que Nada'],
+    [/Manhã de Carnaval/i, 'カーニバルの朝（黒いオルフェ）', 'Manhã de Carnaval'],
+    [/Moon River/i, 'ムーン・リバー（ティファニーで朝食を）', 'Moon River'],
+    [/Days of Wine and Roses/i, '酒とバラの日々', 'Days of Wine and Roses'],
+    [/Pink Panther/i, 'ピンク・パンサーのテーマ', 'The Pink Panther Theme'],
+    [/Charade/i, 'シャレード', 'Charade'],
+    [/Loss of Love|Sunflower/i, 'ひまわり（愛のテーマ）', 'Sunflower (Loss of Love)'],
+    [/Over the Rainbow/i, '虹の彼方に（オズの魔法使）', 'Over the Rainbow'],
+    [/Someday My Prince/i, 'いつか王子様が（白雪姫）', 'Someday My Prince Will Come'],
+    [/When You Wish/i, '星に願いを（ピノキオ）', 'When You Wish Upon a Star'],
+    [/Cherbourg|I Will Wait for You/i, 'シェルブールの雨傘', 'Les Parapluies de Cherbourg'],
+    [/Windmills of Your Mind/i, '風のささやき', 'The Windmills of Your Mind'],
+    [/Summer of '42/i, 'おもいでの夏', 'Summer of \'42'],
+    [/Ascenseur pour l'échafaud/i, '死刑台のエレベーター', 'Elevator to the Gallows'],
+    [/Shadow of Your Smile/i, 'いそしぎ', 'The Shadow of Your Smile'],
+    [/As Time Goes By/i, 'アズ・タイム・ゴーズ・バイ（カサブランカ）', 'As Time Goes By'],
+    [/Singin' in the Rain/i, '雨に唄えば', 'Singin\' in the Rain'],
+    [/Speak Softly Love/i, 'ゴッドファーザー 愛のテーマ', 'Speak Softly Love'],
+    [/Cinema Paradiso/i, 'ニュー・シネマ・パラダイス', 'Nuovo Cinema Paradiso'],
+    [/Playing Love/i, '愛を奏でて（海の上のピアニスト）', 'Playing Love'],
+    [/Mia & Sebastian/i, 'ミアとセバスチャンのテーマ（ラ・ラ・ランド）', 'Mia & Sebastian\'s Theme'],
+    [/City of Stars/i, 'シティ・オブ・スターズ（ラ・ラ・ランド）', 'City of Stars'],
+    [/Entertainer/i, 'ジ・エンターテイナー（スティング）', 'The Entertainer'],
+    [/Smile/i, 'スマイル（モダン・タイムス）', 'Smile'],
+    [/Calling You/i, 'コーリング・ユー（バグダッド・カフェ）', 'Calling You'],
+    [/Lupin/i, 'ルパン三世のテーマ', 'Theme from Lupin III'],
+    [/Merry Christmas, Mr\. Lawrence/i, '戦場のメリークリスマス', 'Merry Christmas, Mr. Lawrence'],
+    [/Summer/i, '菊次郎の夏（Summer）', 'Summer'],
+    [/Autumn Leaves/i, '枯葉', 'Autumn Leaves'],
+    [/Take Five/i, 'テイク・ファイブ', 'Take Five'],
+    [/Waltz for Debby/i, 'ワルツ・フォー・デビイ', 'Waltz for Debby'],
+    [/Peace Piece/i, 'ピース・ピース', 'Peace Piece'],
+    [/Fly Me to the Moon/i, 'フライ・ミー・トゥ・ザ・ムーン', 'Fly Me to the Moon'],
+    [/So What/i, 'ソー・ホワット', 'So What'],
+    [/Blue in Green/i, 'ブルー・イン・グリーン', 'Blue in Green'],
+    [/My Favorite Things/i, '私のお気に入り（サウンド・オブ・ミュージック）', 'My Favorite Things'],
+    [/Giant Steps/i, 'ジャイアント・ステップス', 'Giant Steps'],
+    [/Round Midnight/i, 'ラウンド・ミッドナイト', '\'Round Midnight'],
+    [/Misty/i, 'ミスティ', 'Misty'],
+    [/Take the "A" Train|Take the A Train/i, 'A列車で行こう', 'Take the "A" Train'],
+    [/In a Sentimental Mood/i, 'イン・ア・センチメンタル・ムード', 'In a Sentimental Mood'],
+    [/Caravan/i, 'キャラバン', 'Caravan'],
+    [/Sing, Sing, Sing/i, 'シング・シング・シング', 'Sing, Sing, Sing'],
+    [/Moonlight Serenade/i, 'ムーンライト・セレナーデ', 'Moonlight Serenade'],
+    [/In the Mood/i, 'イン・ザ・ムード', 'In the Mood'],
+    [/Summertime/i, 'サマータイム', 'Summertime'],
+    [/Rhapsody in Blue/i, 'ラプソディ・イン・ブルー', 'Rhapsody in Blue'],
+    [/Night and Day/i, 'ナイト・アンド・デイ', 'Night and Day'],
+    [/All the Things You Are/i, 'オール・ザ・シングス・ユー・アー', 'All the Things You Are'],
+    [/Smoke Gets in Your Eyes/i, '煙が目にしみる', 'Smoke Gets in Your Eyes'],
+    [/My Funny Valentine/i, 'マイ・ファニー・ヴァレンタイン', 'My Funny Valentine'],
+    [/Moanin/i, 'モーニン', 'Moanin\''],
+    [/Spain/i, 'スペイン', 'Spain'],
+    [/Cleopatra's Dream/i, 'クレオパトラの夢', 'Cleopatra\'s Dream'],
+    [/Birdland/i, 'バードランド', 'Birdland']
+  ];
+
+
+  const WORDS = [
+    ['Symphonies','交響曲'],['Symphony','交響曲'],['Concertos','協奏曲'],['Concerto','協奏曲'],['Concertino','小協奏曲'],
+    ['Sonatas','ソナタ（奏鳴曲）'],['Sonata','ソナタ（奏鳴曲）'],['Sonatinas','ソナチネ（小奏鳴曲）'],['Sonatina','ソナチネ（小奏鳴曲）'],['Sonatine','ソナチネ（小奏鳴曲）'],
+    ['Suites','組曲'],['Suite','組曲'],['Overture','序曲'],['Quartets','四重奏曲'],['Quartet','四重奏曲'],
+    ['Quintet','五重奏曲'],['Sextet','六重奏曲'],['Septet','七重奏曲'],['Octet','八重奏曲'],['Trios','三重奏曲'],['Trio','三重奏曲'],['Duo','二重奏曲'],
+    ['Mass','ミサ曲'],['Requiem','レクイエム（鎮魂歌）'],['Opera','オペラ（歌劇）'],['Ballet','バレエ（舞踊劇）'],
+    ['Preludes','前奏曲（プレリュード）'],['Prelude','前奏曲（プレリュード）'],['Fugue','フーガ（遁走曲）'],['Fugues','フーガ（遁走曲）'],
+    ['Etudes','練習曲（エチュード）'],['Études','練習曲（エチュード）'],['Etude','練習曲（エチュード）'],['Étude','練習曲（エチュード）'],
+    ['Nocturnes','夜想曲（ノクターン）'],['Nocturne','夜想曲（ノクターン）'],['Waltzes','ワルツ（円舞曲）'],['Waltz','ワルツ（円舞曲）'],['Valse','ワルツ（円舞曲）'],
+    ['Polonaises','ポロネーズ'],['Polonaise','ポロネーズ'],['Mazurkas','マズルカ'],['Mazurka','マズルカ'],['Ballade','バラード（譚詩曲）'],['Ballades','バラード（譚詩曲）'],
+    ['Scherzo','スケルツォ（諧謔曲）'],['Scherzos','スケルツォ（諧謔曲）'],['Rhapsody','狂詩曲（ラプソディ）'],['Rhapsodies','狂詩曲（ラプソディ）'],
+    ['Fantasy','幻想曲（ファンタジー）'],['Fantasia','幻想曲（ファンタジー）'],['Fantaisie','幻想曲（ファンタジー）'],
+    ['Variations','変奏曲'],['Variation','変奏曲'],['Cantata','カンタータ（交声曲）'],['Oratorio','オラトリオ（聖譚曲）'],
+    ['Passion','受難曲'],['Magnificat','マニフィカト'],['Minuet','メヌエット'],['Menuet','メヌエット'],
+    ['Serenade','セレナーデ（小夜曲）'],['Divertimento','ディヴェルティメント（嬉遊曲）'],
+    ['Impromptus','即興曲（アンプロンプチュ）'],['Impromptu','即興曲（アンプロンプチュ）'],['Rondo','ロンド（輪舞曲）'],
+    ['Toccata','トッカータ'],['Partita','パルティータ'],['Partitas','パルティータ'],['Aria','アリア（詠唱）'],
+    ['Songs','歌曲'],['Song','歌曲'],['Lieder','歌曲'],['Piano','ピアノ'],['Violin','ヴァイオリン'],['Viola','ヴィオラ'],
+    ['Cello','チェロ'],['Flute','フルート'],['Clarinet','クラリネット'],['Oboe','オーボエ'],['Bassoon','ファゴット'],
+    ['Horn','ホルン'],['Trumpet','トランペット'],['Organ','オルガン'],['Harpsichord','チェンバロ'],['Guitar','ギター'],['Harp','ハープ'],
+    ['String','弦楽'],['Strings','弦楽'],['Orchestra','管弦楽'],['Orchestral','管弦楽'],['Chamber','室内楽'],['Choral','合唱'],
+    ['Allegro moderato','アレグロ・モデラート（中庸に速く）'],['Allegro','アレグロ（快活に・速く）'],
+    ['Andante','アンダンテ（歩くような速さで）'],['Adagio','アダージョ（ゆるやかに）'],['Largo','ラルゴ（幅広くゆるやかに）'],
+    ['Presto','プレスト（急速に）'],['Moderato','モデラート（中庸の速さで）'],['Vivace','ヴィヴァーチェ（活発に）'],
+    ['Lento','レント（遅く）'],['Grave','グラーヴェ（重々しく）'],['Maestoso','マエストーソ（堂々と）'],
+    ['Brandenburg','ブランデンブルク'],['Goldberg','ゴルトベルク'],['Moonlight','月光'],['Appassionata','熱情'],
+    ['Pathétique','悲愴'],['Pathetique','悲愴'],['Eroica','英雄'],['Pastoral','田園'],['Emperor','皇帝'],
+    ['Spring','春'],['Winter','冬'],['Summer','夏'],['Autumn','秋'],['Jupiter','ジュピター'],['Surprise','驚愕'],
+    ['Clock','時計'],['Unfinished','未完成'],['Italian','イタリア'],['Scottish','スコットランド'],['Reformation','宗教改革'],
+    ['Rhenish','ライン'],['Trout','ます'],['Kreutzer','クロイツェル'],['Waldstein','ワルトシュタイン'],['Hammerklavier','ハンマークラヴィーア'],
+    ['Great','ザ・グレイト'],['Seasons','四季'],['Complete','全集'],['Works','作品集'],['and','と'],['for','—']].sort((a, b) => b[0].length - a[0].length).map(([e, j]) => [new RegExp('(?<![A-Za-z])' + e + '(?![A-Za-z])', 'gi'), j]);
+  const KEYL = { C: 'ハ', D: 'ニ', E: 'ホ', F: 'ヘ', G: 'ト', A: 'イ', B: 'ロ' };
+  const KEYRE = /\b([A-G])(?:[- ]?(sharp|flat))? (major|minor)\b/i;
+  const keyJa = (k, a, m) => (a ? (a.toLowerCase() === 'sharp' ? '嬰' : '変') : '') + KEYL[k.toUpperCase()] + (m.toLowerCase() === 'major' ? '長調' : '短調');
+
+  /* ---------- ピアノ難易度 ---------- */
+  const FACT = {
+    fast: ['速いパッセージ・音階・アルペジオが長く続き、指の独立性と持久力が必要', 'Long fast passages, scales and arpeggios demand finger independence and stamina'],
+    leap: ['大きな跳躍や広い音域の移動が多く、正確な打鍵と手の移動が求められる', 'Wide leaps and large register shifts require accurate hand movement'],
+    stretch: ['オクターヴの連続や10度の和音など、大きな手の広がりが必要', 'Octaves and wide chords require a large hand span'],
+    poly: ['複数の声部を弾き分ける対位法的な書法で、各声部のコントロールが難しい', 'Contrapuntal writing requires controlling several independent voices'],
+    rhythm: ['複雑なリズム（3対2など）や左右の独立が必要', 'Complex rhythms and hand independence are required'],
+    long: ['曲が長く、構成の把握・集中力・暗譜の負担が大きい', 'The piece is long, demanding concentration, memory and structural grasp'],
+    expr: ['音色・強弱・テンポの揺れなど、繊細な音楽的表現が求められる', 'Delicate control of tone, dynamics and rubato is required'],
+    orch: ['オーケストラ（または2台ピアノ）との合わせが必要で、独奏より要求が増える', 'Ensemble playing with orchestra (or a second piano) adds demands'],
+    harm: ['複雑な和声や臨時記号が多く、譜読みに時間がかかる', 'Dense harmony and many accidentals make reading harder'],
+    trill: ['トリルや装飾音など細かい技巧が必要', 'Trills and ornaments require refined technique'],
+    ped: ['ペダリングの工夫（半ペダルなど）が必要', 'Careful pedalling is needed'],
+    simple: ['音数が少なく、基本的な音型で書かれている', 'Few notes and basic patterns'],
+    short: ['曲が短く、構成が分かりやすい', 'Short and easy to grasp structurally'],
+    slow: ['テンポが穏やかで、落ち着いて音符を読める', 'A calm tempo allows relaxed reading'],
+    clear: ['旋律と伴奏の形が明快で、手の形を覚えやすい', 'Clear melody-and-accompaniment textures are easy to learn']
+  };
+  const HARD = new Set('fast,leap,stretch,poly,rhythm,long,expr,orch,harm,trill,ped'.split(','));
+  const LEVEL = [null, ['初級', 'Beginner'], ['初級〜中級', 'Elementary–Intermediate'], ['中級', 'Intermediate'], ['上級', 'Advanced'], ['最上級', 'Virtuoso']];
+  const RULES = [
+    [/./, /Moon River|Smile|When You Wish|Loss of Love|Summer of|What Are You Doing|As Time Goes|Speak Softly|Peace Piece/, 1, 'expr,ped'],
+    [/./, /Autumn Leaves|Wave|The Shadow of Your Smile|Someday My Prince|Over the Rainbow|Nuovo Cinema|Playing Love|City of Stars/, 2, 'expr,harm'],
+    [/./, /The Girl from Ipanema|Corcovado|One Note Samba|Misty|Fly Me to the Moon|Blue in Green|The Entertainer|Maple Leaf|Summer|Cantaloupe|Watermelon/, 3, 'rhythm,stretch'],
+    [/./, /Take Five|Waltz for Debby|Blue Monk|'Round Midnight|My Funny Valentine|Night and Day|All the Things|Caravan|Sing, Sing|In the Mood|Moanin'/, 4, 'fast,rhythm,poly'],
+    [/./, /Giant Steps|Spain|Armando's Rhumba|Donna Lee|The Köln Concert|Rhapsody in Blue|Theme from Lupin/, 5, 'fast,poly,leap,stretch,harm']
+  ].map(([a, b, s, f]) => [new RegExp(a, 'i'), new RegExp(b, 'i'), s, f.split(',')]);
+
+
+  const FORMS = [[/Etude|Étude|Study|Studies/i, 4, 'fast,leap'], [/Concerto/i, 4, 'orch,long'], [/Toccata|Rhapsody|Ballade|Scherzo|Fantasy|Fantasia|Fantaisie/i, 4, 'fast,expr'],
+    [/Fugue|Invention|Sinfonia/i, 4, 'poly'], [/Sonatina|Bagatelle|Minuet|Menuet|Album for the Young|Children|Little|Easy|Lullaby|Gymnop|Gnossienne|Romance|Songs? without|Lyric/i, 2, 'simple,clear'],
+    [/Waltz|Valse|Mazurka|Nocturne|Prelude|Impromptu|Intermezzo|Moment|Dance|Polka|March/i, 3, 'expr'], [/Sonata/i, 4, 'long,expr'], [/Variation/i, 3, 'fast,expr'], [/Suite|Partita|Pieces|Pictures/i, 3, 'expr']];
+  const HARDC = /Liszt|Rachmanin|Scriabin|Alkan|Balakirev|Godowsky|Medtner|Ligeti|Busoni|Sorabji|Ravel|Prokofiev|Stravinsky|Messiaen|Bart/i;
+  function diffOf(w, c) {
+    const t = w.title + ' ' + (w.subtitle || ''), cn = (c.name || '') + ' ' + (c.complete_name || '');
+    const isPiano = w.genre === 'Keyboard' || /piano/i.test(t);
+    if (isPiano) {
+      for (const [cr, tr, s, f] of RULES) if (cr.test(cn) && tr.test(t)) return { stars: s, f, arr: false };
+      let s = 3, f = ['expr'];
+      for (const [re, st, fs] of FORMS) if (re.test(t)) { s = st; f = fs.split(','); break; }
+      if (s >= 3 && HARDC.test(cn)) { s = Math.min(5, s + 1); f = f.concat(['fast', 'stretch']); }
+      return { stars: s, f: [...new Set(f)], arr: false };
+    }
+    if (/Symphon|Mass|Requiem|Opera|Ballet|Oratorio|Passion|Cantata/i.test(t) || w.genre === 'Stage') return { stars: 4, f: ['long', 'harm'], arr: true };
+    if (/Song|Lied|Lieder|Aria/i.test(t) || w.genre === 'Vocal') return { stars: 2, f: ['clear'], arr: true };
+    return { stars: 3, f: ['expr'], arr: true };
+  }
+  const starStr = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+  const WK = new Map(), RC = new Map();
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const enc = encodeURIComponent;
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+    del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+  let lang = 'ja'; try { if (localStorage.getItem('lang') === 'en') lang = 'en'; } catch (e) {}
+  const L = (j, e) => lang === 'ja' ? j : e;
+  const tx = (j, e) => `<span data-ja="${esc(j)}" data-en="${esc(e)}">${esc(L(j, e))}</span>`;
+  const spinner = (j, e, s) => `<div class="ld ${s ? 's' : ''}"><div class="spin"></div>${tx(j, e)}</div>`;
+  const errBox = (j, e, det, retry) => `<div class="err">${tx(j, e)}${det ? ` (${esc(det)})` : ''}${retry ? `<button data-retry="${retry}">${tx('再試行', 'Retry')}</button>` : ''}</div>`;
+  async function jget(u, ms = 15000) {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
+    try {
+      const r = await fetch(u, { signal: ctl.signal });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } catch (e) { throw new Error(e.name === 'AbortError' ? L('応答がタイムアウトしました', 'Request timed out') : e.message); }
+    finally { clearTimeout(t); }
+  }
+  const fmt = t => (isFinite(t) && t >= 0 ? Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0') : '0:00');
+  const yr = s => String(s || '').slice(0, 4);
+
+  function showToast(msg) {
+    const el = $('toast'); el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  /* ---------- お気に入り & プレイリスト管理 ---------- */
+  const slimC = c => ({ id: c.id, name: c.name, complete_name: c.complete_name, epoch: c.epoch, country: c.country, birth: c.birth, death: c.death, portrait: c.portrait, custom: c.custom });
+  let favC = store.get('jazz.favC', []), favW = store.get('jazz.favW', []);
+  const isFavC = c => favC.some(x => String(x.id) === String(c.id));
+  const isFavW = w => favW.some(x => String(x.w.id) === String(w.id));
+
+  // 複数プレイリスト (Albums)
+  let playlists = store.get('jazz.playlists', []);
+  function savePlaylists() { store.set('jazz.playlists', playlists); updatePlaylistUI(); }
+  function getPlaylist(id) { return playlists.find(p => p.id === id); }
+  function createPlaylist(name) {
+    const trimmed = (name || '').trim();
+    if (!trimmed) return null;
+    const pl = { id: 'pl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), name: trimmed, createdAt: Date.now(), items: [] };
+    playlists.push(pl);
+    savePlaylists();
+    return pl;
+  }
+  function deletePlaylist(id) {
+    playlists = playlists.filter(p => p.id === id);
+    savePlaylists();
+  }
+  function renamePlaylist(id, newName) {
+    const pl = getPlaylist(id); if (!pl) return;
+    const trimmed = (newName || '').trim(); if (!trimmed) return;
+    pl.name = trimmed;
+    savePlaylists();
+  }
+  function addWorkToPlaylist(plId, w, c) {
+    const pl = getPlaylist(plId); if (!pl) return false;
+    if (pl.items.some(x => String(x.w.id) === String(w.id))) return false;
+    pl.items.push({ w, c: slimC(c), addedAt: Date.now() });
+    savePlaylists();
+    return true;
+  }
+  function removeWorkFromPlaylist(plId, workId) {
+    const pl = getPlaylist(plId); if (!pl) return false;
+    pl.items = pl.items.filter(x => String(x.w.id) !== String(workId));
+    savePlaylists();
+    return true;
+  }
+  function updatePlaylistUI() {
+    $('plCount').textContent = playlists.length;
+    renderEpochs();
+  }
+
+  /* ---------- 日本語化ヘルパー ---------- */
+  const JA = store.get('jazz.ja', {});
+  const PORTRAITS = store.get('jazz.portraits', {});
+  // Pre-seed JA from built-in composer definitions
+  CUS_C.forEach(c => {
+    if (c.jaName && !JA[c.id]) JA[c.id] = c.jaName;
+  });
+
+  async function ensureJa(list) {
+    const need = list.filter(c => !(c.id in JA) || (!c.portrait && !(c.id in PORTRAITS)));
+    // Apply cached portraits if available
+    list.forEach(c => {
+      if (!c.portrait && PORTRAITS[c.id]) c.portrait = PORTRAITS[c.id];
+      if (JA[c.id] && !c.jaName) c.jaName = JA[c.id];
+    });
+    if (!need.length) return;
+
+    for (let i = 0; i < need.length; i += 30) {
+      const chunk = need.slice(i, i + 30);
+      const names = chunk.map(c => c.complete_name || c.name);
+      try {
+        const j = await jget(`https://en.wikipedia.org/w/api.php?action=query&prop=langlinks|pageimages&pithumbsize=200&lllang=ja&lllimit=500&redirects=1&formatversion=2&format=json&origin=*&titles=${enc(names.join('|'))}`);
+        const q = j.query || {}, norm = {}, red = {}, ja = {}, thumb = {};
+        (q.normalized || []).forEach(x => norm[x.from] = x.to);
+        (q.redirects || []).forEach(x => red[x.from] = x.to);
+        (q.pages || []).forEach(p => {
+          if (p.langlinks && p.langlinks[0]) ja[p.title] = p.langlinks[0].title;
+          if (p.thumbnail && p.thumbnail.source) thumb[p.title] = p.thumbnail.source;
+        });
+        chunk.forEach((c, k) => {
+          let t = names[k]; t = norm[t] || t; t = red[t] || t;
+          if (ja[t] && !JA[c.id]) JA[c.id] = ja[t].replace(/\s*\(.*?\)\s*$/, '');
+          if (thumb[t]) {
+            c.portrait = thumb[t];
+            PORTRAITS[c.id] = thumb[t];
+          } else if (PORTRAITS[c.id]) {
+            c.portrait = PORTRAITS[c.id];
+          }
+        });
+      } catch (e) {}
+    }
+    store.set('jazz.ja', JA);
+    store.set('jazz.portraits', PORTRAITS);
+  }
+
+  const cshort = c => lang === 'ja' ? (JA[c.id] || c.name) : c.name;
+  const cfull = c => lang === 'ja' ? (JA[c.id] || c.complete_name || c.name) : (c.complete_name || c.name);
+  const epochLabel = k => { const x = EPOCHS.find(v => v[0] === k); return x ? L(x[1], x[2]) : k; };
+  const genreLabel = g => L(GENRES[g] || g, g);
+  const countryLabel = c => L(COUNTRIES[c] || c, c);
+  function jaTitle(s) {
+    if (!s) return '';
+    let r = s.replace(/\bNos?\.?\s*(\d+)/gi, '第$1番').replace(/\b[Oo]p\.?\s*(\d+)/g, '作品$1');
+    WORDS.forEach(([re, j]) => { r = r.replace(re, j); });
+    r = r.replace(/,\s*/g, ' ').replace(/([\u3040-\u30ff\u4e00-\u9fff])\s+(?=[\u3040-\u30ff\u4e00-\u9fff])/g, '$1');
+    r = r.replace(/\bin ([A-G](?:[- ]?(?:sharp|flat))? (?:major|minor))\b/gi, (m, k) => { const mm = k.match(KEYRE); return mm ? ' ' + keyJa(mm[1], mm[2], mm[3]) : m; });
+    r = r.replace(/"([^"]+)"/g, '「$1」').replace(/\s+/g, ' ').trim();
+    return r;
+  }
+  const wTitle = w => L(jaTitle(w.title), w.title);
+  const wSub = w => w.subtitle ? L(jaTitle(w.subtitle), w.subtitle) : '';
+  function rawMeta(w) {
+    const s = w.title + ' ' + (w.subtitle || '');
+    const opus = ((s.match(/\b(Op\.?\s?\d+[a-z]?(?:\s?(?:No|Nr)\.?\s?\d+)?|BWV\s?\d+[a-z]?|K\.?\s?\d+[a-z]?|D\.?\s?\d+[a-z]?|Hob\.?\s?[IVX]+[:/]\s?\w+|RV\s?\d+|WoO\s?\d+|HWV\s?\d+)/) || [])[1] || '').replace(/\s+/g, ' ');
+    return { opus, km: s.match(/\bin ([A-G])(?:[- ]?(sharp|flat))? (major|minor)\b/i) };
+  }
+  function meta(w) {
+    const { opus, km } = rawMeta(w);
+    return { opus: lang === 'ja' ? opus.replace(/^Op\.?\s?/i, '作品 ') : opus, key: km ? L(keyJa(km[1], km[2], km[3]), `${km[1].toUpperCase()}${km[2] ? '-' + km[2].toLowerCase() : ''} ${km[3].toLowerCase()}`) : '' };
+  }
+
+  /* ---------- 作曲年（Wikidata + 推定） ---------- */
+  const Y = {}, FAME = {};
+  function fameOf(w) {
+    const sl = FAME[w.id] || 0;
+    const pts = (+w.popular ? 3 : 0) + (+w.recommended ? 2 : 0) + (sl >= 40 ? 4 : sl >= 20 ? 3 : sl >= 10 ? 2 : sl >= 4 ? 1 : 0);
+    return pts >= 8 ? 5 : pts >= 5 ? 4 : pts >= 3 ? 3 : pts >= 1 ? 2 : 1;
+  }
+  const ydisp = i => i ? (i[1] ? L('約' + i[0] + '年', 'c. ' + i[0]) : L(i[0] + '年', String(i[0]))) : L('年代不明', 'Year n/a');
+  const normOpus = s => String(s).toLowerCase().replace(/\b(no|nr)\.?\s*/g, '/').replace(/\bkv\b/, 'k').replace(/[\s.]/g, '');
+  const normTitle = s => String(s).toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  const yearOfVal = v => { const m = String(v).replace(/^\+/, '').match(/^(-?\d{1,4})/); return m ? parseInt(m[1], 10) : null; };
+  async function qidOf(c) {
+    const k = 'jazz.qid.' + c.id, cached = store.get(k, null); if (cached) return cached;
+    const j = await jget(`https://en.wikipedia.org/w/api.php?action=query&prop=pageprops&ppprop=wikibase_item&redirects=1&formatversion=2&format=json&origin=*&titles=${enc(c.complete_name || c.name)}`);
+    const p = ((j.query || {}).pages || [])[0], q = p && p.pageprops && p.pageprops.wikibase_item;
+    if (!q) throw new Error('no entity'); store.set(k, q); return q;
+  }
+  async function wikidataWorks(qid) {
+    const q = `SELECT ?w ?wLabel ?inc ?pub ?code ?sl WHERE { ?w wdt:P86 wd:${qid}. OPTIONAL{?w wdt:P571 ?inc.} OPTIONAL{?w wdt:P577 ?pub.} OPTIONAL{?w wdt:P528 ?code.} OPTIONAL{?w wikibase:sitelinks ?sl.} SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } } LIMIT 6000`;
+    const j = await jget('https://query.wikidata.org/sparql?format=json&query=' + enc(q), 30000);
+    const m = new Map();
+    ((j.results || {}).bindings || []).forEach(b => {
+      const id = b.w.value; let it = m.get(id);
+      if (!it) m.set(id, it = { label: (b.wLabel || {}).value || '', inc: [], pub: [], codes: new Set(), sl: 0 });
+      if (b.sl) it.sl = Math.max(it.sl, +b.sl.value || 0);
+      if (b.inc) { const y = yearOfVal(b.inc.value); if (y) it.inc.push(y); }
+      if (b.pub) { const y = yearOfVal(b.pub.value); if (y) it.pub.push(y); }
+      if (b.code) it.codes.add(b.code.value);
+    });
+    return [...m.values()].map(it => ({ label: it.label, codes: [...it.codes], sl: it.sl, year: it.inc.length ? Math.min(...it.inc) : it.pub.length ? Math.min(...it.pub) : null })).filter(it => it.year || it.sl);
+  }
+  function computeYears(list, items, fameOut) {
+    const byCode = new Map(), byLabel = new Map(), res = {}, pts = {};
+    items.forEach(it => { it.codes.forEach(cd => { const k = normOpus(cd); if (!byCode.has(k)) byCode.set(k, []); byCode.get(k).push(it); }); byLabel.set(normTitle(it.label), it); });
+    const overlap = (a, b) => { const A = new Set(normTitle(a).split(' ')); return normTitle(b).split(' ').filter(x => A.has(x)).length; };
+    list.forEach(w => {
+      const { opus } = rawMeta(w); let it = null;
+      if (opus) { const cands = byCode.get(normOpus(opus)); if (cands) it = cands.slice().sort((a, b) => (overlap(w.title, b.label) - overlap(w.title, a.label)) || ((b.year ? 1 : 0) - (a.year ? 1 : 0)))[0]; }
+      if (!it) it = byLabel.get(normTitle(w.title));
+      let y = it ? it.year : null;
+      if (it && it.sl && fameOut) fameOut[w.id] = it.sl;
+      if (!y) { const m = (w.title + ' ' + (w.subtitle || '')).match(/\b(1[4-9]\d{2}|20[0-2]\d)\b/); if (m && !/(Op|K|D|BWV|RV|HWV|WoO)\.?\s?$/i.test(w.title.slice(0, m.index))) y = +m[1]; }
+      if (y) { res[w.id] = [y, false]; const pm = opus.match(/^(Op|K)\.?\s?(\d+)/i); if (pm) (pts[pm[1].toLowerCase()] = pts[pm[1].toLowerCase()] || []).push([+pm[2], y]); }
+    });
+    Object.values(pts).forEach(a => a.sort((x, y) => x[0] - y[0]));
+    list.forEach(w => {
+      if (res[w.id]) return;
+      const pm = rawMeta(w).opus.match(/^(Op|K)\.?\s?(\d+)/i); if (!pm) return;
+      const a = pts[pm[1].toLowerCase()]; if (!a || !a.length) return;
+      const n = +pm[2]; let lo = null, hi = null;
+      a.forEach(p => { if (p[0] <= n) lo = p; if (p[0] >= n && !hi) hi = p; });
+      let y; if (lo && hi && hi[0] !== lo[0]) y = lo[1] + (hi[1] - lo[1]) * (n - lo[0]) / (hi[0] - lo[0]); else y = (lo || hi)[1];
+      res[w.id] = [Math.round(y), true];
+    });
+    return res;
+  }
+  const applyYearCache = cid => { const m = store.get('jazz.years.' + cid, null); if (m) Object.assign(Y, m); Object.assign(FAME, store.get('jazz.fame.' + cid, {})); return !!m; };
+  async function loadYears(c, list, tok) {
+    const st = $('ystat');
+    if (applyYearCache(c.id) && store.get('jazz.fame.' + c.id, null)) { applyCustomYears(list); st.textContent = ''; if (tok === workTok) renderWorks(); return; }
+    st.innerHTML = spinner('作曲年を取得中…（Wikidata）', 'Fetching composition years (Wikidata)…', true);
+    let res;
+    try {
+      const fm = {}; res = computeYears(list, await wikidataWorks(await qidOf(c)), fm); store.set('jazz.fame.' + c.id, fm); Object.assign(FAME, fm);
+      store.set('jazz.years.' + c.id, res); st.textContent = '';
+    } catch (e) {
+      res = computeYears(list, []);
+      if (tok === workTok) st.innerHTML = tx('作曲年を取得できませんでした。年代不明の曲は末尾に表示されます。', 'Could not fetch composition years. Works without a year are listed last.');
+    }
+    Object.assign(Y, res); applyCustomYears(list);
+    if (tok !== workTok) return;
+    renderWorks();
+    if (!$('modal').classList.contains('hidden') && curW) fillModal();
+  }
+
+  let epoch = '', view = 'browse', composers = [], current = null, works = [], timer, listTok = 0, workTok = 0, modalTok = 0, wikiTok = 0, curW = null, curC = null, allP = null;
+  let sortKey = store.get('jazz.sort', 'yearAsc');
+  const wikiCache = new Map(), WC = new Map();
+  const compOf = w => WC.get(String(w.id)) || current;
+
+  /* ==========================================================================
+     GLOBAL UNIFIED AUDIO PLAYER ENGINE (AudioPlayer)
+     ========================================================================== */
+  const audio = $('mainAudio');
+  let currentMode = 'idle'; // 'normal' | 'random' | 'playlist'
+  let currentPlaylist = null;
+  let currentQueue = [];
+  let currentQueueIdx = -1;
+  let currentTrackList = [];
+  let currentTrackIdx = 0;
+  let isOneLoop = false;
+  let loopA = null, loopB = null;
+
+  // Media Session 初期化
+  function initMediaSession() {
+    if (!('mediaSession' in navigator)) return;
+    const actions = [
+      ['play', () => { if (audio.src) audio.play().catch(() => {}); }],
+      ['pause', () => audio.pause()],
+      ['seekbackward', () => seekDelta(-10)],
+      ['seekforward', () => seekDelta(10)],
+      ['previoustrack', () => playPrevItem()],
+      ['nexttrack', () => playNextItem()],
+      ['stop', () => stopGlobalPlayer()],
+      ['seekto', d => { if (d.seekTime != null && audio.duration) audio.currentTime = d.seekTime; }]
+    ];
+    actions.forEach(([act, fn]) => {
+      try { navigator.mediaSession.setActionHandler(act, fn); } catch (e) {}
+    });
+  }
+  function updateMediaSessionMeta(title, artist, album, artUrl) {
+    if (!('mediaSession' in navigator)) return;
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: title || 'Opus Salon',
+        artist: artist || 'Classical Masterpiece',
+        album: album || 'Opus Salon Collection',
+        artwork: artUrl ? [
+          { src: artUrl, sizes: '96x96', type: 'image/jpeg' },
+          { src: artUrl, sizes: '256x256', type: 'image/jpeg' }
+        ] : []
+      });
+    } catch (e) {}
+  }
+
+  function setAudioSpeed(rate) {
+    audio.playbackRate = rate;
+    audio.preservesPitch = true;
+    if ('webkitPreservesPitch' in audio) audio.webkitPreservesPitch = true;
+    if ('mozPreservesPitch' in audio) audio.mozPreservesPitch = true;
+  }
+
+  function seekDelta(sec) {
+    if (!audio.duration) return;
+    audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + sec));
+  }
+
+  function togglePlayPause() {
+    if (!audio.src) return;
+    if (audio.paused) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+  }
+
+  function stopGlobalPlayer() {
+    audio.pause();
+    audio.removeAttribute('src');
+    audio.load();
+    $('pbPlay').textContent = '▶';
+    $('pbPlay').setAttribute('aria-label', L('再生', 'Play'));
+    $('pbCur').textContent = '0:00';
+    $('pbDur').textContent = '0:00';
+    $('pbSeek').value = 0;
+    $('playerBar').classList.add('hidden');
+    document.body.classList.remove('pb-active');
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
+  }
+
+  function updateABUI() {
+    const dur = audio.duration || 1;
+    const pinA = $('abMarkerA'), pinB = $('abMarkerB'), reg = $('abRegion');
+    const txt = $('abStatusText'), times = $('abTimes');
+
+    if (loopA !== null) {
+      pinA.classList.remove('hidden');
+      pinA.style.left = (loopA / dur * 100) + '%';
+    } else { pinA.classList.add('hidden'); }
+
+    if (loopB !== null) {
+      pinB.classList.remove('hidden');
+      pinB.style.left = (loopB / dur * 100) + '%';
+    } else { pinB.classList.add('hidden'); }
+
+    if (loopA !== null && loopB !== null) {
+      reg.classList.remove('hidden');
+      const left = Math.min(loopA, loopB) / dur * 100;
+      const width = Math.abs(loopB - loopA) / dur * 100;
+      reg.style.left = left + '%'; reg.style.width = width + '%';
+      txt.textContent = L('AB区間ループ有効', 'AB Loop Active');
+      times.textContent = `${fmt(loopA)} → ${fmt(loopB)}`;
+    } else if (loopA !== null) {
+      reg.classList.add('hidden');
+      txt.textContent = L('A点設定完了（B点を設定してください）', 'Point A set (set Point B next)');
+      times.textContent = `A: ${fmt(loopA)}`;
+    } else {
+      reg.classList.add('hidden');
+      txt.textContent = L('未設定', 'Not set');
+      times.textContent = '';
+    }
+  }
+
+  function setPointA() {
+    if (!audio.duration) return;
+    loopA = audio.currentTime;
+    if (loopB !== null && loopA >= loopB) loopB = null;
+    updateABUI();
+    showToast(L(`A点を設定: ${fmt(loopA)}`, `Point A set: ${fmt(loopA)}`));
+  }
+  function setPointB() {
+    if (!audio.duration) return;
+    const cur = audio.currentTime;
+    if (loopA !== null && cur <= loopA) {
+      alert(L('B点はA点より後ろの位置で設定してください。', 'Point B must be after Point A.'));
+      return;
+    }
+    loopB = cur;
+    updateABUI();
+    showToast(L(`B点を設定: ${fmt(loopB)}`, `Point B set: ${fmt(loopB)}`));
+  }
+  function clearAB() {
+    loopA = null; loopB = null;
+    updateABUI();
+    showToast(L('ABリピートをクリアしました', 'AB repeat cleared'));
+  }
+
+  function updatePbStarBtn() {
+    const btn = $('pbStarBtn');
+    if (!btn || !curW) return;
+    const isF = isFavW(curW);
+    btn.textContent = isF ? '★' : '☆';
+    btn.classList.toggle('off', !isF);
+    btn.title = isF ? L('★ お気に入り登録済み（アルバム振り分け）', '★ Favorited (manage albums)') : L('☆ お気に入り・アルバムに追加', '☆ Add to favorites / album');
+  }
+  if ($('pbStarBtn')) {
+    $('pbStarBtn').onclick = e => {
+      if (curW && curC) openFavPopup(curW, curC, e.target);
+    };
+  }
+
+  // 1曲ループトグル
+  $('pbLoopBtn').onclick = () => {
+    isOneLoop = !isOneLoop;
+    $('pbLoopBtn').classList.toggle('active', isOneLoop);
+    showToast(isOneLoop ? L('1曲ループ: ON', 'Single track loop: ON') : L('1曲ループ: OFF', 'Single track loop: OFF'));
+  };
+
+  // 速度変更
+  $('pbSpeedSel').onchange = e => {
+    const rate = parseFloat(e.target.value) || 1.0;
+    setAudioSpeed(rate);
+  };
+
+  // 音量・ミュート
+  let prevVol = 0.8;
+  $('pbVol').oninput = e => {
+    const v = parseFloat(e.target.value);
+    audio.volume = v;
+    $('pbMuteBtn').textContent = v === 0 ? '🔇' : v < 0.5 ? '🔉' : '🔊';
+  };
+  $('pbMuteBtn').onclick = () => {
+    if (audio.volume > 0) {
+      prevVol = audio.volume; audio.volume = 0; $('pbVol').value = 0; $('pbMuteBtn').textContent = '🔇';
+    } else {
+      audio.volume = prevVol || 0.8; $('pbVol').value = audio.volume; $('pbMuteBtn').textContent = '🔊';
+    }
+  };
+
+  // シーク
+  $('pbSeek').oninput = e => {
+    if (audio.duration) audio.currentTime = (parseFloat(e.target.value) / 100) * audio.duration;
+  };
+  $('pbPlay').onclick = togglePlayPause;
+  $('pbRwd10').onclick = () => seekDelta(-10);
+  $('pbFwd10').onclick = () => seekDelta(10);
+  $('pbStop').onclick = stopGlobalPlayer;
+
+  // ABリピートボタン
+  $('btnSetA').onclick = setPointA;
+  $('btnSetB').onclick = setPointB;
+  $('btnClearAB').onclick = clearAB;
+
+  // ピアノ練習パネル展開トグル
+  $('pbPianoToolBtn').onclick = $('btnQuickPractice').onclick = () => {
+    const p = $('pianoPracticePanel');
+    const isHidden = p.classList.contains('hidden');
+    p.classList.toggle('hidden', !isHidden);
+    $('pbPianoToolBtn').classList.toggle('on', isHidden);
+    document.body.classList.toggle('pb-expanded', isHidden);
+    if (isHidden) {
+      $('playerBar').classList.remove('hidden');
+      document.body.classList.add('pb-active');
+      p.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  };
+
+  // 再生リストキューパネル展開
+  $('pbQueueBtn').onclick = () => {
+    const qp = $('pbarQueuePanel');
+    qp.classList.toggle('hidden');
+    renderQueueList();
+  };
+  $('queueClose').onclick = () => $('pbarQueuePanel').classList.add('hidden');
+
+  function renderQueueList() {
+    const ol = $('queueList');
+    if (!currentQueue.length) {
+      ol.innerHTML = `<li class="muted">${tx('キューに曲がありません', 'Queue is empty')}</li>`;
+      return;
+    }
+    ol.innerHTML = currentQueue.map((it, idx) => {
+      const isCur = idx === currentQueueIdx;
+      return `<li class="${isCur ? 'cur' : ''}" data-qidx="${idx}">${esc(wTitle(it.w))} — ${esc(cshort(it.c))}</li>`;
+    }).join('');
+  }
+  $('queueList').onclick = e => {
+    const li = e.target.closest('[data-qidx]');
+    if (li) playQueueIndex(+li.dataset.qidx);
+  };
+
+  // オーディオイベント群
+  audio.addEventListener('play', () => {
+    $('pbPlay').textContent = '❚❚';
+    $('pbPlay').setAttribute('aria-label', L('一時停止', 'Pause'));
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+  });
+  audio.addEventListener('pause', () => {
+    $('pbPlay').textContent = '▶';
+    $('pbPlay').setAttribute('aria-label', L('再生', 'Play'));
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+  });
+  audio.addEventListener('loadedmetadata', () => {
+    $('pbDur').textContent = fmt(audio.duration);
+    setAudioSpeed(parseFloat($('pbSpeedSel').value) || 1.0);
+    updateABUI();
+  });
+  audio.addEventListener('timeupdate', () => {
+    if (!audio.duration) return;
+    const cur = audio.currentTime;
+    $('pbCur').textContent = fmt(cur);
+    $('pbSeek').value = (cur / audio.duration) * 100;
+
+    // ABリピート判定
+    if (loopA !== null && loopB !== null && cur >= loopB) {
+      audio.currentTime = loopA;
+      if (audio.paused) audio.play().catch(() => {});
+    }
+  });
+  audio.addEventListener('ended', () => {
+    if (isOneLoop) {
+      audio.currentTime = (loopA !== null ? loopA : 0);
+      audio.play().catch(() => {});
+      return;
+    }
+    playNextItem();
+  });
+  audio.addEventListener('error', () => {
+    if (!audio.src) return;
+    showToast(L('⚠ 再生エラーが発生しました。次の曲へ進みます。', 'Playback error. Skipping to next.'));
+    setTimeout(playNextItem, 1200);
+  });
+
+  // 再生遷移（前へ・次へ）
+  function playPrevItem() {
+    if (currentMode === 'normal') {
+      if (currentTrackIdx > 0) {
+        setNormalTrack(currentTrackIdx - 1, true);
+      } else {
+        audio.currentTime = 0;
+      }
+    } else if (currentMode === 'playlist' || currentMode === 'random') {
+      if (currentQueueIdx > 0) {
+        playQueueIndex(currentQueueIdx - 1);
+      } else {
+        audio.currentTime = 0;
+      }
+    }
+  }
+  function playNextItem() {
+    if (currentMode === 'normal') {
+      if (currentTrackIdx + 1 < currentTrackList.length) {
+        setNormalTrack(currentTrackIdx + 1, true);
+      }
+    } else if (currentMode === 'playlist') {
+      if (currentQueueIdx + 1 < currentQueue.length) {
+        playQueueIndex(currentQueueIdx + 1);
+      } else {
+        showToast(L('アルバムの全曲再生が完了しました', 'Playlist completed'));
+      }
+    } else if (currentMode === 'random') {
+      playNextRandomTrack();
+    }
+  }
+  $('pbPrev').onclick = playPrevItem;
+  $('pbNext').onclick = playNextItem;
+
+  // 通常再生モード（モーダルからの選択）
+  function startNormalPlayback(w, c, tracks, startIdx = 0) {
+    currentMode = 'normal';
+    currentTrackList = tracks;
+    curW = w; curC = c;
+    currentQueue = [{ w, c, tracks }];
+    currentQueueIdx = 0;
+    $('queueCount').textContent = tracks.length;
+    $('pbModeBadge').textContent = L('通常再生', 'Normal Play');
+    $('playerBar').classList.remove('hidden');
+    document.body.classList.add('pb-active');
+    setNormalTrack(startIdx, true);
+  }
+  function setNormalTrack(idx, autoplay) {
+    currentTrackIdx = idx;
+    const t = currentTrackList[idx];
+    if (!t) return;
+    audio.src = t.url;
+    audio.volume = parseFloat($('pbVol').value);
+    setAudioSpeed(parseFloat($('pbSpeedSel').value) || 1.0);
+    $('pbTitle').textContent = t.title || wTitle(curW);
+    $('pbComposer').textContent = cfull(curC);
+    $('pbExtra').textContent = `${idx + 1} / ${currentTrackList.length}`;
+    $('pbSeek').value = 0; $('pbCur').textContent = '0:00'; $('pbDur').textContent = '0:00';
+    clearAB();
+
+    updateMediaSessionMeta(t.title || wTitle(curW), cfull(curC), wTitle(curW), curC.portrait); updatePbStarBtn();
+    if (autoplay) audio.play().catch(() => {});
+  }
+
+
+  // お気に入り楽曲（favW）の連続再生
+  function startFavoritePlayback(startIdx = 0, shuffle = false) {
+    if (!favW.length) {
+      alert(L('お気に入り楽曲が登録されていません。曲カードの ☆ ボタンで追加してください。', 'No favorite works. Add works using the ☆ button.'));
+      return;
+    }
+    currentMode = 'playlist';
+    let pool = favW.slice();
+    if (shuffle) {
+      pool.sort(() => Math.random() - 0.5);
+    }
+    currentPlaylist = { id: 'fav_playlist', name: L('お気に入り楽曲', 'Favorite Works'), items: pool };
+    currentQueue = pool;
+    currentQueueIdx = startIdx;
+    $('queueCount').textContent = currentQueue.length;
+    $('pbModeBadge').textContent = `★ ${L('お気に入り楽曲', 'Favorites')} (${currentQueue.length})`;
+    $('playerBar').classList.remove('hidden');
+    document.body.classList.add('pb-active');
+    playQueueIndex(startIdx);
+  }
+
+  // アルバム指定位置からの再生
+  function startPlaylistFromIndex(pl, idx = 0, shuffle = false) {
+    if (!pl || !pl.items.length) return;
+    currentMode = 'playlist';
+    let pool = pl.items.slice();
+    if (shuffle) {
+      const selected = pool[idx];
+      pool = pool.filter((_, i) => i !== idx).sort(() => Math.random() - 0.5);
+      pool.unshift(selected);
+      idx = 0;
+    }
+    currentPlaylist = pl;
+    currentQueue = pool;
+    currentQueueIdx = idx;
+    $('queueCount').textContent = currentQueue.length;
+    $('pbModeBadge').textContent = `${L('アルバム:', 'Album:')} ${pl.name}`;
+    $('playerBar').classList.remove('hidden');
+    document.body.classList.add('pb-active');
+    playQueueIndex(idx);
+  }
+
+  // お気に入りバーのボタンイベント
+  if ($('btnPlayFavAll')) $('btnPlayFavAll').onclick = () => {
+    unlockAudio();
+    if (view === 'famous') {
+      const items = works.map(w => ({ w, c: compOf(w) })).filter(x => x.c);
+      startPlaylistFromIndex({ id: 'famous_all', name: L('超名曲＆映画音楽 (100選+)', 'Super Famous (100+)'), items }, 0, false);
+    } else {
+      startFavoritePlayback(0, false);
+    }
+  };
+  if ($('btnShuffleFav')) $('btnShuffleFav').onclick = () => {
+    unlockAudio();
+    if (view === 'famous') {
+      const items = works.map(w => ({ w, c: compOf(w) })).filter(x => x.c);
+      startPlaylistFromIndex({ id: 'famous_all', name: L('超名曲＆映画音楽 (100選+)', 'Super Famous (100+)'), items }, 0, true);
+    } else {
+      startFavoritePlayback(0, true);
+    }
+  };
+
+  // プレイリスト（アルバム）連続再生モード
+  async function startPlaylistPlayback(pl) {
+    if (!pl || !pl.items.length) {
+      alert(L('このアルバムにはまだ楽曲がありません。', 'This playlist has no songs yet.'));
+      return;
+    }
+    currentMode = 'playlist';
+    currentPlaylist = pl;
+    currentQueue = pl.items.slice();
+    currentQueueIdx = 0;
+    $('queueCount').textContent = currentQueue.length;
+    $('pbModeBadge').textContent = `${L('アルバム:', 'Album:')} ${pl.name}`;
+    $('playerBar').classList.remove('hidden');
+    document.body.classList.add('pb-active');
+    playQueueIndex(0);
+  }
+
+  async function playQueueIndex(idx) {
+    if (idx < 0 || idx >= currentQueue.length) return;
+    currentQueueIdx = idx;
+    renderQueueList();
+    const item = currentQueue[idx];
+    curW = item.w; curC = item.c;
+    $('pbTitle').textContent = L('音源検索中…', 'Searching audio…');
+    $('pbComposer').textContent = `${wTitle(curW)} — ${cshort(curC)}`;
+    $('pbExtra').textContent = `[${idx + 1}/${currentQueue.length}]`;
+
+    // Internet Archiveから音源検索
+    const au = await findAudio(curW, curC);
+    if (!au) {
+      showToast(L(`音源が見つからないためスキップ: ${wTitle(curW)}`, `No audio found, skipping: ${wTitle(curW)}`));
+      setTimeout(() => playNextItem(), 1500);
+      return;
+    }
+
+    audio.src = au.url;
+    audio.volume = parseFloat($('pbVol').value);
+    setAudioSpeed(parseFloat($('pbSpeedSel').value) || 1.0);
+    $('pbTitle').textContent = wTitle(curW);
+    $('pbComposer').textContent = cfull(curC);
+    $('pbExtra').textContent = `[${idx + 1}/${currentQueue.length}] ${au.rec}`;
+    $('pbSeek').value = 0;
+    clearAB();
+
+    updateMediaSessionMeta(wTitle(curW), cfull(curC), currentPlaylist ? currentPlaylist.name : 'Album', curC.portrait); updatePbStarBtn();
+    audio.play().catch(() => {});
+  }
+
+  /* ==========================================================================
+     WEB AUDIO API METRONOME ENGINE (高精度メトロノーム)
+     ========================================================================== */
+  class WebAudioMetronome {
+    constructor() {
+      this.audioCtx = null;
+      this.bpm = 120;
+      this.beatsPerBar = 4;
+      this.currentBeat = 0;
+      this.isPlaying = false;
+      this.lookahead = 25.0; // ms
+      this.scheduleAheadTime = 0.1; // sec
+      this.nextNoteTime = 0.0;
+      this.timerId = null;
+    }
+    init() {
+      if (!this.audioCtx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        this.audioCtx = new AudioCtx();
+      }
+      if (this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume();
+      }
+    }
+    nextNote() {
+      const secondsPerBeat = 60.0 / this.bpm;
+      this.nextNoteTime += secondsPerBeat;
+      this.currentBeat = (this.currentBeat + 1) % (this.beatsPerBar || 1);
+    }
+    scheduleNote(beatNumber, time) {
+      const osc = this.audioCtx.createOscillator();
+      const gain = this.audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(this.audioCtx.destination);
+
+      const isAccent = (this.beatsPerBar > 0 && beatNumber === 0);
+      osc.frequency.value = isAccent ? 1200 : 800; // アクセント拍と通常拍
+      osc.type = 'triangle';
+
+      gain.gain.setValueAtTime(isAccent ? 0.9 : 0.6, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.045);
+
+      osc.start(time);
+      osc.stop(time + 0.05);
+
+      // UI LEDビートインジケーター同期
+      const delay = Math.max(0, (time - this.audioCtx.currentTime) * 1000);
+      setTimeout(() => {
+        if (!this.isPlaying) return;
+        this.flashLed(beatNumber, isAccent);
+      }, delay);
+    }
+    flashLed(beatNum, isAccent) {
+      const dots = document.querySelectorAll('.metro-dot');
+      dots.forEach((d, i) => {
+        d.classList.remove('flash', 'flash-accent');
+        if (i === (beatNum % dots.length)) {
+          d.classList.add(isAccent ? 'flash-accent' : 'flash');
+          setTimeout(() => d.classList.remove('flash', 'flash-accent'), 120);
+        }
+      });
+    }
+    scheduler() {
+      while (this.nextNoteTime < this.audioCtx.currentTime + this.scheduleAheadTime) {
+        this.scheduleNote(this.currentBeat, this.nextNoteTime);
+        this.nextNote();
+      }
+      if (this.isPlaying) {
+        this.timerId = setTimeout(() => this.scheduler(), this.lookahead);
+      }
+    }
+    toggle() {
+      this.init();
+      if (this.isPlaying) {
+        this.stop();
+      } else {
+        this.start();
+      }
+    }
+    start() {
+      this.isPlaying = true;
+      this.currentBeat = 0;
+      this.nextNoteTime = this.audioCtx.currentTime + 0.05;
+      $('metroToggle').textContent = '■';
+      $('metroToggle').classList.add('on');
+      this.scheduler();
+    }
+    stop() {
+      this.isPlaying = false;
+      clearTimeout(this.timerId);
+      $('metroToggle').textContent = '▶';
+      $('metroToggle').classList.remove('on');
+    }
+    setBpm(val) {
+      this.bpm = Math.max(30, Math.min(250, parseInt(val, 10) || 120));
+      $('metroBpm').value = this.bpm;
+      $('bpmDisplay').textContent = this.bpm + ' BPM';
+    }
+    setBeats(val) {
+      this.beatsPerBar = parseInt(val, 10) || 0;
+      this.currentBeat = 0;
+      this.updateIndicators();
+    }
+    updateIndicators() {
+      const wrap = $('metroIndicator');
+      const count = this.beatsPerBar > 0 ? this.beatsPerBar : 4;
+      wrap.innerHTML = Array.from({ length: count }, () => '<span class="metro-dot"></span>').join('');
+    }
+  }
+
+  const metronome = new WebAudioMetronome();
+  $('metroToggle').onclick = () => metronome.toggle();
+  $('metroBpm').oninput = e => metronome.setBpm(e.target.value);
+  $('bpmMinus5').onclick = () => metronome.setBpm(metronome.bpm - 5);
+  $('bpmMinus1').onclick = () => metronome.setBpm(metronome.bpm - 1);
+  $('bpmPlus1').onclick = () => metronome.setBpm(metronome.bpm + 1);
+  $('bpmPlus5').onclick = () => metronome.setBpm(metronome.bpm + 5);
+  $('metroBeatSel').onchange = e => metronome.setBeats(e.target.value);
+
+  // Tap Tempo 機能
+  let tapTimes = [];
+  $('metroTapBtn').onclick = () => {
+    const now = Date.now();
+    tapTimes.push(now);
+    if (tapTimes.length > 5) tapTimes.shift();
+    if (tapTimes.length >= 2) {
+      const diffs = [];
+      for (let i = 1; i < tapTimes.length; i++) {
+        const d = tapTimes[i] - tapTimes[i - 1];
+        if (d < 2500) diffs.push(d); // 2.5秒以内のタップのみ
+      }
+      if (diffs.length) {
+        const avg = diffs.reduce((a, b) => a + b, 0) / diffs.length;
+        const calculatedBpm = Math.round(60000 / avg);
+        metronome.setBpm(calculatedBpm);
+        showToast(`Tap: ${metronome.bpm} BPM`);
+      }
+    }
+  };
+
+  /* ==========================================================================
+     KEYBOARD SHORTCUTS (キーボードショートカット)
+     ========================================================================== */
+  document.addEventListener('keydown', e => {
+    const active = document.activeElement;
+    const isEditing = active && (['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName) || active.isContentEditable);
+    if (isEditing) return; // 入力フォーカス時はスキップ
+
+    if (e.code === 'Space' || e.key === ' ') {
+      e.preventDefault();
+      togglePlayPause();
+    } else if (e.code === 'ArrowLeft' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      seekDelta(-10);
+      showToast('⏪ -10s');
+    } else if (e.code === 'ArrowRight' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      seekDelta(10);
+      showToast('+10s ⏩');
+    }
+  });
+
+  /* ---------- Internet Archive ---------- */
+  async function archSearch(q) {
+    const u = `https://archive.org/advancedsearch.php?q=${enc(q + ' AND mediatype:audio')}&fl[]=identifier&fl[]=title&sort[]=downloads+desc&rows=10&output=json`;
+    const j = await jget(u);
+    return (j.response && j.response.docs) || [];
+  }
+  /* ---------- iTunes Search API & Internet Archive Hybrid Audio ---------- */
+  function unlockAudio() {
+    try {
+      if (audio.paused) {
+        const p = audio.play();
+        if (p !== undefined) p.catch(() => {});
+      }
+    } catch (e) {}
+  }
+
+  async function searchItunes(term, fallbacks = []) {
+    const fetchTerm = async (q) => {
+      if (!q || !q.trim()) return [];
+      try {
+        const clean = q.replace(/[（(].*?[)）]/g, '').replace(/["“”'']/g, '').trim();
+        const url = `https://itunes.apple.com/search?term=${enc(clean)}&media=music&entity=song&limit=6`;
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 3500);
+        const res = await fetch(url, { signal: ctrl.signal });
+        clearTimeout(tid);
+        const data = res.ok ? await res.json() : null;
+        return (data && data.results || []).filter(r => r.previewUrl);
+      } catch (e) {
+        return [];
+      }
+    };
+
+    // 1. Primary query (Composer + Title)
+    let raw = await fetchTerm(term);
+    if (raw.length) return mapItunesTracks(raw);
+
+    // 2. Fallback queries (Title only, Subtitle, Title + Jazz)
+    for (const fb of fallbacks) {
+      if (!fb || fb === term) continue;
+      raw = await fetchTerm(fb);
+      if (raw.length) return mapItunesTracks(raw);
+    }
+
+    return [];
+  }
+
+  function mapItunesTracks(tracks) {
+    return tracks.map(r => ({
+      title: `${r.trackName} — ${r.artistName}`,
+      url: r.previewUrl,
+      source: 'iTunes',
+      artwork: r.artworkUrl100
+    }));
+  }
+
+  async function loadArchive(w, c, tok) {
+    const box = $('arch');
+    box.innerHTML = spinner('高音質音源を準備中…', 'Loading audio…');
+    try {
+      const t = (w.title || '').replace(/\(.*?\)/g, '').split(/ in |,/)[0].trim();
+      const compName = c ? (c.name || '') : '';
+      const sub = (w.subtitle || '').replace(/\(.*?\)/g, '').trim();
+
+      // 1. Fetch iTunes fast first (0.2s)
+      const itunesTracks = await searchItunes(`${compName} ${t}`, [t, sub, `${t} Jazz`]);
+      if (tok !== modalTok) return;
+
+      if (itunesTracks.length > 0) {
+        showItunesTracks(itunesTracks, tok, true); // Autoplay immediately!
+        return;
+      }
+
+      // 2. Fallback to Internet Archive if iTunes had 0 results
+      const iaDocs = await archSearch(`${compName} ${t}`).catch(() => []);
+      if (tok !== modalTok) return;
+
+      if (!iaDocs.length) {
+        box.innerHTML = errBox('再生可能な音源が見つかりませんでした。', 'No playable recordings found.');
+        return;
+      }
+
+      box.innerHTML = `<label class="l" for="recSel">${tx('録音音源の選択', 'Recording Source')}</label>
+        <select id="recSel">${iaDocs.map(d => `<option value="${esc(d.identifier)}">[Archive] ${esc(d.title || d.identifier)}</option>`).join('')}</select>
+        <div id="trackBox"></div>`;
+
+      const sel = $('recSel');
+      sel.onchange = () => loadItem(sel.value, tok, true);
+      loadItem(sel.value, tok, true);
+    } catch (e) {
+      if (tok === modalTok) box.innerHTML = errBox('音源検索に失敗しました。', 'Recording search failed.', e.message);
+    }
+  }
+
+  function showItunesTracks(tracks, tok, autoplay = false) {
+    const box = $('arch');
+    if (!box || tok !== modalTok) return;
+
+    box.innerHTML = `<label class="l" for="recSel">${tx('音源ソース', 'Audio Source')}</label>
+      <select id="recSel"><option value="__itunes__">【公式高音質試聴】Apple Music Preview (${tracks.length}曲)</option></select>
+      <div id="trackBox">
+        <label class="l" for="trkSel">${tx(`トラック選択（${tracks.length}件）`, `Tracks (${tracks.length})`)}</label>
+        <select id="trkSel">${tracks.map((t, i) => `<option value="${i}">${esc(t.title)}</option>`).join('')}</select>
+      </div>`;
+
+    const sel = $('trkSel');
+    const updateModalTrk = () => {
+      const cur = tracks[+sel.value];
+      if (cur) $('mTrackName').textContent = cur.title;
+    };
+    sel.onchange = () => {
+      updateModalTrk();
+      startNormalPlayback(curW, curC, tracks, +sel.value);
+    };
+    updateModalTrk();
+    $('modalPlayer').classList.remove('hidden');
+
+    $('mPlayBtn').onclick = () => {
+      if (!audio.paused && audio.src === tracks[+sel.value]?.url) {
+        togglePlayPause();
+      } else {
+        startNormalPlayback(curW, curC, tracks, +sel.value);
+      }
+      showToast(L('下部プレイヤーで再生を開始しました', 'Playing in bottom player'));
+    };
+
+    // Autoplay instantly when opening modal!
+    if (autoplay) {
+      startNormalPlayback(curW, curC, tracks, 0);
+    }
+  }
+
+  async function loadItem(id, tok, autoplay = false) {
+    const tb = $('trackBox'); if (!tb) return;
+    $('modalPlayer').classList.add('hidden');
+    tb.innerHTML = spinner('トラック情報を取得中…', 'Loading tracks…');
+    try {
+      const j = await jget(`https://archive.org/metadata/${enc(id)}`);
+      if (tok !== modalTok) return;
+      const mp3s = (j.files || []).filter(f => /\.mp3$/i.test(f.name))
+        .map(f => ({ title: f.title || f.name.replace(/^.*\//, '').replace(/\.mp3$/i, ''), url: `https://archive.org/download/${enc(id)}/${f.name.split('/').map(enc).join('/')}` }));
+      if (!mp3s.length) { tb.innerHTML = errBox('この録音にはMP3が含まれていません。', 'No MP3 files found.'); return; }
+      
+      tb.innerHTML = `<label class="l" for="trkSel">${tx(`トラック（${mp3s.length}件）`, `Tracks (${mp3s.length})`)}</label>
+        <select id="trkSel">${mp3s.map((t, i) => `<option value="${i}">${esc(t.title)}</option>`).join('')}</select>`;
+      
+      const sel = $('trkSel');
+      sel.onchange = () => {
+        const curIdx = +sel.value;
+        $('mTrackName').textContent = mp3s[curIdx].title;
+        startNormalPlayback(curW, curC, mp3s, curIdx);
+      };
+      $('mTrackName').textContent = mp3s[0].title;
+      $('modalPlayer').classList.remove('hidden');
+
+      $('mPlayBtn').onclick = () => {
+        startNormalPlayback(curW, curC, mp3s, +sel.value);
+        showToast(L('下部プレイヤーで再生を開始しました', 'Playing in bottom player'));
+      };
+
+      if (autoplay) {
+        startNormalPlayback(curW, curC, mp3s, 0);
+      }
+    } catch (e) {
+      if (tok === modalTok) tb.innerHTML = errBox('トラック情報を取得できませんでした。', 'Could not load track info.', e.message);
+    }
+  }
+
+  // クイック再生
+  async function startQuickPlay(wid) {
+    unlockAudio();
+    const w = workSource().find(x => String(x.id) === wid) || SUPER_FAMOUS_WORKS.find(item => String(item.w.id) === wid)?.w;
+    if (!w) return;
+    const c = compOf(w) || SUPER_FAMOUS_WORKS.find(item => String(item.w.id) === wid)?.c;
+    if (!c) return;
+
+    curW = w; curC = c;
+    currentMode = 'normal';
+    $('pbModeBadge').textContent = L('通常再生', 'Normal Play');
+    $('pbTitle').textContent = L('音源検索中…', 'Searching audio…');
+    $('pbComposer').textContent = `${wTitle(w)} — ${cshort(c)}`;
+    $('pbExtra').textContent = 'Loading...';
+    $('playerBar').classList.remove('hidden');
+    document.body.classList.add('pb-active');
+
+    const au = await findAudio(w, c);
+    if (!au) {
+      showToast(L('音源が見つかりませんでした', 'No audio found'));
+      $('pbTitle').textContent = wTitle(w);
+      return;
+    }
+    const singleTrack = [{ title: au.rec, url: au.url }];
+    startNormalPlayback(w, c, singleTrack, 0);
+    showToast(L(`🎵 ${wTitle(w)} を再生中`, `🎵 Playing ${wTitle(w)}`));
+  }
+
+  /* ---------- ランダム再生 ---------- */
+  const TIMES = [30, 60, 120, 180, 240, 300, 360, 420, 480], TH = 3, BASEVOL = 0.8;
+  const MOODS = [['auto', 'おまかせ（天気・時間帯）', 'Auto (weather & time)'], ['calm', '穏やか', 'Calm'], ['cozy', 'しっとり落ち着く', 'Cozy & mellow'], ['bright', 'さわやか', 'Fresh & bright'], ['sleep', 'おやすみ前', 'Before sleep'], ['focus', '集中', 'Focus'], ['cheer', 'ほどよく明るく', 'Gently cheerful']];
+  const WXS = [['', '指定なし（時間帯のみ）', 'Not set (time of day)'], ['sunny', '晴れ', 'Sunny'], ['cloudy', '曇り', 'Cloudy'], ['rain', '雨', 'Rain'], ['snow', '雪', 'Snow'], ['night', '夜', 'Night']];
+  const PROF = {
+    calm: ['穏やか', 'Calm', /Wave|Peace|Corcovado|Moon|Quiet|Desafinado|Meditation|Shadow of Your Smile/i, /Jobim|Evans|Bonfá|Legrand|Mancini|Baker/i, 0, 1],
+    cozy: ['しっとり落ち着く', 'Cozy & mellow', /Waltz|Debby|Misty|Ipanema|Leaves|Someday|Smile|As Time/i, /Evans|Garner|Mancini|Jobim|Peterson/i, 1, 0],
+    quiet: ['静かな夜', 'Quiet night', /Midnight|Peace|Moon|Blue in Green|Round|As Time|Playing Love/i, /Monk|Evans|Davis|Baker|Morricone/i, 0, 0],
+    bright: ['さわやか', 'Fresh & bright', /Samba|Summer|Verao|Sing|Mood|Train|Rhythm|Entertainer|Mas Que/i, /Valle|Ben|Goodman|Miller|Joplin|Jobim/i, 0, 1],
+    sleep: ['おやすみ前', 'Before sleep', /Peace|Midnight|Moon|As Time|Playing Love|Smile|Loss of Love|Quiet/i, /Evans|Monk|Baker|Morricone|Chaplin/i, 0, 0],
+    focus: ['集中', 'Focus', /Take Five|So What|Cantaloupe|Watermelon|Footprints|Blue Monk|Rondo/i, /Brubeck|Davis|Hancock|Shorter|Monk|Jarrett/i, 0, 0],
+    cheer: ['ほどよく明るく', 'Gently cheerful', /Spain|Lupin|Caravan|Birdland|Moanin|Sing|Armando/i, /Corea|Ohno|Ellington|Blakey|Goodman/i, 0, 1]
+  };
+
+  const BASE_POS = /Adagio|Andante|Largo|Lullaby|Berceuse|Nocturne|\bAir\b|Romance|Pavane|Gymnop/i;
+  const BASE_NEG = /Presto|Furioso|Finale|[EÉ]tude|Toccata|March|Requiem|Dies irae|Storm|Appassionata|Hammerklavier|Campanella|Bol[eé]ro|Fortuna|Macabre|Sabre|Can-?can|Bumble|Transcendental|Rhapsody|Mephisto|Scherzo|Heroic|Fantaisie[- ]Impromptu|Ballade|Planets|Swan Lake/i;
+  const RELAX_COMP = /Chopin|Debussy|Satie|Bach|Mozart|Schumann|Schubert|Brahms|Grieg|Faur|Ravel|Beethoven|Tchaikovsky|Dvo|Rachmanin|Pachelbel|Vivaldi|Handel|Saint-Sa|Elgar|Barber|Mendelssohn|Liszt|Haydn|Scarlatti|Sibelius|Borodin|Massenet|Puccini|Bizet|Clementi/i;
+  const R = { on: false, busy: false, endAt: 0, tick: null, played: new Set(), urls: new Set(), bad: new Set(), list: [], errs: 0 };
+  const wkey = (w, c) => c.id + '|' + normTitle(w.title);
+  const hms = s => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s % 60).padStart(2, '0'); };
+  const setRStatus = html => { $('rStatus').innerHTML = html; };
+
+  function renderRndStatic() {
+    const t = $('rTime').value || '60', m = $('rMood').value || 'auto', w = $('rWx').value || '';
+    $('rTime').innerHTML = TIMES.map(v => `<option value="${v}">${esc(v < 60 ? L(v + '分', v + ' min') : L(v / 60 + '時間', v / 60 + (v === 60 ? ' hour' : ' hours')))}</option>`).join('');
+    $('rMood').innerHTML = MOODS.map(([k, j, e]) => `<option value="${k}">${esc(L(j, e))}</option>`).join('');
+    $('rWx').innerHTML = WXS.map(([k, j, e]) => `<option value="${k}">${esc(L(j, e))}</option>`).join('');
+    $('rTime').value = t; $('rMood').value = m; $('rWx').value = w;
+    renderRList();
+  }
+  let popP = null;
+  function popComposers() {
+    if (!popP) popP = jget(`${API}/composer/list/pop.json`).then(j => addCustomComposers(j.composers || [], '', '')).catch(e => { popP = null; throw e; });
+    return popP;
+  }
+  async function renderRndSources() {
+    const sel = $('rSrc'), prev = sel.value || 'all';
+    let pop = []; try { pop = await popComposers(); } catch (e) {}
+    const all = new Map(); [...pop, ...favC, ...composers, ...(current ? [current] : [])].forEach(c => all.set(String(c.id), c));
+    if (lang === 'ja') await ensureJa([...all.values()]);
+    RC.clear(); all.forEach((c, id) => RC.set(id, c));
+    const opts = [...all.values()].sort((a, b) => cshort(a).localeCompare(cshort(b), lang === 'ja' ? 'ja' : 'en'));
+    sel.innerHTML = `<option value="all">${esc(L('おまかせ（人気の作曲家すべて）', 'Any (popular composers)'))}</option>
+      <option value="favC">${esc(L('お気に入り作曲家すべて', 'All favorite composers'))} (${favC.length})</option>
+      <option value="favW">${esc(L('お気に入り楽曲から', 'From favorite works'))} (${favW.length})</option>
+      <optgroup label="${esc(L('作曲家を指定', 'Pick a composer'))}">${opts.map(c => `<option value="c:${esc(c.id)}">${esc(cshort(c))}</option>`).join('')}</optgroup>`;
+    sel.value = [...sel.options].some(o => o.value === prev) ? prev : 'all';
+  }
+  $('rndBox').addEventListener('toggle', () => { if ($('rndBox').open) renderRndSources(); });
+
+  const wxFromCode = (code, day) => !day ? 'night' : code <= 1 ? 'sunny' : (code <= 3 || code === 45 || code === 48) ? 'cloudy' : ((code >= 71 && code <= 77) || code === 85 || code === 86) ? 'snow' : 'rain';
+  $('rWxBtn').onclick = () => {
+    const msg = $('rWxMsg');
+    if (!navigator.geolocation) { msg.textContent = L('この環境では位置情報を使えません。天気を手動で選んでください。', 'Geolocation is unavailable. Please choose the weather manually.'); return; }
+    msg.textContent = L('現在地の天気を取得中…', 'Getting local weather…');
+    navigator.geolocation.getCurrentPosition(async pos => {
+      try {
+        const j = await jget(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude.toFixed(2)}&longitude=${pos.coords.longitude.toFixed(2)}&current=weather_code,is_day&timezone=auto`);
+        const k = wxFromCode(j.current.weather_code, j.current.is_day);
+        $('rWx').value = k; const x = WXS.find(v => v[0] === k);
+        msg.textContent = L('現在地の天気: ', 'Local weather: ') + L(x[1], x[2]) + '（Open-Meteo）';
+      } catch (e) { msg.textContent = L('天気を取得できませんでした。手動で選んでください。', 'Could not get the weather. Please choose manually.') + ' (' + e.message + ')'; }
+    }, () => { msg.textContent = L('位置情報を取得できませんでした。天気を手動で選んでください。', 'Could not get your location. Please choose the weather manually.'); }, { timeout: 10000 });
+  };
+  function profileKey() {
+    const m = $('rMood').value; if (m !== 'auto') return m;
+    const wx = $('rWx').value;
+    if (wx === 'night') return 'sleep'; if (wx === 'rain') return 'cozy'; if (wx === 'snow') return 'quiet'; if (wx === 'sunny') return 'bright'; if (wx === 'cloudy') return 'calm';
+    const h = new Date().getHours(); return (h >= 21 || h < 5) ? 'sleep' : 'calm';
+  }
+  function scoreWork(w, c, p) {
+    const t = w.title + ' ' + (w.subtitle || ''), cn = (c.name || '') + ' ' + (c.complete_name || '');
+    let s = 0;
+    if (BASE_NEG.test(t)) s -= 4;
+    if (/Concerto|Symphon|Opera|Mass\b|Requiem/i.test(t) && !p[2].test(t)) s -= 1;
+    if (BASE_POS.test(t)) s += 1;
+    if (p[2].test(t)) s += 3;
+    if (p[3] && p[3].test(cn)) s += 2;
+    const km = rawMeta(w).km; if (km) s += /minor/i.test(km[3]) ? p[4] : p[5];
+    if (w.genre === 'Keyboard') s += 1;
+    return s;
+  }
+
+  async function getWorks(c) {
+    const k = String(c.id);
+    if (WK.has(k)) return WK.get(k);
+    const compName = c.name || '';
+    const ws = SUPER_FAMOUS_WORKS
+      .filter(item => String(item.c.id) === k || item.c.name === compName)
+      .map(item => item.w);
+    ws.forEach(w => WC.set(String(w.id), c));
+    WK.set(k, ws);
+    return ws;
+  }
+
+  async function rComposers(src, scene) {
+    if (src === 'favC') return favC;
+    if (src.startsWith('c:')) { const c = RC.get(src.slice(2)); return c ? [c] : []; }
+    let list = await popComposers();
+    if (scene) { const f = list.filter(c => RELAX_COMP.test(c.name + ' ' + (c.complete_name || ''))); if (f.length) list = f; }
+    return list;
+  }
+  async function findAudio(w, c) {
+    if (w && w.directAudioUrl) {
+      return { url: w.directAudioUrl, rec: wTitle(w) };
+    }
+    const t = (w.title || '').replace(/\(.*?\)/g, '').replace(/["“”]/g, '').split(/ in |,/)[0].trim();
+    const compName = c ? (c.name || '') : '';
+    const sub = (w.subtitle || '').replace(/\(.*?\)/g, '').trim();
+
+    // 1. Apple iTunes Search API (Fastest, High Quality, Reliable)
+    try {
+      const itunes = await searchItunes(`${compName} ${t}`, [t, sub, `${t} Jazz`]);
+      for (const track of itunes) {
+        if (!R.urls.has(track.url)) return { url: track.url, rec: track.title };
+      }
+      if (itunes.length > 0) return { url: itunes[0].url, rec: itunes[0].title };
+    } catch (e) {}
+
+    // 2. Internet Archive Fallback
+    try {
+      const docs = await archSearch(`${compName} ${t}`).catch(() => []);
+      for (const d of (docs || []).slice(0, 3)) {
+        try {
+          const j = await jget(`https://archive.org/metadata/${enc(d.identifier)}`);
+          for (const f of (j.files || []).filter(f => /\.mp3$/i.test(f.name))) {
+            const url = `https://archive.org/download/${enc(d.identifier)}/${f.name.split('/').map(enc).join('/')}`;
+            if (!R.urls.has(url)) return { url, rec: d.title || d.identifier };
+          }
+        } catch (e) {}
+      }
+    } catch (e) {}
+
+    return null;
+  }
+
+  async function pickNextRandom() {
+    const src = $('rSrc').value || 'all', scene = $('rScene').checked, p = PROF[profileKey()];
+    let sawAny = false;
+    for (let attempt = 0; attempt < 16 && R.on; attempt++) {
+      let c, w;
+      if (src === 'favW') {
+        const pool = favW.filter(x => !R.played.has(wkey(x.w, x.c)) && !R.bad.has(wkey(x.w, x.c)));
+        if (!pool.length) return sawAny ? 'fail' : 'done';
+        const x = pool[Math.random() * pool.length | 0]; c = x.c; w = x.w;
+      } else {
+        const comps = await rComposers(src, scene);
+        if (!comps.length) return 'none';
+        c = comps[Math.random() * comps.length | 0];
+        let ws; try { ws = await getWorks(c); } catch (e) { continue; }
+        let cand = ws.filter(x => !R.played.has(wkey(x, c)) && !R.bad.has(wkey(x, c)));
+        if (scene) cand = cand.filter(x => scoreWork(x, c, p) >= TH);
+        if (!cand.length) { if (src.startsWith('c:')) return sawAny ? 'fail' : (R.played.size ? 'done' : 'none'); continue; }
+        w = cand[Math.random() * cand.length | 0];
+      }
+      sawAny = true;
+      const au = await findAudio(w, c);
+      if (!R.on) return null;
+      if (!au) { R.bad.add(wkey(w, c)); continue; }
+      R.played.add(wkey(w, c)); R.urls.add(au.url);
+      return { w, c, au, prof: scene ? profileKey() : '' };
+    }
+    return R.on ? 'fail' : null;
+  }
+  async function playNextRandomTrack() {
+    if (!R.on || R.busy) return;
+    R.busy = true;
+    $('pbTitle').textContent = L('選曲中…', 'Choosing a piece…');
+    let p = null; try { p = await pickNextRandom(); } catch (e) { p = 'fail'; }
+    R.busy = false;
+    if (!R.on) return;
+    if (typeof p === 'string' || !p) return endRandom(p || 'fail');
+
+    R.list.push(p); renderRList();
+    currentQueue = R.list.map(x => ({ w: x.w, c: x.c }));
+    currentQueueIdx = R.list.length - 1;
+    $('queueCount').textContent = currentQueue.length;
+
+    curW = p.w; curC = p.c;
+    $('pbTitle').textContent = wTitle(p.w);
+    $('pbComposer').textContent = cshort(p.c);
+    $('pbExtra').textContent = `${ydisp(Y[p.w.id])} · ${p.au.rec}`;
+    audio.src = p.au.url;
+    audio.volume = parseFloat($('pbVol').value);
+    setAudioSpeed(parseFloat($('pbSpeedSel').value) || 1.0);
+    clearAB();
+
+    updateMediaSessionMeta(wTitle(p.w), cfull(p.c), 'Random Classical', p.c.portrait); updatePbStarBtn();
+    try { await audio.play(); } catch (e) {
+      if (e.name === 'NotAllowedError') setRStatus(esc(L('ブラウザが自動再生をブロックしました。▶ ボタンを押してください。', 'Autoplay was blocked. Press ▶.')));
+    }
+  }
+  function renderRList() {
+    $('rList').innerHTML = R.list.map((p, i) => {
+      const isF = isFavW(p.w);
+      return `<li class="rlist-item ${R.on && i === R.list.length - 1 ? 'cur' : ''}">
+        <div class="rlist-content">
+          <span class="bold">${i + 1}. ${esc(wTitle(p.w))}</span>
+          <span class="muted"> ― ${esc(cfull(p.c))}（${esc(ydisp(Y[p.w.id]))}）</span>
+          <span class="sm muted" style="margin-left:.35rem">${esc(p.au.rec)}</span>
+        </div>
+        <button class="rlist-star ${isF ? '' : 'off'}" data-rfw="${i}" title="${isF ? '★ お気に入り登録済み・アルバム振り分け' : '☆ お気に入り・アルバムに追加'}" aria-label="${isF ? '★ お気に入り登録済み・アルバム振り分け' : '☆ お気に入り・アルバムに追加'}">${isF ? '★' : '☆'}</button>
+      </li>`;
+    }).join('');
+    const li = $('rList').lastElementChild; if (li && R.on) li.scrollIntoView({ block: 'nearest' });
+  }
+  function rTick() {
+    const left = (R.endAt - Date.now()) / 1000;
+    if (left <= 0) return endRandom('timeup');
+    $('pbExtra').textContent = L('停止まで ', 'Stops in ') + hms(left);
+  }
+  function endRandom(reason) {
+    const was = R.on; R.on = false; R.busy = false; clearInterval(R.tick);
+    const msgs = { timeup: ['設定した停止時間になったため、再生を終了しました。', 'The stop time has been reached; playback ended.'], done: ['条件に合う曲をすべて再生しました。', 'All matching pieces have been played.'], none: ['条件に合う曲が見つかりませんでした。', 'No matching pieces found.'], fail: ['再生できる音源が見つかりませんでした。', 'No playable recording was found.'], error: ['再生エラーが続いたため停止しました。', 'Stopped after repeated playback errors.'], user: ['停止しました。', 'Stopped.'] };
+    const m = msgs[reason] || msgs.user; setRStatus(esc(L(m[0], m[1])));
+    if (!was) return;
+    stopGlobalPlayer();
+    renderRList();
+  }
+  function startRandom() {
+    if (R.on) endRandom('user');
+    currentMode = 'random';
+    Object.assign(R, { on: true, busy: false, endAt: Date.now() + (+$('rTime').value) * 60000, played: new Set(), urls: new Set(), bad: new Set(), list: [], errs: 0 });
+    const scene = $('rScene').checked, p = PROF[profileKey()];
+    setRStatus(esc(scene ? L('選曲シーン: ', 'Scene: ') + L(p[0], p[1]) : L('シーン選曲: オフ（すべての曲から）', 'Scene filtering: off (any piece)')));
+    $('pbModeBadge').textContent = L('ランダム再生', 'Random Play');
+    $('playerBar').classList.remove('hidden');
+    document.body.classList.add('pb-active');
+    clearInterval(R.tick); R.tick = setInterval(rTick, 1000); rTick(); renderRList(); playNextRandomTrack();
+  }
+    $('rList').addEventListener('click', e => {
+    const star = e.target.closest('[data-rfw]');
+    if (star) {
+      e.stopPropagation();
+      const item = R.list[+star.dataset.rfw];
+      if (item) openFavPopup(item.w, item.c, star);
+      return;
+    }
+  });
+  $('rStart').onclick = startRandom;
+  $('rNext').onclick = () => { if (R.on && !R.busy) { audio.pause(); playNextRandomTrack(); } };
+  $('rStop').onclick = () => endRandom('user');
+
+  /* ---------- アルバム管理 UI & ポップアップ ---------- */
+  let activePopupWork = null, activePopupComposer = null;
+  const favPopup = $('favPopup');
+
+  function openFavPopup(w, c, anchorBtn) {
+    activePopupWork = w; activePopupComposer = c;
+    const rect = anchorBtn.getBoundingClientRect();
+    favPopup.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+    favPopup.style.left = Math.max(10, Math.min(window.innerWidth - 240, rect.left + window.scrollX - 180)) + 'px';
+    favPopup.classList.remove('hidden');
+    renderFavPopupList();
+  }
+  function closeFavPopup() {
+    favPopup.classList.add('hidden');
+    activePopupWork = null; activePopupComposer = null;
+  }
+  $('favPopupClose').onclick = closeFavPopup;
+  document.addEventListener('click', e => {
+    if (!favPopup.classList.contains('hidden') && !favPopup.contains(e.target) && !e.target.closest('[data-fw]')) {
+      closeFavPopup();
+    }
+  });
+
+  function renderFavPopupList() {
+    if (!activePopupWork) return;
+    const w = activePopupWork, c = activePopupComposer;
+    const isFav = isFavW(w);
+    let html = `
+      <label class="fav-popup-item">
+        <input type="checkbox" id="chkFavW" ${isFav ? 'checked' : ''}>
+        <span class="bold" style="color:var(--rose)">★ ${esc(L('お気に入り楽曲', 'Favorite Works'))}</span>
+      </label>
+      <hr style="border:0;border-top:1px solid var(--line);margin:.3rem 0">
+    `;
+    if (!playlists.length) {
+      html += `<p class="sm muted" style="padding:.3rem">${esc(L('アルバムがまだありません。下から新規作成できます。', 'No custom albums yet. Create one below.'))}</p>`;
+    } else {
+      playlists.forEach(pl => {
+        const inPl = pl.items.some(x => String(x.w.id) === String(w.id));
+        html += `
+          <label class="fav-popup-item">
+            <input type="checkbox" data-plid="${esc(pl.id)}" ${inPl ? 'checked' : ''}>
+            <span>${esc(pl.name)} <span class="sm muted">(${pl.items.length})</span></span>
+          </label>
+        `;
+      });
+    }
+    $('favPopupList').innerHTML = html;
+
+    $('chkFavW').onchange = e => {
+      toggleFavW(w);
+      showToast(e.target.checked ? L('お気に入りに追加しました', 'Added to favorites') : L('お気に入りから解除しました', 'Removed from favorites'));
+    };
+    $('favPopupList').querySelectorAll('[data-plid]').forEach(chk => {
+      chk.onchange = e => {
+        const plId = e.target.dataset.plid;
+        const pl = getPlaylist(plId);
+        if (e.target.checked) {
+          addWorkToPlaylist(plId, w, c);
+          showToast(L(`「${pl.name}」に追加しました`, `Added to "${pl.name}"`));
+        } else {
+          removeWorkFromPlaylist(plId, w.id);
+          showToast(L(`「${pl.name}」から解除しました`, `Removed from "${pl.name}"`));
+        }
+        renderFavPopupList();
+      };
+    });
+  }
+
+  $('favPopupNewBtn').onclick = () => {
+    const inp = $('favPopupNewInput'), val = inp.value.trim();
+    if (!val) return;
+    const pl = createPlaylist(val);
+    inp.value = '';
+    if (activePopupWork && activePopupComposer) {
+      addWorkToPlaylist(pl.id, activePopupWork, activePopupComposer);
+      showToast(L(`アルバム「${pl.name}」を作成し楽曲を追加しました`, `Created album "${pl.name}" & added work`));
+    }
+    renderFavPopupList();
+  };
+
+  // アルバム管理モーダル
+  $('btnOpenAlbums').onclick = () => {
+    $('albumModal').classList.remove('hidden');
+    renderAlbumCards();
+  };
+  $('albumModalClose').onclick = () => $('albumModal').classList.add('hidden');
+  $('albumModal').addEventListener('mousedown', e => { if (e.target === $('albumModal')) $('albumModal').classList.add('hidden'); });
+
+  $('btnCreateAlbum').onclick = () => {
+    const inp = $('newAlbumNameInput'), val = inp.value.trim();
+    if (!val) return;
+    createPlaylist(val);
+    inp.value = '';
+    renderAlbumCards();
+    showToast(L(`新しいアルバム「${val}」を作成しました`, `Created album "${val}"`));
+  };
+
+  function renderAlbumCards() {
+    const box = $('albumList');
+    
+    // 1. お気に入り楽曲カード（デフォルトアルバム）
+    let favHtml = `
+      <div class="album-card" style="border-color:var(--rose)">
+        <div class="album-card-top">
+          <div>
+            <div class="album-card-title serif" style="color:var(--rose)">★ ${esc(L('お気に入り楽曲（デフォルト）', 'Favorite Works (Default)'))}</div>
+            <div class="album-card-meta">${favW.length} ${esc(L('曲', 'tracks'))}</div>
+          </div>
+          <div style="display:flex;gap:.4rem">
+            <button class="chip on btn-play-fav" id="btnPlayFavModal">▶ ${esc(L('再生', 'Play'))}</button>
+            <button class="chip btn-shuffle-fav" id="btnShuffleFavModal">🔀</button>
+          </div>
+        </div>
+        <div class="album-card-actions">
+          <button class="chip btn-toggle-pl-items" data-togglepl="fav_default">📋 ${esc(L('曲リスト開閉', 'View tracks'))}</button>
+        </div>
+        <div id="plItems_fav_default" class="album-works-exp hidden">
+          ${favW.length ? favW.map((it, idx) => `
+            <div class="album-work-row">
+              <span class="album-work-title" data-playfavidx="${idx}">${esc(wTitle(it.w))} — <span class="muted">${esc(cshort(it.c))}</span></span>
+              <div class="album-work-btns">
+                <button class="btn-work-play" data-playfavidx="${idx}">▶</button>
+                <button class="album-work-del" data-delfav="${esc(it.w.id)}" title="${esc(L('お気に入りから解除', 'Remove'))}">✕</button>
+              </div>
+            </div>
+          `).join('') : `<p class="muted sm">${esc(L('お気に入り楽曲がまだありません', 'No favorite songs yet'))}</p>`}
+        </div>
+      </div>
+    `;
+
+    // 2. ユーザー作成アルバムカード
+    let albumsHtml = playlists.map(pl => `
+      <div class="album-card" data-album="${esc(pl.id)}">
+        <div class="album-card-top">
+          <div>
+            <div class="album-card-title serif">${esc(pl.name)}</div>
+            <div class="album-card-meta">${esc(pl.items.length)} ${esc(L('曲', 'tracks'))}</div>
+          </div>
+          <div style="display:flex;gap:.4rem">
+            <button class="chip on btn-play-album" data-playpl="${esc(pl.id)}">▶ ${esc(L('再生', 'Play'))}</button>
+            <button class="chip btn-shuffle-pl" data-shufflepl="${esc(pl.id)}">🔀</button>
+          </div>
+        </div>
+        <div class="album-card-actions">
+          <button class="chip btn-rename-pl" data-renamepl="${esc(pl.id)}">✏️ ${esc(L('名前変更', 'Rename'))}</button>
+          <button class="chip btn-del-pl" data-delpl="${esc(pl.id)}" style="color:var(--rose)">🗑️ ${esc(L('削除', 'Delete'))}</button>
+          <button class="chip btn-toggle-pl-items" data-togglepl="${esc(pl.id)}">📋 ${esc(L('曲リスト開閉', 'View tracks'))}</button>
+        </div>
+        <div id="plItems_${esc(pl.id)}" class="album-works-exp hidden">
+          ${pl.items.length ? pl.items.map((it, idx) => `
+            <div class="album-work-row">
+              <span class="album-work-title" data-playitemidx="${idx}" data-itempl="${esc(pl.id)}">${esc(wTitle(it.w))} — <span class="muted">${esc(cshort(it.c))}</span></span>
+              <div class="album-work-btns">
+                <button class="btn-work-play" data-playitemidx="${idx}" data-itempl="${esc(pl.id)}">▶</button>
+                <button class="album-work-del" data-delw="${esc(it.w.id)}" data-frompl="${esc(pl.id)}" title="${esc(L('このアルバムから削除', 'Remove from album'))}">✕</button>
+              </div>
+            </div>
+          `).join('') : `<p class="muted sm">${esc(L('曲がありません', 'No songs'))}</p>`}
+        </div>
+      </div>
+    `).join('');
+
+    box.innerHTML = favHtml + albumsHtml;
+
+    // お気に入り再生（モーダル内）
+    const favPlayBtn = $('btnPlayFavModal');
+    if (favPlayBtn) favPlayBtn.onclick = () => { $('albumModal').classList.add('hidden'); startFavoritePlayback(0, false); };
+    const favShuffleBtn = $('btnShuffleFavModal');
+    if (favShuffleBtn) favShuffleBtn.onclick = () => { $('albumModal').classList.add('hidden'); startFavoritePlayback(0, true); };
+
+    // お気に入り曲の個別再生
+    box.querySelectorAll('[data-playfavidx]').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        $('albumModal').classList.add('hidden');
+        startFavoritePlayback(+btn.dataset.playfavidx, false);
+      };
+    });
+
+    // お気に入り曲の解除
+    box.querySelectorAll('[data-delfav]').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const wid = btn.dataset.delfav;
+        const w = favW.find(x => String(x.w.id) === wid)?.w;
+        if (w) toggleFavW(w);
+        renderAlbumCards();
+      };
+    });
+
+    // アルバム全曲再生
+    box.querySelectorAll('[data-playpl]').forEach(btn => {
+      btn.onclick = () => {
+        const pl = getPlaylist(btn.dataset.playpl);
+        if (pl) {
+          $('albumModal').classList.add('hidden');
+          startPlaylistFromIndex(pl, 0, false);
+        }
+      };
+    });
+
+    // アルバムシャッフル再生
+    box.querySelectorAll('[data-shufflepl]').forEach(btn => {
+      btn.onclick = () => {
+        const pl = getPlaylist(btn.dataset.shufflepl);
+        if (pl) {
+          $('albumModal').classList.add('hidden');
+          startPlaylistFromIndex(pl, 0, true);
+        }
+      };
+    });
+
+    // アルバム内の個別曲再生
+    box.querySelectorAll('[data-playitemidx]').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const pl = getPlaylist(btn.dataset.itempl);
+        if (pl) {
+          $('albumModal').classList.add('hidden');
+          startPlaylistFromIndex(pl, +btn.dataset.playitemidx, false);
+        }
+      };
+    });
+    box.querySelectorAll('[data-renamepl]').forEach(btn => {
+      btn.onclick = () => {
+        const pl = getPlaylist(btn.dataset.renamepl);
+        if (!pl) return;
+        const name = prompt(L('新しいアルバム名を入力してください:', 'Enter new album name:'), pl.name);
+        if (name && name.trim()) {
+          renamePlaylist(pl.id, name.trim());
+          renderAlbumCards();
+        }
+      };
+    });
+    box.querySelectorAll('[data-delpl]').forEach(btn => {
+      btn.onclick = () => {
+        const pl = getPlaylist(btn.dataset.delpl);
+        if (!pl) return;
+        if (confirm(L(`アルバム「${pl.name}」を削除してもよろしいですか？`, `Delete album "${pl.name}"?`))) {
+          deletePlaylist(pl.id);
+          renderAlbumCards();
+        }
+      };
+    });
+    box.querySelectorAll('[data-togglepl]').forEach(btn => {
+      btn.onclick = () => {
+        const wrap = $('plItems_' + btn.dataset.togglepl);
+        if (wrap) wrap.classList.toggle('hidden');
+      };
+    });
+    box.querySelectorAll('[data-delw]').forEach(btn => {
+      btn.onclick = () => {
+        removeWorkFromPlaylist(btn.dataset.frompl, btn.dataset.delw);
+        renderAlbumCards();
+      };
+    });
+  }
+
+  /* ---------- 作曲家 ---------- */
+  function renderComposers(q) {
+    const box = $('composers');
+    if (!composers.length) { box.innerHTML = `<p class="full muted" style="font-size:.9rem">${view === 'favC' && !favC.length ? tx('お気に入りの作曲家はまだありません。作曲家カードの ☆ で追加できます。', 'No favorite composers yet. Use ☆ on a composer card.') : q ? tx(`「${q}」に一致する作曲家が見つかりません。`, `No composers match "${q}".`) : tx('この時代の作曲家が見つかりません。', 'No composers found for this era.')}</p>`; return; }
+    box.innerHTML = composers.map((c, i) => { const f = isFavC(c); return `
+      <div class="cw"><button data-i="${i}" class="card cc ${current && current.id === c.id ? 'sel' : ''}">
+        <img class="pt" src="${esc(c.portrait)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+        <div class="ct">
+          <p class="cn serif">${esc(cshort(c))}</p>
+          <p class="sm muted">${esc(yr(c.birth))}–${esc(yr(c.death))}</p>
+          <p class="sm rose">${esc(epochLabel(c.epoch))}・${esc(countryLabel(c.country || ''))}</p>
+        </div></button>
+        <button class="star ${f ? '' : 'off'}" data-fc="${i}" aria-label="${esc(f ? L('お気に入りから外す', 'Remove favorite') : L('お気に入りに追加', 'Add favorite'))}">${f ? '★' : '☆'}</button></div>`; }).join('');
+  }
+  $('composers').addEventListener('click', e => {
+    if (e.target.closest('[data-retry]')) return loadComposers();
+    const f = e.target.closest('[data-fc]'); if (f) return toggleFavC(composers[+f.dataset.fc]);
+    const b = e.target.closest('[data-i]'); if (b) selectComposer(composers[+b.dataset.i]);
+  });
+  function toggleFavC(c) {
+    if (isFavC(c)) { favC = favC.filter(x => String(x.id) !== String(c.id)); store.del('jazz.works.' + c.id); }
+    else { favC.push(slimC(c)); if (current && current.id === c.id && works.length) store.set('jazz.works.' + c.id, works); }
+    store.set('jazz.favC', favC); renderEpochs();
+    if (view === 'favC') loadComposers(); else renderComposers($('q').value.trim());
+  }
+
+  /* ---------- 作品 ---------- */
+  const updateWorksTitle = () => { $('wh').textContent = view === 'favW' ? L('お気に入り楽曲', 'Favorite works') : view === 'famous' ? L('👑 誰もが知る超有名な名曲 50選+', '👑 World-Famous Classical Masterpieces (50+)') : current ? L(`${cfull(current)} の作品`, `Works by ${cfull(current)}`) : ''; };
+  const workSource = () => view === 'favW' ? favW.map(x => x.w) : works;
+  function showFavWorks() {
+    $('worksSec').classList.remove('hidden'); $('ystat').textContent = ''; $('wq').value = '';
+    if ($('favPlayBar')) $('favPlayBar').classList.remove('hidden');
+    favW.forEach(x => { WC.set(String(x.w.id), x.c); applyYearCache(x.c.id); });
+    ensureJa(favW.map(x => x.c)).then(() => { if (view === 'favW') renderWorks(); });
+    updateWorksTitle(); renderWorks();
+  }
+  async function selectComposer(c) {
+    current = c; renderComposers($('q').value.trim());
+    const tok = ++workTok, sec = $('worksSec'), box = $('works');
+    sec.classList.remove('hidden'); $('wq').value = ''; $('ystat').textContent = ''; if ($('favPlayBar')) $('favPlayBar').classList.add('hidden'); updateWorksTitle();
+
+    // 1. 内蔵マスターカタログから抽出
+    let list = mergeCustom(c, []);
+
+    // 2. 未登録アーティストの場合は iTunes API から代表作を動的探索
+    if (!list.length) {
+      box.innerHTML = `<div class="full">${spinner(L('代表曲を探索中…', 'Searching top tracks…'))}</div>`;
+      try {
+        const compName = c.name || c.complete_name || '';
+        const itunes = await searchItunes(compName);
+        if (tok !== workTok) return;
+        if (itunes.length > 0) {
+          list = itunes.map((t, idx) => ({
+            id: `dyn_${c.id}_${idx}`,
+            title: t.title.split(' — ')[0],
+            subtitle: t.title.split(' — ')[1] || compName,
+            genre: 'Keyboard',
+            popular: '1',
+            recommended: '1',
+            searchterms: compName + ' ' + t.title,
+            desc_ja: `${cshort(c)} の名演・代表作`,
+            custom: true,
+            directAudioUrl: t.url
+          }));
+        }
+      } catch (e) {}
+    }
+
+    if (tok !== workTok) return;
+    works = list;
+    works.forEach(w => WC.set(String(w.id), c));
+    WK.set(String(c.id), works);
+    applyYearCache(c.id);
+    applyCustomYears(works);
+    renderWorks();
+    sec.scrollIntoView({ block: 'start' });
+  }
+
+  function sortList(list) {
+    const dec = list.map(w => ({ w, t: wTitle(w), y: Y[w.id] ? Y[w.id][0] : null, d: diffOf(w, compOf(w) || {}).stars, f: fameOf(w) })), loc = lang === 'ja' ? 'ja' : 'en';
+    const rec = (a, b) => ((+b.w.recommended || 0) - (+a.w.recommended || 0)) || ((+b.w.popular || 0) - (+a.w.popular || 0));
+    const byY = d => (a, b) => (a.y == null && b.y == null) ? rec(a, b) : a.y == null ? 1 : b.y == null ? -1 : (d * (a.y - b.y) || rec(a, b));
+    const cmp = { yearAsc: byY(1), yearDesc: byY(-1), titleAsc: (a, b) => a.t.localeCompare(b.t, loc), titleDesc: (a, b) => b.t.localeCompare(a.t, loc), diffAsc: (a, b) => (a.d - b.d) || byY(1)(a, b), diffDesc: (a, b) => (b.d - a.d) || byY(1)(a, b), fameDesc: (a, b) => (b.f - a.f) || byY(1)(a, b), fameAsc: (a, b) => (a.f - b.f) || byY(1)(a, b), rec }[sortKey] || byY(1);
+    return dec.sort(cmp).map(x => x.w);
+  }
+  function renderWorks() {
+    const q = $('wq').value.trim().toLowerCase(), box = $('works');
+    const src = workSource();
+    const list = sortList(src.filter(w => !q || [w.title, w.subtitle, w.genre, w.searchterms, jaTitle(w.title), jaTitle(w.subtitle), GENRES[w.genre]].join(' ').toLowerCase().includes(q)));
+    if (!list.length) { box.innerHTML = `<p class="full muted" style="font-size:.9rem">${view === 'favW' && !favW.length ? tx('お気に入りの楽曲はまだありません。楽曲カードの ☆ で追加できます。', 'No favorite works yet. Use ☆ on a work card.') : tx('条件に合う作品がありません。', 'No matching works.')}</p>`; return; }
+    box.innerHTML = list.slice(0, 150).map(w => {
+      const m = meta(w), d = diffOf(w, compOf(w) || {}), f = isFavW(w), c = compOf(w);
+      return `<div class="cw"><button data-w="${esc(w.id)}" class="card wc">
+        <span class="wt serif">${esc(wTitle(w))}</span>
+        ${w.subtitle ? `<span class="sm muted">${esc(wSub(w))}</span>` : ''}
+          ${w.desc_ja ? `<span class="sm" style="color:var(--text-muted);font-size:0.82rem;margin-top:0.25rem;line-height:1.4">${esc(w.desc_ja)}</span>` : ''}
+        ${view === 'favW' && c ? `<span class="sm rose">${esc(cshort(c))}</span>` : ''}
+        <span class="tags">
+          <span class="tag s">${esc(L('ピアノ難度', 'Piano'))} ${starStr(d.stars)}${d.arr ? esc(L('（編曲想定）', ' (arr.)')) : ''}</span>
+          <span class="tag s">${esc(L('知名度', 'Fame'))} ${starStr(fameOf(w))}</span>
+          <span class="tag">${esc(ydisp(Y[w.id]))}</span>
+          <span class="tag rose">${esc(genreLabel(w.genre))}</span>
+          ${m.opus ? `<span class="tag">${esc(m.opus)}</span>` : ''}
+          ${m.key ? `<span class="tag">${esc(m.key)}</span>` : ''}
+          ${+w.recommended ? `<span class="tag b">${esc(L('おすすめ', 'Recommended'))}</span>` : ''}
+        </span></button>
+        <button class="quick-play" data-qp="${esc(w.id)}" title="${esc(L('すぐに再生', 'Play now'))}" aria-label="${esc(L('すぐに再生', 'Play now'))}">▶</button>
+        <button class="star ${f ? '' : 'off'}" data-fw="${esc(w.id)}" aria-label="${esc(f ? L('お気に入り・アルバム振り分け', 'Favorites & Albums') : L('お気に入り・アルバム振り分け', 'Favorites & Albums'))}">${f ? '★' : '☆'}</button></div>`;
+    }).join('') + (list.length > 150 ? `<p class="full sm muted">${tx('先頭150件を表示中。絞り込み検索をご利用ください。', 'Showing the first 150. Use the filter to narrow down.')}</p>` : '');
+  }
+  $('wq').addEventListener('input', renderWorks);
+  $('works').addEventListener('click', e => {
+    if (e.target.closest('[data-retry]') && current) return selectComposer(current);
+    
+    // クイック再生ボタン
+    const qp = e.target.closest('[data-qp]');
+    if (qp) {
+      e.stopPropagation();
+      unlockAudio();
+      startQuickPlay(qp.dataset.qp);
+      return;
+    }
+
+    const starBtn = e.target.closest('[data-fw]');
+    if (starBtn) {
+      const w = workSource().find(x => String(x.id) === starBtn.dataset.fw);
+      if (w) openFavPopup(w, compOf(w), starBtn);
+      return;
+    }
+    const b = e.target.closest('[data-w]'); if (!b) return;
+    unlockAudio();
+    const w = workSource().find(x => String(x.id) === b.dataset.w); if (w) openModal(w, compOf(w));
+  });
+  function toggleFavW(w) {
+    if (isFavW(w)) favW = favW.filter(x => String(x.w.id) !== String(w.id));
+    else {
+      const c = compOf(w); if (!c) return;
+      favW.push({ w, c: slimC(c) });
+      const pc = store.get('jazz.wikic', {}); ['ja', 'en'].forEach(l => { const k = l + '|' + w.id; if (wikiCache.has(k)) pc[k] = wikiCache.get(k); }); store.set('jazz.wikic', pc);
+    }
+    store.set('jazz.favW', favW); renderEpochs(); renderWorks(); updateFavBtn(); updatePbStarBtn(); renderRList();
+  }
+
+  /* ---------- モーダル ---------- */
+  function updateFavBtn() {
+    if (!curW) return;
+    const f = isFavW(curW);
+    $('favBtn').textContent = f ? L('★ お気に入り登録済み', '★ Favorite (registered)') : L('☆ お気に入りに追加', '☆ Add to favorites');
+    $('favBtn').classList.toggle('on', f);
+  }
+  $('favBtn').onclick = () => { if (curW) toggleFavW(curW); };
+  $('addToAlbumBtn').onclick = e => {
+    if (curW && curC) openFavPopup(curW, curC, e.target);
+  };
+
+  function fillModal() {
+    const w = curW, c = curC, m = meta(w), d = diffOf(w, c);
+    $('mc').textContent = `${cfull(c)}（${epochLabel(c.epoch)}）`;
+    $('mt').textContent = wTitle(w);
+    $('ms').textContent = lang === 'ja' ? [wSub(w), '原題: ' + w.title].filter(Boolean).join(' ／ ') : (w.subtitle || '');
+    const none = L('（情報なし）', '(n/a)');
+    const rows = [[L('作曲家', 'Composer'), cfull(c)], [L('時代', 'Era'), epochLabel(c.epoch)], [L('ジャンル', 'Genre'), genreLabel(w.genre)], [L('知名度', 'Fame'), starStr(fameOf(w))], [L('作曲年', 'Composed'), ydisp(Y[w.id])], [L('作品番号', 'Catalog no.'), m.opus || none], [L('調性', 'Key'), m.key || none], [L('生没年', 'Years'), `${yr(c.birth)}–${yr(c.death)}`]];
+    $('basic').innerHTML = rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
+    const hard = d.f.filter(x => HARD.has(x)), easy = d.f.filter(x => !HARD.has(x)), li = a => a.map(x => `<li>${esc(L(FACT[x][0], FACT[x][1]))}</li>`).join('');
+    $('diff').innerHTML = `<p class="stars" aria-label="${d.stars}/5">${starStr(d.stars)}</p>
+      <p style="margin:.25rem 0 .6rem;font-size:.9rem"><b>${esc(L(LEVEL[d.stars][0], LEVEL[d.stars][1]))}</b>${esc(L(`（5段階中 ${d.stars}）`, ` (${d.stars} of 5)`))}</p>
+      <div class="dl">
+        ${d.arr ? `<p>${esc(L('ピアノ独奏曲ではないため、ピアノ編曲・ピアノ譜で弾く場合の目安です。編曲の内容によって大きく変わります。', 'This is not a solo piano work; the rating assumes a piano arrangement or reduction and varies greatly by arrangement.'))}</p>` : ''}
+        ${hard.length ? `<h5>${esc(L('難しい理由', 'Why it is difficult'))}</h5><ul>${li(hard)}</ul>` : ''}
+        ${easy.length ? `<h5>${esc(L('易しい理由', 'Why it is approachable'))}</h5><ul>${li(easy)}</ul>` : ''}
+        <p class="sm muted" style="margin-top:.75rem">${esc(L('※ 作曲家・曲種・作品名にもとづく目安です。楽章・版・編曲によって難易度は変わります。', '* A rough guide based on composer, form and title. Difficulty varies by movement, edition and arrangement.'))}</p>
+      </div>`;
+
+    // IMSLP リンク設定（Google検索クエリ: 作曲家名 + 曲名 IMSLP）
+    const imslpQuery = `${cfull(c)} ${wTitle(w)} IMSLP`;
+    $('imslpLink').href = `https://www.google.com/search?q=${enc(imslpQuery)}`;
+    $('imslpLink').title = `${imslpQuery} を検索`;
+
+    updateFavBtn();
+  }
+
+  function openModal(w, c) {
+    const tok = ++modalTok; curW = w; curC = c;
+    fillModal();
+    $('arch').innerHTML = spinner('Internet Archiveで音源を検索中…', 'Searching Internet Archive…');
+    $('modalPlayer').classList.add('hidden');
+    $('modal').classList.remove('hidden'); $('modal').scrollTop = 0; document.body.style.overflow = 'hidden'; $('close').focus();
+    loadWiki(); loadArchive(w, c, tok);
+  }
+  function closeModal() {
+    modalTok++; wikiTok++;
+    $('modal').classList.add('hidden');
+    document.body.style.overflow = '';
+    // 注意: モーダルを閉じても再生は継続（グローバル化要件）！
+  }
+  $('close').onclick = closeModal;
+  $('modal').addEventListener('mousedown', e => { if (e.target === $('modal')) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('modal').classList.contains('hidden')) closeModal(); });
+
+  /* ---------- Wikipedia ---------- */
+  async function wikiFind(host, q) {
+    const u = `https://${host}.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${enc(q)}&gsrlimit=1&prop=extracts|info&inprop=url&exintro=1&explaintext=1&exsentences=10&format=json&origin=*`;
+    const j = await jget(u);
+    const p = j.query && j.query.pages && Object.values(j.query.pages)[0];
+    return p && p.extract && p.extract.trim().length > 40 ? { title: p.title, text: p.extract.trim(), url: p.fullurl } : null;
+  }
+  async function wikiGet(w, c) {
+    const key = lang + '|' + w.id; if (wikiCache.has(key)) return wikiCache.get(key);
+    const saved = store.get('jazz.wikic', {})[key]; if (saved) { wikiCache.set(key, saved); return saved; }
+    const base = w.title.replace(/\(.*?\)/g, '').split(/ in |,/)[0].trim();
+    const en = async missJa => {
+      let x = await wikiFind('en', `${base} ${c.complete_name || c.name}`), fb = false;
+      if (!x) { x = await wikiFind('en', c.complete_name || c.name); fb = !!x; }
+      return x && { ...x, lang: 'en', fb, missJa };
+    };
+    let r = null;
+    if (lang === 'ja') {
+      r = await wikiFind('ja', `${jaTitle(base)} ${cfull(c)}`);
+      if (r) r = { ...r, lang: 'ja', fb: false };
+      else { r = await wikiFind('ja', cfull(c)); if (r) r = { ...r, lang: 'ja', fb: true }; }
+      if (!r) r = await en(true);
+    } else r = await en(false);
+    if (r) { wikiCache.set(key, r); if (isFavW(w)) { const pc = store.get('jazz.wikic', {}); pc[key] = r; store.set('jazz.wikic', pc); } }
+    return r;
+  }
+  async function loadWiki() {
+    const tok = ++wikiTok, box = $('wiki'), w = curW, c = curC;
+    box.innerHTML = spinner('Wikipediaから解説を取得中…', 'Fetching description from Wikipedia…');
+    try {
+      const r = await wikiGet(w, c);
+      if (tok !== wikiTok) return;
+      if (!r) { box.innerHTML = errBox('この楽曲に関する解説が見つかりませんでした。', 'No description found for this work.'); return; }
+      const notes = [];
+      if (r.missJa) notes.push(tx('日本語版に該当記事が見つからなかったため、英語版を表示しています。', 'No Japanese article found; showing the English one.'));
+      if (r.fb) notes.push(tx('楽曲の個別記事が見つからなかったため、作曲家の解説を表示しています。', 'No article for this specific work; showing the composer’s article.'));
+      box.innerHTML = notes.map(n => `<p class="sm rose" style="margin-bottom:.5rem">${n}</p>`).join('') +
+        `<div class="txt">${r.text.split(/\n+/).map(p => `<p>${esc(p)}</p>`).join('')}</div>
+        <p class="sm muted" style="margin-top:.5rem">${esc(L('出典: Wikipedia', 'Source: Wikipedia'))}「${esc(r.title)}」（${esc(r.lang === 'ja' ? L('日本語版', 'Japanese edition') : L('英語版', 'English edition'))}） <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(L('記事を開く', 'Open article'))}</a></p>`;
+    } catch (e) {
+      if (tok !== wikiTok) box.innerHTML = errBox('Wikipediaから解説を取得できませんでした。', 'Could not fetch the Wikipedia description.', e.message);
+    }
+  }
+
+  /* ---------- 言語切替 & 静的適用 ---------- */
+  function renderSortOptions() {
+    const o = [['yearAsc', '作曲年：古い順', 'Year: oldest first'], ['yearDesc', '作曲年：新しい順', 'Year: newest first'], ['titleAsc', '名前順：昇順', 'Title: A → Z'], ['titleDesc', '名前順：降順', 'Title: Z → A'], ['diffAsc', 'ピアノ難易度：易しい順', 'Piano difficulty: easiest first'], ['diffDesc', 'ピアノ難易度：難しい順', 'Piano difficulty: hardest first'], ['fameDesc', '知名度：高い順', 'Fame: highest first'], ['fameAsc', '知名度：低い順', 'Fame: lowest first'], ['rec', 'おすすめ順', 'Recommended first']];
+    $('sortSel').innerHTML = o.map(([k, j, e]) => `<option value="${k}" ${k === sortKey ? 'selected' : ''}>${esc(L(j, e))}</option>`).join('');
+    $('sortSel').setAttribute('aria-label', L('並べ替え', 'Sort'));
+  }
+  function applyStatic() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-ja]').forEach(e => { e.textContent = e.dataset[lang]; });
+    document.querySelectorAll('[data-phja]').forEach(e => { e.placeholder = lang === 'ja' ? e.dataset.phja : e.dataset.phen; });
+    $('langBtn').textContent = lang === 'ja' ? 'English' : '日本語';
+    $('close').setAttribute('aria-label', L('閉じる', 'Close'));
+    document.title = L('Blue Note & Bossa Salon — JAZZ・ボサノバ・映画音楽 探索＆ピアノ練習プレイヤー', 'Blue Note & Bossa Salon — Jazz, Bossa Nova & Film Music Explorer');
+    $('ch').textContent = view === 'favC' ? L('お気に入り作曲家', 'Favorite composers') : L('作曲家', 'Composers');
+    renderSortOptions(); renderRndStatic(); if ($('rndBox').open) renderRndSources();
+    updatePlaylistUI();
+  }
+  $('langBtn').onclick = async () => {
+    lang = lang === 'ja' ? 'en' : 'ja';
+    try { localStorage.setItem('lang', lang); } catch (e) {}
+    applyStatic(); renderEpochs();
+    if (lang === 'ja') await ensureJa(composers.concat(current ? [current] : [], favW.map(x => x.c)));
+    renderComposers($('q').value.trim());
+    updateWorksTitle(); if (!$('worksSec').classList.contains('hidden')) renderWorks();
+    if (!$('modal').classList.contains('hidden') && curW) { fillModal(); loadWiki(); }
+  };
+  $('sortSel').onchange = e => { sortKey = e.target.value; store.set('jazz.sort', sortKey); renderWorks(); };
+
+  /* ---------- 時代・お気に入り・超名曲チップ ---------- */
+  function renderEpochs() {
+    $('epochs').innerHTML =
+      `<button class="chip famous-chip ${view === 'famous' ? 'on' : ''}" data-v="famous">👑 ${esc(L('超名曲＆映画音楽 (100選+)', 'Famous Works (100+)'))}</button>` +
+      `<button class="chip fv ${view === 'favC' ? 'on' : ''}" data-v="favC">★ ${esc(L('お気に入り作曲家', 'Favorite composers'))} (${favC.length})</button>` +
+      `<button class="chip fv ${view === 'favW' ? 'on' : ''}" data-v="favW">★ ${esc(L('お気に入り楽曲', 'Favorite works'))} (${favW.length})</button>` +
+      EPOCHS.map(([k, j, e]) => `<button class="chip ${view === 'browse' && k === epoch ? 'on' : ''}" data-e="${k}">${L(j, e)}</button>`).join('');
+  }
+  function setView(v) {
+    view = v;
+    current = (v === 'favW' || v === 'famous') ? null : current;
+    works = (v === 'favW' || v === 'famous') ? [] : works;
+    $('compSec').classList.toggle('hidden', v === 'favW' || v === 'famous');
+    $('ch').textContent = v === 'favC' ? L('お気に入り作曲家', 'Favorite composers') : L('作曲家', 'Composers');
+    renderEpochs();
+    if (v === 'favW') {
+      showFavWorks();
+    } else if (v === 'famous') {
+      showFamousWorks();
+    } else {
+      if (v === 'favC' || !current) $('worksSec').classList.add('hidden');
+      loadComposers();
+    }
+  }
+
+  function showFamousWorks() {
+    $('worksSec').classList.remove('hidden');
+    $('ystat').textContent = '';
+    $('wq').value = '';
+    if ($('favPlayBar')) $('favPlayBar').classList.remove('hidden');
+    // SUPER_FAMOUS_WORKS の全楽曲を作曲家メタ情報とともに works 配列に設定
+    works = SUPER_FAMOUS_WORKS.map(item => {
+      WC.set(String(item.w.id), item.c);
+      return item.w;
+    });
+    SUPER_FAMOUS_WORKS.forEach(item => {
+      applyYearCache(item.c.id);
+    });
+    updateWorksTitle();
+    renderWorks();
+  }
+  $('epochs').addEventListener('click', e => {
+    const v = e.target.closest('[data-v]'); if (v) return setView(view === v.dataset.v ? 'browse' : v.dataset.v);
+    const b = e.target.closest('[data-e]'); if (!b) return;
+    epoch = b.dataset.e; if (view !== 'browse') { current = null; works = []; $('worksSec').classList.add('hidden'); } view = 'browse';
+    $('compSec').classList.remove('hidden'); $('ch').textContent = L('作曲家', 'Composers'); renderEpochs(); loadComposers();
+  });
+  // 楽曲・作曲家の横断検索
+  async function searchAcrossAll(q) {
+    const swSec = $('searchWorksSec'), swBox = $('searchWorksList'), swCount = $('swCount');
+    if (!q || q.length < 1) {
+      swSec.classList.add('hidden');
+      return;
+    }
+    const rawQuery = q.trim();
+
+    // 収集済み・既知の作品プール
+    const pool = [];
+    const seenWorkIds = new Set();
+    const addWorksFrom = (ws, c) => {
+      (ws || []).forEach(w => {
+        if (!seenWorkIds.has(String(w.id))) {
+          seenWorkIds.add(String(w.id));
+          WC.set(String(w.id), c);
+          pool.push({ w, c });
+        }
+      });
+    };
+
+    // 0. 👑 超名曲カタログ（100選+）を最優先で常時プールに投入（未キャッシュ時でも確実に即ヒット！）
+    SUPER_FAMOUS_WORKS.forEach(item => addWorksFrom([item.w], item.c));
+
+    // 1. お気に入り・カスタム作品
+    favW.forEach(x => addWorksFrom([x.w], x.c));
+    CUS_W.forEach(cw => {
+      const matchComp = CUS_C.find(c => c.name === cw.cre.source) || { id: 'c_custom', name: 'Classical Composer', complete_name: 'Classical Composer', epoch: 'Romantic' };
+      addWorksFrom([cw.w], matchComp);
+    });
+
+    // 2. キャッシュ済み作品
+    WK.forEach((ws, cid) => {
+      const comp = RC.get(cid) || composers.find(c => String(c.id) === cid);
+      if (comp) addWorksFrom(ws, comp);
+    });
+
+    // 検索フィルタ（統合ファジーマッチ・表記揺れ吸収）
+    const matched = pool.filter(({ w, c }) => {
+      const titleEn = w.title || '';
+      const titleJa = jaTitle(w.title || '');
+      const subEn = w.subtitle || '';
+      const subJa = jaTitle(w.subtitle || '');
+      const compName = (c.name || '') + ' ' + (c.complete_name || '') + ' ' + (JA[c.id] || '');
+      const genre = (GENRES[w.genre] || '') + ' ' + (w.genre || '');
+      const terms = w.searchterms || '';
+      const descJa = w.desc_ja || '';
+
+      // 1. 通常部分一致（小文字比較）
+      const qLower = rawQuery.toLowerCase();
+      const allText = (titleEn + ' ' + titleJa + ' ' + subEn + ' ' + subJa + ' ' + compName + ' ' + genre + ' ' + terms + ' ' + descJa).toLowerCase();
+      if (allText.includes(qLower)) return true;
+
+      // 2. 表記揺れ・ファジーマッチ（ひらがな/カタカナ相互変換、記号除去、同義語・タイプミス救済「ノタクーン」「ら・カンパネルラ」等）
+      if (fuzzyMatches(titleEn, rawQuery) ||
+          fuzzyMatches(titleJa, rawQuery) ||
+          fuzzyMatches(subEn, rawQuery) ||
+          fuzzyMatches(subJa, rawQuery) ||
+          fuzzyMatches(compName, rawQuery) ||
+          fuzzyMatches(genre, rawQuery) ||
+          fuzzyMatches(terms, rawQuery) ||
+          fuzzyMatches(descJa, rawQuery)) {
+        return true;
+      }
+      return false;
+    });
+
+    if (matched.length > 0) {
+      swSec.classList.remove('hidden');
+      swCount.textContent = matched.length + L('件', ' found');
+      swBox.innerHTML = matched.slice(0, 30).map(({ w, c }) => {
+        const m = meta(w), d = diffOf(w, c), f = isFavW(w);
+        return `<div class="cw"><button data-w="${esc(w.id)}" class="card wc">
+          <span class="wt serif">${esc(wTitle(w))}</span>
+          ${w.subtitle ? `<span class="sm muted">${esc(wSub(w))}</span>` : ''}
+          ${w.desc_ja ? `<span class="sm" style="color:var(--text-muted);font-size:0.82rem;margin-top:0.25rem;line-height:1.4">${esc(w.desc_ja)}</span>` : ''}
+          <span class="sm rose bold">${esc(cfull(c))}</span>
+          <span class="tags">
+            <span class="tag s">${esc(L('ピアノ難度', 'Piano'))} ${starStr(d.stars)}</span>
+            <span class="tag s">${esc(L('知名度', 'Fame'))} ${starStr(fameOf(w))}</span>
+            <span class="tag">${esc(ydisp(Y[w.id]))}</span>
+            <span class="tag rose">${esc(genreLabel(w.genre))}</span>
+          </span></button>
+          <button class="qp-btn" data-qp="${esc(w.id)}" title="${esc(L('今すぐ再生', 'Quick Play'))}">▶</button>
+          <button class="star ${f ? '' : 'off'}" data-fw="${esc(w.id)}" aria-label="${esc(f ? L('お気に入り・アルバム振り分け', 'Favorites & Albums') : L('お気に入り・アルバム振り分け', 'Favorites & Albums'))}">${f ? '★' : '☆'}</button></div>`;
+      }).join('');
+    } else {
+      swSec.classList.add('hidden');
+    }
+  }
+
+  $('swClose').onclick = () => $('searchWorksSec').classList.add('hidden');
+  $('searchWorksList').addEventListener('click', e => {
+    unlockAudio();
+    const qp = e.target.closest('[data-qp]');
+    if (qp) {
+      e.stopPropagation();
+      startQuickPlay(qp.dataset.qp);
+      return;
+    }
+    const starBtn = e.target.closest('[data-fw]');
+    if (starBtn) {
+      const wid = starBtn.dataset.fw;
+      const c = WC.get(wid) || current;
+      // find in DOM or cache
+      const w = favW.find(x => String(x.w.id) === wid)?.w || (current ? works.find(x => String(x.id) === wid) : null) || CUS_W.find(cw => cw.w.id === wid)?.w;
+      if (w && c) openFavPopup(w, c, starBtn);
+      return;
+    }
+    const b = e.target.closest('[data-w]');
+    if (!b) return;
+    const wid = b.dataset.w;
+    const c = WC.get(wid) || current;
+    const w = favW.find(x => String(x.w.id) === wid)?.w || (current ? works.find(x => String(x.id) === wid) : null) || CUS_W.find(cw => cw.w.id === wid)?.w;
+    if (w && c) openModal(w, c);
+  });
+
+  $('q').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { loadComposers(); searchAcrossAll($('q').value.trim()); }, 300); });
+
+  function allComposers() {
+    return Promise.resolve(CUS_C.slice());
+  }
+
+  function popComposers() {
+    return Promise.resolve(CUS_C.slice(0, 20));
+  }
+
+  async function loadComposers() {
+    const tok = ++listTok, q = $('q').value.trim(), box = $('composers');
+    if (view === 'favC') {
+      let list = favC.slice(); if (lang === 'ja') await ensureJa(list);
+      if (tok !== listTok) return;
+      const n = q.toLowerCase();
+      composers = n ? list.filter(c => [JA[c.id], c.name, c.complete_name].join(' ').toLowerCase().includes(n)) : list;
+      return renderComposers(q);
+    }
+    box.innerHTML = `<div class="full">${spinner('アーティストを読み込み中…', 'Loading artists…')}</div>`;
+    try {
+      let list = CUS_C.slice();
+      if (epoch) {
+        list = list.filter(c => c.epoch === epoch);
+      }
+      if (q) {
+        const ql = q.toLowerCase();
+        list = list.filter(c => {
+          const names = [JA[c.id] || '', c.name || '', c.complete_name || '', c.terms || ''].join(' ').toLowerCase();
+          return names.includes(ql) || fuzzyMatches(names, q);
+        });
+      }
+      if (tok !== listTok) return;
+      composers = list;
+      if (lang === 'ja') await ensureJa(composers);
+      if (tok !== listTok) return;
+      renderComposers(q);
+    } catch (e) {
+      if (tok !== listTok) return;
+      box.innerHTML = `<div class="full">${errBox('アーティスト一覧を取得できませんでした。', 'Could not load artists.', e.message, 'composers')}</div>`;
+    }
+  }
+
+  // 初期化実行
+  initMediaSession();
+  metronome.updateIndicators();
+  applyStatic();
+  renderEpochs();
+  loadComposers();
+})();
+</script>
+</body>
+</html>
