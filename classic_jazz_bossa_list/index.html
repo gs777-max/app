@@ -359,6 +359,182 @@
   .lk:hover{background:var(--brass);color:#1a1630}
   .backup-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem}
   .rlist-star[data-rfa]{width:auto;padding:0 .5rem;font-size:.85rem;border-radius:99px;border:1px solid var(--line)}
+
+  /* ==========================================================
+     🎵 プレイリスト再生コントロールバー ＆ トラックリスト表示 (Tracklist View)
+     ========================================================== */
+  .works-ctrl-bar{
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+    gap:.8rem;padding:1rem 1.2rem;background:linear-gradient(135deg, rgba(26,32,53,.85) 0%, rgba(18,22,38,.95) 100%);
+    border:1px solid var(--line);border-radius:.85rem;margin-bottom:.85rem;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);backdrop-filter:blur(10px)
+  }
+  .works-ctrl-left{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+  .works-count-badge{
+    font-size:.82rem;font-weight:700;padding:.2rem .65rem;border-radius:99px;
+    background:rgba(226,180,103,.15);color:var(--brass);border:1px solid rgba(226,180,103,.35)
+  }
+  .works-ctrl-actions{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+  
+  .play-action-btn{
+    display:inline-flex;align-items:center;gap:.45rem;padding:.45rem 1.05rem;border-radius:99px;
+    font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s ease;border:0;
+    box-shadow:0 4px 14px rgba(0,0,0,.35)
+  }
+  .play-action-btn.primary{
+    background:linear-gradient(135deg, #e2b467 0%, #d49842 100%);color:#121626
+  }
+  .play-action-btn.primary:hover{
+    filter:brightness(1.15);transform:translateY(-1px);box-shadow:0 6px 18px rgba(226,180,103,.45)
+  }
+  .play-action-btn.secondary{
+    background:linear-gradient(135deg, #2b3960 0%, #1f2742 100%);color:var(--cyan);
+    border:1px solid rgba(84,194,197,.4)
+  }
+  .play-action-btn.secondary:hover{
+    border-color:var(--cyan);color:#fff;background:rgba(84,194,197,.2);transform:translateY(-1px)
+  }
+  
+  .loop-toggle-label{
+    display:inline-flex;align-items:center;gap:.35rem;font-size:.84rem;color:var(--mute);
+    padding:.35rem .75rem;background:var(--panel2);border:1px solid var(--line);border-radius:99px;
+    cursor:pointer;user-select:none;transition:.15s
+  }
+  .loop-toggle-label:hover{color:var(--ink);border-color:var(--line-lit)}
+  .loop-toggle-label input{margin:0;cursor:pointer;accent-color:var(--brass)}
+  .loop-toggle-label.on{border-color:var(--brass);color:var(--brass);background:rgba(226,180,103,.1)}
+  
+  .view-switch-grp{
+    display:inline-flex;align-items:center;background:var(--panel2);border:1px solid var(--line);
+    border-radius:99px;padding:2px;gap:2px
+  }
+  .view-btn{
+    padding:.3rem .75rem;font-size:.82rem;font-weight:500;color:var(--mute);border-radius:99px;
+    cursor:pointer;transition:.15s;border:0;background:none
+  }
+  .view-btn:hover{color:var(--ink)}
+  .view-btn.active{
+    background:var(--brass);color:#121626;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.3)
+  }
+  
+  .works-filter-bar{
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+    gap:.65rem;margin-bottom:.85rem;padding:0 .2rem
+  }
+  
+  /* ---- トラックリスト表示（Tracklist View） ---- */
+  .tracklist-view{
+    display:flex;flex-direction:column;gap:.4rem;margin-top:.4rem
+  }
+  .track-row{
+    display:grid;grid-template-columns:2.4rem 2.6rem 1fr auto auto auto;
+    align-items:center;gap:.85rem;padding:.7rem 1rem;background:var(--panel);
+    border:1px solid var(--line);border-radius:.65rem;transition:all .15s ease;
+    position:relative;user-select:none
+  }
+  .track-row:hover{
+    background:var(--panel2);border-color:var(--line-lit);transform:translateY(-1px);
+    box-shadow:0 4px 14px rgba(0,0,0,.3)
+  }
+  .track-row.playing{
+    background:linear-gradient(90deg, rgba(226,180,103,.16) 0%, rgba(26,32,53,.85) 100%);
+    border-color:var(--brass);border-left:4px solid var(--brass);
+    box-shadow:0 4px 18px rgba(226,180,103,.2)
+  }
+  
+  .track-num-col{
+    text-align:center;font-family:monospace;font-size:.9rem;color:var(--mute);
+    display:flex;align-items:center;justify-content:center
+  }
+  .track-row.playing .track-num-col{color:var(--brass);font-weight:700}
+  .track-playing-eq{font-size:.9rem;margin-left:2px;animation:pulseEq 1s infinite alternate}
+  @keyframes pulseEq{0%{opacity:.6;transform:scale(.95)}100%{opacity:1;transform:scale(1.1)}}
+  
+  .track-play-col{display:flex;align-items:center;justify-content:center}
+  .track-play-btn{
+    width:32px;height:32px;border-radius:50%;background:var(--panel2);border:1px solid var(--line-lit);
+    color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:.85rem;
+    transition:all .15s ease;cursor:pointer
+  }
+  .track-play-btn:hover{
+    background:var(--brass);color:#121626;border-color:var(--brass);transform:scale(1.1)
+  }
+  .track-play-btn.is-playing{
+    background:var(--brass);color:#121626;border-color:var(--brass);box-shadow:0 0 10px rgba(226,180,103,.5)
+  }
+  
+  .track-info-col{
+    min-width:0;cursor:pointer;padding-right:.5rem
+  }
+  .track-title-line{
+    display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap
+  }
+  .track-title{
+    font-size:1.02rem;font-weight:700;color:var(--ink);line-height:1.25;transition:color .15s
+  }
+  .track-info-col:hover .track-title{color:var(--brass)}
+  .track-sub{font-size:.84rem;color:var(--mute)}
+  .track-desc{
+    font-size:.78rem;color:#9aa3bf;margin-top:.2rem;line-height:1.4;
+    display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden
+  }
+  
+  .track-artist-col{white-space:nowrap}
+  .track-artist-btn{
+    font-size:.84rem;font-weight:500;color:var(--rose);padding:.2rem .55rem;
+    background:rgba(216,117,126,.1);border:1px solid rgba(216,117,126,.25);
+    border-radius:.4rem;cursor:pointer;transition:.15s
+  }
+  .track-artist-btn:hover{
+    background:rgba(216,117,126,.25);border-color:var(--rose);color:#fff
+  }
+  
+  .track-tags-col{
+    display:flex;align-items:center;gap:.35rem;flex-wrap:wrap
+  }
+  .tag-badge{
+    font-size:.75rem;padding:.15rem .45rem;border-radius:.35rem;background:var(--panel2);
+    border:1px solid var(--line);color:var(--mute);white-space:nowrap
+  }
+  .tag-badge.genre{color:var(--brass);border-color:rgba(226,180,103,.3);background:rgba(226,180,103,.08)}
+  .tag-badge.bpm{color:var(--cyan);border-color:rgba(84,194,197,.3)}
+  .tag-badge.key{color:#b69ef7;border-color:rgba(182,158,247,.3)}
+  .tag-badge.diff{color:#e6a354}
+  
+  .track-actions-col{
+    display:flex;align-items:center;gap:.35rem;white-space:nowrap
+  }
+  .track-act-btn{
+    width:30px;height:30px;border-radius:.4rem;border:1px solid var(--line);
+    background:var(--panel2);color:var(--mute);font-size:.85rem;display:flex;
+    align-items:center;justify-content:center;cursor:pointer;transition:.15s
+  }
+  .track-act-btn:hover{color:var(--ink);border-color:var(--line-lit);background:var(--panel3)}
+  .track-act-btn.fav-btn.active{color:var(--rose);border-color:rgba(216,117,126,.5);background:rgba(216,117,126,.15)}
+  .track-act-btn.fav-btn:hover{color:var(--rose)}
+  .track-act-btn.album-btn:hover{color:var(--cyan);border-color:rgba(84,194,197,.5)}
+  .track-act-btn.modal-btn:hover{color:var(--brass);border-color:rgba(226,180,103,.5)}
+
+  /* 下部プレイヤーのシャッフル＆ループボタンスタイル */
+  .pbar-btn-sub{
+    font-size:1.1rem;color:var(--mute);padding:.25rem .45rem;border-radius:.4rem;
+    transition:.15s;cursor:pointer;background:none;border:0
+  }
+  .pbar-btn-sub:hover{color:var(--ink);transform:scale(1.1)}
+  .pbar-btn-sub.on{color:var(--brass);text-shadow:0 0 8px rgba(226,180,103,.6)}
+
+  @media(max-width:850px){
+    .track-row{grid-template-columns:2rem 2.2rem 1fr auto auto;gap:.5rem;padding:.6rem .65rem}
+    .track-tags-col{display:none}
+    .track-desc{display:none}
+  }
+  @media(max-width:550px){
+    .track-row{grid-template-columns:1.8rem 2.2rem 1fr auto;gap:.4rem}
+    .track-artist-col{display:none}
+    .play-action-btn .btn-text{display:none}
+    .play-action-btn{padding:.45rem .75rem}
+  }
+
 </style>
 </head>
 <body>
@@ -419,28 +595,56 @@
     <div id="searchWorksList" class="grid w" style="margin-top:.8rem"></div>
   </section>
   
-  <section id="compSec">
-    <h2 id="ch" class="serif"></h2>
-    <div id="composers" class="grid"></div>
-  </section>
-
-  <!-- 作品一覧セクション -->
+    <!-- 作品一覧セクション（ジャンル・プレイリスト最優先表示） -->
   <section id="worksSec" class="hidden">
-    <div class="bar">
-      <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+    <!-- プレイリスト・シーケンス再生コントロールバー -->
+    <div class="works-ctrl-bar">
+      <div class="works-ctrl-left">
         <h2 id="wh" class="serif"></h2>
-        <div id="favPlayBar" class="fav-actions">
-          <button id="btnPlayFavAll" class="chip on" style="font-size:.85rem;padding:.35rem .9rem">▶ 表示中の全曲を再生</button>
-          <button id="btnShuffleFav" class="chip" style="font-size:.85rem;padding:.35rem .8rem">🔀 ランダム（シャッフル）再生</button>
+        <span id="worksCountBadge" class="works-count-badge">0曲</span>
+      </div>
+      <div class="works-ctrl-actions">
+        <!-- シーケンス再生（全曲順番） -->
+        <button id="btnSeqPlay" class="play-action-btn primary" title="リストの1曲目から順番に連続再生">
+          <span class="btn-icon">▶</span>
+          <span class="btn-text" data-ja="シーケンス再生（全曲順番）" data-en="Play Sequence">シーケンス再生（全曲順番）</span>
+        </button>
+        <!-- ランダム再生（シャッフル） -->
+        <button id="btnShufflePlay" class="play-action-btn secondary" title="リストの全曲をシャッフルして連続再生">
+          <span class="btn-icon">🔀</span>
+          <span class="btn-text" data-ja="ランダム再生（シャッフル）" data-en="Shuffle Play">ランダム再生（シャッフル）</span>
+        </button>
+        <!-- リストループトグル -->
+        <label id="loopToggleLabel" class="loop-toggle-label on" title="最後の曲まで行ったら自動で1曲目に戻ってリピート">
+          <input type="checkbox" id="chkListLoop" checked>
+          <span class="loop-toggle-icon">🔁</span>
+          <span class="loop-toggle-text" data-ja="リストループ" data-en="Loop List">リストループ</span>
+        </label>
+        <!-- 表示切替（リスト / カード） -->
+        <div class="view-switch-grp">
+          <button id="btnViewList" class="view-btn active" title="リスト表示（プレイリスト形式）" aria-label="リスト表示">☰ リスト</button>
+          <button id="btnViewCard" class="view-btn" title="カード表示（グリッド形式）" aria-label="カード表示">⊞ カード</button>
         </div>
       </div>
+    </div>
+
+    <!-- ソート・絞り込みフィルターバー -->
+    <div class="works-filter-bar">
+      <div id="ystat" class="sm muted"></div>
       <div class="ctrls">
         <select id="sortSel" aria-label="Sort"></select>
         <input id="wq" class="inp" type="search" data-phja="作品名・ジャンルで絞り込み" data-phen="Filter by title or genre">
       </div>
     </div>
-    <div id="ystat" class="sm muted"></div>
-    <div id="works" class="grid w"></div>
+
+    <!-- 楽曲リストコンテナ（初期: tracklist-view） -->
+    <div id="works" class="tracklist-view"></div>
+  </section>
+
+  <!-- 作曲家・アーティストセクション -->
+  <section id="compSec">
+    <h2 id="ch" class="serif"></h2>
+    <div id="composers" class="grid"></div>
   </section>
 </main>
 
@@ -480,6 +684,7 @@
 
     <!-- コントロールボタン群 -->
     <div class="pbar-controls">
+      <button id="pbShuffleBtn" class="pbar-btn icon-btn" title="🔀 シャッフル連続再生の切替" aria-label="シャッフル切替">🔀</button>
       <button id="pbPrev" class="pbar-btn icon-btn" title="前の曲 / トラック" aria-label="前へ">⏮</button>
       <button id="pbRwd10" class="pbar-btn text-icon-btn" title="10秒巻き戻し (左矢印キー)" aria-label="10秒巻き戻し">⏪ 10</button>
       <button id="pbPlay" class="play" title="再生 / 一時停止 (スペースキー)" aria-label="再生/一時停止">▶</button>
@@ -490,6 +695,8 @@
 
     <!-- オプション設定（ループ・速度・音量・ツール） -->
     <div class="pbar-options">
+      <!-- 全曲リストループトグル -->
+      <button id="pbListLoopBtn" class="pbar-btn opt-chip on" title="🔁 リスト全曲ループ再生のON/OFF">🔁 リストループ</button>
       <!-- 1曲ループトグル -->
       <button id="pbLoopBtn" class="pbar-btn opt-chip" title="1曲ループ再生のON/OFF">🔂 1曲ループ</button>
 
@@ -1325,7 +1532,139 @@
     "2004-02-21",
     "バート・ハワード",
     "ハワード フライミートゥーザムーン 月に想いを"
-  ]
+  ],
+[
+    "fats_waller",
+    "Fats Waller",
+    "Thomas Wright Waller",
+    "Early Jazz",
+    "USA",
+    "1904-05-21",
+    "1943-12-15",
+    "ファッツ・ウォーラー",
+    "ファッツウォーラー 浮気はやめた ハニーサックルローズ ストライドピアノ"
+],
+[
+    "george_shearing",
+    "George Shearing",
+    "Sir George Shearing",
+    "Cool Jazz",
+    "UK",
+    "1919-08-13",
+    "2011-02-14",
+    "ジョージ・シェアリング",
+    "シェアリング バードランドの子守唄 シアラーサウンド"
+],
+[
+    "weather_report",
+    "Weather Report",
+    "Weather Report (Zawinul & Shorter)",
+    "Post-Bop",
+    "USA",
+    "1970-01-01",
+    "1986-01-01",
+    "ウェザー・リポート",
+    "ウェザーリポート ジョーザヴィヌル ジャコパストリアス バードランド ティータウン"
+],
+[
+    "lee_morgan",
+    "Lee Morgan",
+    "Edward Lee Morgan",
+    "Hard Bop",
+    "USA",
+    "1938-07-10",
+    "1972-02-19",
+    "リー・モーガン",
+    "モーガン サイドワインダー キャンディ トランペット"
+],
+[
+    "sonny_rollins",
+    "Sonny Rollins",
+    "Walter Theodore Rollins",
+    "Hard Bop",
+    "USA",
+    "1930-09-07",
+    "",
+    "ソニー・ロリンズ",
+    "ロリンズ サキソフォンコロッサス セントトーマス モリタート"
+],
+[
+    "burt_bacharach",
+    "Burt Bacharach",
+    "Burt Freeman Bacharach",
+    "Cinema Jazz",
+    "USA",
+    "1928-05-12",
+    "2023-02-08",
+    "バート・バカラック",
+    "バカラック アルフィー 雨にぬれても 遥かなる影"
+],
+[
+    "stanley_myers",
+    "Stanley Myers",
+    "Stanley Myers",
+    "Cinema Jazz",
+    "UK",
+    "1930-10-06",
+    "1993-11-09",
+    "スタンリー・マイヤーズ",
+    "マイヤーズ ディアハンター カヴァティーナ ジョンウィリアムズ"
+],
+[
+    "bernard_herrmann",
+    "Bernard Herrmann",
+    "Bernard Herrmann",
+    "Cinema Jazz",
+    "USA",
+    "1911-06-29",
+    "1975-12-24",
+    "バーナード・ハーマン",
+    "ハーマン タクシードライバー サイコ 市民ケーン"
+],
+[
+    "charlie_chaplin",
+    "Charlie Chaplin",
+    "Sir Charles Spencer Chaplin",
+    "Cinema Jazz",
+    "UK",
+    "1889-04-16",
+    "1977-12-25",
+    "チャールズ・チャップリン",
+    "チャップリン スマイル ライムライト エターナリー モダンタイムス"
+],
+[
+    "victor_young",
+    "Victor Young",
+    "Victor Young",
+    "Standards",
+    "USA",
+    "1900-08-08",
+    "1956-11-10",
+    "ヴィクター・ヤング",
+    "ヤング 星影のステラ 恋に落ちた時 ビューティフルラブ"
+],
+[
+    "harry_warren",
+    "Harry Warren",
+    "Salvatore Antonio Guaragna",
+    "Standards",
+    "USA",
+    "1893-12-24",
+    "1981-09-22",
+    "ハリー・ウォーレン",
+    "ウォーレン あなたなしでは ゼアウィルネバービーアナザーユー"
+],
+[
+    "hoagy_carmichael",
+    "Hoagy Carmichael",
+    "Hoagland Howard Carmichael",
+    "Standards",
+    "USA",
+    "1899-11-22",
+    "1981-12-27",
+    "ホーギー・カーマイケル",
+    "カーマイケル 我が心のジョージア スターダスト"
+]
 ];
 
   const CUS_C = COMPOSERS_RAW.map(([id, name, complete_name, epoch, country, birth, death, jaName, terms]) => ({
@@ -2379,7 +2718,1067 @@
     "charlie_parker",
     "ドナリー donna lee チャーリーパーカー マイルス ジャコパストリアス ビバップ練習曲",
     "ビバップの神髄が凝縮された超高速ユニゾンフレーズ。全ジャズ奏者の登竜門。"
-  ]
+  ],
+[
+    "sf_ej03",
+    "St. Louis Blues",
+    "セントルイス・ブルース",
+    "Early Jazz",
+    1914,
+    "louis_armstrong",
+    "セントルイスブルース st louis blues handy サッチモ ブルースの父",
+    "「ブルースの父」W.C.ハンディ作曲。哀愁のタンゴ調イントロからスウィングする不朽の名曲。"
+],
+[
+    "sf_ej04",
+    "Basin Street Blues",
+    "ベーシン・ストリート・ブルース",
+    "Early Jazz",
+    1928,
+    "louis_armstrong",
+    "ベーシンストリートブルース basin street blues ニューオーリンズ サッチモ",
+    "ニューオーリンズの歓楽街ベーシン・ストリートを讃えた、温かくブルージーな名曲。"
+],
+[
+    "sf_ej05",
+    "When the Saints Go Marching In",
+    "聖者の行進",
+    "Early Jazz",
+    1938,
+    "louis_armstrong",
+    "聖者の行進 聖者が街にやってくる when the saints go marching in ディキシーランド",
+    "世界で最も親しまれるニューオーリンズ・ジャズのアンセム。陽気なリズムと掛け声が響く。"
+],
+[
+    "sf_ej06",
+    "Mack the Knife",
+    "マック・ザ・ナイフ (モリタート)",
+    "Early Jazz",
+    1928,
+    "louis_armstrong",
+    "マックザナイフ mack the knife モリタート 三文オペラ クルトヴァイル",
+    "クルト・ヴァイル作曲『三文オペラ』劇中歌。サッチモのダミ声とスウィングで世界的大ヒット。"
+],
+[
+    "sf_ej07",
+    "Hello, Dolly!",
+    "ハロー・ドーリー！",
+    "Early Jazz",
+    1964,
+    "louis_armstrong",
+    "ハロードーリー hello dolly ミュージカル ビートルズ サッチモ",
+    "1964年に全米1位を獲得しビートルズの連続1位を阻止した、アームストロング最大の歓喜のナンバー。"
+],
+[
+    "sf_ej08",
+    "Peacherine Rag",
+    "ピーチェリン・ラグ",
+    "Early Jazz",
+    1901,
+    "scott_joplin",
+    "ピーチェリンラグ peacherine rag ジョプリン ピアノラグ 古典",
+    "ジョプリン初期の傑作ラグタイム。弾むようなシンコペーションと優美な和音進行が魅力。"
+],
+[
+    "sf_ej09",
+    "Elite Syncopations",
+    "エリート・シンコペーションズ",
+    "Early Jazz",
+    1902,
+    "scott_joplin",
+    "エリートシンコペーションズ elite syncopations ジョプリン 軽快 クラシックラグ",
+    "洗練された旋律美と心地よいシンコペーションで、ラグタイムの芸術性を極限まで高めた逸品。"
+],
+[
+    "sf_ej10",
+    "Solace",
+    "ソレス (メキシカン・セレナーデ / 映画『スティング』)",
+    "Early Jazz",
+    1909,
+    "scott_joplin",
+    "ソレス solace メキシカンセレナーデ スティング 哀愁 ハバネラ",
+    "映画『スティング』の名シーンを彩ったタンゴ／ハバネラのリズムを持つ、切なく美しい名曲。"
+],
+[
+    "sf_ej11",
+    "Ain't Misbehavin'",
+    "浮気はやめた",
+    "Early Jazz",
+    1929,
+    "fats_waller",
+    "エイントミズビヘイヴィン aint misbehavin 浮気はやめた ファッツウォーラー ストライド",
+    "ファッツ・ウォーラーの代表作。軽妙洒脱なストライド・ピアノとユーモラスな愛の告白。"
+],
+[
+    "sf_ej12",
+    "Honeysuckle Rose",
+    "ハニーサックル・ローズ",
+    "Early Jazz",
+    1929,
+    "fats_waller",
+    "ハニーサックルローズ honeysuckle rose スイカズラ スウィング ジャムセッション",
+    "甘くスウィングするメロディで、ジャズジャムセッションの永遠の定番となったウォーラーの傑作。"
+],
+[
+    "sf_ej13",
+    "Tiger Rag",
+    "タイガー・ラグ (Hold That Tiger)",
+    "Early Jazz",
+    1917,
+    "louis_armstrong",
+    "タイガーラグ tiger rag ニューオーリンズ ディキシー ホールドザットタイガー",
+    "初期ディキシーランド・ジャズの爆発的エネルギーを象徴する、スピード感あふれる古典。"
+],
+[
+    "sf_ej14",
+    "Maple Leaf Rag",
+    "メイプル・リーフ・ラグ",
+    "Early Jazz",
+    1899,
+    "scott_joplin",
+    "メイプルリーフラグ maple leaf rag ジョプリン ラグタイムの夜明け",
+    "アメリカ音楽史を塗り替え、100万部の楽譜セールスを記録したラグタイム史上最大の金字塔。"
+],
+[
+    "sf_sw08",
+    "One O'Clock Jump",
+    "ワン・オクロック・ジャンプ",
+    "Swing",
+    1937,
+    "count_basie",
+    "ワンオクロックジャンプ one oclock jump ベイシー カウントベイシー リフ",
+    "カウント・ベイシー楽団の永遠のテーマ曲。シンプルで力強いヘッドアレンジ・リフの極致。"
+],
+[
+    "sf_sw09",
+    "April in Paris",
+    "パリの四月",
+    "Swing",
+    1932,
+    "count_basie",
+    "パリの四月 april in paris バーノンデューク ベイシー ワンモアタイム",
+    "ベイシーの名演「One more time!」で世界的に知られる、華やかで小粋なスウィング・ナンバー。"
+],
+[
+    "sf_sw10",
+    "Shiny Stockings",
+    "シャイニー・ストッキングス",
+    "Swing",
+    1955,
+    "count_basie",
+    "シャイニーストッキングス shiny stockings フランクフォスター ベイシー",
+    "フランク・フォスター作曲。しなやかなスウィング感と絶妙なダイナミクスが心地よい名曲。"
+],
+[
+    "sf_sw11",
+    "Stompin' at the Savoy",
+    "サヴォイでストンプ",
+    "Swing",
+    1934,
+    "benny_goodman",
+    "サヴォイでストンプ stompin at the savoy ベニーグッドマン エドガーサンプソン",
+    "ハーレムの伝説的ダンスホール「サヴォイ・ボールルーム」の熱気を伝えるスウィング定番曲。"
+],
+[
+    "sf_sw12",
+    "Memories of You",
+    "メモリーズ・オブ・ユー (君の思い出)",
+    "Swing",
+    1930,
+    "benny_goodman",
+    "メモリーズオブユー memories of you ユービーブレイク ベニーグッドマン物語",
+    "ベニー・グッドマンのクラリネットが切なく歌い上げる、スウィング期屈指の至高のバラード。"
+],
+[
+    "sf_sw13",
+    "Chattanooga Choo Choo",
+    "チャタヌーガ・チュー・チュー",
+    "Swing",
+    1941,
+    "glenn_miller",
+    "チャタヌーガチューチュー chattanooga choo choo グレンミラー 蒸気機関車 ゴールドディスク",
+    "史上初のゴールドディスク認定を受けたグレン・ミラーの大ヒット曲。汽笛と車輪の躍動感。"
+],
+[
+    "sf_sw14",
+    "A String of Pearls",
+    "真珠の首飾り",
+    "Swing",
+    1941,
+    "glenn_miller",
+    "真珠の首飾り a string of pearls グレンミラー ジェリーグレイ スウィング",
+    "きらめくサックスアンサンブルとトランペットソロが連なる、ミラー・サウンドの華やかな傑作。"
+],
+[
+    "sf_sw15",
+    "Little Brown Jug",
+    "茶色の小瓶",
+    "Swing",
+    1939,
+    "glenn_miller",
+    "茶色の小瓶 little brown jug グレンミラー 民謡 スウィングアレンジ",
+    "アメリカ民謡を躍動感あふれるビッグバンド・スウィングに生まれ変わらせた親しみやすい名演。"
+],
+[
+    "sf_sw16",
+    "C Jam Blues",
+    "C・ジャム・ブルース",
+    "Swing",
+    1942,
+    "duke_ellington",
+    "cジャムブルース c jam blues デュークエリントン 2音リフ 12小節ブルース",
+    "たった2つの音のリフから始まる12小節ブルース。ジャズのジャムセッションで最初に学ぶ基本曲。"
+],
+[
+    "sf_sw17",
+    "Tea for Two",
+    "二人でお茶を",
+    "Swing",
+    1924,
+    "count_basie",
+    "二人でお茶を tea for two ヴィンセントユーマンス アートテイタム",
+    "ミュージカル『ノー・ノー・ナネット』発。高速アート・テイタムから軽快スウィングまで愛される名曲。"
+],
+[
+    "sf_sw18",
+    "On the Sunny Side of the Street",
+    "明るい表通りで",
+    "Swing",
+    1930,
+    "louis_armstrong",
+    "明るい表通りで on the sunny side of the street サッチモ ジミーマクヒュー カムカムエヴリバディ",
+    "「コートを脱いで帽子をかぶって、陽の当たる道を歩こう」人生を照らす希望に満ちたジャズ讃歌。"
+],
+[
+    "sf_sw19",
+    "Corner Pocket",
+    "コーナー・ポケット (Until I Met You)",
+    "Swing",
+    1955,
+    "count_basie",
+    "コーナーポケット corner pocket フレディグリーン カウントベイシー",
+    "名ギタリスト、フレディ・グリーンの傑作。心地よいリズムのうねりとホーンアンサンブルが絶品。"
+],
+[
+    "sf_bp05",
+    "Confirmation",
+    "コンファメーション",
+    "Bebop",
+    1946,
+    "charlie_parker",
+    "コンファメーション confirmation チャーリーパーカー ビバップコード Ⅱ-Ⅴ",
+    "ビバップの芸術的到達点。淀みなく流れる完璧なメロディラインとⅡ-Ⅴ進行の教科書的名曲。"
+],
+[
+    "sf_bp06",
+    "Billie's Bounce",
+    "ビリーズ・バウンス",
+    "Bebop",
+    1945,
+    "charlie_parker",
+    "ビリーズバウンス billies bounce チャーリーパーカー Fブルース ビバップ",
+    "パーカーが生んだFの12小節ブルースの最高峰。全モダンジャズ奏者が暗記して練習する基礎曲。"
+],
+[
+    "sf_bp07",
+    "Now's the Time",
+    "ナウズ・ザ・タイム",
+    "Bebop",
+    1945,
+    "charlie_parker",
+    "ナウズザタイム nows the time チャーリーパーカー リフブルース Fブルース",
+    "キャッチーなリフと強烈なスウィングが融合した、ビバップ最初期の名作ブルース。"
+],
+[
+    "sf_bp08",
+    "Ornithology",
+    "オーニソロジー (鳥類学)",
+    "Bebop",
+    1946,
+    "charlie_parker",
+    "オーニソロジー ornithology 鳥類学 バード How High the Moon パーカー",
+    "スタンダード『How High the Moon』のコード進行の上に高速のビバップ旋律を乗せた代表的コントラファクト。"
+],
+[
+    "sf_bp09",
+    "Yardbird Suite",
+    "ヤードバード組曲",
+    "Bebop",
+    1946,
+    "charlie_parker",
+    "ヤードバード組曲 yardbird suite チャーリーパーカー エレガント バップ",
+    "「ヤードバード（パーカーの愛称）」を冠した、流れるように美しく親しみやすいバップナンバー。"
+],
+[
+    "sf_bp10",
+    "A Night in Tunisia",
+    "チュニジアの夜",
+    "Bebop",
+    1942,
+    "dizzy_gillespie",
+    "チュニジアの夜 a night in tunisia ディジーガレスピー アフロキューバン",
+    "エキゾチックなベースラインとブレイク後の華麗なソロ展開で世界を熱狂させた、ガレスピーの至宝。"
+],
+[
+    "sf_bp11",
+    "Salt Peanuts",
+    "ソルト・ピーナッツ",
+    "Bebop",
+    1942,
+    "dizzy_gillespie",
+    "ソルトピーナッツ salt peanuts ディジーガレスピー ケニークラーク 叫び",
+    "「Salt Peanuts, Salt Peanuts!」のコミカルな掛け声と、目にも止まらぬ超絶技巧の応酬。"
+],
+[
+    "sf_bp12",
+    "Con Alma",
+    "コン・アルマ (魂をこめて)",
+    "Bebop",
+    1954,
+    "dizzy_gillespie",
+    "コンアルマ con alma ディジーガレスピー ラテンジャズ 哀愁 ワルツ",
+    "スペイン語で「魂をこめて」を意味するガレスピーの美しいバラード／ラテン・ジャズナンバー。"
+],
+[
+    "sf_bp13",
+    "Straight, No Chaser",
+    "ストレート、ノー・チェイサー",
+    "Bebop",
+    1951,
+    "thelonious_monk",
+    "ストレートノーチェイサー straight no chaser セロニアスモンク Fブルース 変拍子感",
+    "Fの12小節ブルースの中でモチーフの開始拍をずらし続ける、モンク一流の数学的ユーモアの傑作。"
+],
+[
+    "sf_bp14",
+    "Well, You Needn't",
+    "ウェル・ユー・ニードント",
+    "Bebop",
+    1944,
+    "thelonious_monk",
+    "ウェルユーニードント well you neednt セロニアスモンク 半音上昇 クロマチック",
+    "FからGbへと半音でクロマチックに行き来する斬新なコード進行。モンクの遊び心が爆発する定番曲。"
+],
+[
+    "sf_bp15",
+    "Ruby, My Dear",
+    "ルビー・マイ・ディア",
+    "Bebop",
+    1947,
+    "thelonious_monk",
+    "ルビーマイディア ruby my dear セロニアスモンク バラード コルトレーン",
+    "モンクが最初の恋人ルビーに捧げた、甘美でどこかほろ苦いモダンジャズ屈指の美しきバラード。"
+],
+[
+    "sf_bp16",
+    "Un Poco Loco",
+    "ウン・ポコ・ロコ (少し狂って)",
+    "Bebop",
+    1951,
+    "bud_powell",
+    "ウンポコロコ un poco loco バドパウエル アフロキューバン カウベル 天才",
+    "パウエルがマックス・ローチのカウベル連打とともに録音した、鬼気迫るポリリズムの傑作。"
+],
+[
+    "sf_bp17",
+    "Bouncing with Bud",
+    "バウンシング・ウィズ・バド",
+    "Bebop",
+    1949,
+    "bud_powell",
+    "バウンシングウィズバド bouncing with bud バドパウエル ジルフラー バップピアノ",
+    "跳ねるようなピアノの躍動感。バップ・ピアノの基本技法がすべて詰まったパウエルの名刺代わりの一曲。"
+],
+[
+    "sf_bp18",
+    "Cherokee",
+    "チェロキー",
+    "Bebop",
+    1938,
+    "bud_powell",
+    "チェロキー cherokee レイノーブル バドパウエル 超高速 転調",
+    "目まぐるしい転調を繰り返す超高速ナンバー。パウエルやパーカーが自身の技量を証明するために挑んだ聖域。"
+],
+[
+    "sf_cj04",
+    "My Foolish Heart",
+    "愚かなりし我が心",
+    "Cool Jazz",
+    1949,
+    "bill_evans",
+    "愚かなりし我が心 my foolish heart ビルエヴァンス ヴィクターヤング ワルツフォーデビイ",
+    "ヴィレッジ・ヴァンガードのライブ盤冒頭を飾る、静謐なタッチとペダルの余韻が心を震わせる名演。"
+],
+[
+    "sf_cj05",
+    "Israel",
+    "イスラエル",
+    "Cool Jazz",
+    1949,
+    "bill_evans",
+    "イスラエル israel ジョンカリシ ビルエヴァンス マイナーブルース クール",
+    "12小節マイナーブルースの洗練された変形。エヴァンス・トリオの緻密なインタープレイが光る。"
+],
+[
+    "sf_cj06",
+    "Alice in Wonderland",
+    "不思議の国のアリス",
+    "Cool Jazz",
+    1951,
+    "bill_evans",
+    "不思議の国のアリス alice in wonderland ビルエヴァンス ディズニー ジャズワルツ",
+    "ディズニー映画のワルツを耽美的なジャズワルツへと昇華。ラファロのベースとの会話が奇跡的。"
+],
+[
+    "sf_cj07",
+    "Very Early",
+    "ヴェリー・アーリー",
+    "Cool Jazz",
+    1962,
+    "bill_evans",
+    "ヴェリーアーリー very early ビルエヴァンス 大学時代 作曲 転調ワルツ",
+    "エヴァンスが大学時代に作曲したと伝わる初期のワルツ。息をのむ転調の連続と清楚な叙情性。"
+],
+[
+    "sf_cj08",
+    "Spartacus Love Theme",
+    "スパルタカス 愛のテーマ",
+    "Cool Jazz",
+    1960,
+    "bill_evans",
+    "スパルタカス愛のテーマ spartacus love theme ビルエヴァンス アレックスノース 哀愁",
+    "映画『スパルタカス』のテーマ。エヴァンスの孤独で澄み切ったピアニズムが胸を打つ屈指のカバー。"
+],
+[
+    "sf_cj09",
+    "Nardis",
+    "ナーディス",
+    "Cool Jazz",
+    1958,
+    "bill_evans",
+    "ナーディス nardis マイルスデイヴィス ビルエヴァンス エキゾチック モード",
+    "マイルスがエヴァンスに贈ったとされるエキゾチックな旋律。後年の無伴奏ソロピアノで伝説化。"
+],
+[
+    "sf_cj10",
+    "Unsquare Dance",
+    "アンスクエア・ダンス (7/4拍子)",
+    "Cool Jazz",
+    1961,
+    "dave_brubeck",
+    "アンスクエアダンス unsquare dance デイヴブルーベック 7拍子 手拍子 タイムファーザーアウト",
+    "7/4拍子の変拍子と手拍子が織りなす小気味よいリズムの実験。ブルーベックならではの知的な遊び心。"
+],
+[
+    "sf_cj11",
+    "Kathy's Waltz",
+    "キャシーズ・ワルツ",
+    "Cool Jazz",
+    1959,
+    "dave_brubeck",
+    "キャシーズワルツ kathys waltz デイヴブルーベック タイムアウト 娘",
+    "名盤『Time Out』収録。愛娘キャシーに捧げられた、クラシックとジャズが美しく溶け合うワルツ。"
+],
+[
+    "sf_cj12",
+    "Almost Blue",
+    "オールモスト・ブルー",
+    "Cool Jazz",
+    1982,
+    "chet_baker",
+    "オールモストブルー almost blue チェットベイカー エルヴィスコステロ レッツゲットロスト",
+    "エルヴィス・コステロがチェットのために書いた、晩年のチェットの枯淡のトランペットと歌声が沁みる名曲。"
+],
+[
+    "sf_cj13",
+    "But Not for Me",
+    "バット・ノット・フォー・ミー",
+    "Cool Jazz",
+    1930,
+    "chet_baker",
+    "バットノットフォーミー but not for me ガーシュウィン チェットベイカー シングス",
+    "ガーシュウィンの名曲を、チェット・ベイカーがアンニュイで甘美な歌声とミュートトランペットで歌い上げた名盤テイク。"
+],
+[
+    "sf_cj14",
+    "Let's Get Lost",
+    "レッツ・ゲット・ロスト (浮気はやめて)",
+    "Cool Jazz",
+    1943,
+    "chet_baker",
+    "レッツゲットロスト lets get lost チェットベイカー ドキュメンタリー 甘い囁き",
+    "チェット・ベイカーの生涯を追ったドキュメンタリー映画の表題曲。甘く語りかけるような名唱。"
+],
+[
+    "sf_cj15",
+    "Lullaby of Birdland",
+    "バードランドの子守唄",
+    "Cool Jazz",
+    1952,
+    "george_shearing",
+    "バードランドの子守唄 lullaby of birdland ジョージシェアリング クールジャズ スタンダード",
+    "盲目の英ピアニスト、ジョージ・シェアリングの名作。ブロックコード（シアラー・サウンド）の代名詞。"
+],
+[
+    "sf_hb13",
+    "Milestones",
+    "マイルストーンズ (新盤)",
+    "Hard Bop",
+    1958,
+    "miles_davis",
+    "マイルストーンズ milestones マイルスデイヴィス モードジャズ ドリアン コルトレーン",
+    "モード・ジャズの夜明けを告げた記念碑的名曲。マイルス、コルトレーン、キャノンボールの三管が躍動。"
+],
+[
+    "sf_hb14",
+    "All Blues",
+    "オール・ブルース",
+    "Hard Bop",
+    1959,
+    "miles_davis",
+    "オールブルース all blues マイルスデイヴィス カインドオブブルー 6/8拍子",
+    "名盤『Kind of Blue』収録。6/8拍子のゆったりとしたトレモロに導かれるモーダル・ブルース。"
+],
+[
+    "sf_hb15",
+    "Seven Steps to Heaven",
+    "天国への七つの階段",
+    "Hard Bop",
+    1963,
+    "miles_davis",
+    "天国への七つの階段 seven steps to heaven マイルス ハービーハンコック トニーウィリアムス",
+    "第2期クインテットの船出を飾る名曲。7つの音階を駆け上がるようなスリリングなテーマ。"
+],
+[
+    "sf_hb16",
+    "Impressions",
+    "インプレッションズ",
+    "Hard Bop",
+    1961,
+    "john_coltrane",
+    "インプレッションズ impressions ジョンコルトレーン ソーホワット モード マッコイタイナー",
+    "『So What』と同じDドリアン／Ebドリアンの構成の上で、コルトレーンが激しいシーツ・オブ・サウンドを爆発させる。"
+],
+[
+    "sf_hb17",
+    "Naima",
+    "ネイマ",
+    "Hard Bop",
+    1959,
+    "john_coltrane",
+    "ネイマ naima ジョンコルトレーン 妻 ジャイアントステップス 静謐なバラード",
+    "愛妻ネイマに捧げた永遠のバラード。ベースのペダルポイントに支えられた神聖な旋律美。"
+],
+[
+    "sf_hb18",
+    "Moment's Notice",
+    "モーメンツ・ノーティス",
+    "Hard Bop",
+    1957,
+    "john_coltrane",
+    "モーメンツノーティス moments notice ジョンコルトレーン ブルートレイン 高速転調",
+    "名盤『Blue Train』収録。躍動するイントロから矢継ぎ早に転調していく快感に満ちたハードバップ。"
+],
+[
+    "sf_hb19",
+    "Lazy Bird",
+    "レイジー・バード",
+    "Hard Bop",
+    1957,
+    "john_coltrane",
+    "レイジーバード lazy bird ジョンコルトレーン ブルートレイン スタンダード",
+    "『Lady Bird』にインスパイアされたコルトレーンの名曲。親しみやすいテーマと爽快な疾走感。"
+],
+[
+    "sf_hb20",
+    "Blues March",
+    "ブルース・マーチ",
+    "Hard Bop",
+    1958,
+    "art_blakey",
+    "ブルースマーチ blues march アートブレイキー ベニーゴルソン モーニン 行進曲",
+    "ベニー・ゴルソン作曲。ドラムのマーチング・ロールからブルースへと展開する、JM屈指の人気曲。"
+],
+[
+    "sf_hb21",
+    "Dat Dere",
+    "ダット・デア (あれなあに？)",
+    "Hard Bop",
+    1960,
+    "art_blakey",
+    "ダットデア dat dere ボビーティモンズ キャノンボール 子どものつぶやき ゴスペル",
+    "幼い子どもの「あれなあに？」という無邪気な質問をテーマにした、ティモンズ作曲のファンキー名曲。"
+],
+[
+    "sf_hb22",
+    "Sister Sadie",
+    "シスター・セイディ",
+    "Hard Bop",
+    1959,
+    "horace_silver",
+    "シスターセイディ sister sadie ホレスシルヴァー ゴスペル リフ ファンキージャズ",
+    "ホレス・シルヴァーのゴスペル趣味全開のファンキー・チューン。ノリの良い手拍子を誘うリフ。"
+],
+[
+    "sf_hb23",
+    "Nica's Dream",
+    "ニカの夢",
+    "Hard Bop",
+    1956,
+    "horace_silver",
+    "ニカの夢 nicas dream ホレスシルヴァー パノニカ男爵夫人 ラテン スウィング",
+    "ジャズのパトロン「ニカ男爵夫人」に捧げられた名曲。ラテンとスウィングを行き来する構成が魅力。"
+],
+[
+    "sf_hb24",
+    "Speak No Evil",
+    "スピーク・ノー・イーヴル (悪を言わざる)",
+    "Hard Bop",
+    1964,
+    "wayne_shorter",
+    "スピークノーイーヴル speak no evil ウェインショーター モーダル 謎めいた美しさ",
+    "ショーターの神秘的な世界観が凝縮された傑作。魔術的なハーモニーと美しいソロ空間。"
+],
+[
+    "sf_hb25",
+    "JuJu",
+    "ジュジュ",
+    "Hard Bop",
+    1964,
+    "wayne_shorter",
+    "ジュジュ juju ウェインショーター アフリカン ポリリズム マッコイタイナー",
+    "全音音階や呪術的モチーフを大胆に用いた、ショーター初期を代表するプログレッシブな名曲。"
+],
+[
+    "sf_hb26",
+    "Dolphin Dance",
+    "ドルフィン・ダンス",
+    "Hard Bop",
+    1965,
+    "herbie_hancock",
+    "ドルフィンダンス dolphin dance ハービーハンコック メイデンヴォヤージ イルカ",
+    "海を跳ねるイルカのように優雅で知的な名曲。ジャズピアノ学習者の憧れのスタンダード。"
+],
+[
+    "sf_hb27",
+    "Chameleon",
+    "カメレオン",
+    "Hard Bop",
+    1973,
+    "herbie_hancock",
+    "カメレオン chameleon ハービーハンコック ヘッドハンターズ ファンク シンセベース",
+    "ファンクとジャズを完全融合させたモンスター・トラック。世界中のダンサーとプレイヤーを虜にしたベースライン。"
+],
+[
+    "sf_hb28",
+    "The Sidewinder",
+    "ザ・サイドワインダー",
+    "Hard Bop",
+    1963,
+    "lee_morgan",
+    "サイドワインダー the sidewinder リーモーガン ブルーノート最大のヒット ジャズロック",
+    "ブルーノートレーベルを財政的危機から救った空前の大ヒット曲。小気味よいジャズロック・ビート。"
+],
+[
+    "sf_hb29",
+    "St. Thomas",
+    "セント・トーマス",
+    "Hard Bop",
+    1956,
+    "sonny_rollins",
+    "セントトーマス st thomas ソニーロリンズ カリプソ サキソフォンコロッサス",
+    "カリブ海のカリプソのリズムをジャズに取り入れたロリンズの陽気な名曲。マックス・ローチのドラムも最高。"
+],
+[
+    "sf_pb05",
+    "Return to Forever",
+    "リターン・トゥ・フォーエヴァー",
+    "Post-Bop",
+    1972,
+    "chick_corea",
+    "リターントゥフォーエヴァー return to forever チックコリア フェンダーローズ 浮遊感",
+    "カモメのジャケットで有名な名盤のタイトル曲。エレピの美しい残響が神秘的な世界へと誘う。"
+],
+[
+    "sf_pb06",
+    "Crystal Silence",
+    "クリスタル・サイレンス (水晶の静けさ)",
+    "Post-Bop",
+    1972,
+    "chick_corea",
+    "クリスタルサイレンス crystal silence チックコリア ゲイリーバートン デュオ 透明感",
+    "チック・コリアとゲイリー・バートン（ヴィブラフォン）による透明感あふれる室内楽ジャズの至宝。"
+],
+[
+    "sf_pb07",
+    "La Fiesta",
+    "ラ・フィエスタ (祭り)",
+    "Post-Bop",
+    1972,
+    "chick_corea",
+    "ラフィエスタ la fiesta チックコリア フラメンコ スペイン スタンゲッツ",
+    "フラメンコ調の情熱的なメロディと変拍子。スタン・ゲッツの名演でも広く知られる人気曲。"
+],
+[
+    "sf_pb08",
+    "Windows",
+    "ウィンドウズ",
+    "Post-Bop",
+    1966,
+    "chick_corea",
+    "ウィンドウズ windows チックコリア ワルツ スタンダード 初期名作",
+    "チック初期の傑作ジャズワルツ。水彩画のように美しく移ろうハーモニーは全ピアニストの愛奏曲。"
+],
+[
+    "sf_pb09",
+    "Got a Match?",
+    "ガット・ア・マッチ？",
+    "Post-Bop",
+    1986,
+    "chick_corea",
+    "ガットアマッチ got a match チックコリア エレクトリックバンド デイヴウェックル 超絶技巧",
+    "エレクトリック・バンドの超絶技巧ファスト・チューン。人間業とは思えないアンサンブルの極み。"
+],
+[
+    "sf_pb10",
+    "My Song",
+    "マイ・ソング",
+    "Post-Bop",
+    1977,
+    "keith_jarrett",
+    "マイソング my song キースジャレット ヤンガルバレク ヨーロピアンクインテット 叙情詩",
+    "ヤン・ガルバレクの澄んだサックスとキースの温かなピアノが奏でる、心洗われる名旋律。"
+],
+[
+    "sf_pb11",
+    "Over the Rainbow (Keith Jarrett Live)",
+    "虹の彼方に (キース・ジャレット・ライヴ)",
+    "Post-Bop",
+    1995,
+    "keith_jarrett",
+    "虹の彼方に over the rainbow キースジャレット スカラ座 ミラノ アンコール 名演",
+    "ミラノ・スカラ座など世界各地のアンコールで披露され、聴衆を涙させた奇跡のソロピアノ名演。"
+],
+[
+    "sf_pb12",
+    "Danny Boy (Keith Jarrett Live in Tokyo)",
+    "ダニー・ボーイ (ロンドンデリーの歌)",
+    "Post-Bop",
+    2002,
+    "keith_jarrett",
+    "ダニーボーイ danny boy キースジャレット 東京文化会館 アンコール アイルランド民謡",
+    "2002年東京公演のアンコールで演奏された、静謐と敬虔さに満ちたピアノソロの最高傑作。"
+],
+[
+    "sf_pb13",
+    "Last Train Home",
+    "ラスト・トレイン・ホーム",
+    "Post-Bop",
+    1987,
+    "pat_metheny",
+    "ラストトレインホーム last train home パットメセニー シタール ジョジョの奇妙な冒険 ノスタルジー",
+    "汽車のリズムに乗って流れる切ないシタールギターのメロディ。夕暮れの旅情を呼び起こす大名曲。"
+],
+[
+    "sf_pb14",
+    "James",
+    "ジェームス",
+    "Post-Bop",
+    1982,
+    "pat_metheny",
+    "ジェームス james パットメセニー ジェームステイラー オフランプ 爽快",
+    "シンガーソングライターのジェームス・テイラーに捧げられた、爽やかで優しいアコースティック・ナンバー。"
+],
+[
+    "sf_pb15",
+    "Minuano (Six Eight)",
+    "ミヌアーノ (6/8)",
+    "Post-Bop",
+    1987,
+    "pat_metheny",
+    "ミヌアーノ minuano パットメセニー スティルライフ ブラジル風 雄大な自然",
+    "南米の大地に吹く風（ミヌアーノ）を描いた壮大な組曲風名曲。6/8拍子の雄大なうねり。"
+],
+[
+    "sf_pb16",
+    "Bright Size Life",
+    "ブライト・サイズ・ライフ",
+    "Post-Bop",
+    1976,
+    "pat_metheny",
+    "ブライトサイズライフ bright size life パットメセニー ジャコパストリアス デビュー作",
+    "メセニー21歳の鮮烈なデビュー盤表題曲。ジャコ・パストリアスのフレットレスベースとの歴史的対話。"
+],
+[
+    "sf_pb17",
+    "Teen Town",
+    "ティーン・タウン",
+    "Post-Bop",
+    1977,
+    "weather_report",
+    "ティータウン teen town ウェザーリポート ジャコパストリアス ヘヴィウェザー ベースソロ",
+    "ジャコ・パストリアスが全パートをリードし、エレキベースの概念を永遠に変えた超絶技巧曲。"
+],
+[
+    "sf_pb18",
+    "Havona",
+    "ハヴォナ",
+    "Post-Bop",
+    1977,
+    "weather_report",
+    "ハヴォナ havona ウェザーリポート ジャコパストリアス ジョーザヴィヌル 高速アルペジオ",
+    "ジャコの超速アルペジオとザヴィヌルの荘厳なシンセサイザーが織りなすフュージョンの最高到達点。"
+],
+[
+    "sf_st09",
+    "Smoke Gets in Your Eyes",
+    "煙が目にしみる",
+    "Standards",
+    1933,
+    "jerome_kern",
+    "煙が目にしみる smoke gets in your eyes ジェロームカーン プラターズ 名バラード",
+    "失恋の涙を「煙が目に入っただけ」と隠す男の切なさ。プラターズの歌唱でも世界的スタンダード。"
+],
+[
+    "sf_st10",
+    "The Way You Look Tonight",
+    "今宵の君は",
+    "Standards",
+    1936,
+    "jerome_kern",
+    "今宵の君は the way you look tonight ジェロームカーン フレッドアステア アカデミー賞",
+    "アステアが映画で歌いアカデミー歌曲賞を受賞。洗練されたスウィング感と甘い告白の調べ。"
+],
+[
+    "sf_st11",
+    "Someone to Watch Over Me",
+    "誰かが私を見つめてる",
+    "Standards",
+    1926,
+    "george_gershwin",
+    "誰かが私を見つめてる someone to watch over me ガーシュウィン ピアノバラード 愛の守護者",
+    "ガーシュウィンの優しい人柄がにじむ名バラード。シンプルで心温まる和音進行がピアニストに大人気。"
+],
+[
+    "sf_st12",
+    "Embraceable You",
+    "エンブレイサブル・ユー (抱きしめたいあなた)",
+    "Standards",
+    1928,
+    "george_gershwin",
+    "エンブレイサブルユー embraceable you ガーシュウィン チャーリーパーカー 名演",
+    "パーカーの名演でも知られるガーシュウィンの傑作。優雅に舞うような旋律とロマンチックな歌詞。"
+],
+[
+    "sf_st13",
+    "Love for Sale",
+    "ラブ・フォー・セール (愛の安売り)",
+    "Standards",
+    1930,
+    "cole_porter",
+    "ラブフォーセール love for sale コールポーター キャノンボール マイルス マイナーメジャー",
+    "娼婦の哀歌として書かれたコール・ポーターの異色作。キャノンボールとマイルスの快演で大人気。"
+],
+[
+    "sf_st14",
+    "What Is This Thing Called Love?",
+    "恋とは何でしょう",
+    "Standards",
+    1929,
+    "cole_porter",
+    "恋とは何でしょう what is this thing called love コールポーター ビバップ素材 ホットハウス",
+    "タッド・ダメロンが『Hot House』の元ネタにしたように、ビバップの即興素材としても愛され続ける名曲。"
+],
+[
+    "sf_st15",
+    "My Romance",
+    "マイ・ロマンス",
+    "Standards",
+    1935,
+    "richard_rodgers",
+    "マイロマンス my romance リチャードロジャース ビルエヴァンス 清楚 バラード",
+    "ビル・エヴァンスが愛奏したロジャースの珠玉のナンバー。「月明かりも星もいらない、あなたがいれば」。"
+],
+[
+    "sf_st16",
+    "Have You Met Miss Jones?",
+    "ジョーンズ嬢に会ったかい？",
+    "Standards",
+    1937,
+    "richard_rodgers",
+    "ジョーンズ嬢に会ったかい have you met miss jones リチャードロジャース コルトレーンチェンジ ブリッジ転調",
+    "Bセクションの長3度転調がコルトレーン・チェンジの元になったとされる、ハーモニー探求の名教材。"
+],
+[
+    "sf_st17",
+    "There Will Never Be Another You",
+    "あなたなしでは (もう二度と)",
+    "Standards",
+    1942,
+    "harry_warren",
+    "ゼアウィルネバービーアナザーユー there will never be another you ハリーウォーレン 定番ジャムセッション",
+    "明るく前向きな響きと素直なツーファイブ進行で、世界中のジャズ・セッションで最も演奏される基本曲。"
+],
+[
+    "sf_st18",
+    "Stella by Starlight",
+    "星影のステラ",
+    "Standards",
+    1944,
+    "victor_young",
+    "星影のステラ stella by starlight ヴィクターヤング 不吉からの転調 映画音楽 スタンダード",
+    "映画『呪いの家』の劇中歌。ミステリアスなEm7(b5)始まりから息をのむ美しさへと展開する和声の奇跡。"
+],
+[
+    "sf_st19",
+    "When I Fall in Love",
+    "恋に落ちた時",
+    "Standards",
+    1952,
+    "victor_young",
+    "恋に落ちた時 when i fall in love ヴィクターヤング ナットキングコール バラード",
+    "ナット・キング・コールの歌声やマイルスのミュートで不朽となった、永遠の愛を誓う甘美なバラード。"
+],
+[
+    "sf_st20",
+    "Beautiful Love",
+    "ビューティフル・ラブ",
+    "Standards",
+    1931,
+    "victor_young",
+    "ビューティフルラブ beautiful love ヴィクターヤング エヴァンス マイナーツーファイブ",
+    "Dmで始まる哀愁のマイナー・チューン。エヴァンスの流麗な演奏をはじめ、ピアノトリオの定番。"
+],
+[
+    "sf_st21",
+    "Georgia on My Mind",
+    "我が心のジョージア",
+    "Standards",
+    1930,
+    "hoagy_carmichael",
+    "我が心のジョージア georgia on my mind ホーギーカーマイケル レイチャールズ ジョージア州歌",
+    "レイ・チャールズの魂の熱唱でジョージア州歌にもなった、アメリカン・ポピュラー音楽の最高峰。"
+],
+[
+    "sf_st22",
+    "Stardust",
+    "スターダスト",
+    "Standards",
+    1927,
+    "hoagy_carmichael",
+    "スターダスト stardust ホーギーカーマイケル 星屑 世紀の名曲 コールマンホーキンス",
+    "「星屑の砂漠に置き忘れた恋の歌」。20世紀で最も美しい旋律と讃えられるカーマイケルの最高傑作。"
+],
+[
+    "sf_b27",
+    "Correnteza",
+    "コヘンテザ (激流 / 小川の流れ)",
+    "Bossa",
+    1973,
+    "jobim",
+    "コヘンテザ correnteza ジョビン ブラジル ルイスボンファ 小川",
+    "森を抜けて流れる川と大自然の息吹を描いた、ジョビン晩年の詩情あふれるボサノバ。"
+],
+[
+    "sf_b28",
+    "Estrada do Sol",
+    "太陽の道",
+    "Bossa",
+    1958,
+    "jobim",
+    "太陽の道 estrada do sol ジョビン ドロレスデュラン 朝の光 初恋",
+    "朝露が光る道を恋人と歩く情景を歌った、ジョビン初期のみずみずしいボサノバ／サンバ・カンサォン。"
+],
+[
+    "sf_b29",
+    "Se Todos Fossem Iguais a Você",
+    "あなたのような人ばかりなら (Someone to Light Up My Life)",
+    "Bossa",
+    1956,
+    "jobim",
+    "あなたのような人ばかりなら se todos fossem iguais a voce ジョビン 黒いオルフェ",
+    "劇作家ヴィニシウスとの黄金コンビが誕生した記念碑的名バラード。世界への感謝を歌う。"
+],
+[
+    "sf_b30",
+    "Vivo Sonhando",
+    "夢見る人 (Dreamer)",
+    "Bossa",
+    1962,
+    "jobim",
+    "夢見る人 vivo sonhando dreamer ジョビン ゲッツジルベルト",
+    "白日夢を見ているような浮遊感あるメロディ。『Getz/Gilberto』の名演でも世界中を魅了。"
+],
+[
+    "sf_b31",
+    "Samba do Avião",
+    "ジェット機のサンバ (Song of the Jet)",
+    "Bossa",
+    1962,
+    "jobim",
+    "ジェット機のサンバ samba do aviao song of the jet リオデジャネイロ ガレオン空港",
+    "リオデジャネイロへ着陸する飛行機の窓から見下ろす美しい街並みを描いた、爽快感抜群のサンバ。"
+],
+[
+    "sf_c33",
+    "Love Theme from Lupin III",
+    "ルパン三世 愛のテーマ",
+    "Cinema",
+    1977,
+    "yuji_ohno",
+    "ルパン三世愛のテーマ love theme lupin 大野雄二 サックス ピアノ バラード",
+    "大野雄二の洗練されたコードワークと哀愁漂うサックスが胸を締めつける、日本シネマジャズの金字塔。"
+],
+[
+    "sf_c34",
+    "Theme from Lupin III '78",
+    "ルパン三世のテーマ '78",
+    "Cinema",
+    1978,
+    "yuji_ohno",
+    "ルパン三世のテーマ lupin theme 大野雄二 ユーアンドエクスプロージョンバンド フュージョン",
+    "圧倒的なブラスセクションとファンキーなベースラインで日本中を熱狂させた、アニメ音楽の最高峰。"
+],
+[
+    "sf_c35",
+    "Cavatina",
+    "カヴァティーナ (映画『ディア・ハンター』)",
+    "Cinema",
+    1970,
+    "stanley_myers",
+    "カヴァティーナ cavatina スタンリーマイヤーズ ディアハンター ジョンウィリアムズ クラシックギター",
+    "映画『ディア・ハンター』の切ない主題歌。ジョン・ウィリアムズのギター演奏で世界を涙させた名旋律。"
+],
+[
+    "sf_c36",
+    "Taxi Driver Theme",
+    "タクシードライバーのテーマ",
+    "Cinema",
+    1976,
+    "bernard_herrmann",
+    "タクシードライバー taxi driver バーナードハーマン デニーロ アルトサックス 夜のニューヨーク",
+    "雨に濡れる深夜のニューヨーク。退廃的で美しく哀愁に満ちたアルトサックスの響き。"
+],
+[
+    "sf_c37",
+    "Alfie",
+    "アルフィー (映画『アルフィー』主題歌)",
+    "Cinema",
+    1966,
+    "burt_bacharach",
+    "アルフィー alfie バートバカラック ディオンヌワーウィック 転調 バラード",
+    "バカラック自身が「最も誇りに思う一曲」と語る、複雑かつ完璧な和声進行を持つ世紀の名バラード。"
+],
+[
+    "sf_c38",
+    "Smile",
+    "スマイル (映画『モダン・タイムス』)",
+    "Cinema",
+    1936,
+    "charlie_chaplin",
+    "スマイル smile チャップリン モダンタイムス ナットキングコール マイケルジャクソン",
+    "「心が痛むときも微笑んで」。チャップリンの深い人間愛が生んだ、世界を温かく包み込むメロディ。"
+]
 ];
 
   const SUPER_FAMOUS_WORKS = FAMOUS_RAW.map(([id, title, subtitle, genre, year, compKey, terms, desc_ja]) => {
@@ -2974,6 +4373,9 @@
   let currentTrackIdx = 0;
   let isOneLoop = false;
   let loopA = null, loopB = null;
+  let worksViewMode = store.get('jazz.worksViewMode', 'list');
+  let isListLoop = store.get('jazz.isListLoop', true);
+  let isShuffleActive = false;
 
   // Media Session 初期化
   function initMediaSession() {
@@ -3211,11 +4613,13 @@
   // オーディオイベント群
   audio.addEventListener('play', () => {
     $('pbPlay').textContent = '❚❚';
+    updatePlayingUI();
     $('pbPlay').setAttribute('aria-label', L('一時停止', 'Pause'));
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
   });
   audio.addEventListener('pause', () => {
     $('pbPlay').textContent = '▶';
+    updatePlayingUI();
     $('pbPlay').setAttribute('aria-label', L('再生', 'Play'));
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   });
@@ -3275,7 +4679,15 @@
       if (currentQueueIdx + 1 < currentQueue.length) {
         playQueueIndex(currentQueueIdx + 1);
       } else {
-        showToast(L('アルバムの全曲再生が完了しました', 'Playlist completed'));
+        if (isListLoop && currentQueue.length > 0) {
+          showToast(L('🔁 リストの最初に戻ってリピート再生します', '🔁 Looping to the start of playlist'));
+          if (isShuffleActive) {
+            currentQueue = currentQueue.sort(() => Math.random() - 0.5);
+          }
+          playQueueIndex(0);
+        } else {
+          showToast(L('リストの全曲再生が完了しました', 'Playlist completed'));
+        }
       }
     } else if (currentMode === 'random') {
       playNextRandomTrack();
@@ -3352,7 +4764,10 @@
     currentQueue = pool;
     currentQueueIdx = idx;
     $('queueCount').textContent = currentQueue.length;
-    $('pbModeBadge').textContent = `${L('アルバム:', 'Album:')} ${pl.name}`;
+    isShuffleActive = !!shuffle;
+    updatePbSubBtns();
+    const modePrefix = shuffle ? '🔀 ' + L('ランダム再生', 'Shuffle') : '▶ ' + L('シーケンス再生', 'Sequence');
+    $('pbModeBadge').textContent = `${modePrefix}: ${pl.name} [${idx + 1}/${currentQueue.length}]`;
     $('playerBar').classList.remove('hidden');
     document.body.classList.add('pb-active');
     playQueueIndex(idx);
@@ -3365,8 +4780,8 @@
     const name = $('wh').textContent || L('表示中の曲', 'Shown songs');
     startPlaylistFromIndex({ id: 'view_set', name, items: shownItems.map(x => ({ w: x.w, c: x.c })) }, 0, shuffle);
   }
-  $('btnPlayFavAll').onclick = () => playShown(false);
-  $('btnShuffleFav').onclick = () => playShown(true);
+  if ($('btnPlayFavAll')) $('btnPlayFavAll').onclick = () => playShown(false);
+  if ($('btnShuffleFav')) $('btnShuffleFav').onclick = () => playShown(true);
 
   // プレイリスト（アルバム）連続再生モード
   async function startPlaylistPlayback(pl) {
@@ -3385,15 +4800,49 @@
     playQueueIndex(0);
   }
 
+  function updatePlayingUI() {
+    const activeWid = curW ? String(curW.id) : null;
+    const isPlaying = !audio.paused && !!audio.src;
+    
+    // トラックリスト内の各行のハイライト＆再生ボタン同期
+    document.querySelectorAll('.track-row').forEach(row => {
+      const wid = row.dataset.wid;
+      const isCur = activeWid && wid === activeWid;
+      row.classList.toggle('playing', !!isCur);
+      const playBtn = row.querySelector('.track-play-btn');
+      if (playBtn) {
+        playBtn.classList.toggle('is-playing', !!(isCur && isPlaying));
+        playBtn.textContent = (isCur && isPlaying) ? '❚❚' : '▶';
+        playBtn.title = (isCur && isPlaying) ? L('一時停止', 'Pause') : L('この曲から再生', 'Play from here');
+      }
+      const eqSpan = row.querySelector('.track-playing-eq');
+      if (eqSpan) {
+        eqSpan.textContent = (isCur && isPlaying) ? '🔊' : '';
+      }
+    });
+
+    // カード表示内のクイック再生ボタン同期
+    document.querySelectorAll('.quick-play').forEach(btn => {
+      const wid = btn.dataset.qp;
+      const isCur = activeWid && wid === activeWid;
+      btn.textContent = (isCur && isPlaying) ? '❚❚' : '▶';
+      btn.classList.toggle('on', !!(isCur && isPlaying));
+    });
+  }
+
   async function playQueueIndex(idx) {
     if (idx < 0 || idx >= currentQueue.length) return;
     currentQueueIdx = idx;
     renderQueueList();
     const item = currentQueue[idx];
     curW = item.w; curC = item.c; pW = item.w; pC = item.c;
+    const plName = currentPlaylist ? currentPlaylist.name : L('楽曲リスト', 'Song List');
+    const modePrefix = isShuffleActive ? '🔀 ' + L('ランダム再生', 'Shuffle') : '▶ ' + L('シーケンス再生', 'Sequence');
+    $('pbModeBadge').textContent = `${modePrefix}: ${plName} [${idx + 1}/${currentQueue.length}]`;
     $('pbTitle').textContent = L('音源検索中…', 'Searching audio…');
     $('pbComposer').textContent = `${wTitle(curW)} — ${cshort(curC)}`;
     $('pbExtra').textContent = `[${idx + 1}/${currentQueue.length}]`;
+    updatePlayingUI();
 
     // Internet Archiveから音源検索
     const au = await findAudio(curW, curC);
@@ -3823,9 +5272,29 @@
     }
   }
 
-  // クイック再生
+  // クイック再生（現在表示中のリストをキューにしてその曲からシーケンス再生）
   async function startQuickPlay(wid) {
     unlockAudio();
+    // 現在再生中の曲が再度押された場合は一時停止/再開
+    if (curW && String(curW.id) === String(wid) && audio.src) {
+      if (audio.paused) {
+        audio.play().catch(() => {});
+      } else {
+        audio.pause();
+      }
+      updatePlayingUI();
+      return;
+    }
+
+    // 表示中のリスト（shownItems）からインデックスを探す
+    let targetIdx = shownItems.findIndex(it => String(it.w.id) === String(wid));
+    if (targetIdx !== -1) {
+      const plName = $('wh').textContent || L('楽曲リスト', 'Song List');
+      startPlaylistFromIndex({ id: 'view_set', name: plName, items: shownItems.map(x => ({ w: x.w, c: x.c })) }, targetIdx, isShuffleActive);
+      return;
+    }
+
+    // 検索結果等で shownItems にない場合のフォールバック
     const w = workSource().find(x => String(x.id) === wid) || SUPER_FAMOUS_WORKS.find(item => String(item.w.id) === wid)?.w;
     if (!w) return;
     const c = compOf(w) || SUPER_FAMOUS_WORKS.find(item => String(item.w.id) === wid)?.c;
@@ -4429,6 +5898,16 @@
 
   /* ---- 定番キー / BPM / グルーヴ / コード進行 / ワンポイント ---- */
   const JI = [
+    [/Confirmation/i, 'F Major', 220, 'ビバップ（高速スウィング）', '| F | Em7(b5) A7 | Dm7 G7 | Cm7 F7 | Bb7 | Am7 D7 | Gm7 C7 | F |', '全小節がⅡ-Ⅴで滑らかにつながるバップの極致。Aセクションの下降クリシェとブリッジの転調（Bb→Ab→Db）を意識して。'],
+    [/Billie's Bounce/i, 'F Major（ブルース）', 160, 'ミディアム・ファスト・ブルース', '| F7 | Bb7 | F7 | F7 | Bb7 | Bdim7 | F7 | D7(b9) | Gm7 | C7 | F7 D7 | Gm7 C7 |', 'チャーリー・パーカーのFブルース。小節アタマではなくシンコペーションで入るフレーズの練習に最適。'],
+    [/Night in Tunisia/i, 'D minor', 180, 'アフロキューバン / スウィング', '| Eb7 | Dm | Eb7 | Dm | Eb7 | Dm | Em7(b5) | A7(b9) |', 'A部はベースリフ主体のラテン（Eb7⇄Dm）、サビで4ビートスウィングへ切り替わるダイナミクスが爽快。'],
+    [/Spain/i, 'B minor', 130, 'フラメンコ・ジャズ（サンバ）', '| GMaj7 | F#7 | Em7 A7 | DMaj7 | G | C#7 | F# | F# |', 'ロドリーゴ『アランフェス協奏曲』のアダージョから始まるイントロと、急速調のサンバ・リズムの対比が圧巻。'],
+    [/Lullaby of Birdland/i, 'Ab Major（Fm始まり）', 125, 'ミディアム・スウィング', '| Fm | Bbm7 Eb7 | AbMaj7 | Bdim7 | Bbm7 | C7(b9) | Fm | Fm |', 'ジョージ・シェアリングの代表作。3rdと7thを重ねたブロックコード（シアラー・サウンド）の練習に最適。'],
+    [/Days of Wine and Roses/i, 'F Major', 120, 'ミディアム・スウィング', '| F | Eb7 | D7 | D7 | Gm7 | Bbm7 Eb7 | F | Am7(b5) D7 |', 'ヘンリー・マンシーニの甘美なハーモニー。Eb7（裏コード的アプローチ）からD7への進行が最大の聴きどころ。'],
+    [/St\.? ?Thomas/i, 'C Major', 208, 'カリプソ / スウィング', '| C | C | G7 | C | C | C | G7 | C |', 'カリブ海のカリプソのリズム。左手はオンパ・ベース、右手は快活な三連符フレーズを乗せて楽しく。'],
+    [/Cavatina/i, 'E Major', 80, 'アルペジオ・バラード', '| E | E | G#m | G#m | A | A | F#m7 | B7 |', '映画『ディア・ハンター』の切ない主題歌。流れるような16分音符のアルペジオと伸びやかな主旋律。'],
+    [/Lupin|ルパン/i, 'C minor / Eb Major', 85, 'ジャズ・バラード', '| Cm | Fm7 Bb7 | EbMaj7 | AbMaj7 | Dm7(b5) | G7(b9) | Cm | C7 |', '大野雄二の切ない美旋律。内声の対位法的な動きと、ペダルを効かせたピアノ伴奏が心に響きます。'],
+    [/When the Saints/i, 'F Major', 140, 'ディキシーランド・スウィング', '| F | F | F | C7 | F | F7 | Bb | Bdim7 | F/C | C7 | F | F |', 'ニューオーリンズ・ジャズの基礎。弾むような2ビートと裏拍のクラップでバンドの一体感を作ります。'],
     [/Ipanema/i, 'F Major', 128, 'ボサノバ（バチーダ）', '| FMaj7 | FMaj7 | G7(13) | G7(13) | Gm7 | Gb7(#11) | FMaj7 | Gb7(#11) |', 'A部は F → G7 → Gm7 → Gb7 の半音下降が聴かせどころ。左手はルート＋5度を交互に、右手は3rd・7thの2音ヴォイシングで軽く刻むとボサの空気感が出ます。ブリッジ（Gb）の転調感を丁寧に。'],
     [/Autumn Leaves/i, 'G minor（Em/Cmも多用）', 120, 'ミディアム・スウィング', '| Cm7 | F7 | BbMaj7 | EbMaj7 | Am7(b5) | D7(b9) | Gm6 | Gm6 |', 'Bb長調のⅡ-Ⅴ-Ⅰ と Gm のⅡ-Ⅴ-ⅰ が連続する名教材。3rd→7th の最短移動（ガイドトーン）をなぞり、D7(b9) ではハーモニック・マイナーで弾き切る練習を。'],
     [/Fly Me to the Moon/i, 'C Major（Aマイナー始まり）', 124, 'ミディアム・スウィング／ボサ', '| Am7 | Dm7 | G7 | CMaj7 | FMaj7 | Bm7(b5) | E7(b9) | Am7 |', '4度進行（サークル・オブ・フィフス）が続く構成。ボサ版は左手2拍パターン＋右手の軽いシンコペで。アドリブはAm7→Dm7→G7→Cの流れでコードトーンを狙う。'],
@@ -4516,17 +5995,28 @@
     return out;
   }
 
-  /* ---- お気に入りバー（常時表示・ラベル動的） ---- */
+  /* ---- コントロールバー（曲数・シーケンス再生・シャッフル再生）更新 ---- */
   function updateFavBar() {
-    const bar = $('favPlayBar'); if (!bar) return;
     const n = shownItems.length;
-    let a, b;
-    if (view === 'favW') { a = L('お気に入りを全曲再生', 'Play all favorites'); b = L('シャッフル再生', 'Shuffle'); }
-    else if (current && !isSetView()) { const nm = cshort(current); a = L(`${nm} の全曲を再生`, `Play all of ${nm}`); b = L(`${nm} をランダム再生`, `Shuffle ${nm}`); }
-    else { a = L('表示中の全曲を再生', 'Play all shown'); b = L('ランダム（シャッフル）再生', 'Shuffle play'); }
-    $('btnPlayFavAll').textContent = `▶ ${a} (${n})`;
-    $('btnShuffleFav').textContent = `🔀 ${b}`;
-    bar.classList.remove('hidden');
+    if ($('worksCountBadge')) $('worksCountBadge').textContent = `${n}曲`;
+    if ($('btnSeqPlay')) {
+      const btnText = $('btnSeqPlay').querySelector('.btn-text');
+      if (btnText) btnText.textContent = L(`シーケンス再生（全${n}曲順番）`, `Play Sequence (${n})`);
+    }
+    if ($('btnShufflePlay')) {
+      const btnText = $('btnShufflePlay').querySelector('.btn-text');
+      if (btnText) btnText.textContent = L(`ランダム再生（全${n}曲シャッフル）`, `Shuffle Play (${n})`);
+    }
+    const bar = $('favPlayBar');
+    if (bar) {
+      let a, b;
+      if (view === 'favW') { a = L('お気に入りを全曲再生', 'Play all favorites'); b = L('シャッフル再生', 'Shuffle'); }
+      else if (current && !isSetView()) { const nm = cshort(current); a = L(`${nm} の全曲を再生`, `Play all of ${nm}`); b = L(`${nm} をランダム再生`, `Shuffle ${nm}`); }
+      else { a = L('表示中の全曲を再生', 'Play all shown'); b = L('ランダム（シャッフル）再生', 'Shuffle play'); }
+      if ($('btnPlayFavAll')) $('btnPlayFavAll').textContent = `▶ ${a} (${n})`;
+      if ($('btnShuffleFav')) $('btnShuffleFav').textContent = `🔀 ${b}`;
+      bar.classList.remove('hidden');
+    }
   }
 
   /* ---- ジャンル／超有名／アルバム／お気に入りの楽曲一覧 ---- */
@@ -4643,26 +6133,101 @@
     const list = view.startsWith('pl:') ? flt : sortList(flt);
     shownItems = list.map(w => ({ w, c: compOf(w) })).filter(x => x.c);
     updateFavBar();
-    if (!list.length) { box.innerHTML = `<p class="full muted" style="font-size:.9rem">${view === 'favW' && !favW.length ? tx('お気に入りの楽曲はまだありません。楽曲カードの ☆ で追加できます。', 'No favorite works yet. Use ☆ on a work card.') : tx('条件に合う作品がありません。', 'No matching works.')}</p>`; return; }
-    box.innerHTML = list.slice(0, 150).map(w => {
-      const c = compOf(w), m = jinfo(w, c), d = diffOf(w, c || {}), f = isFavW(w);
-      return `<div class="cw"><button data-w="${esc(w.id)}" class="card wc">
-        <span class="wt serif">${esc(wTitle(w))}</span>
-        ${w.subtitle ? `<span class="sm muted">${esc(wSub(w))}</span>` : ''}
+
+    const countBadge = $('worksCountBadge');
+    if (countBadge) countBadge.textContent = `${list.length}曲`;
+
+    if (!list.length) {
+      box.className = 'grid w';
+      box.innerHTML = `<p class="full muted" style="font-size:.9rem">${view === 'favW' && !favW.length ? tx('お気に入りの楽曲はまだありません。楽曲リストの ☆ で追加できます。', 'No favorite works yet. Use ☆ on a work row.') : tx('条件に合う作品がありません。', 'No matching works.')}</p>`;
+      return;
+    }
+
+    const activeWid = curW ? String(curW.id) : null;
+    const isPlaying = !audio.paused && !!audio.src;
+
+    if (worksViewMode === 'list') {
+      // ☰ トラックリスト表示（プレイリスト形式）
+      box.className = 'tracklist-view';
+      box.innerHTML = list.slice(0, 200).map((w, idx) => {
+        const c = compOf(w), m = jinfo(w, c), d = diffOf(w, c || {}), f = isFavW(w);
+        const isCur = activeWid && String(w.id) === activeWid;
+        return `<div class="track-row ${isCur ? 'playing' : ''}" data-wid="${esc(w.id)}">
+          <!-- 1. トラック番号 / インジケーター -->
+          <div class="track-num-col">
+            <span class="track-num">${String(idx + 1).padStart(2, '0')}</span>
+            <span class="track-playing-eq">${isCur && isPlaying ? '🔊' : ''}</span>
+          </div>
+
+          <!-- 2. 再生ボタン -->
+          <div class="track-play-col">
+            <button class="track-play-btn ${isCur && isPlaying ? 'is-playing' : ''}" data-qp="${esc(w.id)}" title="${isCur && isPlaying ? esc(L('一時停止', 'Pause')) : esc(L('この曲から再生', 'Play from here'))}" aria-label="再生">
+              ${isCur && isPlaying ? '❚❚' : '▶'}
+            </button>
+          </div>
+
+          <!-- 3. 曲名・サブタイトル・1行解説 -->
+          <div class="track-info-col" data-w="${esc(w.id)}" title="${esc(L('詳細情報・コード譜を見る', 'View details & chords'))}">
+            <div class="track-title-line">
+              <span class="track-title serif">${esc(wTitle(w))}</span>
+              ${w.subtitle ? `<span class="track-sub muted">(${esc(wSub(w))})</span>` : ''}
+            </div>
+            ${w.desc_ja ? `<p class="track-desc">${esc(w.desc_ja)}</p>` : ''}
+          </div>
+
+          <!-- 4. アーティスト名 -->
+          <div class="track-artist-col">
+            ${c ? `<button class="track-artist-btn" data-filter-comp="${esc(c.id)}" title="${esc(cfull(c))} の曲一覧を表示">${esc(cshort(c))}</button>` : ''}
+          </div>
+
+          <!-- 5. タグ情報 -->
+          <div class="track-tags-col">
+            <span class="tag-badge genre">${esc(genreLabel(w.genre))}</span>
+            <span class="tag-badge bpm">♩${esc(m.bpm)}</span>
+            ${m.hit && m.key ? `<span class="tag-badge key">${esc(m.key.split('（')[0])}</span>` : ''}
+            <span class="tag-badge diff" title="ピアノ難度: ${d.stars}/5">${starStr(d.stars)}</span>
+            ${ydisp(Y[w.id]) ? `<span class="tag-badge year">${esc(ydisp(Y[w.id]))}</span>` : ''}
+          </div>
+
+          <!-- 6. アクションボタン群 -->
+          <div class="track-actions-col">
+            <button class="track-act-btn fav-btn ${f ? 'active' : ''}" data-quick-fav="${esc(w.id)}" title="${f ? esc(L('お気に入りから外す', 'Remove favorite')) : esc(L('お気に入りに追加', 'Add favorite'))}">
+              ${f ? '★' : '☆'}
+            </button>
+            <button class="track-act-btn album-btn" data-album-add="${esc(w.id)}" title="${esc(L('アルバムに追加 / 解除', 'Add/Remove Album'))}">
+              📁＋
+            </button>
+            <button class="track-act-btn modal-btn" data-w="${esc(w.id)}" title="${esc(L('詳細・コード譜・練習', 'Details & Chords'))}">
+              ⓘ
+            </button>
+          </div>
+        </div>`;
+      }).join('') + (list.length > 200 ? `<p class="full sm muted">${tx('先頭200件を表示中。絞り込み検索をご利用ください。', 'Showing the first 200. Use the filter to narrow down.')}</p>` : '');
+    } else {
+      // ⊞ カード表示（従来のGrid形式）
+      box.className = 'grid w';
+      box.innerHTML = list.slice(0, 150).map(w => {
+        const c = compOf(w), m = jinfo(w, c), d = diffOf(w, c || {}), f = isFavW(w);
+        const isCur = activeWid && String(w.id) === activeWid;
+        return `<div class="cw"><button data-w="${esc(w.id)}" class="card wc">
+          <span class="wt serif">${esc(wTitle(w))}</span>
+          ${w.subtitle ? `<span class="sm muted">${esc(wSub(w))}</span>` : ''}
           ${w.desc_ja ? `<span class="sm" style="color:var(--text-muted);font-size:0.82rem;margin-top:0.25rem;line-height:1.4">${esc(w.desc_ja)}</span>` : ''}
-        ${c && !current ? `<span class="sm rose">${esc(cshort(c))}</span>` : ''}
-        <span class="tags">
-          <span class="tag s">${esc(L('ピアノ難度', 'Piano'))} ${starStr(d.stars)}${d.arr ? esc(L('（編曲想定）', ' (arr.)')) : ''}</span>
-          <span class="tag s">${esc(L('知名度', 'Fame'))} ${starStr(fameOf(w))}</span>
-          <span class="tag">${esc(ydisp(Y[w.id]))}</span>
-          <span class="tag rose">${esc(genreLabel(w.genre))}</span>
-          <span class="tag">♩ ${esc(m.bpm)}</span>
-          ${m.hit ? `<span class="tag">${esc(m.key)}</span>` : ''}
-          ${+w.recommended ? `<span class="tag b">${esc(L('おすすめ', 'Recommended'))}</span>` : ''}
-        </span></button>
-        <button class="quick-play" data-qp="${esc(w.id)}" title="${esc(L('すぐに再生', 'Play now'))}" aria-label="${esc(L('すぐに再生', 'Play now'))}">▶</button>
-        <button class="star ${f ? '' : 'off'}" data-fw="${esc(w.id)}" aria-label="${esc(f ? L('お気に入り・アルバム振り分け', 'Favorites & Albums') : L('お気に入り・アルバム振り分け', 'Favorites & Albums'))}">${f ? '★' : '☆'}</button></div>`;
-    }).join('') + (list.length > 150 ? `<p class="full sm muted">${tx('先頭150件を表示中。絞り込み検索をご利用ください。', 'Showing the first 150. Use the filter to narrow down.')}</p>` : '');
+          ${c && !current ? `<span class="sm rose">${esc(cshort(c))}</span>` : ''}
+          <span class="tags">
+            <span class="tag s">${esc(L('ピアノ難度', 'Piano'))} ${starStr(d.stars)}${d.arr ? esc(L('（編曲想定）', ' (arr.)')) : ''}</span>
+            <span class="tag s">${esc(L('知名度', 'Fame'))} ${starStr(fameOf(w))}</span>
+            <span class="tag">${esc(ydisp(Y[w.id]))}</span>
+            <span class="tag rose">${esc(genreLabel(w.genre))}</span>
+            <span class="tag">♩ ${esc(m.bpm)}</span>
+            ${m.hit ? `<span class="tag">${esc(m.key)}</span>` : ''}
+            ${+w.recommended ? `<span class="tag b">${esc(L('おすすめ', 'Recommended'))}</span>` : ''}
+          </span></button>
+          <button class="quick-play ${isCur && isPlaying ? 'on' : ''}" data-qp="${esc(w.id)}" title="${esc(L('すぐに再生', 'Play now'))}" aria-label="${esc(L('すぐに再生', 'Play now'))}">${isCur && isPlaying ? '❚❚' : '▶'}</button>
+          <button class="star ${f ? '' : 'off'}" data-fw="${esc(w.id)}" aria-label="${esc(f ? L('お気に入り・アルバム振り分け', 'Favorites & Albums') : L('お気に入り・アルバム振り分け', 'Favorites & Albums'))}">${f ? '★' : '☆'}</button></div>`;
+      }).join('') + (list.length > 150 ? `<p class="full sm muted">${tx('先頭150件を表示中。絞り込み検索をご利用ください。', 'Showing the first 150. Use the filter to narrow down.')}</p>` : '');
+    }
+    updatePlayingUI();
   }
   $('wq').addEventListener('input', renderWorks);
   $('works').addEventListener('click', e => {
@@ -4677,15 +6242,52 @@
       return;
     }
 
+    // アーティストボタン（クリックでそのアーティストの曲一覧を表示）
+    const artBtn = e.target.closest('[data-filter-comp]');
+    if (artBtn) {
+      e.stopPropagation();
+      const cid = artBtn.dataset.filterComp;
+      const comp = CUS_C.find(c => c.id === cid) || composers.find(c => c.id === cid) || RC.get(cid);
+      if (comp) selectComposer(comp);
+      return;
+    }
+
+    // お気に入り即時登録ボタン（★/☆）
+    const qFav = e.target.closest('[data-quick-fav]');
+    if (qFav) {
+      e.stopPropagation();
+      const w = workSource().find(x => String(x.id) === qFav.dataset.quickFav);
+      if (w) {
+        toggleFavW(w, compOf(w));
+        showToast(isFavW(w) ? L(`★「${wTitle(w)}」をお気に入りに追加しました`, `★ Added "${wTitle(w)}" to favorites`) : L(`☆「${wTitle(w)}」をお気に入りから外しました`, `Removed "${wTitle(w)}" from favorites`));
+      }
+      return;
+    }
+
+    // アルバム追加ポップアップボタン（📁＋）
+    const albumAddBtn = e.target.closest('[data-album-add]');
+    if (albumAddBtn) {
+      e.stopPropagation();
+      const w = workSource().find(x => String(x.id) === albumAddBtn.dataset.albumAdd);
+      if (w) openFavPopup(w, compOf(w), albumAddBtn);
+      return;
+    }
+
+    // カード表示用スターボタン
     const starBtn = e.target.closest('[data-fw]');
     if (starBtn) {
       const w = workSource().find(x => String(x.id) === starBtn.dataset.fw);
       if (w) openFavPopup(w, compOf(w), starBtn);
       return;
     }
-    const b = e.target.closest('[data-w]'); if (!b) return;
-    unlockAudio();
-    const w = workSource().find(x => String(x.id) === b.dataset.w); if (w) openModal(w, compOf(w));
+
+    // 詳細モーダルオープン
+    const b = e.target.closest('[data-w]');
+    if (b) {
+      unlockAudio();
+      const w = workSource().find(x => String(x.id) === b.dataset.w);
+      if (w) openModal(w, compOf(w));
+    }
   });
   function toggleFavW(w, c) {
     if (isFavW(w)) favW = favW.filter(x => String(x.w.id) !== String(w.id));
@@ -5048,6 +6650,94 @@
   applyStatic();
   renderEpochs();
   loadComposers();
+
+  // コントロールバー：シーケンス再生ボタン（1曲目から順番）
+  if ($('btnSeqPlay')) {
+    $('btnSeqPlay').onclick = () => {
+      isShuffleActive = false;
+      playShown(false);
+    };
+  }
+  // コントロールバー：ランダム再生ボタン（シャッフル）
+  if ($('btnShufflePlay')) {
+    $('btnShufflePlay').onclick = () => {
+      isShuffleActive = true;
+      playShown(true);
+    };
+  }
+  // コントロールバー：リストループトグル
+  if ($('chkListLoop')) {
+    $('chkListLoop').checked = isListLoop;
+    $('chkListLoop').onchange = e => {
+      isListLoop = e.target.checked;
+      store.set('jazz.isListLoop', isListLoop);
+      $('loopToggleLabel').classList.toggle('on', isListLoop);
+      updatePbSubBtns();
+      showToast(isListLoop ? L('🔁 リストループを有効にしました（エンドレス再生）', '🔁 List loop enabled (endless playback)') : L('リストループを無効にしました', 'List loop disabled'));
+    };
+  }
+  // 表示切替ボタン（☰ リスト / ⊞ カード）
+  function updateViewSwitchUI() {
+    if ($('btnViewList')) $('btnViewList').classList.toggle('active', worksViewMode === 'list');
+    if ($('btnViewCard')) $('btnViewCard').classList.toggle('active', worksViewMode === 'card');
+  }
+  if ($('btnViewList')) {
+    $('btnViewList').onclick = () => {
+      worksViewMode = 'list';
+      store.set('jazz.worksViewMode', 'list');
+      updateViewSwitchUI();
+      renderWorks();
+    };
+  }
+  if ($('btnViewCard')) {
+    $('btnViewCard').onclick = () => {
+      worksViewMode = 'card';
+      store.set('jazz.worksViewMode', 'card');
+      updateViewSwitchUI();
+      renderWorks();
+    };
+  }
+  updateViewSwitchUI();
+
+  // 下部プレイヤーのサブボタン（シャッフル・全曲ループ）更新＆イベント
+  function updatePbSubBtns() {
+    if ($('pbShuffleBtn')) $('pbShuffleBtn').classList.toggle('on', isShuffleActive);
+    if ($('pbListLoopBtn')) $('pbListLoopBtn').classList.toggle('active', isListLoop);
+    if ($('chkListLoop')) $('chkListLoop').checked = isListLoop;
+    if ($('loopToggleLabel')) $('loopToggleLabel').classList.toggle('on', isListLoop);
+  }
+  if ($('pbShuffleBtn')) {
+    $('pbShuffleBtn').onclick = () => {
+      isShuffleActive = !isShuffleActive;
+      updatePbSubBtns();
+      if (currentQueue && currentQueue.length > 1) {
+        if (isShuffleActive) {
+          // 現在再生中の曲を先頭にして残りをシャッフル
+          const cur = currentQueue[currentQueueIdx];
+          const rest = currentQueue.filter((_, i) => i !== currentQueueIdx).sort(() => Math.random() - 0.5);
+          currentQueue = [cur, ...rest];
+          currentQueueIdx = 0;
+          showToast(L('🔀 シャッフル再生をONにしました', '🔀 Shuffle ON'));
+        } else {
+          showToast(L('順番再生に戻しました', 'Sequential play restored'));
+        }
+        const plName = currentPlaylist ? currentPlaylist.name : L('楽曲リスト', 'Song List');
+        const modePrefix = isShuffleActive ? '🔀 ' + L('ランダム再生', 'Shuffle') : '▶ ' + L('シーケンス再生', 'Sequence');
+        $('pbModeBadge').textContent = `${modePrefix}: ${plName} [${currentQueueIdx + 1}/${currentQueue.length}]`;
+        renderQueueList();
+      }
+    };
+  }
+  if ($('pbListLoopBtn')) {
+    $('pbListLoopBtn').onclick = () => {
+      isListLoop = !isListLoop;
+      store.set('jazz.isListLoop', isListLoop);
+      updatePbSubBtns();
+      showToast(isListLoop ? L('🔁 リスト全曲ループ: ON（エンドレス連続再生）', '🔁 List Loop: ON') : L('リスト全曲ループ: OFF', 'List Loop: OFF'));
+    };
+  }
+  updatePbSubBtns();
+
   showGenreWorks();
 })();
 </script>
