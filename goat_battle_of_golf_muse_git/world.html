@@ -25,6 +25,9 @@
   #clubBox .clubName { font-size:16px; font-weight:800; }
   #clubBox .clubFx { font-size:11px; color:#ffd778; margin-top:2px; line-height:1.5; }
   #clubBox .keys { font-size:10px; color:#aab; margin-top:4px; }
+  #clubBtns { position:absolute; top:134px; right:12px; display:flex; flex-direction:column; gap:6px; z-index:6; }
+  .clubBtn { background:linear-gradient(160deg, rgba(16,18,38,.8), rgba(6,8,20,.68)); border:1px solid rgba(255,255,255,.3); color:#dfe3f2; border-radius:10px; padding:7px 11px; font-size:12px; font-weight:700; text-align:left; cursor:pointer; backdrop-filter:blur(4px); touch-action:manipulation; box-shadow:0 3px 12px rgba(0,0,0,.35); }
+  .clubBtn.on { border-color:#ffd23e; color:#ffd778; background:linear-gradient(160deg, rgba(74,56,8,.88), rgba(30,22,2,.82)); box-shadow:0 0 10px rgba(255,190,60,.35); }
   #statBox { left:12px; bottom:12px; font-size:13px; line-height:1.9; }
   #statBox b { color:#ffd778; }
   #miniWrap { right:12px; bottom:12px; padding:6px; }
@@ -66,6 +69,9 @@
     #prompt { bottom:282px; }
     #dashBtn { right:14px; bottom:104px; }
     #actBtn { right:14px; bottom:178px; }
+    #clubBtns { top:106px; }
+    .clubBtn { padding:6px 8px; font-size:11px; }
+    body.touch #goatGear { bottom:238px; }
   }
   #startHint { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(5,5,15,.45); z-index:5; cursor:pointer; }
   #startHint .card { text-align:center; background:linear-gradient(165deg, rgba(14,16,36,.92), rgba(6,8,20,.88)); border:1px solid rgba(255,215,120,.6); border-radius:16px; padding:26px 40px; animation:cardGlow 3.2s ease-in-out infinite; }
@@ -74,7 +80,8 @@
   #startHint .d { font-size:13px; color:#dde; margin-top:10px; line-height:2; }
   #vignette { position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 180px rgba(0,0,0,.55); }
   #hurtFlash { position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at center, transparent 55%, rgba(255,30,20,.45)); opacity:0; transition:opacity .12s; }
-  #goatGear { left:12px; bottom:118px; max-width:308px; font-size:11px; line-height:1.75; border-color:rgba(255,210,62,.75); }
+  #goatGear { left:12px; bottom:106px; max-width:308px; font-size:11px; line-height:1.75; border-color:rgba(255,210,62,.75); cursor:pointer; }
+  body.touch #goatGear { bottom:322px; }
 </style>
 </head>
 <body>
@@ -95,6 +102,12 @@
   <div class="keys">1〜4キーでクラブ切替</div>
 </div>
 
+<div id="clubBtns">
+  <button class="clubBtn" data-ci="0">🟦 ドライバー</button>
+  <button class="clubBtn" data-ci="1">🟥 アイアン</button>
+  <button class="clubBtn" data-ci="2">⬜ ウェッジ</button>
+  <button class="clubBtn" data-ci="3">🟩 パター</button>
+</div>
 <div id="statBox" class="hudbox">
   ⚪ ボール <b id="ballNum">12</b> 個<br>
   ✨ 浄化 <b id="pureNum">0 / 8</b><br>
@@ -102,10 +115,12 @@
 </div>
 
 <div id="goatGear" class="hudbox" style="display:none">
-  <div style="font-size:13px; font-weight:900; color:#ffd23e;">👑 神装完成 ― 全アイテム取得済</div>
+  <div style="font-size:12px; font-weight:900; color:#ffd23e;">👑 神装完成 ― 全アイテム取得済 <span id="goatGearMark" style="color:#ffe9a8; font-size:11px;">▸ 詳細</span></div>
+  <div id="goatGearDetail" style="display:none; margin-top:4px;">
   三種の神器： クサナギ ／ ヤタノミラー ／ ヤサカニ<br>
   オリンポスの神器： 三叉槍・アテナの盾・雷霆・翼靴 ほか全8品<br>
   <span style="color:#ffd778">無敵 ／ パワー常時フル ／ ヤサカニの加護でボール無限</span>
+  </div>
 </div>
 <div id="miniWrap" class="hudbox"><canvas id="minimap" width="150" height="150"></canvas></div>
 
@@ -580,6 +595,10 @@ function updateHUD(){
   var c = CLUBS[curClub];
   el("clubName").textContent = c.name;
   el("clubFx").textContent = c.fx;
+  var cbs = document.querySelectorAll(".clubBtn");
+  for(var bi = 0; bi < cbs.length; bi++){
+    if(CLUB_ORDER[bi] === curClub) cbs[bi].classList.add("on"); else cbs[bi].classList.remove("on");
+  }
 }
 
 /* ===== セーブ ===== */
@@ -1049,6 +1068,16 @@ if((window.matchMedia && matchMedia("(pointer:coarse)").matches) || ("ontouchsta
     var ck = document.querySelector("#clubBox .keys");
     if(ck) ck.textContent = "タップでクラブ切替";
   }
+  var cbtns = document.querySelectorAll(".clubBtn");
+  cbtns.forEach(function(b){
+    b.addEventListener("click", function(){ setClub(parseInt(b.getAttribute("data-ci"), 10)); });
+  });
+  el("goatGear").addEventListener("click", function(){
+    var d = el("goatGearDetail");
+    var open = d.style.display !== "none";
+    d.style.display = open ? "none" : "block";
+    el("goatGearMark").textContent = open ? "▸ 詳細" : "▾ 閉じる";
+  });
 })();
 renderer.domElement.addEventListener("wheel", function(e){
   camDist = Math.max(7, Math.min(20, camDist + e.deltaY * 0.01));
@@ -1446,7 +1475,7 @@ if(GOAT){
   if(shT) shT.textContent = "👑 GOATモード ― 無敵の器、降臨";
 }
 var shD = document.querySelector("#startHint .d");
-if(shD) shD.innerHTML += "<br><span style='color:#778'>field ver 3.1</span>";
+if(shD) shD.innerHTML += "<br><span style='color:#778'>field ver 3.2</span>";
 loadWorld();
 if(GOAT){
   if(PL.lv < 20){ PL.lv = 20; PL.exp = 20000; }
@@ -1462,7 +1491,7 @@ ENV.cur = ENV.target;
 if(purifiedCount >= 3 || GOAT) GATE.open = true;
 updateHUD();
 applyEnv();
-try{ parent.postMessage({ type:"goat:hello", version:"3.1", goat:GOAT }, "*"); }catch(e){}
+try{ parent.postMessage({ type:"goat:hello", version:"3.2", goat:GOAT }, "*"); }catch(e){}
 try{ parent.postMessage({ type:"goat:purified", count:purifiedCount, total:MOB_DEFS.length }, "*"); }catch(e){}
 toast("京都エリア ― 残影を浄化せよ（あと " + Math.max(0, 3 - purifiedCount) + " 体で門が開く）");
 
@@ -1705,6 +1734,11 @@ function pluck(){
   o.connect(g); o2.connect(g2); g2.connect(g); g.connect(bgm.gain);
   o.start(); o2.start(); o.stop(t + 1.6); o2.stop(t + 1.6);
 }
+addEventListener("message", function(e){
+  var d = (e && e.data) || {};
+  if(d.type === "goat:pause"){ if(bgm.gain) bgm.gain.gain.value = 0; }
+  else if(d.type === "goat:resume"){ if(bgm.gain && !bgm.muted) bgm.gain.gain.value = 0.05; }
+});
 addEventListener("pointerdown", function(){ startBgm(); });
 addEventListener("keydown", function(){ startBgm(); });
 (function(){

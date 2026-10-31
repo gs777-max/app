@@ -99,7 +99,7 @@
     </div>
     <button class="bigbtn" id="toCharBtn">ゲームスタート</button>
     <button class="bigbtn ghost" id="continueBtn" style="display:none">▶ つづきから</button>
-    <div class="hint">進行データはモードごとに別々に保存されます ／ 音が出ます ／ キーボード・マウス操作 ／ ver 3.1</div>
+    <div class="hint">進行データはモードごとに別々に保存されます ／ 音が出ます ／ キーボード・マウス操作 ／ ver 3.2</div>
   </div>
 </div>
 
@@ -284,7 +284,7 @@ function startBattle(){
   golfHelloVer = null;
   setTimeout(function(){
     if(inBattle && !golfHelloVer){
-      narr("⚠ golf.html が最新版（ver 3.1）ではない可能性があります。最新の golf.html に差し替えてください（ファイル名が「golf (1).html」等になっていないか確認）。");
+      narr("⚠ golf.html が最新版（ver 3.2）ではない可能性があります。最新の golf.html に差し替えてください（ファイル名が「golf (1).html」等になっていないか確認）。");
     }
   }, 9000);
   var oppName = nx.boss && S.charId === BOSS_ID ? "ダークJunbo（闇の分身）" : charById(nx.id).id;
@@ -299,6 +299,7 @@ function startBattle(){
   $("golfFrame").src = url;
   $("golfFrame").className = "active";
   letterbox(true);
+  setTimeout(function(){ if(inBattle) letterbox(false); }, 1500);
   narr(nx.boss
     ? "エリアボス戦。宍戸の地に、帝王の残影が立つ。3ホールマッチ、先に2ホールを取れ。"
     : "ライバル戦、" + oppName + "。1ホールの真剣勝負が始まる。");
@@ -371,7 +372,7 @@ addEventListener("message", function(e){
     if(typeof d.count === "number"){ S.purified = d.count; save(); refreshStatus(); }
     if(!worldHelloVer && !worldWarned){
       worldWarned = true;
-      narr("⚠ world.html が最新版（ver 3.1）ではないようです。このままだとGOATモードが効きません。古い world.html を消して、最新の world.html を置いてください（「world (1).html」という名前になっていたら要注意）。");
+      narr("⚠ world.html が最新版（ver 3.2）ではないようです。このままだとGOATモードが効きません。古い world.html を消して、最新の world.html を置いてください（「world (1).html」という名前になっていたら要注意）。");
     }
   }
   else if(d.type === "goat:gateOpen"){
