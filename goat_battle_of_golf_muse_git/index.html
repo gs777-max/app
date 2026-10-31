@@ -27,6 +27,7 @@
   #stage iframe.active { display:block; }
   #narr { position:absolute; left:0; right:0; bottom:0; height:64px; background:linear-gradient(180deg, rgba(10,10,26,.96), rgba(4,4,12,.98)); border-top:1px solid rgba(255,215,120,.35); display:flex; align-items:center; gap:14px; padding:0 20px; box-sizing:border-box; }
   #narr .who { color:#ffd778; font-weight:800; font-size:12px; letter-spacing:2px; white-space:nowrap; }
+  @media (max-width:600px){ #battleBtn { font-size:11px; padding:7px 9px; white-space:nowrap; } #resetBtn { font-size:11px; padding:7px 9px; } #status { display:none; } #topbar { gap:8px; padding:0 10px; } .gtitle { font-size:29px; letter-spacing:1px; } .panel { padding:20px 14px; width:92vw; box-sizing:border-box; } .char { width:45%; } .mode { padding:12px; } #narrText { font-size:12px; } }
   #narrText { font-size:15px; line-height:1.55; }
   .overlay { position:absolute; inset:0; background:radial-gradient(ellipse at 50% 32%, #2a2a55 0%, #12122a 55%, #070714 100%); display:flex; align-items:center; justify-content:center; z-index:10; overflow:hidden; }
   .overlay::before { content:""; position:absolute; inset:-40%; background:radial-gradient(circle at 30% 40%, rgba(255,190,80,.13), transparent 42%), radial-gradient(circle at 72% 62%, rgba(110,90,255,.14), transparent 45%); animation:overlayDrift 16s ease-in-out infinite alternate; pointer-events:none; }
@@ -98,7 +99,7 @@
     </div>
     <button class="bigbtn" id="toCharBtn">ゲームスタート</button>
     <button class="bigbtn ghost" id="continueBtn" style="display:none">▶ つづきから</button>
-    <div class="hint">進行データはモードごとに別々に保存されます ／ 音が出ます ／ キーボード・マウス操作 ／ ver 3.0</div>
+    <div class="hint">進行データはモードごとに別々に保存されます ／ 音が出ます ／ キーボード・マウス操作 ／ ver 3.1</div>
   </div>
 </div>
 
@@ -283,7 +284,7 @@ function startBattle(){
   golfHelloVer = null;
   setTimeout(function(){
     if(inBattle && !golfHelloVer){
-      narr("⚠ golf.html が最新版（ver 3.0）ではない可能性があります。最新の golf.html に差し替えてください（ファイル名が「golf (1).html」等になっていないか確認）。");
+      narr("⚠ golf.html が最新版（ver 3.1）ではない可能性があります。最新の golf.html に差し替えてください（ファイル名が「golf (1).html」等になっていないか確認）。");
     }
   }, 9000);
   var oppName = nx.boss && S.charId === BOSS_ID ? "ダークJunbo（闇の分身）" : charById(nx.id).id;
@@ -370,7 +371,7 @@ addEventListener("message", function(e){
     if(typeof d.count === "number"){ S.purified = d.count; save(); refreshStatus(); }
     if(!worldHelloVer && !worldWarned){
       worldWarned = true;
-      narr("⚠ world.html が最新版（ver 3.0）ではないようです。このままだとGOATモードが効きません。古い world.html を消して、最新の world.html を置いてください（「world (1).html」という名前になっていたら要注意）。");
+      narr("⚠ world.html が最新版（ver 3.1）ではないようです。このままだとGOATモードが効きません。古い world.html を消して、最新の world.html を置いてください（「world (1).html」という名前になっていたら要注意）。");
     }
   }
   else if(d.type === "goat:gateOpen"){

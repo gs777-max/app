@@ -42,6 +42,31 @@
   @keyframes toastIn { from { opacity:0; transform:translateY(8px);} to { opacity:1; transform:none;} }
   #chargeBtn { position:absolute; left:50%; bottom:26px; transform:translateX(-50%); background:linear-gradient(180deg,#3a2c07,#241a02); color:#ffd778; border:1px solid #ffd778; border-radius:999px; padding:12px 30px; font-size:15px; font-weight:800; cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:none; }
   #chargeBtn:active { background:linear-gradient(180deg,#6a5210,#3a2c07); }
+  #gl canvas { touch-action:none; display:block; }
+  #joy { position:absolute; left:20px; bottom:96px; width:118px; height:118px; border-radius:50%; background:rgba(10,12,28,.4); border:1.5px solid rgba(255,215,120,.5); display:none; z-index:7; touch-action:none; }
+  #joyKnob { position:absolute; left:50%; top:50%; width:52px; height:52px; border-radius:50%; background:rgba(255,215,120,.75); border:2px solid rgba(255,240,200,.9); transform:translate(-50%,-50%); box-shadow:0 2px 10px rgba(0,0,0,.5); }
+  #actBtn, #dashBtn { position:absolute; z-index:7; display:none; width:64px; height:64px; border-radius:50%; background:rgba(10,12,28,.55); border:1.5px solid rgba(255,215,120,.55); color:#ffe9a8; font-weight:800; font-size:11px; line-height:1.35; touch-action:none; cursor:pointer; }
+  #actBtn { right:20px; bottom:186px; }
+  #dashBtn { right:96px; bottom:110px; }
+  #actBtn .big, #dashBtn .big { font-size:17px; display:block; }
+  body.touch #joy, body.touch #actBtn, body.touch #dashBtn { display:block; }
+  body.touch #statBox { bottom:226px; }
+  body.touch #chargeBtn { bottom:110px; padding:14px 22px; font-size:14px; }
+  @media (max-width:600px) {
+    #playerBox { min-width:0; width:44vw; padding:8px 10px; }
+    #playerBox .nm { font-size:15px; }
+    .bar { height:9px; }
+    #clubBox { min-width:0; width:40vw; padding:8px 10px; }
+    #clubBox .clubName { font-size:14px; }
+    #miniWrap { transform:scale(.6); transform-origin:bottom right; }
+    #joy { bottom:20px; }
+    #statBox { bottom:150px !important; font-size:12px; }
+    #chargeBtn { bottom:158px !important; }
+    #chargeWrap { bottom:216px; width:250px; }
+    #prompt { bottom:282px; }
+    #dashBtn { right:14px; bottom:104px; }
+    #actBtn { right:14px; bottom:178px; }
+  }
   #startHint { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(5,5,15,.45); z-index:5; cursor:pointer; }
   #startHint .card { text-align:center; background:linear-gradient(165deg, rgba(14,16,36,.92), rgba(6,8,20,.88)); border:1px solid rgba(255,215,120,.6); border-radius:16px; padding:26px 40px; animation:cardGlow 3.2s ease-in-out infinite; }
   @keyframes cardGlow { 0%,100% { box-shadow:0 0 22px rgba(255,190,60,.25); } 50% { box-shadow:0 0 46px rgba(255,190,60,.5); } }
@@ -89,6 +114,9 @@
 <div id="banner" class="hudbox"><div class="big" id="bannerBig"></div><div class="sub" id="bannerSub"></div></div>
 <div id="toasts"></div>
 <button id="chargeBtn">長押しで波動ショット</button>
+<div id="joy"><div id="joyKnob"></div></div>
+<button id="actBtn"><span class="big">F</span>調べる・休む</button>
+<button id="dashBtn"><span class="big">»</span>ダッシュ</button>
 
 <div id="startHint"><div class="card">
   <div class="t">⛩ 京都 ― 闇に沈む聖地</div>
@@ -959,18 +987,69 @@ chargeBtn.addEventListener("pointerdown", function(e){ e.preventDefault(); start
 chargeBtn.addEventListener("pointerup", function(e){ e.preventDefault(); releaseCharge(); });
 chargeBtn.addEventListener("pointerleave", function(){ releaseCharge(); });
 
-var dragging = false, lastPX = 0, lastPY = 0;
+var dragging = false, dragId = null, lastPX = 0, lastPY = 0;
 renderer.domElement.addEventListener("pointerdown", function(e){
-  dragging = true; lastPX = e.clientX; lastPY = e.clientY;
+  if(dragId !== null) return;
+  dragging = true; dragId = e.pointerId; lastPX = e.clientX; lastPY = e.clientY;
   window.focus();
 });
 addEventListener("pointermove", function(e){
-  if(!dragging) return;
+  if(!dragging || e.pointerId !== dragId) return;
   camYaw -= (e.clientX - lastPX) * 0.0052;
   camPitch = Math.max(0.06, Math.min(1.05, camPitch + (e.clientY - lastPY) * 0.004));
   lastPX = e.clientX; lastPY = e.clientY;
 });
-addEventListener("pointerup", function(){ dragging = false; });
+addEventListener("pointerup", function(e){ if(e.pointerId === dragId){ dragging = false; dragId = null; } });
+addEventListener("pointercancel", function(e){ if(e.pointerId === dragId){ dragging = false; dragId = null; } });
+
+/* ===== タッチ操作（スマホ: バーチャルスティック等） ===== */
+var joyVec = { x:0, y:0 };
+var dashTouch = false;
+if((window.matchMedia && matchMedia("(pointer:coarse)").matches) || ("ontouchstart" in window)){
+  document.body.classList.add("touch");
+}
+(function(){
+  var joy = el("joy"), knob = el("joyKnob");
+  var jid = null, cx = 0, cy = 0, R = 34;
+  function setKnob(dx, dy){ knob.style.transform = "translate(calc(-50% + " + dx + "px), calc(-50% + " + dy + "px))"; }
+  function upd(e){
+    var dx = e.clientX - cx, dy = e.clientY - cy;
+    var d = Math.hypot(dx, dy);
+    if(d > R){ dx *= R / d; dy *= R / d; }
+    setKnob(dx, dy);
+    joyVec.x = dx / R; joyVec.y = -dy / R;
+  }
+  joy.addEventListener("pointerdown", function(e){
+    e.preventDefault();
+    if(jid !== null) return;
+    jid = e.pointerId;
+    var r = joy.getBoundingClientRect();
+    cx = r.left + r.width / 2; cy = r.top + r.height / 2;
+    try{ joy.setPointerCapture(jid); }catch(err){}
+    upd(e);
+  });
+  joy.addEventListener("pointermove", function(e){ if(e.pointerId === jid) upd(e); });
+  function endJoy(e){
+    if(e.pointerId !== jid) return;
+    jid = null; joyVec.x = 0; joyVec.y = 0; setKnob(0, 0);
+  }
+  joy.addEventListener("pointerup", endJoy);
+  joy.addEventListener("pointercancel", endJoy);
+  el("actBtn").addEventListener("pointerdown", function(e){ e.preventDefault(); doInteract(); });
+  var dsh = el("dashBtn");
+  dsh.addEventListener("pointerdown", function(e){ e.preventDefault(); dashTouch = true; });
+  ["pointerup", "pointerleave", "pointercancel"].forEach(function(t){ dsh.addEventListener(t, function(){ dashTouch = false; }); });
+  el("clubBox").addEventListener("click", function(){
+    var i = CLUB_ORDER.indexOf(curClub);
+    setClub((i + 1) % CLUB_ORDER.length);
+  });
+  if(document.body.classList.contains("touch")){
+    var hd = document.querySelector("#startHint .d");
+    if(hd) hd.innerHTML = "左スティック：移動 ／ 画面ドラッグ：カメラ<br>「波動ショット」ボタン長押し：溜め3段階ショット<br>残影を3体浄化すると「対戦の門」が開く";
+    var ck = document.querySelector("#clubBox .keys");
+    if(ck) ck.textContent = "タップでクラブ切替";
+  }
+})();
 renderer.domElement.addEventListener("wheel", function(e){
   camDist = Math.max(7, Math.min(20, camDist + e.deltaY * 0.01));
 }, { passive:true });
@@ -1031,11 +1110,14 @@ function updatePlayer(dt){
   if(keys["KeyS"] || keys["ArrowDown"]) _mv.sub(f);
   if(keys["KeyD"] || keys["ArrowRight"]) _mv.add(r);
   if(keys["KeyA"] || keys["ArrowLeft"]) _mv.sub(r);
+  var keyMoving = _mv.lengthSq() > 0.01;
+  if(joyVec.x !== 0 || joyVec.y !== 0){ _mv.addScaledVector(f, joyVec.y); _mv.addScaledVector(r, joyVec.x); }
   var moving = _mv.lengthSq() > 0.01;
   var pos = player.group.position;
   if(moving){
     _mv.normalize();
-    var spd = (keys["ShiftLeft"] || keys["ShiftRight"] ? 10.5 : 6.4) * (charging ? 0.35 : 1);
+    var spd = (keys["ShiftLeft"] || keys["ShiftRight"] || dashTouch ? 10.5 : 6.4) * (charging ? 0.35 : 1);
+    if(!keyMoving && (joyVec.x !== 0 || joyVec.y !== 0)) spd *= Math.max(0.4, Math.min(1, Math.hypot(joyVec.x, joyVec.y)));
     var nx = pos.x + _mv.x * spd * dt;
     var nz = pos.z + _mv.z * spd * dt;
     nx = Math.max(-133, Math.min(133, nx));
@@ -1364,7 +1446,7 @@ if(GOAT){
   if(shT) shT.textContent = "👑 GOATモード ― 無敵の器、降臨";
 }
 var shD = document.querySelector("#startHint .d");
-if(shD) shD.innerHTML += "<br><span style='color:#778'>field ver 3.0</span>";
+if(shD) shD.innerHTML += "<br><span style='color:#778'>field ver 3.1</span>";
 loadWorld();
 if(GOAT){
   if(PL.lv < 20){ PL.lv = 20; PL.exp = 20000; }
@@ -1380,7 +1462,7 @@ ENV.cur = ENV.target;
 if(purifiedCount >= 3 || GOAT) GATE.open = true;
 updateHUD();
 applyEnv();
-try{ parent.postMessage({ type:"goat:hello", version:"3.0", goat:GOAT }, "*"); }catch(e){}
+try{ parent.postMessage({ type:"goat:hello", version:"3.1", goat:GOAT }, "*"); }catch(e){}
 try{ parent.postMessage({ type:"goat:purified", count:purifiedCount, total:MOB_DEFS.length }, "*"); }catch(e){}
 toast("京都エリア ― 残影を浄化せよ（あと " + Math.max(0, 3 - purifiedCount) + " 体で門が開く）");
 
@@ -1714,7 +1796,7 @@ var fxClock = new THREE.Clock();
   }
   /* カメラFOV（ダッシュで広角、溜めMAXで寄る） */
   var targetFov = 55;
-  if((keys["ShiftLeft"] || keys["ShiftRight"]) && (keys["KeyW"] || keys["KeyA"] || keys["KeyS"] || keys["KeyD"])) targetFov = 61;
+  if(((keys["ShiftLeft"] || keys["ShiftRight"] || dashTouch) && (keys["KeyW"] || keys["KeyA"] || keys["KeyS"] || keys["KeyD"])) || (dashTouch && (joyVec.x !== 0 || joyVec.y !== 0))) targetFov = 61;
   if(charging && chargeLv === 3) targetFov = 58;
   if(Math.abs(camera.fov - targetFov) > 0.05){
     camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 5);
