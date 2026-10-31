@@ -418,7 +418,7 @@
       <button class="bigbtn ghost" id="loadSlotBtn">📂 セーブスロット（5枠）</button>
     </div>
     <div style="margin-top:16px;font-size:11.5px;color:#7e88ab;">
-      Complete Master Edition v3.0 ｜ 全5エリア＋天空の神域 ｜ 全11枠ギア67種 ｜ 四神波動MAX ｜ 二重ナレーション＆オーケストラ搭載
+      Complete Master Edition v3.2.0 ｜ 全5エリア＋天空の神域 ｜ 全11コース3D決戦 ｜ 全11枠ギア67種 ｜ 四神波動MAX ｜ 5モード高速移動搭載
     </div>
   </div>
 </div>
@@ -1069,7 +1069,14 @@ var AREA_EVENTS = {
     var tScr = document.getElementById("titleScr");
     var cScr = document.getElementById("charScr");
     var vis = (tScr && tScr.style.display !== "none") || (cScr && cScr.style.display !== "none");
-    if(!vis) return;
+    if(!vis){
+      if(cv.style.display !== "none"){
+        ctx.clearRect(0,0,W,H);
+        cv.style.display = "none";
+      }
+      return;
+    }
+    if(cv.style.display === "none") cv.style.display = "block";
     t += 0.012;
     ctx.clearRect(0,0,W,H);
     var g = ctx.createRadialGradient(W*0.5, H*0.24, 10, W*0.5, H*0.5, Math.max(W,H)*0.75);
@@ -1952,7 +1959,10 @@ function launchGolfIframe(tgt, overrideCharId){
   wf.classList.remove("active");
   gf.classList.add("active");
   gf.src = "golf.html?goat=1&course=" + encodeURIComponent(tgt.course) +
-           "&holes=" + tgt.holes + "&mode=" + encodeURIComponent(S.mode) + "&v=3";
+           "&holes=" + tgt.holes + "&mode=" + encodeURIComponent(S.mode) + "&v=3.2&t=" + Date.now();
+  setTimeout(function(){
+    try { gf.focus(); if(gf.contentWindow) gf.contentWindow.focus(); } catch(e){}
+  }, 80);
 
   var COURSE_EN_MAP = {
     toda: "Toda Riverbank Course",
@@ -3142,7 +3152,10 @@ function resumeFromLoadedState(){
     wf.classList.remove("active");
     gf.classList.add("active");
     gf.src = "golf.html?goat=1&course=" + encodeURIComponent(S.activeBattle.course) +
-             "&holes=" + S.activeBattle.holes + "&mode=" + encodeURIComponent(S.mode) + "&resume=1&v=3";
+             "&holes=" + S.activeBattle.holes + "&mode=" + encodeURIComponent(S.mode) + "&resume=1&v=3.2&t=" + Date.now();
+    setTimeout(function(){
+      try { gf.focus(); if(gf.contentWindow) gf.contentWindow.focus(); } catch(e){}
+    }, 80);
     SOUND.setBGM("boss");
     narrate("中断されていた真剣勝負のラウンドを、その一打から再開する。", "male");
     return;
@@ -3397,12 +3410,10 @@ window.addEventListener("message", function(ev){
   }
 });
 
-/* 親ウィンドウ（index.html）にフォーカスが残っていても、即座に worldFrame へキー入力を転送してゼロクリック操作を保証！ */
-function canForwardKeyToWorld(e){
+/* 親ウィンドウ（index.html）にフォーカスが残っていても、即座に worldFrame / golfFrame へキー入力を転送してゼロクリック操作を保証！ */
+function canForwardStageKey(){
   var ae = document.activeElement;
   if(ae && (ae.tagName === "INPUT" || ae.tagName === "TEXTAREA" || ae.tagName === "SELECT")) return false;
-  var wf = document.getElementById("worldFrame");
-  if(!wf || !wf.classList.contains("active") || !wf.contentWindow) return false;
   if(document.getElementById("titleScr").style.display !== "none") return false;
   if(document.getElementById("charScr").style.display !== "none") return false;
   if(document.getElementById("mainModal").classList.contains("show")) return false;
@@ -3411,21 +3422,41 @@ function canForwardKeyToWorld(e){
 }
 
 window.addEventListener("keydown", function(e){
-  if(!canForwardKeyToWorld(e)) return;
-  if(e.code === "Space" || e.code === "ArrowUp" || e.code === "ArrowDown" || e.code === "ArrowLeft" || e.code === "ArrowRight"){
-    e.preventDefault();
+  if(!canForwardStageKey()) return;
+  var wf = document.getElementById("worldFrame");
+  var gf = document.getElementById("golfFrame");
+  if(wf && wf.classList.contains("active") && wf.contentWindow){
+    if(e.code === "Space" || e.code === "ArrowUp" || e.code === "ArrowDown" || e.code === "ArrowLeft" || e.code === "ArrowRight"){
+      e.preventDefault();
+    }
+    wf.contentWindow.postMessage({
+      type: "goat:key", down: true, code: e.code, key: e.key
+    }, "*");
+    return;
   }
-  document.getElementById("worldFrame").contentWindow.postMessage({
-    type: "goat:key", down: true, code: e.code, key: e.key
-  }, "*");
+  if(gf && gf.classList.contains("active") && gf.contentWindow){
+    if(e.code === "Space" || e.code === "Enter" || e.code === "ArrowLeft" || e.code === "ArrowRight"){
+      e.preventDefault();
+    }
+    gf.contentWindow.postMessage({
+      type: "goat:golfKey", down: true, code: e.code, key: e.key
+    }, "*");
+  }
 });
 
 window.addEventListener("keyup", function(e){
   var wf = document.getElementById("worldFrame");
-  if(!wf || !wf.classList.contains("active") || !wf.contentWindow) return;
-  wf.contentWindow.postMessage({
-    type: "goat:key", down: false, code: e.code, key: e.key
-  }, "*");
+  if(wf && wf.classList.contains("active") && wf.contentWindow){
+    wf.contentWindow.postMessage({
+      type: "goat:key", down: false, code: e.code, key: e.key
+    }, "*");
+  }
+  var gf = document.getElementById("golfFrame");
+  if(gf && gf.classList.contains("active") && gf.contentWindow){
+    gf.contentWindow.postMessage({
+      type: "goat:golfKey", down: false, code: e.code, key: e.key
+    }, "*");
+  }
 });
 
 /* 初回起動時バッジ更新 */

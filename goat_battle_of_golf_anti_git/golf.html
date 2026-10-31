@@ -2307,14 +2307,14 @@ class TerrainGen{
 // 仕様書準拠カラーパレット・反発係数・摩擦係数
 // ─────────────────────────────────────────────────────────────
 const TODA_PALETTE = {
-  tee:      0x7CCD7C, // 鮮やかな緑（高麗芝）
-  fairway:  0x698B22, // ランが出やすい固めの高麗芝
-  firstCut: 0x556B2F, // FWより一段階暗く抵抗を感じさせる
-  rough:    0x2E4B1C, // 深く密集した高麗芝の重さ
-  green:    0x32CD32, // 砲台グリーン高麗芝
-  bunker:   0xDEB887, // 重く湿り気のある河川敷ダークベージュ
-  water:    0x4682B4, // 濁度があるマットなスチールブルー
-  bush:     0x006400, // 視覚的圧迫感を与える深い深緑
+  tee:      0x34b233, // 鮮やかな緑（高麗芝）
+  fairway:  0x368c1e, // 濃淡美しい高麗芝フェアウェイ
+  firstCut: 0x266814, // FWより一段階暗く抵抗を感じさせる
+  rough:    0x184210, // 深く密集した高麗芝の重さ
+  green:    0x2ec428, // 砲台グリーン高麗芝
+  bunker:   0xd8b47c, // 重く湿り気のある河川敷ダークベージュ
+  water:    0x1e6ca8, // 荒川スチールブルー
+  bush:     0x0d4f0d, // 視覚的圧迫感を与える深い深緑
   ob:       0xFFFFFF, // 白杭
   penalty:  0xFFCC00  // 黄・赤杭
 };
@@ -2416,105 +2416,7 @@ class Ball{
     if(this.mesh){
       this.mesh.position.copy(this.position);
       // ボール回転アニメーション
-      
-
-    // --- 物理トリガー拡張 ---
-    if(this.phase==="carry" || this.phase==="run"){
-
-    // --- 戸田パブリック専用ギミック判定 ---
-    if(this.phase==="carry" || this.phase==="run"){
-      // ① 直角ドッグレッグ（Hole 8/17）ショートカット禁止空域判定
-      if(window._shortcutBanZone){
-        const sb = window._shortcutBanZone;
-        if(this.position.x >= sb.minX && this.position.x <= sb.maxX &&
-           this.position.z >= sb.minZ && this.position.z <= sb.maxZ){
-          console.log("Local Rule Violation: Shortcut Ban Hit");
-          this.state="OB";
-          this.inFlight=false;
-          this.phase="idle";
-          if(typeof showBroadcastBanner==="function"){
-            showBroadcastBanner("LOCAL RULE VIOLATION", "ショートカット禁止エリアです (OB)");
-          }
-          if(this.onStopped) this.onStopped("OB");
-          return;
-        }
-      }
-      // ② 240yd地点横断池（Hole 6/15）など矩形ウォーターハザード判定
-      if(window._waterBoxes){
-        for(let wb of window._waterBoxes){
-          if(this.position.x >= wb.minX && this.position.x <= wb.maxX &&
-             this.position.z >= wb.minZ && this.position.z <= wb.maxZ &&
-             this.position.y <= (wb.maxY || 0.4)){
-            console.log("Toda Water Hazard Hit");
-            this.state="Water";
-            this.inFlight=false;
-            this.phase="idle";
-            if(typeof createImpactSparks==="function") createImpactSparks(this.position);
-            if(typeof showBroadcastBanner==="function"){
-              showBroadcastBanner("WATER HAZARD", "池ポチャ 1ペナルティです");
-            }
-            if(this.onStopped) this.onStopped("Water");
-            return;
-          }
-        }
-      }
-    }
-
-      // OBトリガー判定
-      if(window._obVolumes){
-        for(let ob of window._obVolumes){
-          if(this.mesh.position.x > ob.minX && this.mesh.position.x < ob.maxX &&
-             this.mesh.position.z > ob.minZ && this.mesh.position.z < ob.maxZ){
-            console.log("OB Trigger Hit");
-            this.state="OB";
-            this.vel.set(0,0,0);
-            this.phase="idle";
-            showBroadcastBanner("OUT OF BOUNDS", "1ペナルティで打ち直しです");
-            break;
-          }
-        }
-      }
-      // Kill-Z (Water) 判定
-      if(window._waterLevel !== undefined && this.mesh.position.y < window._waterLevel){
-        console.log("Water Kill-Z Hit");
-        this.state="Water";
-        this.vel.set(0,0,0);
-        this.phase="idle";
-        createImpactSparks(this.mesh.position); // Splash
-        showBroadcastBanner("WATER HAZARD", "池ポチャ 1ペナルティです");
-      }
-      
-      // ランオフエリア（摩擦ゼロ）判定
-      if(this.phase==="run" && window._runoffAreas){
-        let inRunoff = false;
-        for(let ro of window._runoffAreas){
-          if(this.mesh.position.distanceTo(ro.pos) < ro.radius){
-            inRunoff = true; break;
-          }
-        }
-        if(inRunoff){
-          // 摩擦をほぼゼロにして重力方向（傾斜）に転がす
-          this.vel.x *= 0.995;
-          this.vel.z *= 0.995;
-          // 傾斜に従って加速
-          if(this.surfNormal){
-            this.vel.x += this.surfNormal.x * dt * 9.8 * 0.5;
-            this.vel.z += this.surfNormal.z * dt * 9.8 * 0.5;
-          }
-        }
-      }
-      
-      // バンカー反発係数減衰
-      if(this.surf === "bunker" && this.phase==="carry"){
-          // ドロップして跳ねない（目玉）
-          this.vel.y *= 0.05;
-          this.vel.x *= 0.2;
-          this.vel.z *= 0.2;
-          this.phase="run";
-      }
-    }
-
-if(this.phase==="carry"){this.mesh.rotation.x+=dt*10;}
+      if(this.phase==="carry"){this.mesh.rotation.x+=dt*10;}
       else if(this.phase==="run"||this.phase==="putt_roll"){this.mesh.rotation.x+=dt*6;this.mesh.rotation.y+=dt*1.5;}
     }
   }
@@ -2978,6 +2880,7 @@ class GolfGame{
       if(this.gameMode==="putt")this.puttCtrl.onInput();
       else this.shotCtrl.onInput();
     };
+    this._triggerShootInput = shoot;
     document.getElementById("shootBtn").addEventListener("click",shoot);
     document.getElementById("shootBtn").addEventListener("touchstart",e=>{e.preventDefault();shoot();},{passive:false});
     // ★ メーター領域全体のクリック/タップでも確実にショット発動（押し損ね・位置ズレの完全解消）
@@ -2994,6 +2897,7 @@ class GolfGame{
     const btnL=document.getElementById("aimBtnL"),btnR=document.getElementById("aimBtnR");
     const setL=(v)=>{this._aimDirL=v;this._aimHoldTime=0;btnL.classList.toggle("pressing",v);};
     const setR=(v)=>{this._aimDirR=v;this._aimHoldTime=0;btnR.classList.toggle("pressing",v);};
+    this._setAimKey=(dir,v)=>{if(dir<0)setL(v);else setR(v);};
     btnL.addEventListener("touchstart",e=>{e.preventDefault();e.stopPropagation();setL(true);},{passive:false});
     btnL.addEventListener("touchend",e=>{e.preventDefault();setL(false);},{passive:false});
     btnL.addEventListener("touchcancel",()=>setL(false));
@@ -3649,8 +3553,9 @@ class GolfGame{
     const distEl = document.getElementById("compactClubDist");
     const clubBox = document.getElementById("compactClubBox");
     const currentClub = CLUBS[this.currentClubIdx];
+    const gm = this._getGoatDistMult ? this._getGoatDistMult() : 1.0;
     if(nameEl && currentClub) nameEl.textContent = currentClub.name;
-    if(distEl && currentClub) distEl.textContent = currentClub.maxDist + "yd";
+    if(distEl && currentClub) distEl.textContent = Math.round(currentClub.maxDist * gm) + "yd";
     if(clubBox && currentClub){
       clubBox.classList.toggle("putt-active", currentClub.type === "putter");
     }
@@ -3666,7 +3571,7 @@ class GolfGame{
       const c=this.character;
       const sm=(club.type==="driver"||club.type==="wood")&&c?c.driverMult:1.0;
       const wm=this.weather?this.weather.distMult:1.0;
-      this.shotCtrl.clubMaxDist=Math.round(club.maxDist*sm*wm);
+      this.shotCtrl.clubMaxDist=Math.round(club.maxDist*sm*wm*gm);
     }
   }
 
@@ -3705,7 +3610,11 @@ class GolfGame{
     this._terrainGen=tg;
     this._buildSky(course);
     this._buildLighting(); // ★ ホールごとに全ライトを確実に初期化・追加！
-    if(this.weather.type==="fog")this.scene.fog=new THREE.FogExp2(0xaabfaa,0.009);
+    if(this.weather.type==="fog"){
+      const sv=(course&&course.skyVariant)||"";
+      const fogCol=(sv==="yomi_dusk"||sv==="amaterasu_eclipse")?0x2e2042:0x9ab4a4;
+      this.scene.fog=new THREE.FogExp2(fogCol,0.0018);
+    }
     else if(this.weather.type==="rain")this.scene.fog=new THREE.Fog(0x2a3a45,60,420);
     else if(this.weather.type==="strongWind")this.scene.fog=new THREE.Fog(0x8aaabb,200,700);
     else this.scene.fog=new THREE.Fog(0x88c0d8,320,900);
@@ -3935,26 +3844,30 @@ class GolfGame{
     const rain=this.weather&&this.weather.type==="rain";
     const fog=this.weather&&this.weather.type==="fog";
     const gZ=-TH*0.97;
-    // ★ コースID・プロファイルを最上位で定義（全ブロックから参照可）
+    // ★ コースID・プロファイル・全ハザード物理配列を最上位で確実に初期化（コースバリアント完全対応）
+    window._waterBoxes = [];
+    window._shortcutBanZone = null;
+    window._obVolumes = [];
+    window._runoffAreas = [];
+    window._bunkerZones = [];
+    window._waterLevel = undefined;
+    this._bunkerZones = [];
+
     const cid=course.id||"";
     const courseProf0=course.terrainProfile||"flat";
     const isLinks0=courseProf0==="links";
     const isCoastal0=courseProf0==="coastal";
     const isHilly0=courseProf0==="hilly"||courseProf0==="gentle_hilly";
-    const isAugusta=(cid==="augusta");
+    const isAugusta=(cid==="augusta"||cid==="augusta_divine");
     const isPebble=(cid==="pebble");
-    const isStAndrews=(cid==="standrews");
+    const isStAndrews=(cid==="standrews"||cid==="standrews_new");
     const isSawgrass=(cid==="tpcsawgrass");
-    const isToda=(cid==="toda");
+    const isToda=(cid==="toda"||cid==="toda_dark"||!!course.isToda2Way);
 
     // ═════════════════════════════════════════════════════════════
     // ★★★ 戸田パブリックゴルフコース (河川敷 9ホール2WAY) 構築 ★★★
     // ═════════════════════════════════════════════════════════════
     if(isToda){
-      window._waterBoxes = [];
-      window._shortcutBanZone = null;
-      window._obVolumes = [];
-      window._runoffAreas = [];
 
       // ─── 共通マテリアル（仕様書完全準拠） ───
       const matFW = new THREE.MeshLambertMaterial({color: TODA_PALETTE.fairway});
@@ -3965,11 +3878,16 @@ class GolfGame{
       const matWater = new THREE.MeshPhongMaterial({color: TODA_PALETTE.water, transparent:true, opacity:0.88, shininess:80});
       const matBush = new THREE.MeshLambertMaterial({color: TODA_PALETTE.bush});
 
-      // ─── 荒川河川敷ベースフラット大地 ───
-      const baseRiverLand = new THREE.Mesh(new THREE.PlaneGeometry(TW*4, TH*1.5), matRough);
+      // ─── 荒川河川敷ベースフラット大地 ＆ 遠景荒川水面 ───
+      const baseRiverLand = new THREE.Mesh(new THREE.PlaneGeometry(TW*8, TH*2.0), matRough);
       baseRiverLand.rotation.x = -Math.PI/2;
       baseRiverLand.position.set(0, -0.04, -TH/2);
       this.scene.add(baseRiverLand);
+
+      const farRiver = new THREE.Mesh(new THREE.PlaneGeometry(TW*2.2, TH*1.8), matWater);
+      farRiver.rotation.x = -Math.PI/2;
+      farRiver.position.set(-TW*1.55, -0.02, -TH/2);
+      this.scene.add(farRiver);
 
       // ─── ティー位置・ピン位置の動的バインド ───
       const teeCoord = hole.tee || {x:0, y:0.36, z:0};
@@ -3991,6 +3909,25 @@ class GolfGame{
         fwMesh.position.set(0, 0.01, -TH/2);
         fwMesh.receiveShadow = true;
         this.scene.add(fwMesh);
+
+        // PS5級・高麗芝刈り目ストライプ＆河川敷防風林・OB白杭
+        const stW = 5.5, stN = Math.floor(fwWidth / stW);
+        for(let s = 0; s < stN; s++){
+          if(s % 2 === 0) continue;
+          const stM = new THREE.Mesh(new THREE.PlaneGeometry(stW - 0.1, TH*0.975), new THREE.MeshLambertMaterial({color: 0x419f26}));
+          stM.rotation.x = -Math.PI/2;
+          stM.position.set(-fwWidth/2 + (s + 0.5)*stW, 0.016, -TH/2);
+          this.scene.add(stM);
+        }
+        for(let z = -22; z >= -TH*0.95; z -= 34){
+          this._addTree(fwWidth/2 + 12 + (Math.abs(z)%7), z, gen, 1.5, "broad");
+          this._addTree(-fwWidth/2 - 14 - (Math.abs(z)%5), z - 12, gen, 1.35, "pine");
+          for(const sd of [-1, 1]){
+            const stk = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 1.35, 6), new THREE.MeshBasicMaterial({color: TODA_PALETTE.ob}));
+            stk.position.set(sd*(fwWidth/2 + 4.8), 0.68, z);
+            this.scene.add(stk);
+          }
+        }
 
         // ファーストカット境界帯
         for(const sd of [-1, 1]){
@@ -4099,15 +4036,15 @@ class GolfGame{
       basePodium.position.set(pinCoord.x, gHeight*0.5, pinCoord.z);
       this.scene.add(basePodium);
 
-      const activeGreenMesh = new THREE.Mesh(new THREE.CylinderGeometry(gRadius*0.92, gRadius*0.92, 0.15, 32), matGreen);
-      activeGreenMesh.position.set(pinCoord.x, gHeight + 0.05, pinCoord.z);
+      const activeGreenMesh = new THREE.Mesh(new THREE.CylinderGeometry(gRadius*0.92, gRadius*0.92, 0.30, 32), matGreen);
+      activeGreenMesh.position.set(pinCoord.x, gHeight + 0.15, pinCoord.z);
       this.scene.add(activeGreenMesh);
       this.greenPos = {x: pinCoord.x, z: pinCoord.z, r: gRadius*0.92, y: gHeight};
 
       // アクティブグリーンのカップリング
       const cupRing = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.8, 24), new THREE.MeshBasicMaterial({color:0xffffff, side:THREE.DoubleSide}));
       cupRing.rotation.x = -Math.PI/2;
-      cupRing.position.set(pinCoord.x, gHeight + 0.14, pinCoord.z);
+      cupRing.position.set(pinCoord.x, gHeight + 0.31, pinCoord.z);
       this.scene.add(cupRing);
 
       // ② サブグリーン砲台マウンド（フラッグなしBグリーン）
@@ -4143,7 +4080,8 @@ class GolfGame{
         const bA = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 6.2, 0.8, 24), matBunker);
         bA.position.set(pinCoord.x, 0.35, bkZ);
         this.scene.add(bA);
-        window._bunkerZones.push({x: pinCoord.x, z: bkZ, radius: 6.0});
+        window._bunkerZones.push({x: pinCoord.x, z: bkZ, r: 6.0, radius: 6.0});
+        this._bunkerZones.push({x: pinCoord.x, z: bkZ, r: 6.0, radius: 6.0});
       }
       // 【Hole 4 / 13】
       if(ph === 4){
@@ -4189,10 +4127,15 @@ class GolfGame{
           const bkMesh = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 5.0, 0.9, 20), matBunker);
           bkMesh.position.set(bx, 0.4, bz);
           this.scene.add(bkMesh);
-          window._bunkerZones.push({x: bx, z: bz, radius: 4.8});
+          window._bunkerZones.push({x: bx, z: bz, r: 4.8, radius: 4.8});
+          this._bunkerZones.push({x: bx, z: bz, r: 4.8, radius: 4.8});
         }
         window._runoffAreas.push({pos: new THREE.Vector3(pinCoord.x, 0, pinCoord.z), radius: gRadius + 6.0});
       }
+      // 戸田パブリック外周広域OB境界（大幅なコース外逸脱を確実にOB判定、グリーン奥・左右ラフ余白を適切に確保）
+      window._obVolumes.push({minX: -TW*4, maxX: -TW*1.45, minZ: -TH*2.2, maxZ: 60, reason:"コース左外周OB"});
+      window._obVolumes.push({minX: TW*1.45, maxX: TW*4, minZ: -TH*2.2, maxZ: 60, reason:"コース右外周OB"});
+      window._obVolumes.push({minX: -TW*4, maxX: TW*4, minZ: -TH*2.2, maxZ: -TH*1.55, reason:"グリーン奥外周OB"});
 
       console.log(`[Toda Public] Built 2WAY Hole ${hole.n} (Physical Hole ${ph}, isIN: ${hole.isIN}, Dogleg: ${hole.dogleg})`);
       return; // 戸田パブリック固有の構築完了
@@ -4365,7 +4308,7 @@ class GolfGame{
     fw.position.set(0,0,-TH/2);this.scene.add(fw);this.terrain=fw;
 
     // 刈り目縞（コース別幅・3トーン）
-    const swid=cid==="augusta"?5:cid==="standrews"?8:6;
+    const swid=isAugusta?5:isStAndrews?8:6;
     const ns=Math.ceil(TW/swid)+2;
     const toneA=rain?0x348018:isLinks?0x5a8828:0x44c020,
           toneB=rain?0x2a700e:isLinks?0x4a7820:0x38aa18,
@@ -4374,7 +4317,7 @@ class GolfGame{
       const col=[toneA,toneB,toneC][s%3];
       const stripe=new THREE.Mesh(
         new THREE.PlaneGeometry(swid-0.06,TH*0.985),
-        new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:cid==="augusta"?0.50:0.42})
+        new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:isAugusta?0.50:0.42})
       );
       stripe.rotation.x=-Math.PI/2;
       stripe.position.set(-TW/2-swid+s*swid+swid/2,0.01,-TH/2);
@@ -4440,8 +4383,6 @@ class GolfGame{
       }
     }
 
-    // ★ バンカー物理ゾーン登録
-    this._bunkerZones=[];
     // ═══════════════════════════════════════════════════════
     // ⑤  バンカー（プロ品質・レーキ跡・砂質感）
     // ═══════════════════════════════════════════════════════
@@ -4449,52 +4390,36 @@ class GolfGame{
     const blist=[];
     // グリーンサイドバンカー（feat=bunkerN → N基）
     
-    // ==== カスタムホール（9コース対応）ロジック ====
-    window._obVolumes = [];
-    window._waterLevel = -0.5;
-    window._runoffAreas = [];
-    window._bunkerZones = [];
-    
+    // ==== カスタムホール（全11コース対応）ロジック ====
     // TPCソーグラス #17 アイランドグリーン
-    if(cid==="tpcsawgrass" && hole.n===17){
-       window._waterLevel = 0.1;
+    if(isSawgrass && hole.n===17){
        // 周囲360度を水に
        addWater(new THREE.PlaneGeometry(TW*4,TH*2), 0, -TH/2, 0.05);
        // 右手前のバンカー
-       window._bunkerZones.push({x: TW*0.1, z: -TH/2 + 10, radius: 4});
+       this._bunkerZones.push({x: TW*0.1, z: -TH/2 + 10, r: 4, radius: 4});
     }
     
     // ペブルビーチ #7 海
-    if(cid==="pebble" && hole.n===7){
-       window._waterLevel = -0.1;
+    if(isPebble && hole.n===7){
        // 崖と海
        addWater(new THREE.PlaneGeometry(TW*5,TH*3), 0, -TH/2 - 20, -0.2);
     }
     
     // オーガスタ #12
-    if(cid==="augusta" && hole.n===12){
-       window._waterLevel = -0.1;
+    if(isAugusta && hole.n===12){
        // レイズクリーク
        addWater(new THREE.PlaneGeometry(TW, 15), 0, -TH/2 + 20, -0.1);
        // グリーン手前の滑る傾斜
        window._runoffAreas.push({pos: new THREE.Vector3(0,0,-TH/2 + 10), radius: 10});
     }
-
-    // 戸田パブリック #5 OB
-    if(cid==="toda" && hole.n===5){
-       window._obVolumes.push({minX: -TW/2-5, maxX: -TW/2, minZ: -TH, maxZ: 0});
-       window._obVolumes.push({minX: TW/2, maxX: TW/2+5, minZ: -TH, maxZ: 0});
-    }
     
     // セントアンドリュース (ポットバンカー)
-    if(cid==="standrews"){
-       // ポットバンカーをランダムに配置
+    if(isStAndrews){
        for(let i=0; i<10; i++){
-          window._bunkerZones.push({
-             x: (Math.random()-0.5)*TW*0.6, 
-             z: -(Math.random()*TH*0.8), 
-             radius: 2 + Math.random()*2
-          });
+          const pbx = (Math.random()-0.5)*TW*0.6;
+          const pbz = -(Math.random()*TH*0.8);
+          const pbr = 2 + Math.random()*2;
+          this._bunkerZones.push({ x: pbx, z: pbz, r: pbr, radius: pbr });
        }
     }
 
@@ -4523,6 +4448,7 @@ const bCntGreen=Math.min(bunkerCount,5);
     }
 
     for(const bk of blist){
+      this._bunkerZones.push({ x: bk.x, z: bk.z, r: bk.r, radius: bk.r });
       const gy=gen.getHeight(bk.x+TW/2,-bk.z-TH/2);
       // 窪み（暗い影）
       addC(new THREE.CylinderGeometry(bk.r*1.08,bk.r*1.2,0.45,30),0xb89850)
@@ -4815,9 +4741,9 @@ const bCntGreen=Math.min(bunkerCount,5);
     // カート道（コース別）
     if(!isLinks){ // リンクスにカート道なし
       const cpW=3.2,cpZ=-TH*0.27;
-      const cpX=cid==="augusta"?-(TW/2-5.8):(TW/2-5.8); // Augusta=左側
-      const cpCol=cid==="augusta"?0x8a8478:0x9c9488;
-      const cpBorder=cid==="augusta"?0xa09888:0xb4a898;
+      const cpX=isAugusta?-(TW/2-5.8):(TW/2-5.8); // Augusta=左側
+      const cpCol=isAugusta?0x8a8478:0x9c9488;
+      const cpBorder=isAugusta?0xa09888:0xb4a898;
       addC(new THREE.BoxGeometry(cpW,0.08,TH*0.44),cpCol).position.set(cpX,0.04,cpZ);
       for(const sdC of[-1,1]){
         addC(new THREE.BoxGeometry(0.18,0.1,TH*0.44),cpBorder)
@@ -4949,8 +4875,7 @@ const bCntGreen=Math.min(bunkerCount,5);
       const wW=TW*0.9, wH=TH*0.11;
       const wZf=gpz+TH*0.10;
       // 川底（Augusta=Rae's Creek風）
-      // cid2 -> cid
-      const isRaeCreek=cid==="augusta";
+      const isRaeCreek=isAugusta;
       // 川底の石や砂
       add(new THREE.PlaneGeometry(wW+7,wH+5),isRaeCreek?(rain?0x3a3020:0x4a4030):0x2a4a2a,0.02,0,wZf);
       // 水面（川）
@@ -5026,10 +4951,10 @@ const bCntGreen=Math.min(bunkerCount,5);
       const dlX=dlSide*(TW*0.25);
       // cid3 -> cid
       // Augusta特有の樹種・密度
-      const tCount=mob?(cid==="augusta"?4:3):(cid==="augusta"?8:6);
-      const treeType=cid==="augusta"?"broad":isLinks?"pine":"pine";
+      const tCount=mob?(isAugusta?4:3):(isAugusta?8:6);
+      const treeType=isAugusta?"broad":isLinks?"pine":"pine";
       for(let ti=0;ti<tCount;ti++){
-        const spread=cid==="augusta"?14:12;
+        const spread=isAugusta?14:12;
         const tx=dlX+(Math.random()-0.5)*spread;
         const tz2=dlZ+(Math.random()-0.5)*18;
         const sm=1.4+Math.random()*1.8;
@@ -5047,7 +4972,7 @@ const bCntGreen=Math.min(bunkerCount,5);
       add(new THREE.PlaneGeometry(TW*0.52,TH*0.28),
         rain?0x2a6010:fog?0x38821a:0x3cb825,-0.01,dlFWx,dlZ);
       // Augusta白ロープ柵（スペクテイターロープ）
-      if(cid==="augusta"&&!mob){
+      if(isAugusta&&!mob){
         for(let ri=0;ri<6;ri++){
           const post=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,1.4,5),
             new THREE.MeshLambertMaterial({color:0xf0f0e8}));
@@ -5098,7 +5023,7 @@ const bCntGreen=Math.min(bunkerCount,5);
     const isLinks=course.terrainProfile==="links";
 
     // Augusta特有の木（マグノリア・アザレア・パインなど）
-    const isAugusta=cid==="augusta";
+    const isAugusta=(cid==="augusta"||cid==="augusta_divine");
     const isPebble=cid==="pebble";
 
     // ★ 幹色（重厚で深みのあるリアルなウッドバークブラウン）
@@ -5254,8 +5179,10 @@ const bCntGreen=Math.min(bunkerCount,5);
     const pinCid=course.id||"";
     const mob=this.isMobile;
 
+    const isAugPin=(pinCid==="augusta"||pinCid==="augusta_divine");
+    const isStAPin=(pinCid==="standrews"||pinCid==="standrews_new");
     // ピン（ポール色はコース別）
-    const poleCol=pinCid==="augusta"?0xf0f0f0:pinCid==="standrews"?0xd0d0d0:0xfafafa;
+    const poleCol=isAugPin?0xf0f0f0:isStAPin?0xd0d0d0:0xfafafa;
     const pole=new THREE.Mesh(
       new THREE.CylinderGeometry(0.1,0.12,7.5,8),
       new THREE.MeshLambertMaterial({color:poleCol})
@@ -5265,7 +5192,7 @@ const bCntGreen=Math.min(bunkerCount,5);
 
     // ★ 旗（どんな遠距離・起伏でも視認性抜群なプロ仕様フラッグ）
     // オーガスタはマスターズ伝統の鮮やかなゴールドイエロー、他コースはクッキリしたハイビズレッド
-    const flagCol=pinCid==="augusta"?0xffd700:pinCid==="tpcsawgrass"?0xff2222:pinCid==="pebble"?0x0088ff:0xff3300;
+    const flagCol=isAugPin?0xffd700:pinCid==="tpcsawgrass"?0xff2222:pinCid==="pebble"?0x0088ff:0xff3300;
     // ★ 物理風シミュレーション対応リアル布フラッグ（細分化メッシュ）
     const flagGeo = new THREE.PlaneGeometry(2.8, 1.9, 12, 4);
     const flagMat = new THREE.MeshBasicMaterial({color: flagCol, side: THREE.DoubleSide});
@@ -5284,7 +5211,7 @@ const bCntGreen=Math.min(bunkerCount,5);
     this.scene.add(topMarker);
 
     // Augusta旗：黄色のマスターズロゴ風ストライプ
-    if(pinCid==="augusta"){
+    if(isAugPin){
       const stripe=new THREE.Mesh(
         new THREE.PlaneGeometry(2.4,0.35),
         new THREE.MeshLambertMaterial({color:0xffd700,side:THREE.DoubleSide})
@@ -5624,7 +5551,8 @@ const bCntGreen=Math.min(bunkerCount,5);
     if(this.gameMode==="putt"){this.aimDots.forEach(d=>d.visible=false);if(this.targetRingMesh)this.targetRingMesh.visible=false;if(this.carryMarkerMesh)this.carryMarkerMesh.visible=false;return;}
     const club=CLUBS[this.currentClubIdx];const pw=70;
     const c=this.character;const speedMult=(club.type==="driver"||club.type==="wood")?c.driverMult:1.0;
-    const totalDist=club.maxDist*(pw/100)*speedMult*this.weather.distMult;
+    const gm=this._getGoatDistMult?this._getGoatDistMult():1.0;
+    const totalDist=club.maxDist*(pw/100)*speedMult*this.weather.distMult*gm;
     const carryDist=totalDist*(1-club.runFactor);
     const aimRad=this.aimAngle*Math.PI/180;
     const bp=this.ball.position;const sx=Math.sin(aimRad),sz=-Math.cos(aimRad);
@@ -5676,7 +5604,28 @@ const bCntGreen=Math.min(bunkerCount,5);
     if(Math.abs(x)>32)return"rough"; // セミラフ帯
     return"fairway";
   }
-  checkOB(x,z){for(const zone of this.obZones)if(pointInPolygon2D(x,z,zone))return true;return false;}
+  checkOB(x,z){
+    if(this.getSurf(x,z)==="green")return false;
+    for(const zone of this.obZones){
+      if(pointInPolygon2D(x,z,zone))return true;
+    }
+    if(window._shortcutBanZone){
+      const sb=window._shortcutBanZone;
+      if(x>=sb.minX&&x<=sb.maxX&&z>=sb.minZ&&z<=sb.maxZ)return true;
+    }
+    if(window._obVolumes){
+      for(const ob of window._obVolumes){
+        if(x>ob.minX&&x<ob.maxX&&z>ob.minZ&&z<ob.maxZ)return true;
+      }
+    }
+    if(window._waterBoxes){
+      const by=this.ball?this.ball.position.y:0;
+      for(const wb of window._waterBoxes){
+        if(x>=wb.minX&&x<=wb.maxX&&z>=wb.minZ&&z<=wb.maxZ&&by<=(wb.maxY||0.6))return true;
+      }
+    }
+    return false;
+  }
 
   // ===== カメラ =====
   // ★★★ グリーン＆旗が常に視野内に入るカメラシステム ★★★
@@ -5839,7 +5788,7 @@ const bCntGreen=Math.min(bunkerCount,5);
     ctx.fillStyle = "#0e2a0a";
     ctx.fillRect(0, 0, W, H);
 
-    const isTodaCourse = (this.currentCourse && this.currentCourse.id === "toda");
+    const isTodaCourse = !!(this.currentCourse && (this.currentCourse.id === "toda" || this.currentCourse.id === "toda_dark" || this.currentCourse.isToda2Way));
     const curHole = (this.currentCourse && this.currentCourse.holes) ? this.currentCourse.holes[this.currentHoleIdx] : null;
     const ph = curHole ? (curHole.physHole || ((curHole.n - 1) % 9 + 1)) : (this.currentHoleIdx + 1);
     const isRightAngleDogleg = isTodaCourse && (ph === 8 || (curHole && (curHole.dogleg === "sharp_left" || curHole.n === 8 || curHole.n === 17)));
@@ -6303,7 +6252,8 @@ const bCntGreen=Math.min(bunkerCount,5);
         const c=this.character;
         if(club&&c){
           const sm=1.0;
-          const est=Math.round(club.maxDist*sm*(this.weather?this.weather.distMult:1));
+          const gm=this._getGoatDistMult?this._getGoatDistMult():1.0;
+          const est=Math.round(club.maxDist*sm*(this.weather?this.weather.distMult:1)*gm);
           const diff=est-distYd;
           const diffStr=diff>0?`+${diff}yd`:`${diff}yd`;
           if(subEl) subEl.textContent=`${distFt} ft  (${distM}m)`;
@@ -6346,7 +6296,8 @@ const bCntGreen=Math.min(bunkerCount,5);
         const c=this.character;
         if(club&&c&&clubBar){
           const sm=(club.type==="driver"||club.type==="wood")?c.driverMult:1.0;
-          const estTotal=Math.round(club.maxDist*sm*(this.weather?this.weather.distMult:1));
+          const gm=this._getGoatDistMult?this._getGoatDistMult():1.0;
+          const estTotal=Math.round(club.maxDist*sm*(this.weather?this.weather.distMult:1)*gm);
           const estCarry=Math.round(estTotal*(1-club.runFactor));
           const estRun=estTotal-estCarry;
           if(subEl) subEl.textContent=club.name+" 推定:"+estTotal+"yd";
@@ -6634,14 +6585,17 @@ const bCntGreen=Math.min(bunkerCount,5);
 
   _autoSelectClub(yards){
     if(this.gameMode==="putt"){this.currentClubIdx=CLUBS.length-1;this._highlightClub();return;}
-    // 残り距離に最も適したクラブを選択（NS想定の実飛距離で比較）
+    // 残り距離に最も適したクラブを選択（NS想定の実飛距離＋GOATパワー率×神装飛距離補正で比較）
     const c=this.character;
+    const gm=this._getGoatDistMult?this._getGoatDistMult():1.0;
+    const surf=(this.ball&&this.getSurf)?this.getSurf(this.ball.position.x,this.ball.position.z):"fairway";
+    const lieMult=surf==="bunker"?0.55:surf==="rough"?0.82:1.0;
     let best=CLUBS.length-2;
     let bestDiff=9999;
     for(let i=0;i<CLUBS.length-1;i++){
       const cl=CLUBS[i];
       const sm=(cl.type==="driver"||cl.type==="wood")?c.driverMult:1.0;
-      const estDist=cl.maxDist*0.80*sm*(this.weather?this.weather.distMult:1);
+      const estDist=cl.maxDist*0.80*sm*(this.weather?this.weather.distMult:1)*gm*lieMult;
       const diff=Math.abs(estDist-yards);
       if(diff<bestDiff){bestDiff=diff;best=i;}
     }
@@ -6727,7 +6681,8 @@ const bCntGreen=Math.min(bunkerCount,5);
       popup.onclick=()=>this.nextHole();
       popup.style.animation="none";
       requestAnimationFrame(()=>requestAnimationFrame(()=>{popup.style.animation="popIn 0.4s ease-out forwards";}));
-      setTimeout(()=>{if(popup)popup.style.display="none";},5000);
+      clearTimeout(this._scorePopupTimer);
+      this._scorePopupTimer = setTimeout(()=>{if(popup && !this._holeCompletedFlag)popup.style.display="none";},5000);
     }
     const nhb=document.getElementById("nextHoleBtn");
     if(nhb){
@@ -6974,10 +6929,11 @@ const bCntGreen=Math.min(bunkerCount,5);
   start(course,charData,weatherType,roundHoles,distMode){
     // 飛距離モードに応じてCLUBSを切り替え（グローバル変数を更新）
     CLUBS = distMode==="super" ? CLUBS_SUPER : CLUBS_NORMAL;
-    // クラブボタンの距離表示を更新
+    // クラブボタンの距離表示を更新（GOAT飛距離倍率を反映）
+    const startGm = this._getGoatDistMult ? this._getGoatDistMult() : 1.0;
     document.querySelectorAll(".club-btn").forEach((b,i)=>{
       const dist=b.querySelector(".club-btn-dist");
-      if(dist&&CLUBS[i])dist.textContent=CLUBS[i].maxDist+"yd";
+      if(dist&&CLUBS[i])dist.textContent=Math.round(CLUBS[i].maxDist*startGm)+"yd";
     });
     // 飛距離モードをHUDに表示
     const modeTag=distMode==="super"?"⚡超人":"🏌️通常";
@@ -7009,13 +6965,16 @@ const bCntGreen=Math.min(bunkerCount,5);
       realNameEl.textContent=charData.realName;
     }
     document.getElementById("startScreen").style.display="none";document.getElementById("gameUI").style.display="block";
-    this.loadHole(course,0);
+    this.loadHole(slicedCourse,0);
     // loadHole 内で ball.position と _resetAimToPin が呼ばれるので追加設定不要
 
     // WebGLコンテキスト消失対応（iOS Safariでバックグラウンド移行時に発生）
-    const canvasEl=document.getElementById("canvas");
-    canvasEl.addEventListener("webglcontextlost",e=>{e.preventDefault();console.warn("WebGL context lost");},{passive:true});
-    canvasEl.addEventListener("webglcontextrestored",()=>{console.warn("WebGL context restored");},{passive:true});
+    if(!this._ctxListenerBound){
+      this._ctxListenerBound = true;
+      const canvasEl=document.getElementById("canvas");
+      canvasEl.addEventListener("webglcontextlost",e=>{e.preventDefault();console.warn("WebGL context lost");},{passive:true});
+      canvasEl.addEventListener("webglcontextrestored",()=>{console.warn("WebGL context restored");},{passive:true});
+    }
 
     // shotUIの実際の高さをCSS変数に反映（全フローティングパネルの基準）
     const updateShotUIHeight=()=>{
@@ -7026,10 +6985,15 @@ const bCntGreen=Math.min(bunkerCount,5);
       }
     };
     updateShotUIHeight();
-    // レイアウト変更時も更新
-    const suiObserver=new ResizeObserver(updateShotUIHeight);
-    const suiEl=document.getElementById("shotUI");
-    if(suiEl)suiObserver.observe(suiEl);
+    if(!this._suiObserverBound){
+      this._suiObserverBound = true;
+      const suiObserver=new ResizeObserver(updateShotUIHeight);
+      const suiEl=document.getElementById("shotUI");
+      if(suiEl)suiObserver.observe(suiEl);
+    }
+
+    if(this._loopRunning) return;
+    this._loopRunning = true;
 
     const loop=()=>{
       requestAnimationFrame(loop);
@@ -7047,6 +7011,22 @@ const bCntGreen=Math.min(bunkerCount,5);
         const bp = this.ball.position;
         const groundY = this.getGY(bp.x, bp.z);
         const height = Math.max(0, bp.y - groundY);
+        // ★ ローリング中のリアル・カップイン捕捉（パット＆チップインでカップ上を通過した瞬間に吸い込まれる！）
+        if(this.ball.inFlight && !this.isOBLocked && height <= 0.25 && this.pinPos){
+          const dPin = this._distToPin();
+          if(this.ball.phase === "putt_roll"){
+            const pSpd = Math.hypot(this.ball.puttVel.x, this.ball.puttVel.z);
+            if(dPin < 0.78 && pSpd < 7.0){
+              this.ball.position.set(this.pinPos.x, this.getGY(this.pinPos.x, this.pinPos.z) + 0.02, this.pinPos.z);
+              this.ball._stop((x,z)=>this.getGY(x,z),(x,z)=>this.getSurf(x,z));
+            }
+          } else if(this.ball.phase === "run" && this.getSurf(bp.x, bp.z) === "green"){
+            if(dPin < 0.68){
+              this.ball.position.set(this.pinPos.x, this.getGY(this.pinPos.x, this.pinPos.z) + 0.02, this.pinPos.z);
+              this.ball._stop((x,z)=>this.getGY(x,z),(x,z)=>this.getSurf(x,z));
+            }
+          }
+        }
         // ★ 空中飛行中（キャリー中、または地面から浮いている height > 0.25）は絶対にOB判定を行わない！
         // ボールが地面に着地・接触した時（run / bounce / putt_roll かつ height <= 0.25）のみ判定
         const isLanded = (this.ball.phase !== "carry") && (height <= 0.25);
@@ -7167,7 +7147,17 @@ function buildStartUI(){
   });
 }
 window.addEventListener("load",()=>{
-  setTimeout(()=>{document.getElementById("loading").style.display="none";document.getElementById("startScreen").style.display="flex";game.init();buildStartUI();},500);
+  const isGoatDuel = new URLSearchParams(location.search).get("goat") === "1";
+  if(isGoatDuel){
+    const ld = document.getElementById("loading");
+    if(ld) ld.style.display = "none";
+  }
+  setTimeout(()=>{
+    document.getElementById("loading").style.display="none";
+    if(!isGoatDuel) document.getElementById("startScreen").style.display="flex";
+    game.init();
+    buildStartUI();
+  }, isGoatDuel ? 30 : 500);
 
   // ===== D-Plane ボタン イベントハンドラ =====
   function updateDplanePreview(){
@@ -7289,9 +7279,9 @@ window.addEventListener("load",()=>{
   #gmcStatus { font-size: 13px; font-weight: 900; color: #5ce1e6; letter-spacing: 1px; }
   #gmcMarks  { font-size: 11px; color: #ffe69c; margin-top: 2px; font-weight: 800; }
 
-  /* 左下：炎パワー＆運命の糸メンタル＋特殊ショットコマンドパレット */
+  /* 左下：炎パワー＆運命の糸メンタル＋特殊ショットコマンドパレット（下部距離パネルと一切重ならない段差配置） */
   #goatBattleLeft {
-    position: fixed; left: 10px; bottom: calc(var(--sui-h, 118px) + 38px); z-index: 9500;
+    position: fixed; left: 10px; bottom: calc(var(--sui-h, 118px) + 76px); z-index: 9500;
     display: none; width: 252px; padding: 9px 11px;
     background: linear-gradient(165deg, rgba(10, 13, 28, 0.88), rgba(6, 8, 18, 0.94));
     border: 1px solid rgba(255, 216, 117, 0.42); border-radius: 13px;
@@ -7577,9 +7567,27 @@ window.addEventListener("load",()=>{
 
   window.addEventListener("message", function(ev){
     var d = ev.data;
-    if(d && d.type === "goat:battleContext" && d.ctx && !B.started){
+    if(!d || typeof d !== "object") return;
+    if(d.type === "goat:battleContext" && d.ctx && !B.started){
       B.ctx = d.ctx;
       bootBattle();
+      return;
+    }
+    if(d.type === "goat:golfKey"){
+      var ov = document.getElementById("goatFinishOverlay");
+      if(ov && ov.style.display === "flex"){
+        if(d.down && (d.code === "Space" || d.code === "Enter")){
+          var gbtn = document.getElementById("gfoBtn");
+          if(gbtn) gbtn.click();
+        }
+        return;
+      }
+      if(typeof game !== "undefined" && game){
+        if(d.code === "ArrowLeft" && game._setAimKey) game._setAimKey(-1, !!d.down);
+        else if(d.code === "ArrowRight" && game._setAimKey) game._setAimKey(1, !!d.down);
+        else if(d.down && (d.code === "Space" || d.code === "Enter") && game._triggerShootInput) game._triggerShootInput();
+        else if(d.down && d.code === "KeyC" && game.toggleCamera) game.toggleCamera();
+      }
     }
   });
 
@@ -7807,6 +7815,27 @@ window.addEventListener("load",()=>{
   /* GolfGame本体へのRPG物理・全11枠ギア・神器・ミニマップ敵球・マッチプレー完全フック */
   function installEngineHooks(){
     var gs = B.gearStats || { specials:{} };
+
+    /* 0. GOATパワー率×11枠神装飛距離倍率取得ヘルパー（オート番手選択・推定飛距離HUD・弾道ドット完全連動用） */
+    game._getGoatDistMult = function(){
+      var curGs = B.gearStats || gs || {};
+      var rawR = calcPowerRate(B.playerPower);
+      var dropM = 120 - rawR;
+      var effR = 120 - dropM * (1 - Math.min(96, curGs.powDropCutPct || 0) / 100);
+      var dm = (effR / 100);
+      var gdp = curGs.distPct || 0;
+      if(B.achillesBrokenThisHole && curGs.specials && curGs.specials.achilles_heel){
+        gdp -= 11;
+      }
+      dm *= (1 + gdp * 0.01);
+      if(curGs.specials && curGs.specials.zeus_storm && this.weather && (this.weather.type === "strongWind" || this.weather.type === "storm" || this.weather.type === "rain")){
+        dm *= 1.06;
+      }
+      if(B.buff === "dist12") dm *= 1.12;
+      if(B.buff === "godPower18") dm *= 1.18;
+      if(B.buff === "humanPride") dm *= 1.10;
+      return dm;
+    };
 
     /* 1. ショット物理計算フック（パワー率 70+power*0.5 ＆ 全11枠ギア補正 ＆ 8特殊ショット） */
     var origCalcShot = game._calcShot.bind(game);
@@ -8297,6 +8326,14 @@ window.addEventListener("load",()=>{
 
     installEngineHooks();
     game.start(courseArg, ch, weatherType, useHoles.length, distMode);
+    if(game.renderer && game.camera && game.scene){
+      var rw = window.innerWidth || 1280, rh = window.innerHeight || 720;
+      game.renderer.setSize(rw, rh);
+      game.camera.aspect = rw / Math.max(1, rh);
+      game.camera.updateProjectionMatrix();
+      game.updateCamera();
+      game.renderer.render(game.scene, game.camera);
+    }
     resetGhostForHole();
 
     /* 1打単位レジューム復帰（対戦途中でブラウザを閉じて再開した場合、そのホールと打数から完全再開！） */
@@ -8337,12 +8374,12 @@ window.addEventListener("load",()=>{
   }
 
   function requestBoot(){
-    try { parent.postMessage({ type:"goat:golfHello", version:"3.0" }, "*"); } catch(e){}
-    setTimeout(function(){ if(!B.started) bootBattle(); }, 320);
+    try { parent.postMessage({ type:"goat:golfHello", version:"3.2" }, "*"); } catch(e){}
+    setTimeout(function(){ if(!B.started) bootBattle(); }, 180);
   }
 
-  if(document.readyState === "complete") setTimeout(requestBoot, 350);
-  else window.addEventListener("load", function(){ setTimeout(requestBoot, 350); });
+  if(document.readyState === "complete") setTimeout(requestBoot, 70);
+  else window.addEventListener("load", function(){ setTimeout(requestBoot, 70); });
 })();
 </script>
 </body>
