@@ -722,6 +722,35 @@
         transform: translateY(0);
       }
     }
+
+    /* =====================================================================
+       LAYOUT FIX v3.2.6（④スマホ縦画面：上下HUDの重なり解消／①上段パネルの両立）
+       ・3Dフィールド描画は一切縮小しない。HUDの配置とサイズのみを最適化する。
+       ===================================================================== */
+    @media (max-width: 640px) {
+      /* 上段：左ステータスと右クラブパネルを両方とも画面内に収める */
+      #topLeftHud { min-width: 0; width: 146px; padding: 6px 8px; }
+      .hero-line { flex-direction: column; align-items: flex-start; gap: 0; }
+      .hero-nm { font-size: 12.5px; }
+      .hero-rk { font-size: 9px; }
+      .mini-stats { flex-wrap: wrap; gap: 3px 8px; font-size: 10px; margin-top: 4px; padding-top: 4px; }
+      #topRightHud { max-width: 214px; }
+      .club-bar { flex-wrap: wrap; justify-content: flex-end; }
+      .cslot { font-size: 10px; padding: 4px 6px; }
+      /* 下段：スティック／ゲージ／アクションドック／ミニマップを段差配置にして重ねない */
+      #bottomLeftHud { bottom: 62px; width: 190px; }
+      #vStickWrap { bottom: 200px; left: 10px; width: 104px; }
+      #vStickBase { width: 96px; height: 96px; }
+      #vStickHint { font-size: 9px; padding: 2px 7px; }
+      #fireControls { bottom: 10px; left: 0; transform: none; width: 100%; justify-content: center; padding: 0 4px; box-sizing: border-box; }
+      #dashToggleBtn, #boostStepBtn { font-size: 10.5px; padding: 7px 9px; flex-shrink: 1; }
+      #chargeBtn { font-size: 11px; padding: 8px 12px; flex-shrink: 1; white-space: normal; text-align: center; line-height: 1.25; }
+      #miniWrap { bottom: 62px; }
+      #minimap { width: 104px; height: 104px; }
+      .map-legend { font-size: 8.5px; white-space: normal; }
+      #miniWrap { max-width: 124px; }
+      #minimap { width: 104px !important; height: 104px !important; }
+    }
   </style>
 </head>
 
@@ -3285,6 +3314,8 @@
         if (typeof d.power === "number") STATE.power = d.power;
         if (typeof d.mental === "number") STATE.mental = d.mental;
         if (typeof d.balls === "number") STATE.balls = d.balls;
+        /* LAYOUT FIX v3.2.6（③GOATは全ステータス常時フル：同期で受けてもフルを維持する） */
+        if (STATE.mode === "goat") { STATE.power = 100; STATE.mental = 100; STATE.balls = 999; }
         if (typeof d.gold === "number") STATE.gold = d.gold;
         if (typeof d.tp === "number") STATE.tp = d.tp;
         if (d.gearStats) STATE.gearStats = d.gearStats;

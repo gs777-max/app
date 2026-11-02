@@ -7350,6 +7350,112 @@ window.addEventListener("load",()=>{
     box-shadow: 0 6px 24px rgba(210, 155, 25, 0.42);
   }
   .gfo-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  /* =====================================================================
+     LAYOUT FIX v3.2.6（①上段レイアウト最適化／②炎パネル一列ストリップ化と下部バー全幅収納／④隠れ表示の救済）
+     ・3Dコース描画(canvas)は一切縮小しない。HUDの配置とサイズのみを最適化する。
+     ・広幅(1101px以上): ホール情報を対戦カードへ統合した1本バー。赤バナーと対戦状況は最上段の余白へ
+     ・中幅(641〜1100px): ホール情報バー＋対戦カードの段差配置。赤バナーは最上段の余白へ
+     ・スマホ(640px以下): 段差配置のまま、各パネルを小型化して全項目を画面内へ
+     ===================================================================== */
+  /* ② 左下パネルは距離パネル(高さ約90px)の上に段差を空けて配置し、重ならないようにする */
+  #goatBattleLeft { bottom: calc(var(--sui-h, 74px) + 108px); }
+
+  @media (min-width: 641px) {
+    /* ① 最上段のパネルは3行が44pxに収まる大きさにし、下のバーに隠れないようにする */
+    body.goat-duel #topHUD .hud-label { font-size: 0.5rem !important; }
+    body.goat-duel #topHUD .hud-value { font-size: 1.02rem !important; }
+    body.goat-duel #topHUD .hud-small { font-size: 0.55rem !important; }
+    body.goat-duel #topHUD .hud-panel { line-height: 1.15 !important; }
+    /* ① 赤い特徴バナー（戦術アラート）は最上段の余白に組み込み、対戦バーに隠れないようにする */
+    #topHUD #tacticalAlertBadge { position: static !important; flex-shrink: 1; min-width: 0; max-width: 285px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  }
+
+  @media (min-width: 641px) and (max-width: 1100px) {
+    /* ① 中幅：対戦カードはホール情報バー(44〜71px)の下に置き、重なりをなくす */
+    #goatMatchCard { top: 78px; max-width: calc(100vw - 16px); }
+    body.goat-duel #pgaBroadcastBanner, body.goat-duel #pgaBroadcastBanner.show { top: 146px !important; }
+    body.goat-duel #flightBar { top: 146px !important; }
+  }
+
+  @media (min-width: 1101px) {
+    /* ① 広幅：対戦カード（ホール情報の項目を取り込み済み）を上段直下の1本バーに統合し、上段の余白を活かしてコース表示を広げる */
+    body.goat-duel #holeInfo { display: none !important; }
+    #goatMatchCard { top: 48px; height: 40px; padding: 4px 18px; gap: 18px; border-radius: 11px; max-width: calc(100vw - 16px); }
+    .gmc-hole { display: flex; align-items: center; gap: 8px; padding-right: 12px; border-right: 1px solid rgba(255,255,255,0.14); min-width: 0; }
+    .gmc-hole .hi-hole { font-size: 1rem; }
+    .gmc-hole .hi-progress { font-size: 0.62rem; }
+    .gmc-hole .hi-yards { font-size: 0.8rem; }
+    .gmc-hole .hi-par { font-size: 0.7rem; }
+    .gmc-hole .hi-name { font-size: 0.62rem; }
+    .gmc-side { flex-direction: row; align-items: baseline; gap: 7px; min-width: 0; }
+    .gmc-side.opp { flex-direction: row; align-items: center; text-align: left; }
+    .gmc-oppbar { width: 90px; }
+    #gmcMarks { margin-top: 0; }
+    /* ① 広幅：対戦状況も最上段の余白へ（残り距離の隣） */
+    #topHUD .gmc-center { border: none; padding: 0 4px; min-width: 0; text-align: center; }
+    #topHUD #tacticalAlertBadge { max-width: 320px; }
+    body.goat-duel #pgaBroadcastBanner, body.goat-duel #pgaBroadcastBanner.show { top: 96px !important; }
+    body.goat-duel #flightBar { top: 96px !important; }
+    body.goat-duel #holeDescToast { top: 96px !important; }
+  }
+
+  @media (max-width: 640px) {
+    /* ① 上段：天気の予約幅を実幅に合わせ、プレイヤー/スコア/残り距離をすべて見せる */
+    #topHUD { padding: 2px 144px 2px 6px !important; }
+    #hudScore span { font-size: 0.95rem !important; }
+    .hud-label { font-size: 0.42rem !important; }
+    .hud-panel { min-width: 0 !important; padding: 2px 5px !important; }
+    .hud-value { font-size: 0.7rem !important; }
+    .hud-small { font-size: 0.55rem !important; }
+    #weatherHUD { gap: 4px !important; right: 4px !important; }
+    .weather-row { font-size: 0.55rem !important; }
+    /* ① 対戦カードはホール情報バー(44〜71px)の下に置き、重なりをなくす。各欄は縮小可能にして相手側が画面外へはみ出さないようにする */
+    #goatMatchCard { top: 74px; width: calc(100vw - 12px); max-width: calc(100vw - 12px); padding: 5px 6px; gap: 4px; flex-wrap: wrap; row-gap: 2px; }
+    .gmc-side, .gmc-center { min-width: 0; }
+    .gmc-side { order: 1; flex: 1 1 0; }
+    .gmc-side.opp { order: 2; flex: 1 1 0; }
+    /* スマホでは対戦状況を2段目に全幅で置き、文字を小さくしすぎず全項目を読めるようにする */
+    .gmc-center { order: 3; flex: 1 1 100%; flex-direction: row; align-items: baseline; justify-content: center; gap: 8px; border: none; border-top: 1px solid rgba(255,255,255,0.10); padding: 2px 4px 0; margin-top: 1px; }
+    .gmc-name { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .gmc-sub { font-size: 8.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    #gmcStatus { font-size: 10.5px; letter-spacing: 0; }
+    #gmcMarks { font-size: 9px; }
+    .gmc-oppbar { width: 100%; max-width: 120px; }
+    body.goat-duel #pgaBroadcastBanner, body.goat-duel #pgaBroadcastBanner.show { top: 166px !important; }
+    body.goat-duel #flightBar { top: 166px !important; }
+    /* ① 赤い特徴バナーが対戦カードに隠れないよう、カードの下にずらす */
+    #tacticalAlertBadge { top: 166px !important; left: 8px !important; }
+    /* ② 左下：炎パワー＆運命の糸メンタル＆特殊ショットを横一列の細長い帯にして、コース中央を空ける（案D） */
+    #goatBattleLeft { left: 10px; right: 10px; width: auto; bottom: calc(var(--sui-h, 74px) + 102px); padding: 6px 8px; }
+    body.goat-duel #goatBattleLeft { display: flex !important; flex-direction: row; align-items: stretch; gap: 7px; }
+    #goatBattleLeft .gbl-cell { flex: 0 0 104px; display: flex; flex-direction: column; justify-content: center; gap: 3px; min-width: 0; }
+    #goatBattleLeft .gbl-cell .gbl-row { font-size: 8.5px; white-space: nowrap; }
+    #goatBattleLeft .gbl-bar { display: flex; align-items: center; gap: 5px; }
+    #goatBattleLeft .gbl-bar canvas { flex: 1 1 auto; width: auto !important; min-width: 0; }
+    #goatBattleLeft .gbl-bar > span { font-size: 9.5px !important; font-weight: 700; white-space: nowrap; }
+    #gFlameCv { height: 13px; }
+    #gThreadCv { height: 9px; margin-bottom: 5px; }
+    .sp-toggle-btn { font-size: 10px; padding: 5px 6px; white-space: normal; line-height: 1.3; flex: 1 1 auto; min-width: 0; }
+    /* ②④ 下部ショットバー：右側ボタン群まで全て画面内に収める */
+    #shotUI { gap: 5px !important; padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px)) 6px !important; }
+    /* ショットパラメーター横長化（案F2）: DR/PINは縦積みの小型スタックにする */
+    #leftControls { flex-direction: column; flex: 0 0 96px; min-width: 0; gap: 3px; }
+    .compact-club-box, .compact-aim-box { width: 96px; height: 33px; padding: 1px 2px; gap: 2px; }
+    .compact-nav-btn { width: 19px; height: 27px; font-size: 0.82rem; }
+    .compact-club-info { min-width: 36px; }
+    .compact-club-name { font-size: 0.78rem; }
+    .compact-club-dist { font-size: 0.6rem; }
+    .compact-aim-deg { min-width: 20px; font-size: 0.55rem; }
+    #centerControls { flex: 1 1 auto; min-width: 0; margin: 0 3px; }
+    /* 案F2: 右ボタンも縦積みにして、空いた幅をメーターへ */
+    #rightControls { flex-shrink: 0; flex-direction: column; gap: 2px; }
+    .compact-sub-btn { width: 48px; height: 21px; padding: 2px 3px; font-size: 0.54rem; }
+    /* ② SHOTボタンは中央カラムの幅に収め、左右の操作ボタンに被せない */
+    #centerControls #shootBtn { min-width: 0; width: 100%; height: 32px; padding: 4px 6px !important; font-size: 0.8rem !important; letter-spacing: 0.06em !important; }
+    #miniMap { width: 74px !important; height: 74px !important; }
+    /* ④ 中継テロップ：長い文でも画面からはみ出さない */
+    #goatGhostCaption { white-space: normal; text-align: center; max-width: 94vw; font-size: 11px; padding: 5px 12px; line-height: 1.45; }
+  }
 </style>
 
 <!-- GOAT額縁HUD要素群 -->
@@ -7385,6 +7491,234 @@ window.addEventListener("load",()=>{
 </div>
 
 <div id="goatGhostCaption"></div>
+<style>
+@media (max-width: 640px) {
+  /* 案G1 上部圧縮v2: ホール情報/対戦カード/赤バナーを薄く（topHUDは不変更） */
+  #holeInfo { font-size: 0.78rem !important; padding-top: 2px !important; padding-bottom: 2px !important; }
+  #goatMatchCard { top: 62px !important; padding: 6px 10px !important; }
+  #tacticalAlertBadge { top: 144px !important; font-size: 0.74rem !important; padding: 4px 12px !important; }
+}
+</style>
+<style>
+@media (max-width: 640px) {
+  /* 案G2 下部圧縮: 炎の帯と距離パネル列を薄く（ショットバーは不変更） */
+  body.goat-duel #goatBattleLeft { height: 42px !important; padding: 4px 10px !important; bottom: calc(var(--sui-h, 74px) + 84px) !important; }
+  #distPanel { padding: 5px 8px !important; }
+  #distNum { font-size: 1.5rem !important; }
+  #clubDistBar { padding: 5px 8px !important; }
+  #miniMap { width: 60px !important; height: 60px !important; }
+}
+</style>
+<style>
+@media (max-width: 640px) {
+
+  .gmc-name { font-size: 12px !important; } .gmc-sub { font-size: 9px !important; }
+  #gmcStatus { font-size: 11.5px !important; } #gmcMarks { font-size: 9.5px !important; margin-top: 0 !important; }
+  #goatMatchCard { padding: 4px 6px !important; gap: 2px !important; row-gap: 1px !important; top: 58px !important; }
+  #tacticalAlertBadge { font-size: 0.68rem !important; padding: 2px 10px !important; top: 145px !important; }
+  #holeInfo { font-size: 0.72rem !important; }
+  #distPanel { padding: 4px 8px !important; line-height: 1.15 !important; font-size: 0.72rem !important; }
+  #clubDistBar { padding: 4px 8px !important; line-height: 1.15 !important; }
+  body.goat-duel #distNum { font-size: 1.15rem !important; }
+  body.goat-duel #clubDistBarNum { font-size: 1.15rem !important; }
+  body.goat-duel #goatBattleLeft { height: 36px !important; padding: 3px 10px !important; bottom: calc(var(--sui-h, 74px) + 72px) !important; }
+  #miniMap { width: 60px !important; height: 60px !important; }
+
+  #goatInfoBar { position: fixed; left: 6px; right: 6px; bottom: calc(var(--sui-h, 74px) + 4px); z-index: 9400; display: none; flex-direction: column; gap: 3px; padding: 5px 8px; background: linear-gradient(165deg, rgba(10,13,28,0.92), rgba(6,8,18,0.96)); border: 1px solid rgba(255,216,117,0.4); border-radius: 12px; box-shadow: 0 8px 26px rgba(0,0,0,0.6); }
+  body.goat-duel #goatInfoBar { display: flex; }
+  #goatInfoBar #goatBattleLeft { position: static !important; width: auto !important; height: 30px !important; padding: 2px 6px !important; border: none !important; background: none !important; box-shadow: none !important; }
+  #goatInfoBar .gib-row { display: flex; gap: 8px; align-items: center; }
+  #goatInfoBar #distPanel { position: static !important; flex: 1 1 auto !important; width: auto !important; display: flex !important; align-items: baseline !important; gap: 7px !important; flex-wrap: nowrap !important; padding: 2px 4px !important; background: none !important; border: none !important; box-shadow: none !important; }
+  #goatInfoBar #distPanel > * { margin: 0 !important; }
+  #goatInfoBar #clubDistBar { position: static !important; width: auto !important; display: flex !important; align-items: baseline !important; gap: 7px !important; padding: 1px 4px !important; background: none !important; border: none !important; box-shadow: none !important; font-size: 0.66rem !important; }
+  #goatInfoBar #clubDistBar > * { margin: 0 !important; }
+  #goatInfoBar #miniMap { position: static !important; width: 38px !important; height: 38px !important; flex: 0 0 38px !important; }
+
+  #goatInfoBar { padding: 4px 7px !important; gap: 2px !important; bottom: calc(var(--sui-h, 74px) + 2px) !important; }
+  #goatInfoBar #goatBattleLeft { height: 36px !important; }
+  #goatMatchCard { top: 54px !important; }
+  #tacticalAlertBadge { top: 141px !important; }
+  #holeInfo { font-size: 0.68rem !important; }
+
+  #topHUD { height: 40px !important; }
+  .gmc-name { font-size: 11px !important; } #gmcStatus { font-size: 10.5px !important; }
+  body.goat-duel #distNum { font-size: 1.05rem !important; }
+  body.goat-duel #clubDistBarNum { font-size: 1.05rem !important; }
+
+  .gmc-side { min-width: 104px !important; }
+  .gmc-center { padding: 0 5px !important; }
+  #goatMatchCard { flex-wrap: nowrap !important; }
+  #tacticalAlertBadge { top: 112px !important; }
+}
+</style>
+
+<script>
+/* 情報バー統合v3＋マップドック（スマホ・対戦中のみ） */
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.matchMedia('(max-width: 640px)').matches) return;
+  if (new URLSearchParams(location.search).get('goat') !== '1') return;
+  var bar = document.createElement('div'); bar.id = 'goatInfoBar';
+  var flame = document.getElementById('goatBattleLeft');
+  if (flame) bar.appendChild(flame);
+  var row = document.createElement('div'); row.className = 'gib-row';
+  ['distPanel', 'clubDistBar'].forEach(function (id) { var el = document.getElementById(id); if (el) row.appendChild(el); });
+  bar.appendChild(row);
+  document.body.appendChild(bar);
+  var dock = document.createElement('div'); dock.id = 'mapDock';
+  var strip = document.createElement('div'); strip.className = 'map-strip'; strip.textContent = 'マップ ◀';
+  dock.appendChild(strip);
+  var mm = document.getElementById('miniMap');
+  if (mm) dock.appendChild(mm);
+  document.body.appendChild(dock);
+  strip.addEventListener('click', function () { document.body.classList.toggle('map-folded'); });
+  var fb = document.createElement('button'); fb.id = 'foldCardBtn'; fb.textContent = 'カード ▾';
+  fb.addEventListener('click', function () { var f = document.body.classList.toggle('card-folded'); fb.textContent = f ? 'カード ▴' : 'カード ▾'; });
+  document.body.appendChild(fb);
+});
+</script>
+<style>
+@media (max-width: 640px) {
+
+  /* 統合行: 距離と推定を1行に並べる（距離側の重複サブ行は推定側と同内容のため畳む） */
+  #goatInfoBar #distSub, #goatInfoBar #distBreak { display: none !important; }
+  #goatInfoBar #distPanel { flex: 0 1 auto !important; }
+  #goatInfoBar #clubDistBar { position: static !important; flex: 1 1 auto !important; display: flex !important; align-items: baseline !important; gap: 6px !important; background: none !important; border: none !important; box-shadow: none !important; padding: 2px 4px !important; width: auto !important; }
+  #goatInfoBar #clubDistBar > * { margin: 0 !important; }
+  #goatInfoBar #miniMap { width: 30px !important; height: 30px !important; flex: 0 0 30px !important; }
+}
+</style>
+<style>
+@media (max-width: 640px) {
+
+  /* 仕上げ: ホール情報バーは上段/カードと重複するため対戦中は畳む（デスクトップと同じ扱い） */
+  body.goat-duel #holeInfo { display: none !important; }
+  /* 情報バーのラベルは折り返さない */
+  #goatInfoBar #distLabel, #goatInfoBar #clubDistBarLabel { white-space: nowrap !important; flex-shrink: 0 !important; }
+  /* 特殊ボタンの文字が枠からはみ出さないように */
+  #goatBattleLeft button { font-size: 0.72rem !important; line-height: 1.12 !important; padding: 3px 6px !important; }
+
+  /* カード1行化でもサブ(称号/敵炎%)を切らずに折り返して全表示 */
+  .gmc-sub { white-space: normal !important; line-height: 1.15 !important; }
+}
+</style>
+<style>
+@media (max-width: 640px) {
+
+  /* マップドック: フィールド右下に常駐し、右サイドへ畳める */
+  #mapDock { position: fixed; right: 6px; bottom: calc(var(--sui-h, 74px) + 76px); width: 88px; height: 88px; z-index: 9300; display: none; transition: transform .25s ease; }
+  body.goat-duel #mapDock { display: block; }
+  #mapDock .map-strip { position: absolute; left: 0; top: 0; bottom: 0; width: 17px; z-index: 2; background: rgba(8,10,22,.88); border: 1px solid rgba(255,216,117,.45); border-right: none; border-radius: 9px 0 0 9px; color: #ffd875; font-size: 9px; writing-mode: vertical-rl; display: flex; align-items: center; justify-content: center; letter-spacing: 2px; cursor: pointer; }
+  #mapDock #miniMap { position: absolute !important; left: 17px !important; top: 10px !important; width: 68px !important; height: 68px !important; }
+  body.map-folded #mapDock { transform: translateX(73px); }
+
+  /* 対戦カードの折りたたみ */
+  #foldCardBtn { position: fixed; top: 114px; right: 8px; z-index: 9900; display: none; padding: 3px 9px; border-radius: 999px; background: rgba(10,13,28,.88); border: 1px solid rgba(255,216,117,.5); color: #ffd875; font-size: 10px; cursor: pointer; }
+  body.goat-duel #foldCardBtn { display: block; }
+  body.card-folded #foldCardBtn { top: 86px; }
+  body.card-folded #goatMatchCard { padding: 2px 8px !important; }
+  body.card-folded .gmc-sub, body.card-folded #gmcMarks, body.card-folded .gmc-oppbar { display: none !important; }
+  body.card-folded #tacticalAlertBadge { top: 88px !important; }
+}
+</style>
+<style>
+@media (max-width: 640px) {
+  /* 特殊ショットボタンを帯の中に2行で収める */
+  #goatInfoBar #goatBattleLeft button { flex: 0 0 150px !important; font-size: 0.66rem !important; line-height: 1.15 !important; }
+}
+</style>
+<style>
+@media (max-width: 640px) {
+
+  /* 入れ替え: 情報バーを最下段へ、ショットバーをその上へ */
+  #goatInfoBar { bottom: 2px !important; }
+  #shotUI { bottom: 69px !important; }
+  /* ショットバー直上にいた案内類も一緒に持ち上げる */
+  #dirArrowUI { bottom: calc(var(--sui-h, 74px) + 71px) !important; }
+  #camHint { bottom: calc(var(--sui-h, 74px) + 107px) !important; }
+  #puttLineHint { bottom: calc(var(--sui-h, 74px) + 73px) !important; }
+  #holeDescHUD { bottom: calc(var(--sui-h, 74px) + 73px) !important; }
+  #slopeLegend { bottom: calc(var(--sui-h, 74px) + 67px) !important; }
+
+  /* 上段の青空の隙間を詰める: カードをHUDへ寄せる */
+  #goatMatchCard { top: 44px !important; }
+  #tacticalAlertBadge { top: 102px !important; }
+  #foldCardBtn { top: 104px !important; }
+  body.card-folded #tacticalAlertBadge { top: 70px !important; }
+  body.card-folded #foldCardBtn { top: 72px !important; }
+}
+</style>
+<style>
+@media (max-width: 640px) {
+  /* パット: 数値行をスリムな1行バーにしてメーター直上へ密着 */
+  #puttValueRow { top: -27px !important; right: 0 !important; height: 24px; justify-content: flex-start !important; }
+  #puttValueNum { white-space: nowrap; font-size: 0.98rem !important; padding: 1px 7px !important; }
+  #puttZoneHint { position: absolute !important; left: 0; top: -25px; white-space: nowrap; font-size: 0.62rem !important; padding: 1px 5px !important; }
+  #puttLineHint { bottom: calc(var(--sui-h, 74px) + 130px) !important; }
+  /* 推定まわりの数字を大きく（折り返し防止つき） */
+  #goatInfoBar .gib-row { gap: 6px !important; }
+  #goatInfoBar #distNum { font-size: 20px !important; }
+  #goatInfoBar #clubDistBarNum { font-size: 22px !important; }
+  #goatInfoBar #clubDistBarLabel, #goatInfoBar #clubDistCarry, #goatInfoBar #clubDistRun, #goatInfoBar #distLabel { font-size: 11.5px !important; white-space: nowrap !important; }
+  #goatInfoBar #clubDistBar { flex-wrap: nowrap !important; gap: 5px !important; }
+  #goatInfoBar #distPanel { gap: 5px !important; }
+}
+</style>
+<script>
+/* LAYOUT FIX v3.2.6（①上段の余白へ項目を移す：要素の移動のみ。内容の更新は従来どおりID経由でそのまま効く） */
+(function(){
+  if(new URLSearchParams(location.search).get("goat") !== "1") return;
+  function mergeHeader(){
+    var hud = document.getElementById("topHUD");
+    /* ① 赤い特徴バナーを最上段（プレイヤーの隣）へ移し、余白に組み込む（641px以上） */
+    if(window.matchMedia("(min-width: 641px)").matches){
+      var badge = document.getElementById("tacticalAlertBadge");
+      if(hud && badge && hud.children[1] && badge.parentElement !== hud) hud.insertBefore(badge, hud.children[1]);
+    }
+    /* ① 広幅ではホール情報を対戦カードへ統合し、対戦状況も最上段へ移す（1101px以上） */
+    var wide = window.matchMedia("(min-width: 1101px)").matches;
+    if(!wide) return;
+    var card = document.getElementById("goatMatchCard");
+    var hi = document.getElementById("holeInfo");
+    if(card && hi && !card.getAttribute("data-merged")){
+      var seg = document.createElement("div");
+      seg.className = "gmc-hole";
+      while(hi.firstChild) seg.appendChild(hi.firstChild);
+      card.insertBefore(seg, card.firstChild);
+      card.setAttribute("data-merged", "1");
+    }
+    if(wide && hud && card){
+      var center = card.querySelector(".gmc-center");
+      var panels = hud.querySelectorAll(".hud-panel");
+      if(center && panels.length && center.parentElement !== hud) hud.insertBefore(center, panels[panels.length - 1]);
+    }
+  }
+  /* ② スマホ幅では炎パネルの中身を「ラベル＋バー(%)」の組2つにまとめ直す（帯レイアウト用。PC幅では元の縦積みのまま） */
+  function regroupFlamePanel(){
+    if(!window.matchMedia("(max-width: 640px)").matches) return;
+    var p = document.getElementById("goatBattleLeft");
+    if(!p || p.getAttribute("data-regrouped")) return;
+    var k = Array.prototype.slice.call(p.children);
+    if(k.length < 5) return;
+    function cell(row, cv){
+      var d = document.createElement("div"); d.className = "gbl-cell";
+      var bar = document.createElement("div"); bar.className = "gbl-bar";
+      var spans = row.querySelectorAll("span");
+      var pct = spans.length > 1 ? spans[spans.length - 1] : null;
+      p.insertBefore(d, row);
+      d.appendChild(row);
+      bar.appendChild(cv);
+      if(pct) bar.appendChild(pct);
+      d.appendChild(bar);
+    }
+    cell(k[0], k[1]); cell(k[2], k[3]);
+    p.setAttribute("data-regrouped", "1");
+  }
+  function applyLayoutFix(){ mergeHeader(); regroupFlamePanel(); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyLayoutFix);
+  else applyLayoutFix();
+})();
+</script>
+
 
 <div id="goatFinishOverlay">
   <div class="gfo-card">
@@ -8374,7 +8708,7 @@ window.addEventListener("load",()=>{
   }
 
   function requestBoot(){
-    try { parent.postMessage({ type:"goat:golfHello", version:"3.2" }, "*"); } catch(e){}
+    try { parent.postMessage({ type:"goat:golfHello", version:"3.2.6", goat:(B.mode === "goat") }, "*"); } catch(e){}
     setTimeout(function(){ if(!B.started) bootBattle(); }, 180);
   }
 
