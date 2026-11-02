@@ -345,7 +345,7 @@
   }
   .choice-btn .csub { display: block; font-size: 11.5px; color: var(--text-sub); font-weight: 400; margin-top: 3px; }
 
-  /* ===== LAYOUT FIX v3.2.4（④スマホ：上段メニューが横スクロール可能と分かり、全ボタンへ届く形にする） ===== */
+  /* ===== LAYOUT FIX v3.2.5（④スマホ：上段メニューが横スクロール可能と分かり、全ボタンへ届く形にする） ===== */
   @media (max-width: 640px) {
     #topbar { gap: 5px; padding: 0 8px; -webkit-overflow-scrolling: touch;
       -webkit-mask-image: linear-gradient(90deg, #000 93%, transparent 100%);
@@ -3497,6 +3497,26 @@ document.addEventListener('DOMContentLoaded', function () {
   var b = document.createElement('button'); b.id = 'narrFoldBtn'; b.textContent = '▾ 畳む';
   b.addEventListener('click', function () { var f = document.body.classList.toggle('narr-folded'); b.textContent = f ? '▴ 開く' : '▾ 畳む'; });
   narr.appendChild(b);
+});
+</script>
+
+<style>
+/* ナレーション下畳み: 帯を下へ完全に畳み、再表示は右端の縦タブから */
+#narr { transition: transform .35s ease; }
+body.narr-folded #narr { height: 0 !important; min-height: 0 !important; max-height: 0 !important; padding: 0 10px !important; transform: translateY(100%); overflow: hidden !important; border-top: none !important; }
+body.narr-folded #stage { bottom: 0 !important; }
+body.narr-folded #lbB { height: 0 !important; }
+#narrTab { position: fixed; right: 0; top: 46%; z-index: 29; display: none; padding: 10px 3px; border-radius: 8px 0 0 8px; background: rgba(20,24,44,.92); border: 1px solid rgba(255,216,117,.55); border-right: none; color: #ffd875; font-size: 10.5px; writing-mode: vertical-rl; cursor: pointer; }
+body.narr-folded #narrTab { display: block; }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var t = document.createElement('button'); t.id = 'narrTab'; t.textContent = '▲ 語り';
+  t.addEventListener('click', function () {
+    var f = document.body.classList.toggle('narr-folded');
+    var b = document.getElementById('narrFoldBtn'); if (b) b.textContent = f ? '▴ 開く' : '▾ 畳む';
+  });
+  document.body.appendChild(t);
 });
 </script>
 </body>

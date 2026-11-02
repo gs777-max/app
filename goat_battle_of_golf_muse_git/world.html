@@ -724,7 +724,7 @@
     }
 
     /* =====================================================================
-       LAYOUT FIX v3.2.4（④スマホ縦画面：上下HUDの重なり解消／①上段パネルの両立）
+       LAYOUT FIX v3.2.5（④スマホ縦画面：上下HUDの重なり解消／①上段パネルの両立）
        ・3Dフィールド描画は一切縮小しない。HUDの配置とサイズのみを最適化する。
        ===================================================================== */
     @media (max-width: 640px) {
@@ -3314,7 +3314,7 @@
         if (typeof d.power === "number") STATE.power = d.power;
         if (typeof d.mental === "number") STATE.mental = d.mental;
         if (typeof d.balls === "number") STATE.balls = d.balls;
-        /* LAYOUT FIX v3.2.4（③GOATは全ステータス常時フル：同期で受けてもフルを維持する） */
+        /* LAYOUT FIX v3.2.5（③GOATは全ステータス常時フル：同期で受けてもフルを維持する） */
         if (STATE.mode === "goat") { STATE.power = 100; STATE.mental = 100; STATE.balls = 999; }
         if (typeof d.gold === "number") STATE.gold = d.gold;
         if (typeof d.tp === "number") STATE.tp = d.tp;

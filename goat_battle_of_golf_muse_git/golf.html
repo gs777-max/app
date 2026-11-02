@@ -7351,7 +7351,7 @@ window.addEventListener("load",()=>{
   }
   .gfo-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
   /* =====================================================================
-     LAYOUT FIX v3.2.4（①上段レイアウト最適化／②炎パネル一列ストリップ化と下部バー全幅収納／④隠れ表示の救済）
+     LAYOUT FIX v3.2.5（①上段レイアウト最適化／②炎パネル一列ストリップ化と下部バー全幅収納／④隠れ表示の救済）
      ・3Dコース描画(canvas)は一切縮小しない。HUDの配置とサイズのみを最適化する。
      ・広幅(1101px以上): ホール情報を対戦カードへ統合した1本バー。赤バナーと対戦状況は最上段の余白へ
      ・中幅(641〜1100px): ホール情報バー＋対戦カードの段差配置。赤バナーは最上段の余白へ
@@ -7626,8 +7626,29 @@ document.addEventListener('DOMContentLoaded', function () {
   #goatInfoBar #goatBattleLeft button { flex: 0 0 150px !important; font-size: 0.66rem !important; line-height: 1.15 !important; }
 }
 </style>
+<style>
+@media (max-width: 640px) {
+
+  /* 入れ替え: 情報バーを最下段へ、ショットバーをその上へ */
+  #goatInfoBar { bottom: 2px !important; }
+  #shotUI { bottom: 69px !important; }
+  /* ショットバー直上にいた案内類も一緒に持ち上げる */
+  #dirArrowUI { bottom: calc(var(--sui-h, 74px) + 71px) !important; }
+  #camHint { bottom: calc(var(--sui-h, 74px) + 107px) !important; }
+  #puttLineHint { bottom: calc(var(--sui-h, 74px) + 73px) !important; }
+  #holeDescHUD { bottom: calc(var(--sui-h, 74px) + 73px) !important; }
+  #slopeLegend { bottom: calc(var(--sui-h, 74px) + 67px) !important; }
+
+  /* 上段の青空の隙間を詰める: カードをHUDへ寄せる */
+  #goatMatchCard { top: 44px !important; }
+  #tacticalAlertBadge { top: 102px !important; }
+  #foldCardBtn { top: 104px !important; }
+  body.card-folded #tacticalAlertBadge { top: 70px !important; }
+  body.card-folded #foldCardBtn { top: 72px !important; }
+}
+</style>
 <script>
-/* LAYOUT FIX v3.2.4（①上段の余白へ項目を移す：要素の移動のみ。内容の更新は従来どおりID経由でそのまま効く） */
+/* LAYOUT FIX v3.2.5（①上段の余白へ項目を移す：要素の移動のみ。内容の更新は従来どおりID経由でそのまま効く） */
 (function(){
   if(new URLSearchParams(location.search).get("goat") !== "1") return;
   function mergeHeader(){
@@ -8671,7 +8692,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function requestBoot(){
-    try { parent.postMessage({ type:"goat:golfHello", version:"3.2.4", goat:(B.mode === "goat") }, "*"); } catch(e){}
+    try { parent.postMessage({ type:"goat:golfHello", version:"3.2.5", goat:(B.mode === "goat") }, "*"); } catch(e){}
     setTimeout(function(){ if(!B.started) bootBattle(); }, 180);
   }
 
