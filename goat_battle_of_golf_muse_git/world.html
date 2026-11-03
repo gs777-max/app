@@ -724,7 +724,7 @@
     }
 
     /* =====================================================================
-       LAYOUT FIX v3.2.6（④スマホ縦画面：上下HUDの重なり解消／①上段パネルの両立）
+       LAYOUT FIX v4.0（④スマホ縦画面：上下HUDの重なり解消／①上段パネルの両立）
        ・3Dフィールド描画は一切縮小しない。HUDの配置とサイズのみを最適化する。
        ===================================================================== */
     @media (max-width: 640px) {
@@ -993,7 +993,32 @@
       o.connect(g); g.connect(ac.destination);
       o.start(now); o.stop(now + dur + 0.03);
     }
+    /* 空間環境音（風のそよぎ＋鳥の声）をWeb Audioで生成・ループ */
+    var ambNodes = null;
+    function startAmbient() {
+      var ac = ensureAC(); if (!ac || ambNodes) return;
+      try {
+        var master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
+        master.gain.setTargetAtTime(0.15, ac.currentTime, 1.5);
+        var len = ac.sampleRate * 2, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0), last = 0;
+        for (var i = 0; i < len; i++) { var w = Math.random() * 2 - 1; last = (last + 0.02 * w) / 1.02; d[i] = last * 3.2; }
+        var src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
+        var bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 480; bp.Q.value = 0.6;
+        var wg = ac.createGain(); wg.gain.value = 0.5;
+        var lfo = ac.createOscillator(); lfo.frequency.value = 0.07; var lfoG = ac.createGain(); lfoG.gain.value = 180; lfo.connect(lfoG); lfoG.connect(bp.frequency);
+        var lfo2 = ac.createOscillator(); lfo2.frequency.value = 0.045; var lfo2G = ac.createGain(); lfo2G.gain.value = 0.22; lfo2.connect(lfo2G); lfo2G.connect(wg.gain);
+        src.connect(bp); bp.connect(wg); wg.connect(master); src.start(); lfo.start(); lfo2.start();
+        ambNodes = { master: master };
+        (function birds() {
+          setTimeout(function () {
+            if (AC && AC.state === "running") { var f = 2100 + Math.random() * 900; tone(f, f * 1.35, 0.09, "sine", 0.028); setTimeout(function () { tone(f * 1.1, f * 0.9, 0.07, "sine", 0.02); }, 120); }
+            birds();
+          }, 3500 + Math.random() * 6500);
+        })();
+      } catch (e) {}
+    }
     function playSfx(k) {
+      startAmbient();
       if (k === "seiryu") { tone(240, 1320, 0.36, "sawtooth", 0.14); setTimeout(function () { tone(660, 1760, 0.28, "triangle", 0.11); }, 55); }
       else if (k === "suzaku") { tone(420, 1480, 0.28, "triangle", 0.13); setTimeout(function () { tone(880, 1960, 0.22, "sine", 0.10); }, 70); }
       else if (k === "byakko") { tone(320, 760, 0.22, "sine", 0.12); }
@@ -1525,6 +1550,142 @@
       }
     })();
 
+    /* ===== 建築ディテール増強（商用品質アップグレード： Extrude/Lathe本格造形・発光・炎の揺らめき） ===== */
+    var FLICKER_LIGHTS = [];
+    (function buildArchitectureDetail() {
+      var goldM = new THREE.MeshStandardMaterial({ color: 0xffcf56, roughness: 0.24, metalness: 0.86 });
+      var stoneM = new THREE.MeshStandardMaterial({ map: stoneTex, roughness: 0.85 });
+      var marbM = new THREE.MeshStandardMaterial({ map: marbleTex, roughness: 0.35, metalness: 0.08 });
+      var darkW = new THREE.MeshStandardMaterial({ color: 0x2b1e16, roughness: 0.75 });
+      var vermM = new THREE.MeshStandardMaterial({ color: 0xc8251d, roughness: 0.42 });
+      function curvedRoof(w, d, h, mat) {
+        var sh = new THREE.Shape();
+        sh.moveTo(-w / 2, 0);
+        sh.quadraticCurveTo(-w * 0.18, h * 0.92, 0, h);
+        sh.quadraticCurveTo(w * 0.18, h * 0.92, w / 2, 0);
+        sh.lineTo(w / 2 - 0.35, -0.28); sh.lineTo(-w / 2 + 0.35, -0.28); sh.closePath();
+        var geo = new THREE.ExtrudeGeometry(sh, { depth: d, bevelEnabled: false });
+        geo.translate(0, 0, -d / 2);
+        var m = new THREE.Mesh(geo, mat); m.castShadow = true; return m;
+      }
+      if (THEME.archType === "kyoto") {
+        var lampM = new THREE.MeshStandardMaterial({ color: 0x8a8f7a, roughness: 0.9 });
+        var glowM = new THREE.MeshStandardMaterial({ color: 0xffc37a, emissive: 0xff9a3c, emissiveIntensity: 1.6 });
+        for (var li = 0; li < 5; li++) {
+          [-3.4, 3.4].forEach(function (lx) {
+            var lz = -16 - li * 9.5;
+            var lg = new THREE.Group();
+            var post = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 1.5, 8), lampM); post.position.y = 0.75;
+            var lbox = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.44, 0.52), glowM); lbox.position.y = 1.65;
+            var lcap = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.34, 4), lampM); lcap.rotation.y = Math.PI / 4; lcap.position.y = 2.02;
+            lg.add(post, lbox, lcap); lg.position.set(lx, terrainY(lx, lz), lz); scene.add(lg);
+          });
+        }
+        var hall = new THREE.Group();
+        var hw = new THREE.Mesh(new THREE.BoxGeometry(5.4, 2.6, 4.4), vermM); hw.position.y = 1.3; hw.castShadow = true;
+        var rf = curvedRoof(7.6, 5.6, 1.5, darkW); rf.position.y = 2.65;
+        hall.add(hw, rf); hall.position.set(-30, terrainY(-30, -24), -24); scene.add(hall);
+      } else if (THEME.archType === "paris") {
+        var fnt = new THREE.Group();
+        var pts = []; [[0.1, 0], [2.6, 0.15], [2.75, 0.5], [1.5, 0.62], [1.35, 1.5], [2.1, 1.62], [2.2, 1.95], [0.9, 2.05], [0.75, 2.8], [1.15, 2.9], [1.2, 3.2], [0.12, 3.3]].forEach(function (p) { pts.push(new THREE.Vector2(p[0], p[1])); });
+        var fb = new THREE.Mesh(new THREE.LatheGeometry(pts, 22), marbM); fb.castShadow = true; fnt.add(fb);
+        var water = new THREE.Mesh(new THREE.CircleGeometry(2.35, 22), new THREE.MeshStandardMaterial({ color: 0x7ec8e8, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.8 }));
+        water.rotation.x = -Math.PI / 2; water.position.y = 0.55; fnt.add(water);
+        fnt.position.set(0, terrainY(0, -48), -48); scene.add(fnt);
+        var st = new THREE.Group();
+        var ped2 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.2, 1.6), marbM); ped2.position.y = 1.1; st.add(ped2);
+        var robe = new THREE.Mesh(new THREE.ConeGeometry(0.85, 2.6, 10), goldM); robe.position.y = 3.5; st.add(robe);
+        var hd = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), goldM); hd.position.y = 5.05; st.add(hd);
+        var armS = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 1.7, 8), goldM); armS.position.set(0.8, 4.4, 0); armS.rotation.z = -0.9; st.add(armS);
+        st.position.set(10, terrainY(10, -58), -58); scene.add(st);
+        var winMat = new THREE.MeshStandardMaterial({ color: 0x1a2038, roughness: 0.25, metalness: 0.4 });
+        for (var wi = -5; wi <= 5; wi++) {
+          if (wi === 0) continue;
+          var win = new THREE.Group();
+          var inset = new THREE.Mesh(new THREE.BoxGeometry(1.5, 3.4, 0.18), winMat); win.add(inset);
+          var archT = new THREE.Mesh(new THREE.CircleGeometry(0.75, 14, 0, Math.PI), winMat); archT.position.y = 1.7; win.add(archT);
+          win.position.set(wi * 3.6, terrainY(0, -72) + 4.4, -72 + 5.15); scene.add(win);
+        }
+      } else if (THEME.archType === "rome") {
+        var shape = new THREE.Shape();
+        shape.moveTo(-2.6, 0); shape.lineTo(2.6, 0); shape.lineTo(2.6, 6.4); shape.lineTo(-2.6, 6.4); shape.closePath();
+        var holeP = new THREE.Path();
+        holeP.moveTo(-1.15, 0); holeP.lineTo(-1.15, 3.1); holeP.absarc(0, 3.1, 1.15, Math.PI, 0, true); holeP.lineTo(1.15, 0); holeP.closePath();
+        shape.holes.push(holeP);
+        var segGeo = new THREE.ExtrudeGeometry(shape, { depth: 1.4, bevelEnabled: false });
+        for (var tier = 0; tier < 2; tier++) {
+          for (var sg = 0; sg < 60; sg++) {
+            var a2 = (sg / 60) * Math.PI * 2;
+            if (Math.abs(Math.sin(a2)) < 0.22 && Math.cos(a2) < 0) continue;
+            var seg = new THREE.Mesh(segGeo, stoneM);
+            var px = Math.cos(a2) * 62, pz = Math.sin(a2) * 62;
+            seg.position.set(px, terrainY(px, pz) + tier * 6.4, pz);
+            seg.lookAt(0, seg.position.y, 0);
+            seg.scale.x = 1.14; seg.castShadow = true;
+            scene.add(seg);
+          }
+        }
+        var forge = new THREE.Group();
+        var fb2 = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 2.3, 1.6, 10), stoneM); fb2.position.y = 0.8; forge.add(fb2);
+        var lava = new THREE.Mesh(new THREE.CircleGeometry(1.45, 14), new THREE.MeshStandardMaterial({ color: 0xff5a1e, emissive: 0xff4400, emissiveIntensity: 2.2 }));
+        lava.rotation.x = -Math.PI / 2; lava.position.y = 1.62; forge.add(lava);
+        var fl = new THREE.PointLight(0xff7a33, 1.6, 26); fl.position.y = 2.6; forge.add(fl);
+        FLICKER_LIGHTS.push({ l: fl, base: 1.6, seed: Math.random() * 9 });
+        forge.position.set(20, terrainY(20, -30), -30); scene.add(forge);
+      } else if (THEME.archType === "america") {
+        var tw = new THREE.Group();
+        var tb = new THREE.Mesh(new THREE.BoxGeometry(4.4, 13, 4.4), marbM); tb.position.y = 6.5; tb.castShadow = true; tw.add(tb);
+        var trf = new THREE.Mesh(new THREE.ConeGeometry(3.9, 3.2, 4), new THREE.MeshStandardMaterial({ color: 0x1e4d32, roughness: 0.7 })); trf.rotation.y = Math.PI / 4; trf.position.y = 14.6; tw.add(trf);
+        var clock = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.35, 0.24, 20), new THREE.MeshStandardMaterial({ color: 0xf6f1de, roughness: 0.3, emissive: 0x444026 }));
+        clock.rotation.x = Math.PI / 2; clock.position.set(0, 10.6, 2.25); tw.add(clock);
+        var hh1 = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.0, 0.1), darkW); hh1.position.set(0, 10.85, 2.42); hh1.rotation.z = -0.7; tw.add(hh1);
+        var hh2 = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.72, 0.1), darkW); hh2.position.set(0.18, 10.45, 2.42); hh2.rotation.z = 1.9; tw.add(hh2);
+        tw.position.set(-56, terrainY(-56, -42), -42); scene.add(tw);
+        var brShape = new THREE.Shape();
+        brShape.moveTo(-7, 0); brShape.quadraticCurveTo(0, 3.4, 7, 0); brShape.lineTo(7, -1.1); brShape.quadraticCurveTo(0, 1.6, -7, -1.1); brShape.closePath();
+        var brGeo = new THREE.ExtrudeGeometry(brShape, { depth: 3.2, bevelEnabled: false }); brGeo.translate(0, 0, -1.6);
+        var bridge = new THREE.Mesh(brGeo, stoneM); bridge.castShadow = true;
+        bridge.position.set(24, terrainY(24, -14) + 0.4, -14); bridge.rotation.y = 0.5; scene.add(bridge);
+      } else if (THEME.archType === "edo") {
+        [-2.4, 2.4].forEach(function (sx) {
+          var shg = new THREE.Group();
+          var bd = new THREE.Mesh(new THREE.ConeGeometry(0.42, 1.5, 8), goldM); bd.rotation.x = Math.PI; shg.add(bd);
+          var hd2 = new THREE.Mesh(new THREE.SphereGeometry(0.34, 8, 6), goldM); hd2.position.set(0, 0.72, 0.12); shg.add(hd2);
+          var fin2 = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.8, 4), goldM); fin2.position.set(0, 0.35, -0.4); fin2.rotation.x = -0.8; shg.add(fin2);
+          shg.position.set(sx, terrainY(0, -70) + 19.3, -70); shg.rotation.y = sx > 0 ? Math.PI : 0; scene.add(shg);
+        });
+        [-6, 6].forEach(function (bx) {
+          var bz = new THREE.Group();
+          var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 2.0, 6), darkW); pole.position.y = 1.0; bz.add(pole);
+          var basket = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.3, 0.5, 8, 1, true), darkW); basket.position.y = 2.15; bz.add(basket);
+          var flame = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.85, 8), new THREE.MeshStandardMaterial({ color: 0xffa63e, emissive: 0xff7b1c, emissiveIntensity: 2.4, transparent: true, opacity: 0.92 }));
+          flame.position.y = 2.6; bz.add(flame);
+          var bl = new THREE.PointLight(0xff8a3c, 1.3, 20); bl.position.y = 2.7; bz.add(bl);
+          FLICKER_LIGHTS.push({ l: bl, base: 1.3, seed: Math.random() * 9 });
+          bz.position.set(bx, terrainY(bx, -56), -56); scene.add(bz);
+        });
+      } else {
+        var tmp = new THREE.Group();
+        for (var ci = -3; ci <= 3; ci++) {
+          var col2 = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 9, 12), marbM);
+          col2.position.set(ci * 3.1, 4.5, 0); col2.castShadow = true; tmp.add(col2);
+          var cap2 = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.5, 1.5), goldM); cap2.position.set(ci * 3.1, 9.2, 0); tmp.add(cap2);
+        }
+        var beam = new THREE.Mesh(new THREE.BoxGeometry(21.5, 0.9, 2.2), marbM); beam.position.y = 9.8; tmp.add(beam);
+        var pedShape = new THREE.Shape(); pedShape.moveTo(-10.7, 0); pedShape.lineTo(10.7, 0); pedShape.lineTo(0, 3.4); pedShape.closePath();
+        var pedGeo = new THREE.ExtrudeGeometry(pedShape, { depth: 2.0, bevelEnabled: false }); pedGeo.translate(0, 0, -1);
+        var ped = new THREE.Mesh(pedGeo, marbM); ped.position.y = 10.25; tmp.add(ped);
+        tmp.position.set(0, terrainY(0, -80), -80); scene.add(tmp);
+      }
+      if (FLICKER_LIGHTS.length) {
+        (function flick() {
+          var t = performance.now() / 1000;
+          FLICKER_LIGHTS.forEach(function (f) { f.l.intensity = f.base * (0.82 + 0.28 * Math.sin(t * 11 + f.seed) * Math.sin(t * 5.3 + f.seed * 2)); });
+          requestAnimationFrame(flick);
+        })();
+      }
+    })();
+
     /* =========================================================================
        第3部：インタラクティブ施設・運命の祠・神話試練祭壇・決戦の門
        ========================================================================= */
@@ -1608,115 +1769,181 @@
     })();
 
     /* 人型3Dゴルファーメッシュ構築（主人公＆残影30名の個別帽子・眼鏡・衣装完全対応） */
+    /* 人型ゴルファー構築（商用品質アップグレード： PBR多関節ボーン階層＋Canvas柄シャツ＋立体造形の顔・帽子） */
+    var GOLFER_RIGS = [];
+    function golferShirtTexture(kind, baseHex) {
+      try {
+        var cv = document.createElement("canvas"); cv.width = cv.height = 128;
+        var cx = cv.getContext("2d");
+        cx.fillStyle = baseHex; cx.fillRect(0, 0, 128, 128);
+        cx.strokeStyle = "rgba(255,255,255,0.35)"; cx.lineWidth = 5;
+        if (kind === "argyle") {
+          cx.save(); cx.translate(64, 64); cx.rotate(Math.PI / 4);
+          for (var i = -3; i <= 3; i++) { cx.beginPath(); cx.moveTo(i * 30, -110); cx.lineTo(i * 30, 110); cx.stroke(); cx.beginPath(); cx.moveTo(-110, i * 30); cx.lineTo(110, i * 30); cx.stroke(); }
+          cx.restore();
+        } else if (kind === "check") {
+          cx.fillStyle = "rgba(255,255,255,0.20)";
+          for (var j = 0; j < 4; j++) { cx.fillRect(0, j * 32, 128, 7); cx.fillRect(j * 32, 0, 7, 128); }
+        } else {
+          cx.fillStyle = "rgba(255,255,255,0.30)";
+          for (var k = 0; k < 4; k++) cx.fillRect(0, 12 + k * 32, 128, 6);
+        }
+        cx.fillStyle = "rgba(0,0,0,0.16)"; cx.fillRect(0, 108, 128, 20);
+        var tx = new THREE.CanvasTexture(cv);
+        tx.wrapS = tx.wrapT = THREE.RepeatWrapping; tx.repeat.set(2, 1);
+        return tx;
+      } catch (e) { return null; }
+    }
     function buildGolferMesh(opts) {
       var g = new THREE.Group();
       var sc = opts.scale || 1.0;
-      var shirtMat = new THREE.MeshStandardMaterial({ color: opts.shirt, roughness: 0.62 });
+      var baseCol = "#" + (opts.shirt >>> 0).toString(16).padStart(6, "0");
+      var pattern = opts.pattern || (opts.acc === "argyle" ? "argyle" : (opts.acc === "goldpin" ? "check" : "stripe"));
+      var shirtTex = golferShirtTexture(pattern, baseCol);
+      var shirtMat = new THREE.MeshStandardMaterial({ color: opts.shirt, roughness: 0.62, map: shirtTex || null });
       var pantsMat = new THREE.MeshStandardMaterial({ color: opts.pants, roughness: 0.72 });
       var skinMat = new THREE.MeshStandardMaterial({ color: opts.skin || 0xeab98e, roughness: 0.58 });
+      var side = (opts.acc === "lefty") ? -1 : 1;
 
-      /* 脚・ニッカーボッカーズ・ツートンシューズ対応（高速走行ストライド関節付き） */
+      /* 脚：股関節→膝→足首の3関節＋ツートンシューズ */
       var shoeCol = (opts.acc === "twotone") ? 0xffffff : 0x1b1e28;
       var shoeMat = new THREE.MeshStandardMaterial({ color: shoeCol, roughness: 0.4 });
-      var legPivots = [];
+      var toeMat = new THREE.MeshStandardMaterial({ color: (opts.acc === "twotone") ? (opts.cap !== undefined ? opts.cap : 0x8b1e24) : 0x0c0e14, roughness: 0.35 });
+      var legPivots = [], kneePivots = [], anklePivots = [];
       [-0.22, 0.22].forEach(function (lx) {
-        var lp = new THREE.Group();
-        lp.position.set(lx, 0.90, 0);
-        var leg = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.12, 0.88, 10), pantsMat);
-        leg.position.set(0, -0.42, 0);
-        var shoe = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.36), shoeMat);
-        shoe.position.set(0, -0.83, 0.06);
-        leg.castShadow = true;
-        lp.add(leg, shoe);
-        g.add(lp);
-        legPivots.push(lp);
+        var lp = new THREE.Group(); lp.position.set(lx, 0.90, 0);
+        var thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.125, 0.46, 10), pantsMat);
+        thigh.position.y = -0.23; thigh.castShadow = true; lp.add(thigh);
+        var knee = new THREE.Group(); knee.position.y = -0.46; lp.add(knee);
+        var shin = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.10, 0.42, 10), pantsMat);
+        shin.position.y = -0.21; shin.castShadow = true; knee.add(shin);
+        var ankle = new THREE.Group(); ankle.position.y = -0.44; knee.add(ankle);
+        var shoe = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.13, 0.34), shoeMat);
+        shoe.position.set(0, -0.045, 0.05); ankle.add(shoe);
+        var toe = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.10, 0.12), toeMat);
+        toe.position.set(0, -0.055, 0.235); ankle.add(toe);
+        g.add(lp); legPivots.push(lp); kneePivots.push(knee); anklePivots.push(ankle);
       });
 
-      /* 胴体（アーガイル柄・ネクタイ対応） */
+      /* 骨盤→胸郭 */
+      var hips = new THREE.Group(); hips.position.y = 0.90; g.add(hips);
+      var pelvis = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.25, 0.24, 12), pantsMat);
+      pelvis.position.y = 0.06; pelvis.castShadow = true; hips.add(pelvis);
+      var torsoG = new THREE.Group(); torsoG.position.y = 0.10; hips.add(torsoG);
       var torso = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.28, 0.92, 12), shirtMat);
-      torso.position.y = 1.32; torso.castShadow = true;
-      g.add(torso);
+      torso.position.y = 0.44; torso.castShadow = true; torsoG.add(torso);
+      var collar = new THREE.Mesh(new THREE.TorusGeometry(0.155, 0.045, 8, 18), shirtMat);
+      collar.position.y = 0.90; collar.rotation.x = Math.PI / 2 - 0.25; torsoG.add(collar);
       if (opts.acc === "argyle" || opts.acc === "goldpin") {
         var badge = new THREE.Mesh(new THREE.OctahedronGeometry(0.12, 0),
           new THREE.MeshStandardMaterial({ color: 0xffd875, metalness: 0.9, roughness: 0.2 }));
-        badge.position.set(0.12, 1.48, 0.31);
-        g.add(badge);
+        badge.position.set(0.12, 0.56, 0.31); torsoG.add(badge);
       }
       if (opts.acc === "tie_knicker") {
         var tie = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.42, 0.06),
           new THREE.MeshStandardMaterial({ color: 0x8b1e24 }));
-        tie.position.set(0, 1.42, 0.32);
-        g.add(tie);
+        tie.position.set(0, 0.50, 0.32); torsoG.add(tie);
       }
 
-      /* 頭部・眼鏡・サングラス・髭 */
+      /* 頭部：顎ライン・鼻筋・耳を備えた立体造形＋帽子群 */
+      var headG = new THREE.Group(); headG.position.y = 0.98; torsoG.add(headG);
       var head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 14), skinMat);
-      head.position.y = 2.02; head.castShadow = true;
-      g.add(head);
-
+      head.position.y = 0.14; head.castShadow = true; headG.add(head);
+      var jaw = new THREE.Mesh(new THREE.SphereGeometry(0.20, 12, 10), skinMat);
+      jaw.scale.set(0.92, 0.78, 0.95); jaw.position.set(0, 0.015, 0.035); headG.add(jaw);
+      var nose = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.13, 8), skinMat);
+      nose.rotation.x = Math.PI / 2 - 0.35; nose.position.set(0, 0.10, 0.27); headG.add(nose);
+      [-0.255, 0.255].forEach(function (ex) {
+        var ear = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), skinMat);
+        ear.position.set(ex, 0.13, 0); headG.add(ear);
+      });
       if (opts.acc === "glasses" || opts.acc === "sunglass") {
-        var glMat = new THREE.MeshStandardMaterial({
-          color: opts.acc === "sunglass" ? 0x0a0c12 : 0xdde8ff,
-          metalness: 0.85, roughness: 0.15
-        });
+        var glMat = new THREE.MeshStandardMaterial({ color: opts.acc === "sunglass" ? 0x0a0c12 : 0xdde8ff, metalness: 0.85, roughness: 0.15 });
         var glMesh = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.09, 0.08), glMat);
-        glMesh.position.set(0, 2.04, 0.24);
-        g.add(glMesh);
+        glMesh.position.set(0, 0.16, 0.24); headG.add(glMesh);
       }
       if (opts.acc === "beard") {
         var brd = new THREE.Mesh(new THREE.SphereGeometry(0.21, 10, 8), new THREE.MeshStandardMaterial({ color: 0x4a3728 }));
-        brd.position.set(0, 1.92, 0.10);
-        g.add(brd);
+        brd.position.set(0, 0.03, 0.10); headG.add(brd);
       }
-
-      /* 帽子バリエーション（キャップ・バイザー・麦わらストロー・白いハンチング・ベレー・サメ意匠） */
       var hatType = opts.hat || "cap";
       var hatCol = (opts.cap !== undefined) ? opts.cap : (hatType === "straw" ? 0xe5c77b : (hatType === "flat" ? 0xf5f6fa : 0x1e2436));
       var hatMat = new THREE.MeshStandardMaterial({ color: hatCol, roughness: 0.55 });
       if (hatType === "cap" || hatType === "visor") {
         if (hatType === "cap") {
           var dome = new THREE.Mesh(new THREE.SphereGeometry(0.27, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), hatMat);
-          dome.position.y = 2.08; g.add(dome);
+          dome.position.y = 0.20; headG.add(dome);
         }
         var brim = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.04, 0.26), hatMat);
-        brim.position.set(0, 2.10, 0.24); g.add(brim);
+        brim.position.set(0, 0.22, 0.24); headG.add(brim);
       } else if (hatType === "straw") {
         var sBrim = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.04, 18), hatMat);
-        sBrim.position.y = 2.16;
+        sBrim.position.y = 0.28; headG.add(sBrim);
         var sTop = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.28, 0.20, 16), hatMat);
-        sTop.position.y = 2.26;
-        g.add(sBrim, sTop);
+        sTop.position.y = 0.38; headG.add(sTop);
         if (opts.acc === "shark") {
           var fin = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.22, 4), new THREE.MeshStandardMaterial({ color: 0x38ada9 }));
-          fin.position.set(0, 2.42, 0.12); g.add(fin);
+          fin.position.set(0, 0.54, 0.12); headG.add(fin);
         }
       } else if (hatType === "flat" || hatType === "beret") {
         var fl = new THREE.Mesh(new THREE.SphereGeometry(0.30, 14, 10), hatMat);
-        fl.scale.set(1.05, 0.42, 1.18);
-        fl.position.set(0, 2.20, 0.05);
-        g.add(fl);
+        fl.scale.set(1.05, 0.42, 1.18); fl.position.set(0, 0.32, 0.05); headG.add(fl);
       }
 
-      /* 腕＆ゴルフクラブ（左打ちミケルソソ対応！） */
-      var side = (opts.acc === "lefty") ? -1 : 1;
-      var armPivot = new THREE.Group();
-      armPivot.position.set(0.32 * side, 1.62, 0);
-      var arm = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.68, 8), shirtMat);
-      arm.position.y = -0.30;
+      /* 腕：肩→肘→手首の多関節（クラブ側が主動・反対側はグリップへ添える） */
+      function buildArm(sx) {
+        var sh = new THREE.Group(); sh.position.set(0.34 * sx, 0.80, 0); torsoG.add(sh);
+        var up = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.085, 0.36, 8), shirtMat);
+        up.position.y = -0.18; up.castShadow = true; sh.add(up);
+        var el = new THREE.Group(); el.position.y = -0.36; sh.add(el);
+        var fo = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.065, 0.34, 8), skinMat);
+        fo.position.y = -0.17; el.add(fo);
+        var wr = new THREE.Group(); wr.position.y = -0.34; el.add(wr);
+        var hand = new THREE.Mesh(new THREE.SphereGeometry(0.085, 8, 6), skinMat);
+        hand.position.y = -0.05; wr.add(hand);
+        return { sh: sh, el: el, wr: wr, hand: hand };
+      }
+      var armC = buildArm(side);        /* クラブ側 */
+      var armF = buildArm(-side);       /* 添え手側 */
+      armF.sh.rotation.z = 0.55 * side; armF.sh.rotation.x = -0.55; armF.el.rotation.x = -0.65;
+      var armPivot = armC.sh;
+
+      /* クラブ（手首のクラブグループ配下：金属シャフト＋金ヘッド） */
+      var clubGroup = new THREE.Group(); clubGroup.position.set(0.03 * side, -0.08, 0.06); armC.wr.add(clubGroup);
       var shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.014, 1.15, 6),
         new THREE.MeshStandardMaterial({ color: 0xd8e2f0, metalness: 0.92, roughness: 0.15 }));
-      shaft.position.set(0.05 * side, -0.82, 0.25);
-      shaft.rotation.x = 0.42;
+      shaft.position.set(0.02 * side, -0.52, 0.16); shaft.rotation.x = 0.30; clubGroup.add(shaft);
       var clubHead = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.09, 0.20),
         new THREE.MeshStandardMaterial({ color: 0xffd466, metalness: 0.9, roughness: 0.2 }));
-      clubHead.position.set(0.05 * side, -1.32, 0.48);
-      armPivot.add(arm, shaft, clubHead);
-      g.add(armPivot);
+      clubHead.position.set(0.04 * side, -1.04, 0.33); clubGroup.add(clubHead);
 
       g.scale.setScalar(sc);
-      g.userData = { shirtMat: shirtMat, pantsMat: pantsMat, armPivot: armPivot, clubHead: clubHead, legs: legPivots, origShirt: opts.shirt, origPants: opts.pants };
+      var joints = { hips: hips, torso: torsoG, head: headG, shoulderC: armC.sh, elbowC: armC.el, wristC: armC.wr, shoulderF: armF.sh, elbowF: armF.el, knees: kneePivots, ankles: anklePivots };
+      g.userData = { shirtMat: shirtMat, pantsMat: pantsMat, armPivot: armPivot, clubHead: clubHead, legs: legPivots, origShirt: opts.shirt, origPants: opts.pants, joints: joints, torsoMesh: torso };
+      GOLFER_RIGS.push({ g: g, arm: armPivot, j: joints, torso: torso, seed: Math.random() * 10 });
       return g;
     }
+    /* 運動連鎖＆呼吸モーション（既存の armPivot 駆動から全身へ配分する） */
+    (function golferRigLoop() {
+      var t0 = performance.now();
+      function fr(now) {
+        var t = (now - t0) / 1000;
+        for (var i = 0; i < GOLFER_RIGS.length; i++) {
+          var R = GOLFER_RIGS[i];
+          if (!R.g.parent) continue;
+          var ax = R.arm.rotation.x || 0;
+          R.j.torso.rotation.y = ax * 0.30;
+          R.j.hips.rotation.y = ax * 0.14;
+          R.j.head.rotation.y = -ax * 0.36;
+          R.j.head.rotation.x = Math.sin(t * 1.6 + R.seed) * 0.03;
+          R.j.elbowC.rotation.x = -0.22 - Math.min(0.8, Math.abs(ax) * 0.4);
+          R.torso.position.y = 0.44 + Math.sin(t * 1.6 + R.seed) * 0.012;
+          R.j.ankles.forEach(function (a) { a.rotation.x = -ax * 0.10; });
+        }
+        requestAnimationFrame(fr);
+      }
+      requestAnimationFrame(fr);
+    })();
 
     /* =========================================================================
        第4部：主人公・残影AI・四神波動ショットMAX・ファー咆哮・炎＆糸Canvas HUD
@@ -3305,7 +3532,7 @@
       var d = ev.data;
       if (!d || typeof d !== "object") return;
       if (d.type === "goat:pause") { STATE.paused = true; keys = {}; resetVirtualStick(); return; }
-      if (d.type === "goat:resume") { STATE.paused = false; return; }
+      if (d.type === "goat:resume") { STATE.paused = false; startAmbient(); return; }
       if (d.type === "goat:key") { handleUnifiedKey(d.code, d.key, !!d.down); return; }
       if (d.type === "goat:syncState") {
         STATE.mode = d.mode || STATE.mode;
@@ -3314,7 +3541,7 @@
         if (typeof d.power === "number") STATE.power = d.power;
         if (typeof d.mental === "number") STATE.mental = d.mental;
         if (typeof d.balls === "number") STATE.balls = d.balls;
-        /* LAYOUT FIX v3.2.6（③GOATは全ステータス常時フル：同期で受けてもフルを維持する） */
+        /* LAYOUT FIX v4.0（③GOATは全ステータス常時フル：同期で受けてもフルを維持する） */
         if (STATE.mode === "goat") { STATE.power = 100; STATE.mental = 100; STATE.balls = 999; }
         if (typeof d.gold === "number") STATE.gold = d.gold;
         if (typeof d.tp === "number") STATE.tp = d.tp;

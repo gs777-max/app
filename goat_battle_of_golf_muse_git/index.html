@@ -345,7 +345,7 @@
   }
   .choice-btn .csub { display: block; font-size: 11.5px; color: var(--text-sub); font-weight: 400; margin-top: 3px; }
 
-  /* ===== LAYOUT FIX v3.2.6（④スマホ：上段メニューが横スクロール可能と分かり、全ボタンへ届く形にする） ===== */
+  /* ===== LAYOUT FIX v4.0（④スマホ：上段メニューが横スクロール可能と分かり、全ボタンへ届く形にする） ===== */
   @media (max-width: 640px) {
     #topbar { gap: 5px; padding: 0 8px; -webkit-overflow-scrolling: touch;
       -webkit-mask-image: linear-gradient(90deg, #000 93%, transparent 100%);
@@ -585,65 +585,65 @@ var AREAS = [
 
 /* パリ抽選プール全17名（メジャー勝数重み＋ヒント3段階＋物語テーマ＋実話エピソード） */
 var PARIS_POOL = [
-  { id:"Hagen",  name:"W.Hagen",  real:"ウォルター・ヘーゲン", majors:11, weight:11, nat:"米国", style:"華麗なるショーマン・ツートン靴",
+  { id:"Hagen",  name:"W.Hagen",  real:"華麗なるショーマン公爵", majors:11, weight:11, nat:"米国", style:"華麗なるショーマン・ツートン靴",
     hints:["米国から来た伝説らしい","蝶ネクタイとツートン靴を愛用する華麗な男だという","メジャー11勝、『花の香りを嗅ぐ余裕を持て』と語ったショーマンだ"],
     courtTheme:"華麗なる貴族の祝宴宮廷", lore:"プロゴルファーの社会的地位を確立したメジャー11勝の偉人。『ミスは必ず出る、だから立ち止まって花の香りを嗅ぐ余裕を忘れるな』の名言を残した。" },
-  { id:"Hogan",  name:"B.Hogan",  real:"ベン・ホーガン", majors:9, weight:9, nat:"米国", style:"白いハンチング帽・彫刻のスイング",
+  { id:"Hogan",  name:"B.Hogan",  real:"彫刻のスイング・沈黙の匠", majors:9, weight:9, nat:"米国", style:"白いハンチング帽・彫刻のスイング",
     hints:["寡黙な求道者が宮殿で素振りを続けている","白いハンチング帽が目撃されている","大事故から奇跡の復活を遂げたメジャー9勝『アイスマン』だ"],
     courtTheme:"沈黙と奇跡の再生の宮廷", lore:"バスとの正面衝突事故で再起不能と言われながら復活し、1953年にマスターズ・全米OP・全英OPのトリプルクラウンを達成した近代スイング理論の祖。" },
-  { id:"Watson", name:"T.Watson", real:"トム・ワトソン", majors:8, weight:8, nat:"米国", style:"リンクスの風を愛する微笑の達人",
+  { id:"Watson", name:"T.Watson", real:"リンクスの風・微笑の達人", majors:8, weight:8, nat:"米国", style:"リンクスの風を愛する微笑の達人",
     hints:["荒れる海風を楽しむような達人が来ている","全英オープンを5度制したリンクスの申し子らしい","『白昼の決闘』で帝王と死闘を演じたメジャー8勝の名手だ"],
     courtTheme:"海風と騎士道の宮廷", lore:"全英オープン5勝を含むメジャー8勝。1977年ターンベリーでのニクラスとの『白昼の決闘』や、59歳で全英優勝争いを演じた伝説で愛される。" },
-  { id:"Vardon", name:"H.Vardon", real:"ハリー・バードン", majors:7, weight:7, nat:"英国", style:"ツイードジャケット・近代グリップの祖",
+  { id:"Vardon", name:"H.Vardon", real:"近代グリップの祖・ツイードの紳士", majors:7, weight:7, nat:"英国", style:"ツイードジャケット・近代グリップの祖",
     hints:["古典的なツイードジャケットの紳士が招かれた","指を重ねるグリップの創始者だという","全英オープン史上最多6勝を含むメジャー7勝の巨頭だ"],
     courtTheme:"古典への郷愁と近代黎明の宮廷", lore:"現代ゴルファーの標準であるオーバーラッピング（バードン）グリップを広め、全英オープン6勝・全米オープン1勝を挙げたグレート・トリウムバレートの筆頭。" },
-  { id:"BJones", name:"B.Jones",  real:"ボビー・ジョーンズ", majors:7, weight:7, nat:"米国", style:"ネクタイとニッカーボッカーズの紳士",
+  { id:"BJones", name:"B.Jones",  real:"紳士の鑑・アマチュアの皇帝", majors:7, weight:7, nat:"米国", style:"ネクタイとニッカーボッカーズの紳士",
     hints:["生涯アマチュアを貫いた高潔な紳士の気配がする","28歳で潔く引退し、後にマスターズを創設した人物だという","1930年に年間グランドスラムを達成した球聖だ"],
     courtTheme:"無冠の品格とアマチュア精神の宮廷", lore:"1930年に当時の4大大会を1年で全制覇（年間グランドスラム）し28歳で引退。オーガスタ・ナショナルとマスターズを創設した永遠の球聖。" },
-  { id:"Snead",  name:"S.Snead",  real:"サム・スニード", majors:7, weight:7, nat:"米国", style:"麦わらストローハット・流麗なスイング",
+  { id:"Snead",  name:"S.Snead",  real:"麦わら帽の流麗スイング", majors:7, weight:7, nat:"米国", style:"麦わらストローハット・流麗なスイング",
     hints:["粋な麦わら帽子を被った男が宮廷の芝を踏んでいる","音楽のように滑らかなリズムのスイングだという","PGAツアー史上最多タイ82勝、メジャー7勝の『スラマー』だ"],
     courtTheme:"永遠のリズムと美技の宮廷", lore:"『スイングのお手本』と称えられる天性のリズムで長きにわたり活躍し、PGAツアー通算82勝・メジャー7勝を打ち立てた。" },
-  { id:"Sarazen",name:"G.Sarazen",real:"ジーン・サラゼン", majors:7, weight:7, nat:"米国", style:"ニッカーボッカーズ・砂の革命家",
+  { id:"Sarazen",name:"G.Sarazen",real:"砂の革命家・バンカーの魔術師", majors:7, weight:7, nat:"米国", style:"ニッカーボッカーズ・砂の革命家",
     hints:["伝統のニッカーボッカーズ姿の陽気な王者がいる","バンカー用のサンドウェッジを発明した男らしい","史上初のキャリアグランドスラムを達成したメジャー7勝の英雄だ"],
     courtTheme:"世界に轟いたアルバトロスの宮廷", lore:"飛行機の尾翼から着想を得てサンドウェッジを発明。1935年マスターズ最終日15番の『世界が聞いた一打（アルバトロス）』で歴史を変えた。" },
-  { id:"Faldo",  name:"N.Faldo",  real:"ニック・ファルド", majors:6, weight:6, nat:"英国", style:"アーガイル柄セーター・鉄の集中力",
+  { id:"Faldo",  name:"N.Faldo",  real:"アーガイルの鉄人", majors:6, weight:6, nat:"英国", style:"アーガイル柄セーター・鉄の集中力",
     hints:["欧州出身の冷静沈着な王者が宮殿を統べている","アーガイル柄のセーターがトレードマークだ","2年間のスイング大改造を経てメジャー6勝を挙げた英国の騎士だ"],
     courtTheme:"精密機械の規律と集中の宮廷", lore:"絶頂期にスイングをゼロから作り直す執念でマスターズ3勝・全英3勝を達成。プレッシャー下で一切崩れない鉄のメンタルを誇った。" },
-  { id:"Trevino",name:"L.Trevino",real:"リー・トレビノ", majors:6, weight:6, nat:"米国", style:"陽気な笑顔と鋭利なフェードボール",
+  { id:"Trevino",name:"L.Trevino",real:"陽気なるフェードの名手", majors:6, weight:6, nat:"米国", style:"陽気な笑顔と鋭利なフェードボール",
     hints:["宮廷中をジョークと笑い声で沸かせる男がいる","低いフェードボールでどんな風も切り裂くという","落雷から生還しても笑っていたメジャー6勝『メリー・メックス』だ"],
     courtTheme:"逆境を笑い飛ばす太陽の宮廷", lore:"独学の変則スイングから繰り出す正確無比のフェードでニクラスと名勝負を演じ、全米・全英・全米プロを各2度制した。" },
-  { id:"Seve",   name:"S.Ballesteros",real:"セベ・バレステロス", majors:5, weight:5, nat:"スペイン", style:"濃紺セーター・情熱のガッツポーズ",
+  { id:"Seve",   name:"S.Ballesteros",real:"情熱の闘牛士・革命のガッツポーズ", majors:5, weight:5, nat:"スペイン", style:"濃紺セーター・情熱のガッツポーズ",
     hints:["情熱の国スペインからカリスマが降臨している","林や駐車場からでも奇跡のリカバリーを放つという","濃紺のセーターでガッツポーズを決めるメジャー5勝の魔術師だ"],
     courtTheme:"想像力と情熱が燃える芸術の宮廷", lore:"圧倒的なショートゲームと独創的なトラブルショットで世界中を魅了し、欧州ゴルフ界の黄金時代を切り拓いた情熱の象徴。" },
-  { id:"Lefty",  name:"P.Mickelson",real:"フィル・ミケルソン", majors:5, weight:5, nat:"米国", style:"全身黒ウェア・左打ちの勝負師",
+  { id:"Lefty",  name:"P.Mickelson",real:"左打ちの勝負師・黒衣の芸術家", majors:5, weight:5, nat:"米国", style:"全身黒ウェア・左打ちの勝負師",
     hints:["宮殿の主は珍しい『左打ち（レフティ）』らしい","ピンチでもロブショットで直接ピンを狙う大胆不敵な男だ","全身黒の装いで親指を立てて微笑むメジャー覇者だ"],
     courtTheme:"左の壁を越える大胆不敵の宮廷", lore:"右利きながら父のスイングを鏡のように真似て左打ちとなり、芸術的なロブショットと果敢な攻めで一時代を築いた。" },
-  { id:"Nelson", name:"B.Nelson", real:"バイロン・ネルソン", majors:5, weight:5, nat:"米国", style:"機械の如く正確な直進スイング",
+  { id:"Nelson", name:"B.Nelson", real:"機械の如き正確さ・鉄のロード", majors:5, weight:5, nat:"米国", style:"機械の如く正確な直進スイング",
     hints:["極めて温厚な人格者が宮廷に招かれている","そのショットは『アイアン・バイロン（鉄の機械）』と呼ばれた","年間18勝・11連勝という不滅の金字塔を持つメジャー5勝の達人だ"],
     courtTheme:"不滅の11連勝と調和の宮廷", lore:"1945年に前人未到の11連勝・年間18勝を達成。近代的な下半身主導スイングの先駆者であり、後進の育成にも尽力した。" },
-  { id:"Braid",  name:"J.Braid",  real:"ジェイムズ・ブレイド", majors:5, weight:5, nat:"スコットランド", style:"長身の威風・全英5勝の設計巨匠",
+  { id:"Braid",  name:"J.Braid",  real:"全英五勝の設計巨匠", majors:5, weight:5, nat:"スコットランド", style:"長身の威風・全英5勝の設計巨匠",
     hints:["ゴルフ発祥の地スコットランドの巨匠がいる","長身から繰り出すパワフルなショットが特徴だ","全英オープンを5度制し数々の名門コースを設計した賢人だ"],
     courtTheme:"ハイランドの古風と知恵の宮廷", lore:"バードン、テイラーと共に『三巨頭』と呼ばれ全英オープン5勝。グレンイーグルズなど数々の歴史的名コースの設計も手掛けた。" },
-  { id:"Taylor", name:"J.H.Taylor",real:"J.H.テイラー", majors:5, weight:5, nat:"英国", style:"嵐を切り裂く正確無比のアイアン",
+  { id:"Taylor", name:"J.H.Taylor",real:"嵐を切り裂くアイアンの名手", majors:5, weight:5, nat:"英国", style:"嵐を切り裂く正確無比のアイアン",
     hints:["英国の古豪が厳しい風の中で待っている","どんな嵐でもフェアウェイを外さない正確さだという","全英オープン5勝を挙げPGA設立にも貢献したパイオニアだ"],
     courtTheme:"嵐のリンクスを統べる開拓者の宮廷", lore:"強風のリンクスで針の穴を通すようなショットを操り全英オープン5勝を達成。プロゴルフ協会の基礎を築いた開拓者。" },
-  { id:"Thomson",name:"P.Thomson",real:"ピーター・トムソン", majors:5, weight:5, nat:"豪州", style:"南半球から来た冷静なる全英3連覇王者",
+  { id:"Thomson",name:"P.Thomson",real:"南半球の冷静なる王者", majors:5, weight:5, nat:"豪州", style:"南半球から来た冷静なる全英3連覇王者",
     hints:["南半球オーストラリアから来た静かな王者がいる","リンクスの地面の転がりを完璧に計算するという","20世紀唯一となる全英オープン3連覇を含む5勝の名手だ"],
     courtTheme:"南十字星とリンクスの静寂宮廷", lore:"1954年から全英オープン3連覇を含む通算5勝を達成。無理をせず風と地面を味方につける知的なゴルフを極めた。" },
-  { id:"Massi",  name:"A.Massi",  real:"アルノー・マッシー", majors:1, weight:3, nat:"フランス", style:"【地元名誉枠】ベル・エポックの仏国英雄",
+  { id:"Massi",  name:"A.Massi",  real:"仏蘭西の先駆者・ラテンの剣士", majors:1, weight:3, nat:"フランス", style:"【地元名誉枠】ベル・エポックの仏国英雄",
     hints:["ここフランスの言葉で宮廷人と親しく語らう主がいる","ベルサイユ近郊のコースを制した地元の英雄らしい","1907年に海を渡り全英オープンを制したフランス唯一のメジャー王者だ"],
     courtTheme:"凱旋したフランスの誇りの宮廷", lore:"1907年ロイヤル・リバプールにて英国勢を破り、大陸ヨーロッパ勢として史上初めて全英オープンを制覇したフランスの国民的英雄。" },
-  { id:"Roca",   name:"C.Roca",   real:"コスタンティーノ・ロッカ", majors:0, weight:3, nat:"イタリア", style:"【欧州名誉枠】罪の谷の奇跡を起こした情熱家",
+  { id:"Roca",   name:"C.Roca",   real:"伊太利亜の熱情・地中海の剣", majors:0, weight:3, nat:"イタリア", style:"【欧州名誉枠】罪の谷の奇跡を起こした情熱家",
     hints:["イタリアの陽気さと激しい情熱を併せ持つ男がいる","セントアンドリュース18番『罪の谷』の伝説を知る者だ","約60フィートの奇跡のパットを沈め芝を叩いて歓喜した欧州の英雄だ"],
     courtTheme:"罪の谷から蘇る奇跡の宮廷", lore:"1995年全英オープン最終18番、アプローチミスで落ちた『罪の谷』から60フィートのパットをねじ込みプレーオフへ持ち込んだ感動の名場面で語り継がれる。" }
 ];
 
 /* 固定ボスマスター */
 var FIXED_BOSSES = {
-  Junbo:       { id:"Junbo",       name:"Junbo",        real:"ジャンボ尾崎",     rank:"国内94勝・地の王者",   majors:"日本94勝", powTier:4.0, lore:"日本プロゴルフ界で通算94勝（プロ通算113勝）という空前絶後の金字塔を打ち立てた帝王。圧倒的な飛距離と繊細なアプローチで一時代を築いた。" },
-  Player:      { id:"Player",      name:"G.Player",     real:"ゲーリー・プレーヤー", rank:"メジャー9勝・黒衣の騎士", majors:"9勝", powTier:4.4, lore:"南アフリカ出身、世界中のツアーを転戦し総移動距離は地球何百周にも及ぶ『ブラック・ナイト』。鍛え抜かれた肉体と不屈の精神で生涯グランドスラムを達成。" },
-  Palmer:      { id:"Palmer",      name:"A.Palmer",     real:"アーノルド・パーマー", rank:"メジャー7勝・ザ・キング", majors:"7勝", powTier:4.5, lore:"『アーニーズ・アーミー』と呼ばれる大観衆を熱狂させたカリスマ王。大胆不敵なチャージでゴルフを世界中の人々から愛されるスポーツへと変えた。" },
-  Niklaus:     { id:"Niklaus",     name:"J.Niklaus",    real:"ジャック・ニクラス", rank:"メジャー18勝・帝王の門番", majors:"18勝", powTier:4.9, lore:"4大メジャー通算18勝（2位も19回）という人類史上最高峰の記録を持つ『ゴールデン・ベア』。本作では神器の守り人の血筋として器の真価を問う。" },
+  Junbo:       { id:"Junbo",       name:"Junbo",        real:"九十四勝・地の帝王",     rank:"国内94勝・地の王者",   majors:"日本94勝", powTier:4.0, lore:"日本プロゴルフ界で通算94勝（プロ通算113勝）という空前絶後の金字塔を打ち立てた帝王。圧倒的な飛距離と繊細なアプローチで一時代を築いた。" },
+  Player:      { id:"Player",      name:"G.Player",     real:"黒衣の騎士・不屈の求道者", rank:"メジャー9勝・黒衣の騎士", majors:"9勝", powTier:4.4, lore:"南アフリカ出身、世界中のツアーを転戦し総移動距離は地球何百周にも及ぶ『ブラック・ナイト』。鍛え抜かれた肉体と不屈の精神で生涯グランドスラムを達成。" },
+  Palmer:      { id:"Palmer",      name:"A.Palmer",     real:"民衆の王・チャージの旗手", rank:"メジャー7勝・ザ・キング", majors:"7勝", powTier:4.5, lore:"『アーニーズ・アーミー』と呼ばれる大観衆を熱狂させたカリスマ王。大胆不敵なチャージでゴルフを世界中の人々から愛されるスポーツへと変えた。" },
+  Niklaus:     { id:"Niklaus",     name:"J.Niklaus",    real:"十八冠のゴールデン・エンペラー", rank:"メジャー18勝・帝王の門番", majors:"18勝", powTier:4.9, lore:"4大メジャー通算18勝（2位も19回）という人類史上最高峰の記録を持つ『ゴールデン・ベア』。本作では神器の守り人の血筋として器の真価を問う。" },
   DarkTIiger:  { id:"DarkTIiger",  name:"Dark TIiger",  real:"闇衣のタイガー",   rank:"メジャー15勝・闇の傀儡王", majors:"15勝+闇", powTier:5.2, lore:"数々の奇跡を起こした現代の絶対王者。さらなる完全無欠を求める野心の隙をノクスの予言に突かれ、黄泉の門を開いたダークチャンピオン。" },
   DarkNiklaus: { id:"DarkNiklaus", name:"Dark Niklaus", real:"闇衣の帝王ニクラス", rank:"メジャー18勝・神が選び直した帝王", majors:"18勝+闇", powTier:5.3, lore:"器の成長を見たノクスが『より強き人形』として全盛期の闘争本能を呼び覚ました18勝の帝王の姿。" },
   VesselBerserk:{id:"VesselBerserk",name:"覚醒ノクス器態",real:"暴走した神の器",  rank:"神性暴走・もうひとりの自分", majors:"神威", powTier:5.3, lore:"誘惑の契約を重ねたことでノクスに肉体の主導権を奪われた主人公自身の姿。盟友のクラブだけがその魂を呼び戻せる。" },
@@ -1151,6 +1151,90 @@ var SOUND = (function(){
     hole19:  { bpm:88,  wave:"sine",     bassWave:"triangle", scale:[261.63,311.13,349.23,369.99,392,466.16,523.25], prog:[0,2,4,1], padColor:0.13 }, // 19番ホール・クールジャズ
     boss:    { bpm:132, wave:"sawtooth", bassWave:"sawtooth", scale:[146.83,164.81,174.61,220,233.08,261.63,293.66,349.23], prog:[0,3,4,1], padColor:0.18 }  // 伝説決戦オスティナート
   };
+  /* ===== Internet Archive クラシック・ストリーミング（パブリックドメイン音源／動的解決） ===== */
+  var STREAMS = {
+    title:   { ids:["ThePlanetsIv.Jupiterkarajan","gustav-holst-the-planets-jupiter-the-bringer-of-jollity"], hint:/jupiter/i },
+    kyoto:   { ids:["DebussyClairDeLuneciccolini","lp_preludes-book-ii_robert-casadesus-claude-debussy"], hint:/clair/i },
+    paris:   { ids:["ViolinConcertoInEMajorRV269SpringIII.Allegro"], hint:/I\.\s*Allegro/i },
+    rome:    { ids:["01.01.-the-planets-suite-for-large-orchestra-mars-the-bringer-of-war-remastered","lp_the-planets-op-32_gustav-holst-sir-adrian-boult-wiener-ak"], hint:/mars/i },
+    america: { ids:["SymphonyNo.9fromTheNewWorld"], hint:/04_|allegroCoFuoco/i },
+    edo:     { ids:["38GiuseppeVerdiRequiemDiesIrae1791","lp_requiem_giuseppe-verdi-sir-john-barbirolli-montser"], hint:/dies/i },
+    boss:    { ids:["38GiuseppeVerdiRequiemDiesIrae1791","lp_requiem_giuseppe-verdi-sir-john-barbirolli-montser"], hint:/dies/i },
+    olympus_sky:{ ids:["stuttgarter-kammerorchester-karl-munchinger-pachelbel-canon-in-d-p.-37","jamendo-617470"], hint:/canon/i },
+    hole19:  { ids:["jamendo-254907","satie_gymnopedieI_20251213"], hint:/gymnop/i }
+  };
+  var streamEl = null, streamTheme = "", streamActive = false, streamDucked = false, streamFadeTimer = null, streamResolved = {};
+  var STREAM_VOL = 0.52;
+  function streamFadeTo(target, ms){
+    if(!streamEl) return;
+    if(streamFadeTimer) clearInterval(streamFadeTimer);
+    var from = streamEl.volume, diff = target - from, t0 = Date.now(), dur = Math.max(60, ms || 500);
+    streamFadeTimer = setInterval(function(){
+      var k = Math.min(1, (Date.now() - t0) / dur);
+      try { streamEl.volume = Math.max(0, Math.min(1, from + diff * k)); } catch(e){}
+      if(k >= 1){ clearInterval(streamFadeTimer); streamFadeTimer = null; }
+    }, 40);
+  }
+  function applyLevels(){
+    if(ctx && bgmGain){
+      var synthTarget = streamDucked ? 0.14 : (streamActive ? 0.10 : 0.42);
+      var now = ctx.currentTime;
+      bgmGain.gain.cancelScheduledValues(now);
+      bgmGain.gain.setTargetAtTime(synthTarget, now, 0.4);
+    }
+    if(streamEl) streamFadeTo(streamDucked ? 0.10 : STREAM_VOL, 600);
+  }
+  function pickStreamFile(files, hint){
+    var mp3s = (files || []).filter(function(f){ return /\.mp3$/i.test(f.name || "") && !/sample/i.test(f.name); });
+    if(!mp3s.length) return null;
+    var hinted = mp3s.filter(function(f){ return hint && hint.test(f.name); });
+    var pool = hinted.length ? hinted : mp3s;
+    pool.sort(function(a, b){ return (parseInt(b.size, 10) || 0) - (parseInt(a.size, 10) || 0); });
+    return pool[0].name;
+  }
+  function resolveStream(theme, cb){
+    if(streamResolved[theme]){ cb(streamResolved[theme]); return; }
+    var spec = STREAMS[theme]; if(!spec){ cb(null); return; }
+    var idx = 0;
+    (function next(){
+      if(idx >= spec.ids.length){ cb(null); return; }
+      var id = spec.ids[idx++];
+      var ctl = ("AbortController" in window) ? new AbortController() : null;
+      var to = ctl ? setTimeout(function(){ ctl.abort(); }, 7000) : null;
+      fetch("https://archive.org/metadata/" + encodeURIComponent(id), ctl ? { signal: ctl.signal } : {})
+        .then(function(r){ return r.json(); })
+        .then(function(meta){
+          if(to) clearTimeout(to);
+          var fname = pickStreamFile(meta && meta.files, spec.hint);
+          if(fname){ var url = "https://archive.org/download/" + id + "/" + encodeURIComponent(fname); streamResolved[theme] = url; cb(url); }
+          else next();
+        })
+        .catch(function(){ if(to) clearTimeout(to); next(); });
+    })();
+  }
+  function startStream(theme){
+    if(!enabled || !STREAMS[theme]) return;
+    if(streamTheme === theme && streamEl && !streamEl.paused) return;
+    streamTheme = theme;
+    if(!streamEl){
+      streamEl = new Audio();
+      streamEl.loop = true; streamEl.preload = "auto"; streamEl.volume = 0;
+      streamEl.addEventListener("playing", function(){ streamActive = true; applyLevels(); });
+      streamEl.addEventListener("error", function(){ streamActive = false; applyLevels(); });
+    }
+    resolveStream(theme, function(url){
+      if(streamTheme !== theme) return;
+      if(!url){ streamActive = false; applyLevels(); return; }
+      try {
+        streamEl.src = url;
+        var p = streamEl.play();
+        if(p && p.catch) p.catch(function(){
+          var retry = function(){ document.removeEventListener("pointerdown", retry); if(streamEl && enabled && streamTheme === theme){ streamEl.play().catch(function(){}); } };
+          document.addEventListener("pointerdown", retry);
+        });
+      } catch(e){}
+    });
+  }
 
   function ensure(){
     if(ctx) return true;
@@ -1161,6 +1245,16 @@ var SOUND = (function(){
     bgmGain = ctx.createGain(); bgmGain.gain.value = 0.42;
     sfxGain = ctx.createGain(); sfxGain.gain.value = 0.75;
     bgmGain.connect(master);
+    /* コンボリューション・リバーブ（インパルス応答を動的生成して重厚な残響を付与） */
+    try {
+      var conv = ctx.createConvolver();
+      var rate = ctx.sampleRate, len = Math.floor(rate * 1.9);
+      var imp = ctx.createBuffer(2, len, rate);
+      for(var chI = 0; chI < 2; chI++){ var dch = imp.getChannelData(chI); for(var i2 = 0; i2 < len; i2++){ dch[i2] = (Math.random() * 2 - 1) * Math.pow(1 - i2 / len, 2.6); } }
+      conv.buffer = imp;
+      var wet = ctx.createGain(); wet.gain.value = 0.33;
+      bgmGain.connect(conv); conv.connect(wet); wet.connect(master);
+    } catch(e){}
     sfxGain.connect(master);
     master.connect(ctx.destination);
     return true;
@@ -1184,7 +1278,8 @@ var SOUND = (function(){
     if(lpFreq){
       var flt = ctx.createBiquadFilter();
       flt.type = "lowpass";
-      flt.frequency.setValueAtTime(lpFreq, now);
+      flt.frequency.setValueAtTime(Math.min(12000, lpFreq * 1.7), now);
+      flt.frequency.exponentialRampToValueAtTime(Math.max(120, lpFreq * 0.6), now + Math.min(dur * 0.7, 0.6));
       osc.connect(flt); flt.connect(g);
     } else {
       osc.connect(g);
@@ -1228,13 +1323,12 @@ var SOUND = (function(){
     var interval = Math.round((60 / th.bpm) * 1000 * 0.5);
     step = 0;
     timerId = setInterval(tickBGM, interval);
+    startStream(theme);
   }
 
   function duck(isDucked){
-    if(!ctx || !bgmGain) return;
-    var now = ctx.currentTime;
-    bgmGain.gain.cancelScheduledValues(now);
-    bgmGain.gain.setTargetAtTime(isDucked ? 0.14 : 0.42, now, 0.25);
+    streamDucked = !!isDucked;
+    applyLevels();
   }
 
   function sfx(kind){
@@ -1269,6 +1363,7 @@ var SOUND = (function(){
       master.gain.setValueAtTime(enabled ? 0.85 : 0.0, ctx.currentTime);
     }
     if(!enabled && window.speechSynthesis) window.speechSynthesis.cancel();
+    if(streamEl){ if(enabled){ if(streamTheme) startStream(streamTheme); } else { try { streamEl.pause(); } catch(e){} } }
     return enabled;
   }
 
@@ -1822,6 +1917,7 @@ function enterWorld(reloadIframe){
   gf.classList.remove("active");
   gf.src = "about:blank";
   wf.classList.add("active");
+  if(window.__curtainShow) __curtainShow();
 
   var areaObj = AREAS[S.area];
   SOUND.setBGM(areaObj.id);
@@ -1834,7 +1930,9 @@ function enterWorld(reloadIframe){
 
   if(reloadIframe || !wf.src || wf.src.indexOf("world.html") === -1){
     wf.src = targetUrl;
+    if(window.__curtainWatch) __curtainWatch(wf);
   } else {
+    setTimeout(function(){ if(window.__curtainHide) __curtainHide(); }, 420);
     syncWorldFrame();
     wf.contentWindow.postMessage({ type:"goat:resume" }, "*");
   }
@@ -1977,8 +2075,10 @@ function launchGolfIframe(tgt, overrideCharId){
   if(wf && wf.contentWindow) wf.contentWindow.postMessage({ type:"goat:pause" }, "*");
   wf.classList.remove("active");
   gf.classList.add("active");
+  if(window.__curtainShow) __curtainShow();
   gf.src = "golf.html?goat=1&course=" + encodeURIComponent(tgt.course) +
            "&holes=" + tgt.holes + "&mode=" + encodeURIComponent(S.mode) + "&v=3.2&t=" + Date.now();
+  if(window.__curtainWatch) __curtainWatch(gf);
   setTimeout(function(){
     try { gf.focus(); if(gf.contentWindow) gf.contentWindow.focus(); } catch(e){}
   }, 80);
@@ -2658,7 +2758,7 @@ function renderModalBody(){
         var unlocked = S.allies.indexOf(c.id) !== -1;
         var active = (S.activeCharId === c.id);
         html += "<div class='icard " + (active ? "equipped" : "") + "' style='opacity:" + (unlocked?1:0.45) + "'>" +
-          "<div class='icard-top'><span class='icard-name'>" + c.face + " " + c.id + (c.id===S.heroId?" (主人公)":"") + "</span>" +
+          "<div class='icard-top'><span class='icard-name'>" + renderCharPortraitSVG(c) + " " + c.id + (c.id===S.heroId?" (主人公)":"") + "</span>" +
           "<span class='tier-stars'>" + (active ? "操作中" : (unlocked ? "解放済" : "未解放")) + "</span></div>" +
           "<div class='icard-stat'>" + escHtml(c.role) + " ｜ DR飛距離:" + c.dr + "</div>" +
           "<div class='icard-desc'>IR:" + c.ir + " / AP:" + c.ap + " / PT:" + c.pt + "<br>" + escHtml(c.desc) + "</div>" +
@@ -3225,7 +3325,7 @@ function renderCharSelection(){
     var box = document.createElement("div");
     box.className = "char-box" + (c.id === selectedHeroId ? " sel" : "");
     box.innerHTML =
-      "<div class='char-swatch' style='background:" + c.color + "'>" + c.face + "</div>" +
+      "<div class='char-swatch' style='background:" + c.color + "'>" + renderCharPortraitSVG(c) + "</div>" +
       "<div class='char-nm'>" + c.id + "</div>" +
       "<div class='char-rl'>" + escHtml(c.role) + "</div>" +
       "<div class='char-stats'>DR飛距離: <b>" + c.dr + "</b><br>IR: " + c.ir + "<br>AP: " + c.ap + "<br>PT: " + c.pt + "</div>";
@@ -3518,6 +3618,67 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   document.body.appendChild(t);
 });
+</script>
+
+<style>
+#transCurtain{position:fixed;inset:0;z-index:99990;background:radial-gradient(120% 120% at 50% 0%,#10142a 0%,#05060f 62%);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .38s ease;}
+#transCurtain.show{opacity:1;pointer-events:all;}
+#transCurtain .cur-emblem{width:min(46vw,210px);height:auto;filter:drop-shadow(0 0 18px rgba(255,216,117,.35));}
+#transCurtain .cur-txt{position:absolute;bottom:12%;left:0;right:0;text-align:center;color:#ffd875;font-family:"Cinzel","Noto Serif JP",serif;letter-spacing:.42em;font-size:12px;opacity:.85;}
+.char-swatch svg{width:100%;height:100%;display:block;}
+.icard-name svg{width:26px;height:26px;vertical-align:-7px;margin-right:2px;}
+</style>
+<div id="transCurtain" aria-hidden="true">
+<svg class="cur-emblem" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="96" r="34" fill="#ffd875" opacity="0.9"/>
+  <g stroke="#ffd875" stroke-width="2" stroke-linecap="round" opacity="0.85">
+    <line x1="100" y1="18" x2="100" y2="44"/><line x1="52" y1="34" x2="66" y2="52"/><line x1="148" y1="34" x2="134" y2="52"/>
+    <line x1="30" y1="80" x2="52" y2="88"/><line x1="170" y1="80" x2="148" y2="88"/>
+  </g>
+  <path d="M28 176 L28 84 Q62 70 92 82 L92 176 Z" fill="#141830" stroke="#ffd875" stroke-width="2.4"/>
+  <path d="M172 176 L172 84 Q138 70 108 82 L108 176 Z" fill="#141830" stroke="#ffd875" stroke-width="2.4"/>
+  <path d="M40 108 L84 100 M42 138 L86 132" stroke="#ffd875" stroke-width="1.6" opacity="0.6"/>
+  <path d="M160 108 L116 100 M158 138 L114 132" stroke="#ffd875" stroke-width="1.6" opacity="0.6"/>
+  <path d="M14 188 Q100 172 186 188" stroke="#ffd875" stroke-width="2.2" fill="none" opacity="0.8"/>
+</svg>
+<div class="cur-txt">BATTLE OF GOLF — GOAT</div>
+</div>
+<script>
+(function(){
+  var cur = document.getElementById("transCurtain"), hideTimer = null;
+  window.__curtainShow = function(){ if(!cur) return; cur.classList.add("show"); if(hideTimer) clearTimeout(hideTimer); hideTimer = setTimeout(function(){ window.__curtainHide(); }, 2800); };
+  window.__curtainHide = function(){ if(!cur) return; cur.classList.remove("show"); if(hideTimer){ clearTimeout(hideTimer); hideTimer = null; } };
+  window.__curtainWatch = function(frame){ if(!frame){ setTimeout(function(){ window.__curtainHide(); }, 300); return; } var done = false; var off = function(){ if(done) return; done = true; setTimeout(function(){ window.__curtainHide(); }, 180); }; frame.addEventListener("load", off, { once:true }); setTimeout(off, 2400); };
+})();
+/* キャラ肖像画エンブレム（象徴カラー・帽子シルエット・神話の後光を描くSVG生成） */
+function renderCharPortraitSVG(c){
+  c = c || {};
+  var col = c.color || "#c9a227";
+  var id = c.id || c.name || "";
+  var hat = "cap";
+  if(id === "Watu") hat = "wizard";
+  else if(id === "DeCham" || id === "Hogan" || id === "BJones") hat = "flat";
+  else if(id === "Snead") hat = "straw";
+  else if(id === "Seve" || id === "Faldo") hat = "beret";
+  var hats = {
+    cap: '<path d="M22 40 a18 12 0 0 1 36 0 l0 3 -36 0 z" fill="H"/><path d="M40 43 l16 3 -1.5 4 -14.5 -2 z" fill="H"/>',
+    straw: '<ellipse cx="40" cy="42" rx="21" ry="4.6" fill="H"/><path d="M28 41 a12 9 0 0 1 24 0 z" fill="H"/>',
+    flat: '<path d="M21 42 a19 8 0 0 1 38 -1 l1 3 -40 0 z" fill="H"/><path d="M52 43.4 l9 2.4 -1.4 3.6 -9 -1.8 z" fill="H"/>',
+    beret: '<path d="M20 41 a20 9 0 0 1 40 0 l0 2.4 -40 0 z" fill="H"/><rect x="38.6" y="30.6" width="2.8" height="4" rx="1.2" fill="H"/>',
+    wizard: '<path d="M40 8 L52 42 L28 42 Z" fill="H"/><ellipse cx="40" cy="43" rx="17" ry="3.6" fill="H"/>'
+  };
+  var hatSvg = (hats[hat] || hats.cap).split("H").join(col);
+  return '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' + id + '">' +
+    '<circle cx="40" cy="40" r="37" fill="#0a0d1e" stroke="' + col + '" stroke-width="2"/>' +
+    '<circle cx="40" cy="40" r="33.5" fill="none" stroke="' + col + '" stroke-opacity=".45" stroke-width="1"/>' +
+    '<path d="M40 6 L40 14 M14 20 L20 26 M66 20 L60 26" stroke="#ffd875" stroke-width="1.6" stroke-linecap="round" opacity=".8"/>' +
+    '<circle cx="40" cy="55" r="12.5" fill="#eab98e"/>' +
+    '<path d="M29 62 a12.5 12.5 0 0 0 22 0 l0 6 -22 0 z" fill="' + col + '" opacity=".9"/>' +
+    hatSvg +
+    '<circle cx="35" cy="54" r="1.6" fill="#14161f"/><circle cx="45" cy="54" r="1.6" fill="#14161f"/>' +
+    '<path d="M36 61 q4 2.6 8 0" stroke="#8a5a3b" stroke-width="1.4" fill="none" stroke-linecap="round"/>' +
+    '</svg>';
+}
 </script>
 </body>
 </html>
