@@ -1377,6 +1377,35 @@ class AudioManager {
     }
   }
 
+  /* 空間環境音：風のそよぎ＋鳥の声＋ボス戦の大観衆マーマー（Web Audio生成ループ） */
+  startAmbient() {
+    this.ensureInit();
+    if (!this.ctx || this._amb) return;
+    try {
+      const ac = this.ctx;
+      const master = ac.createGain(); master.gain.value = 0; master.connect(this.masterGain);
+      master.gain.setTargetAtTime(0.13, ac.currentTime, 2.0);
+      const len = ac.sampleRate * 2;
+      const mkBuf = (coef, amp) => { const b = ac.createBuffer(1, len, ac.sampleRate), d = b.getChannelData(0); let last = 0; for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1; last = (last + coef * w) / (1 + coef); d[i] = last * amp; } return b; };
+      const src = ac.createBufferSource(); src.buffer = mkBuf(0.02, 3.2); src.loop = true;
+      const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 520; bp.Q.value = 0.55;
+      const wg = ac.createGain(); wg.gain.value = 0.55;
+      const lfo = ac.createOscillator(); lfo.frequency.value = 0.06; const lg = ac.createGain(); lg.gain.value = 200; lfo.connect(lg); lg.connect(bp.frequency);
+      src.connect(bp); bp.connect(wg); wg.connect(master); src.start(); lfo.start();
+      const csrc = ac.createBufferSource(); csrc.buffer = mkBuf(0.008, 2.4); csrc.loop = true;
+      const cbp = ac.createBiquadFilter(); cbp.type = "bandpass"; cbp.frequency.value = 900; cbp.Q.value = 0.4;
+      const cg = ac.createGain(); cg.gain.value = 0;
+      csrc.connect(cbp); cbp.connect(cg); cg.connect(master); csrc.start();
+      this._amb = { master: master, crowdGain: cg };
+      const birds = () => { setTimeout(() => { if (this.ctx && this.enabled && !this._crowdOn) { const f = 2000 + Math.random() * 800; try { const t = ac.currentTime, o = ac.createOscillator(), gn = ac.createGain(); o.type = "sine"; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 1.3, t + 0.09); gn.gain.setValueAtTime(0.014, t); gn.gain.exponentialRampToValueAtTime(0.001, t + 0.1); o.connect(gn); gn.connect(this.masterGain); o.start(t); o.stop(t + 0.12); } catch(e){} } birds(); }, 4200 + Math.random() * 7000); };
+      birds();
+    } catch(e) {}
+  }
+  setCrowd(on) {
+    this._crowdOn = !!on;
+    if (this._amb && this.ctx) this._amb.crowdGain.gain.setTargetAtTime(on ? 0.5 : 0.0, this.ctx.currentTime, 1.2);
+  }
+
   // ① インパクト音（ドライバー・アイアン・ウェッジ・パター）
   playImpact(clubType = "driver", power = 1.0, isPerfect = false) {
     this.ensureInit();
@@ -1803,23 +1832,23 @@ const CHARACTERS=[
    driverSpeed:75,ironStability:"不安定",approachStability:"不安定",putterStability:"安定",
    skinColor:0xffcc88,shirtColor:0x1144cc,pantsColor:0x222244,hatColor:0x111133,
    desc:"謎の天才ゴルファー"},
-  {name:"Matuya", realName:"松山英樹",       emoji:"🇯🇵",nationality:"JPN",
+  {name:"Matuya", realName:"マスターズ覇者・東洋の翠竜",       emoji:"🇯🇵",nationality:"JPN",
    driverSpeed:80,ironStability:"最高に安定",approachStability:"最高に安定",putterStability:"安定",
    skinColor:0xffbb77,shirtColor:0xffffff,pantsColor:0x111111,hatColor:0x222222,
    desc:"マスターズ覇者・日本の誇り"},
-  {name:"TIiger", realName:"タイガー・ウッズ",emoji:"🐯",nationality:"USA",
+  {name:"TIiger", realName:"サンデーレッドの絶対王者",emoji:"🐯",nationality:"USA",
    driverSpeed:85,ironStability:"最高に安定",approachStability:"最高に安定",putterStability:"最高に安定",
    skinColor:0xcc8855,shirtColor:0xcc0000,pantsColor:0x111111,hatColor:0x222222,
    desc:"最強レジェンド 14メジャー制覇"},
-  {name:"Junbo",  realName:"ジャンボ尾崎",   emoji:"👑",nationality:"JPN",
+  {name:"Junbo",  realName:"九十四勝・地の帝王",   emoji:"👑",nationality:"JPN",
    driverSpeed:82,ironStability:"安定",approachStability:"安定",putterStability:"安定",
    skinColor:0xffaa66,shirtColor:0x0055aa,pantsColor:0x334455,hatColor:0x112233,
    desc:"国内94勝・プロゴルフの帝王"},
-  {name:"McIlro", realName:"ローリー・マキロイ",emoji:"🍀",nationality:"IRL",
+  {name:"McIlro", realName:"北の貴公子・蒼穹のドライブ",emoji:"🍀",nationality:"IRL",
    driverSpeed:90,ironStability:"安定",approachStability:"安定",putterStability:"不安定",
    skinColor:0xffddbb,shirtColor:0x003399,pantsColor:0xffffff,hatColor:0x001166,
    desc:"世界最長飛距離 4メジャー覇者"},
-  {name:"DeCham", realName:"ブライアン・デシャンボー",emoji:"💪",nationality:"USA",
+  {name:"DeCham", realName:"科学の探究者・物理の飛ばし屋",emoji:"💪",nationality:"USA",
    driverSpeed:95,ironStability:"安定",approachStability:"不安定",putterStability:"安定",
    skinColor:0xffcc99,shirtColor:0xff6600,pantsColor:0x222222,hatColor:0x333333,
    desc:"科学の申し子 超飛距離ゴルファー"},
@@ -3423,35 +3452,52 @@ class GolfGame{
   }
 
   _swingAnim(){
-    if(!this.playerMesh)return;
+    if(!this.playerMesh||!this.playerJoints)return;
+    const J=this.playerJoints;
+    this._swinging=true;
     let t=0;
-    const startY=this.playerMesh.rotation.y;
+    const easeIO=x=>x<0.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+    const clamp01=x=>Math.max(0,Math.min(1,x));
+    const swingAngle=u=>{
+      if(u<0.42) return easeIO(u/0.42);                    /* テイクバック〜トップ */
+      if(u<0.52) return 1.0;                               /* トップのタメ */
+      if(u<0.66) { const k=(u-0.52)/0.14; return 1.0-k*k; }/* ダウンスイング */
+      if(u<0.90) { const k=(u-0.66)/0.24; return -easeIO(k); } /* フォロー */
+      return -1.0;                                         /* フィニッシュ静止 */
+    };
     const anim=()=>{
       t+=0.14;
-      // バックスイング（0→π/2）→ ダウンスイング（π/2→π）→ フォロー（π→2π）
-      const phase=t/Math.PI;
-      if(phase<0.5){
-        // バックスイング：右に少し傾く
-        this.playerMesh.rotation.z=phase*0.35;
-        this.playerMesh.rotation.x=-phase*0.08;
-      }else if(phase<1.0){
-        // インパクト→フォロースルー：勢いよく前傾
-        this.playerMesh.rotation.z=(1.0-phase)*0.7*-1+0.18;
-        this.playerMesh.rotation.x=-(1.0-phase)*0.1;
-      }else{
-        // フィニッシュポーズ
-        this.playerMesh.rotation.z=Math.max(0,(2.0-phase)*0.18);
-        this.playerMesh.rotation.x=0;
-      }
-      // クラブのスイング
-      if(this.clubMesh){
-        this.clubMesh.rotation.z=-Math.sin(t*0.8)*0.6;
-      }
+      const u=Math.min(1,t/(Math.PI*2));
+      const A=swingAngle(u);
+      const Ap=swingAngle(Math.min(1,u+0.05)); /* 骨盤は先行回転（運動連鎖） */
+      J.hips.rotation.y=-Ap*0.55;
+      J.torso.rotation.y=-A*1.05;
+      J.head.rotation.y=A*0.72;
+      J.head.rotation.x=0.16+Math.max(0,-A)*0.1;
+      const lift=-A*1.85;
+      J.shoulderR.rotation.x=J.addr.shR[0]+lift;
+      J.shoulderL.rotation.x=J.addr.shL[0]+lift*0.94;
+      J.shoulderR.rotation.z=J.addr.shR[2]-A*0.22;
+      J.shoulderL.rotation.z=J.addr.shL[2]-A*0.18;
+      const cock=0.22+Math.max(0,A)*1.05+Math.max(0,-A)*0.35;
+      J.elbowR.rotation.x=J.addr.elR-cock;
+      J.elbowL.rotation.x=J.addr.elL-cock*0.8;
+      const lag=(u>0.52&&u<0.70)?Math.sin((u-0.52)/0.18*Math.PI)*0.5:0; /* クラブの遅れ（タメ） */
+      J.club.rotation.z=J.addr.club[2]-A*0.55+lag;
+      J.club.rotation.x=J.addr.club[0]-Math.max(0,A)*0.3;
+      J.legs.L.knee.rotation.x=0.10+Math.abs(A)*0.10;
+      J.legs.R.knee.rotation.x=0.10+Math.abs(A)*0.06;
+      J.hips.position.x=-A*0.05;
+      this.playerMesh.rotation.z=A*0.05;
       if(t<Math.PI*2){requestAnimationFrame(anim);}
       else{
-        this.playerMesh.rotation.z=0;
-        this.playerMesh.rotation.x=0;
-        if(this.clubMesh)this.clubMesh.rotation.z=0;
+        this._swinging=false;
+        J.hips.rotation.y=0; J.torso.rotation.y=0; J.head.rotation.y=0; J.head.rotation.x=0.16;
+        J.shoulderR.rotation.set(J.addr.shR[0],0,J.addr.shR[2]);
+        J.shoulderL.rotation.set(J.addr.shL[0],0,J.addr.shL[2]);
+        J.elbowR.rotation.x=J.addr.elR; J.elbowL.rotation.x=J.addr.elL;
+        J.club.rotation.set(J.addr.club[0],0,J.addr.club[2]);
+        J.hips.position.x=0; this.playerMesh.rotation.z=0;
       }
     };
     anim();
@@ -3620,6 +3666,7 @@ class GolfGame{
     else this.scene.fog=new THREE.Fog(0x88c0d8,320,900);
     this._buildTerrain(hole,course);
     this._buildPin();this._buildPlayer();this._buildBallMesh();
+    this._buildCourseLandmark(course);
     if(this.weather.rainIntensity>0)this._buildRain();
     this._buildAimViz();
     this.camera.position.set(this.teePos.x,this.teePos.y+10,this.teePos.z+22);
@@ -5171,6 +5218,72 @@ const bCntGreen=Math.min(bunkerCount,5);
     posAttr.needsUpdate = true;
   }
 
+  /* コース背景ランドマーク（商用品質アップグレード： グリーン奥にコース別クラブハウス・城郭・石橋・観客席を配置しRPG側の世界観と一致） */
+  _buildCourseLandmark(course){
+    if(this._landmarkGroup){ this.scene.remove(this._landmarkGroup); this._landmarkGroup=null; }
+    if(!this.scene) return;
+    const cid=(course&&course.id)||"";
+    const gp=this.pinPos||{x:0,y:0.5,z:-190};
+    const gx=gp.x*0.5, gz=gp.z-40;
+    let gy=gp.y; try{ const h=this.getGY(gx,gz); if(isFinite(h)) gy=h; }catch(e){}
+    const grp=new THREE.Group();
+    const S=(v,r,m)=>new THREE.MeshStandardMaterial({color:v,roughness:(r===undefined?0.7:r),metalness:(m===undefined?0.05:m)});
+    const wallW=S(0xf2ede2,0.8), wallStone=S(0x8d8d94,0.9), roofD=S(0x232733,0.6), roofG=S(0x1e4d32,0.65), gold=S(0xffcf56,0.25,0.85), glass=S(0xbfd9e8,0.15,0.4);
+    const dark=(cid.indexOf("dark")>=0||cid.indexOf("divine")>=0);
+    /* 台座（地形外でも浮かないよう下へ伸ばす） */
+    const plinth=new THREE.Mesh(new THREE.BoxGeometry(30,26,16),wallStone); plinth.position.set(0,-13.4,0); grp.add(plinth);
+    function clubhouse(bodyMat, roofMat, cols){
+      const b=new THREE.Mesh(new THREE.BoxGeometry(17,6.4,7),bodyMat); b.position.y=3.2; grp.add(b);
+      const rf=new THREE.Mesh(new THREE.ConeGeometry(12.6,3.6,4),roofMat); rf.rotation.y=Math.PI/4; rf.position.y=8.2; grp.add(rf);
+      if(cols){ for(let i=-2;i<=2;i++){ const c=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.36,6.2,10),wallW); c.position.set(i*3.1,3.1,3.9); grp.add(c); } }
+      const win=new THREE.Mesh(new THREE.BoxGeometry(13,2.2,0.2),glass); win.position.set(0,3.6,3.55); grp.add(win);
+    }
+    if(cid==="augusta_divine"){
+      for(let i=-3;i<=3;i++){ const c=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.6,8.4,12),wallW); c.position.set(i*2.9,4.2,2); grp.add(c); }
+      const beam=new THREE.Mesh(new THREE.BoxGeometry(20.5,0.9,3),gold); beam.position.y=8.8; grp.add(beam);
+      const pedShape=new THREE.Shape(); pedShape.moveTo(-10.2,0); pedShape.lineTo(10.2,0); pedShape.lineTo(0,3.2); pedShape.closePath();
+      const pedGeo=new THREE.ExtrudeGeometry(pedShape,{depth:2.6,bevelEnabled:false}); pedGeo.translate(0,0,-1.3);
+      const ped=new THREE.Mesh(pedGeo,wallW); ped.position.y=9.25; grp.add(ped);
+    } else if(cid==="toda_dark"||dark){
+      const tm=S(0x181a24,0.55), gm=gold;
+      for(let lv=0;lv<3;lv++){ const k=1-lv*0.2; const f=new THREE.Mesh(new THREE.BoxGeometry(12*k,3.3,12*k),tm); f.position.y=1.65+lv*3.7; grp.add(f);
+        const r=new THREE.Mesh(new THREE.ConeGeometry(10.6*k,1.9,4),gm); r.rotation.y=Math.PI/4; r.position.y=3.7+lv*3.7; grp.add(r); }
+    } else if(cid==="sasayama"){
+      const base=new THREE.Mesh(new THREE.BoxGeometry(19,2.2,10),wallStone); base.position.y=1.1; grp.add(base);
+      const b=new THREE.Mesh(new THREE.BoxGeometry(15,5.6,8),wallW); b.position.y=5.0; grp.add(b);
+      const rf=new THREE.Mesh(new THREE.ConeGeometry(11.8,3.4,4),roofD); rf.rotation.y=Math.PI/4; rf.position.y=9.4; grp.add(rf);
+    } else if(cid==="standrews"||cid==="standrews_new"){
+      const b=new THREE.Mesh(new THREE.BoxGeometry(18,7,8),wallStone); b.position.y=3.5; grp.add(b);
+      const rf=new THREE.Mesh(new THREE.ConeGeometry(13,3.4,4),S(0x3a4149,0.7)); rf.rotation.y=Math.PI/4; rf.position.y=8.7; grp.add(rf);
+      const ch2=new THREE.Mesh(new THREE.BoxGeometry(1.4,3.4,1.4),wallStone); ch2.position.set(6,9.6,0); grp.add(ch2);
+    } else if(cid==="pebble"){
+      const b=new THREE.Mesh(new THREE.BoxGeometry(16,5.6,7.5),S(0x9a7c5c,0.8)); b.position.y=2.8; grp.add(b);
+      const win=new THREE.Mesh(new THREE.BoxGeometry(13,2.6,0.2),glass); win.position.set(0,3.2,3.8); grp.add(win);
+      const rf=new THREE.Mesh(new THREE.ConeGeometry(12,3,4),roofD); rf.rotation.y=Math.PI/4; rf.position.y=7.1; grp.add(rf);
+      const lh=new THREE.Group();
+      for(let i=0;i<4;i++){ const seg=new THREE.Mesh(new THREE.CylinderGeometry(0.85-i*0.09,0.92-i*0.09,1.9,12), i%2? S(0xc8251d,0.6):wallW); seg.position.y=0.95+i*1.9; lh.add(seg); }
+      const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.5,10,8),S(0xffe9a8,0.3,0.2)); lamp.material.emissive=new THREE.Color(0xffca5f); lamp.material.emissiveIntensity=1.4; lamp.position.y=8.1; lh.add(lamp);
+      lh.position.set(13,0,-2); grp.add(lh);
+    } else if(cid==="tpcsawgrass"){
+      const b=new THREE.Mesh(new THREE.BoxGeometry(19,6.8,8),wallW); b.position.y=3.4; grp.add(b);
+      const win=new THREE.Mesh(new THREE.BoxGeometry(16.5,3.6,0.2),glass); win.position.set(0,3.6,4.05); grp.add(win);
+      const rf=new THREE.Mesh(new THREE.BoxGeometry(20.5,0.7,9.5),roofD); rf.position.y=7.15; grp.add(rf);
+    } else if(cid==="augusta"){
+      clubhouse(wallW, roofG, true);
+    } else {
+      clubhouse(wallW, roofD, true);
+    }
+    /* 観客席スタンド（グリーン脇） */
+    const stand=new THREE.Group();
+    for(let r2=0;r2<4;r2++){ const bench=new THREE.Mesh(new THREE.BoxGeometry(13,0.5,1.15), r2%2? S(0xdde3ea,0.6):S(0x9fb4c8,0.6)); bench.position.set(0,0.6+r2*0.95,r2*1.05); stand.add(bench); }
+    for(const px of [-6.2,6.2]){ const post=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,5.6,6),roofD); post.position.set(px,2.8,3.6); stand.add(post); }
+    const sroof=new THREE.Mesh(new THREE.BoxGeometry(14.5,0.22,3.4),roofD); sroof.position.set(0,5.75,2.6); sroof.rotation.x=0.18; stand.add(sroof);
+    stand.position.set(gp.x+17,0,6); grp.add(stand);
+    grp.position.set(gx,gy,gz);
+    this.scene.add(grp);
+    this._landmarkGroup=grp;
+    if(this.audio){ try{ this.audio.startAmbient(); let isBoss=false; try{ isBoss=(typeof B!=="undefined"&&B.holesCount>=3); }catch(e){} this.audio.setCrowd(isBoss); }catch(e){} }
+  }
   _buildPin(){
     if(this.pinMesh)this.scene.remove(this.pinMesh);
     if(!this.scene)return;
@@ -5246,109 +5359,115 @@ const bCntGreen=Math.min(bunkerCount,5);
     const shirt=ch&&ch.shirtColor?ch.shirtColor:0x1e44bb;
     const pants=ch&&ch.pantsColor?ch.pantsColor:0x222244;
     const hatC=ch&&ch.hatColor?ch.hatColor:0x111122;
-    const M=v=>new THREE.MeshBasicMaterial({color:v});
-    const Ms=v=>new THREE.MeshBasicMaterial({color:v});
-
-    // 靴（左右）
-    for(const sx of[-0.15,0.15]){
-      const shoe=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.1,0.38),Ms(0x111111));
-      shoe.position.set(sx,-0.05,0.04);g.add(shoe);
+    /* 商用品質アップグレード： MeshBasicMaterial廃止 → PBR（MeshStandardMaterial）多関節階層モデル */
+    const S=(v,r,m)=>new THREE.MeshStandardMaterial({color:v,roughness:(r===undefined?0.6:r),metalness:(m===undefined?0.05:m)});
+    const skinM=S(skin,0.55), shirtM=S(shirt,0.65), pantsM=S(pants,0.72), darkM=S(0x181820,0.5,0.2);
+    try{
+      const cv=document.createElement("canvas"); cv.width=cv.height=128;
+      const cx=cv.getContext("2d");
+      cx.fillStyle="#"+(shirt>>>0).toString(16).padStart(6,"0"); cx.fillRect(0,0,128,128);
+      cx.fillStyle="rgba(255,255,255,0.28)";
+      if(ch&&ch.name==="Junbo"){ for(let i=0;i<4;i++){ cx.fillRect(0,i*32,128,7); cx.fillRect(i*32,0,7,128); } }
+      else if(ch&&ch.name!=="TIiger"){ for(let i=0;i<4;i++) cx.fillRect(0,12+i*32,128,6); }
+      cx.fillStyle="rgba(0,0,0,0.15)"; cx.fillRect(0,108,128,20);
+      const tx=new THREE.CanvasTexture(cv); tx.wrapS=tx.wrapT=THREE.RepeatWrapping; tx.repeat.set(2,1);
+      shirtM.map=tx;
+    }catch(e){}
+    const J={};
+    /* 脚：股関節→膝→足首＋ツートンシューズ */
+    J.legs={};
+    for(const sideN of [-1,1]){
+      const hip=new THREE.Group(); hip.position.set(0.15*sideN,0.62,0); g.add(hip);
+      const thigh=new THREE.Mesh(new THREE.CylinderGeometry(0.105,0.09,0.32,10),pantsM); thigh.position.y=-0.16; thigh.castShadow=true; hip.add(thigh);
+      const knee=new THREE.Group(); knee.position.y=-0.32; hip.add(knee);
+      const shin=new THREE.Mesh(new THREE.CylinderGeometry(0.085,0.07,0.30,10),pantsM); shin.position.y=-0.15; knee.add(shin);
+      const ank=new THREE.Group(); ank.position.y=-0.30; knee.add(ank);
+      const shoe=new THREE.Mesh(new THREE.BoxGeometry(0.17,0.09,0.36),S(0xf2f2f2,0.4)); shoe.position.set(0,-0.045,-0.05); ank.add(shoe);
+      const toe=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.07,0.12),S(hatC,0.4)); toe.position.set(0,-0.05,-0.26); ank.add(toe);
+      J.legs[sideN<0?"L":"R"]={hip:hip,knee:knee,ank:ank};
     }
-    // 左足・右足
-    for(const sx of[-0.14,0.14]){
-      const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.09,0.55,10),M(pants));
-      leg.position.set(sx,0.325,0);g.add(leg);
+    /* 骨盤→胸郭→頭 */
+    const hips=new THREE.Group(); hips.position.y=0.60; g.add(hips); J.hips=hips;
+    const pelvis=new THREE.Mesh(new THREE.CylinderGeometry(0.21,0.19,0.16,12),pantsM); pelvis.position.y=0.04; hips.add(pelvis);
+    const belt=new THREE.Mesh(new THREE.CylinderGeometry(0.215,0.215,0.05,12),darkM); belt.position.y=0.11; hips.add(belt);
+    const torsoG=new THREE.Group(); torsoG.position.y=0.10; hips.add(torsoG); J.torso=torsoG;
+    const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.20,0.225,0.60,12),shirtM); torso.position.y=0.30; torso.castShadow=true; torsoG.add(torso); J.torsoMesh=torso;
+    const collar=new THREE.Mesh(new THREE.TorusGeometry(0.105,0.032,8,16),shirtM); collar.position.y=0.60; collar.rotation.x=Math.PI/2-0.3; torsoG.add(collar);
+    const headG=new THREE.Group(); headG.position.y=0.66; torsoG.add(headG); J.head=headG;
+    const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.085,0.14,10),skinM); neck.position.y=0.02; headG.add(neck);
+    const head=new THREE.Mesh(new THREE.SphereGeometry(0.21,16,12),skinM); head.scale.set(0.95,1.1,0.98); head.position.y=0.24; head.castShadow=true; headG.add(head);
+    const jaw=new THREE.Mesh(new THREE.SphereGeometry(0.155,12,8),skinM); jaw.scale.set(0.95,0.75,0.95); jaw.position.set(0,0.115,-0.03); headG.add(jaw);
+    for(const ex of [-0.20,0.20]){ const ear=new THREE.Mesh(new THREE.SphereGeometry(0.05,8,6),skinM); ear.position.set(ex,0.24,0); headG.add(ear); }
+    for(const ex of [-0.082,0.082]){
+      const eye=new THREE.Mesh(new THREE.SphereGeometry(0.026,8,6),darkM); eye.position.set(ex,0.28,-0.185); headG.add(eye);
+      const shine=new THREE.Mesh(new THREE.SphereGeometry(0.009,5,3),S(0xffffff,0.3)); shine.position.set(ex-0.008,0.29,-0.205); headG.add(shine);
+      const brow=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.018,0.02),S(0x2a1c10,0.85)); brow.position.set(ex,0.335,-0.19); headG.add(brow);
     }
-    // 腰（ズボン帯）
-    const waist=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.20,0.08,12),M(0x333333));
-    waist.position.y=0.64;g.add(waist);
-    // 胴体（シャツ）
-    const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.20,0.22,0.62,12),M(shirt));
-    torso.position.y=0.98;g.add(torso);
-    // 胸番号/ロゴ（小さな板）
-    const logo=new THREE.Mesh(new THREE.PlaneGeometry(0.18,0.1),
-      new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.7}));
-    logo.rotation.y=Math.PI;logo.position.set(0,1.02,-0.21);g.add(logo);
-    // 首
-    const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.09,0.18,10),M(skin));
-    neck.position.y=1.34;g.add(neck);
-    // 頭
-    const head=new THREE.Mesh(new THREE.SphereGeometry(0.22,14,10),M(skin));
-    head.scale.set(1,1.12,1);head.position.y=1.60;g.add(head);
-    // 耳（左右）
-    for(const ex of[-0.215,0.215]){
-      const ear=new THREE.Mesh(new THREE.SphereGeometry(0.055,7,5),M(skin));
-      ear.position.set(ex,1.60,0);g.add(ear);
+    const nose=new THREE.Mesh(new THREE.ConeGeometry(0.028,0.09,8),skinM); nose.rotation.x=-Math.PI/2+0.3; nose.position.set(0,0.225,-0.205); headG.add(nose);
+    const mouth=new THREE.Mesh(new THREE.SphereGeometry(0.02,6,3),S(0x9a4a44,0.7)); mouth.scale.set(2.0,0.6,0.7); mouth.position.set(0,0.145,-0.185); headG.add(mouth);
+    /* 帽子（キャラ別の精密メッシュ） */
+    const hatKind=(ch&&ch.name==="DeCham")?"flat":(ch&&ch.name==="Watu")?"straw":"cap";
+    const hatM=S(hatC,0.55);
+    if(hatKind==="cap"){
+      const dome=new THREE.Mesh(new THREE.SphereGeometry(0.225,16,10,0,Math.PI*2,0,Math.PI/2),hatM); dome.position.y=0.315; dome.scale.set(0.98,0.82,1.0); headG.add(dome);
+      const brim=new THREE.Mesh(new THREE.BoxGeometry(0.30,0.035,0.24),hatM); brim.position.set(0,0.315,-0.26); brim.rotation.x=0.10; headG.add(brim);
+      const hlogo=new THREE.Mesh(new THREE.CircleGeometry(0.045,10),S(0xffd875,0.35,0.6)); hlogo.position.set(0,0.36,-0.215); hlogo.rotation.x=-0.35; headG.add(hlogo);
+    } else if(hatKind==="straw"){
+      const sb=new THREE.Mesh(new THREE.CylinderGeometry(0.40,0.42,0.035,18),S(0xe5c77b,0.7)); sb.position.y=0.335; headG.add(sb);
+      const st2=new THREE.Mesh(new THREE.CylinderGeometry(0.20,0.225,0.17,14),S(0xe5c77b,0.7)); st2.position.y=0.43; headG.add(st2);
+    } else {
+      const fl=new THREE.Mesh(new THREE.SphereGeometry(0.235,14,10),hatM); fl.scale.set(1.05,0.40,1.15); fl.position.set(0,0.345,-0.01); headG.add(fl);
+      const fb2=new THREE.Mesh(new THREE.BoxGeometry(0.26,0.03,0.16),hatM); fb2.position.set(0,0.315,-0.25); headG.add(fb2);
     }
-    // 目（左右）
-    for(const ex of[-0.09,0.09]){
-      const eye=new THREE.Mesh(new THREE.SphereGeometry(0.028,7,5),
-        new THREE.MeshBasicMaterial({color:0x111111}));
-      eye.position.set(ex,1.64,-0.20);g.add(eye);
-      const shine=new THREE.Mesh(new THREE.SphereGeometry(0.01,5,3),
-        new THREE.MeshBasicMaterial({color:0xffffff}));
-      shine.position.set(ex-0.01,1.655,-0.225);g.add(shine);
+    /* 腕：肩→肘→手首（左=リード・右=クラブ保持） */
+    function arm(sideN){
+      const sh=new THREE.Group(); sh.position.set(0.26*sideN,0.52,0); torsoG.add(sh);
+      const up=new THREE.Mesh(new THREE.CylinderGeometry(0.072,0.065,0.34,8),shirtM); up.position.y=-0.17; up.castShadow=true; sh.add(up);
+      const el=new THREE.Group(); el.position.y=-0.34; sh.add(el);
+      const fo=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.055,0.30,8),skinM); fo.position.y=-0.15; el.add(fo);
+      const wr=new THREE.Group(); wr.position.y=-0.30; el.add(wr);
+      const hand=new THREE.Mesh(new THREE.SphereGeometry(0.07,8,6),skinM); hand.position.y=-0.04; wr.add(hand);
+      return {sh:sh,el:el,wr:wr};
     }
-    // 鼻
-    const nose=new THREE.Mesh(new THREE.SphereGeometry(0.025,6,4),M(skin));
-    nose.position.set(0,1.575,-0.225);g.add(nose);
-    // 口
-    const mouth=new THREE.Mesh(new THREE.SphereGeometry(0.018,6,3),
-      new THREE.MeshBasicMaterial({color:0xaa4444}));
-    mouth.scale.set(2.2,0.7,0.8);mouth.position.set(0,1.535,-0.222);g.add(mouth);
-    // キャップ帽子（ツバ付き）
-    const hatTop=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.225,0.22,16),M(hatC));
-    hatTop.position.y=1.80;g.add(hatTop);
-    const hatBrim=new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.36,0.04,16),M(hatC));
-    hatBrim.position.y=1.695;g.add(hatBrim);
-    // ツバ（前方に突き出す）
-    const brimF=new THREE.Mesh(new THREE.BoxGeometry(0.44,0.04,0.22),M(hatC));
-    brimF.position.set(0,1.695,-0.24);g.add(brimF);
-    // 帽子ロゴ
-    const hLogo=new THREE.Mesh(new THREE.PlaneGeometry(0.1,0.07),
-      new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.85}));
-    hLogo.rotation.set(-0.1,0,0);hLogo.position.set(0,1.82,-0.22);g.add(hLogo);
-
-    // 左腕（背景側）
-    const lArm=new THREE.Group();
-    const lUpper=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.07,0.38,8),M(shirt));
-    lUpper.position.y=-0.19;lArm.add(lUpper);
-    const lLower=new THREE.Mesh(new THREE.CylinderGeometry(0.065,0.06,0.35,8),M(skin));
-    lLower.position.y=-0.56;lArm.add(lLower);
-    const lHand=new THREE.Mesh(new THREE.SphereGeometry(0.075,8,6),M(skin));
-    lHand.position.y=-0.75;lArm.add(lHand);
-    lArm.rotation.z=Math.PI/5;lArm.position.set(-0.28,1.26,0);g.add(lArm);
-
-    // 右腕（クラブを持つ）
-    const rArm=new THREE.Group();
-    const rUpper=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.07,0.38,8),M(shirt));
-    rUpper.position.y=-0.19;rArm.add(rUpper);
-    const rLower=new THREE.Mesh(new THREE.CylinderGeometry(0.065,0.06,0.35,8),M(skin));
-    rLower.position.y=-0.56;rArm.add(rLower);
-    const rHand=new THREE.Mesh(new THREE.SphereGeometry(0.075,8,6),M(skin));
-    rHand.position.y=-0.75;rArm.add(rHand);
-    rArm.rotation.z=-Math.PI/4.5;rArm.position.set(0.28,1.26,0);g.add(rArm);
-
-    // クラブ（アイアン型）
+    const aL=arm(-1), aR=arm(1);
+    J.shoulderL=aL.sh; J.elbowL=aL.el; J.wristL=aL.wr; J.shoulderR=aR.sh; J.elbowR=aR.el; J.wristR=aR.wr;
+    const glove=new THREE.Mesh(new THREE.SphereGeometry(0.076,8,6),S(0xf6f6f6,0.5)); glove.position.y=-0.04; aL.wr.add(glove);
+    /* クラブ（右手首のクラブグループ配下） */
     const clubG=new THREE.Group();
-    const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.022,1.5,8),
-      Ms(0xaaaaaa));
-    shaft.position.y=-0.75;clubG.add(shaft);
-    const grip=new THREE.Mesh(new THREE.CylinderGeometry(0.032,0.028,0.28,8),
-      new THREE.MeshBasicMaterial({color:0x222222}));
-    grip.position.y=0.14;clubG.add(grip);
-    const head3d=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.1,0.04),Ms(0x888888));
-    head3d.position.y=-1.51;head3d.position.z=0.02;clubG.add(head3d);
-    clubG.rotation.z=-Math.PI/5;clubG.position.set(0.55,1.05,-0.08);g.add(clubG);
-    this.clubMesh=clubG;
-
-    // シャドウ（地面影）
+    const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.016,0.02,1.5,8),S(0xb8c0cc,0.28,0.9)); shaft.position.y=-0.40; clubG.add(shaft);
+    const grip=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.027,0.28,8),S(0x1c1c22,0.7)); grip.position.y=0.47; clubG.add(grip);
+    const chead=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.11,0.05),S(0xd8dce2,0.25,0.95)); chead.position.set(0,-1.17,-0.03); clubG.add(chead);
+    clubG.position.set(0,-0.06,-0.02);
+    aR.wr.add(clubG);
+    this.clubMesh=clubG; J.club=clubG;
+    /* アドレス姿勢（スイング復帰先として保持） */
+    J.addr={ shL:[-0.52,0,0.34], shR:[-0.52,0,-0.28], elL:-0.30, elR:-0.22, club:[-0.38,0,-0.10] };
+    aL.sh.rotation.set(-0.52,0,0.34); aR.sh.rotation.set(-0.52,0,-0.28);
+    aL.el.rotation.x=-0.30; aR.el.rotation.x=-0.22;
+    clubG.rotation.set(-0.38,0,-0.10);
+    J.legs.L.knee.rotation.x=0.10; J.legs.R.knee.rotation.x=0.10;
+    headG.rotation.x=0.16;
+    /* 接地影 */
     const shadow=new THREE.Mesh(new THREE.CircleGeometry(0.35,16),
       new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.3}));
     shadow.rotation.x=-Math.PI/2;shadow.position.y=0.005;g.add(shadow);
-
     g.position.copy(this.teePos);
-    this.playerMesh=g;this.scene.add(g);
+    this.playerMesh=g; this.playerJoints=J; this.scene.add(g);
+    this._startPlayerIdle();
+  }
+  /* アドレス中のワッグル＆呼吸（スイング中は干渉しない） */
+  _startPlayerIdle(){
+    if(this._idleOn) return; this._idleOn=true;
+    const loop=()=>{
+      requestAnimationFrame(loop);
+      if(this._swinging||!this.playerJoints||!this.playerMesh||!this.playerMesh.parent) return;
+      const J=this.playerJoints, t=performance.now()/1000;
+      J.torsoMesh.position.y=0.30+Math.sin(t*1.7)*0.008;
+      J.club.rotation.x=J.addr.club[0]+Math.sin(t*2.3)*0.035;
+      J.club.rotation.z=J.addr.club[2]+Math.sin(t*1.9+1.3)*0.02;
+      J.head.rotation.y=Math.sin(t*0.6)*0.05;
+    };
+    loop();
   }
   _buildBallMesh(){
     // ★ ディンプル感のある高品質ボール（MeshPhongMaterial）
@@ -7097,6 +7216,29 @@ const bCntGreen=Math.min(bunkerCount,5);
 
 // ===== スタートUI =====
 const game=new GolfGame();
+/* キャラ肖像画エンブレム（象徴カラー・帽子シルエット・神話の後光を描くSVG生成） */
+function renderCharPortraitSVG(c){
+  c = c || {};
+  var col = "#" + ((c.shirtColor !== undefined ? c.shirtColor : 0xc9a227) >>> 0).toString(16).padStart(6, "0");
+  var id = c.name || "";
+  var hat = (id === "DeCham") ? "flat" : (id === "Watu") ? "straw" : "cap";
+  var hats = {
+    cap: '<path d="M22 40 a18 12 0 0 1 36 0 l0 3 -36 0 z" fill="H"/><path d="M40 43 l16 3 -1.5 4 -14.5 -2 z" fill="H"/>',
+    straw: '<ellipse cx="40" cy="42" rx="21" ry="4.6" fill="H"/><path d="M28 41 a12 9 0 0 1 24 0 z" fill="H"/>',
+    flat: '<path d="M21 42 a19 8 0 0 1 38 -1 l1 3 -40 0 z" fill="H"/><path d="M52 43.4 l9 2.4 -1.4 3.6 -9 -1.8 z" fill="H"/>'
+  };
+  var hatSvg = (hats[hat] || hats.cap).split("H").join(col);
+  return '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' + id + '">' +
+    '<circle cx="40" cy="40" r="37" fill="#0a0d1e" stroke="' + col + '" stroke-width="2"/>' +
+    '<circle cx="40" cy="40" r="33.5" fill="none" stroke="' + col + '" stroke-opacity=".45" stroke-width="1"/>' +
+    '<path d="M40 6 L40 14 M14 20 L20 26 M66 20 L60 26" stroke="#ffd875" stroke-width="1.6" stroke-linecap="round" opacity=".8"/>' +
+    '<circle cx="40" cy="55" r="12.5" fill="#eab98e"/>' +
+    '<path d="M29 62 a12.5 12.5 0 0 0 22 0 l0 6 -22 0 z" fill="' + col + '" opacity=".9"/>' +
+    hatSvg +
+    '<circle cx="35" cy="54" r="1.6" fill="#14161f"/><circle cx="45" cy="54" r="1.6" fill="#14161f"/>' +
+    '<path d="M36 61 q4 2.6 8 0" stroke="#8a5a3b" stroke-width="1.4" fill="none" stroke-linecap="round"/>' +
+    '</svg>';
+}
 function buildStartUI(){
   const cg=document.getElementById("charGrid");
   CHARACTERS.forEach((c,i)=>{
@@ -7106,7 +7248,7 @@ function buildStartUI(){
     const stars=v=>v>=90?"★★★":v>=65?"★★☆":"★☆☆";
     const natFlag=c.nationality==="JPN"?"🇯🇵":c.nationality==="USA"?"🇺🇸":c.nationality==="IRL"?"🇮🇪":"🌍";
     card.innerHTML=`
-      <div class="char-avatar">${c.emoji}</div>
+      <div class="char-avatar">${renderCharPortraitSVG(c)}</div>
       <div class="char-name">${c.name}</div>
       <div style="font-size:0.58rem;color:#88ccff;margin-bottom:3px">${natFlag} ${c.realName||c.name}</div>
       <div style="font-size:0.55rem;color:#8ab;margin-bottom:4px;line-height:1.3">${c.desc||""}</div>
@@ -7351,7 +7493,7 @@ window.addEventListener("load",()=>{
   }
   .gfo-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
   /* =====================================================================
-     LAYOUT FIX v3.2.6（①上段レイアウト最適化／②炎パネル一列ストリップ化と下部バー全幅収納／④隠れ表示の救済）
+     LAYOUT FIX v4.0（①上段レイアウト最適化／②炎パネル一列ストリップ化と下部バー全幅収納／④隠れ表示の救済）
      ・3Dコース描画(canvas)は一切縮小しない。HUDの配置とサイズのみを最適化する。
      ・広幅(1101px以上): ホール情報を対戦カードへ統合した1本バー。赤バナーと対戦状況は最上段の余白へ
      ・中幅(641〜1100px): ホール情報バー＋対戦カードの段差配置。赤バナーは最上段の余白へ
@@ -7664,7 +7806,7 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 </style>
 <script>
-/* LAYOUT FIX v3.2.6（①上段の余白へ項目を移す：要素の移動のみ。内容の更新は従来どおりID経由でそのまま効く） */
+/* LAYOUT FIX v4.0（①上段の余白へ項目を移す：要素の移動のみ。内容の更新は従来どおりID経由でそのまま効く） */
 (function(){
   if(new URLSearchParams(location.search).get("goat") !== "1") return;
   function mergeHeader(){
@@ -8708,7 +8850,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function requestBoot(){
-    try { parent.postMessage({ type:"goat:golfHello", version:"3.2.6", goat:(B.mode === "goat") }, "*"); } catch(e){}
+    try { parent.postMessage({ type:"goat:golfHello", version:"4.0", goat:(B.mode === "goat") }, "*"); } catch(e){}
     setTimeout(function(){ if(!B.started) bootBattle(); }, 180);
   }
 
@@ -8716,5 +8858,20 @@ document.addEventListener('DOMContentLoaded', function () {
   else window.addEventListener("load", function(){ setTimeout(requestBoot, 70); });
 })();
 </script>
+
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+JP:wght@500;700&display=swap");
+/* ===== Mythic PGA Broadcast テーマ統合層（商用品質アップグレード） ===== */
+#shotUI{ border-top:2px solid rgba(255,216,117,.55) !important; box-shadow:0 -8px 28px rgba(0,0,0,.5); }
+#goatInfoBar{ font-variant-numeric:tabular-nums; }
+#goatMatchCard .mc-title, #goatMatchCard .mc-name{ font-family:"Cinzel","Noto Serif JP",serif; }
+.hud-realname{ font-family:"Noto Serif JP",serif !important; color:#ffd875 !important; letter-spacing:.04em; }
+.char-card{ background:linear-gradient(160deg, rgba(16,20,40,.97), rgba(6,8,18,.97)) !important; border:1px solid rgba(255,216,117,.35) !important; color:#e9e2cf !important; font-family:"Noto Serif JP",serif; }
+.char-card.selected{ border-color:#ffd875 !important; box-shadow:0 0 16px rgba(255,216,117,.4) !important; }
+.char-avatar svg{ width:54px; height:54px; display:block; margin:0 auto; }
+.char-name{ font-family:"Cinzel",serif !important; color:#ffd875 !important; letter-spacing:.07em; }
+.course-btn{ font-family:"Noto Serif JP",serif; border:1px solid rgba(255,216,117,.3) !important; background:rgba(10,13,30,.92) !important; color:#e9e2cf !important; }
+.course-btn.selected{ border-color:#ffd875 !important; color:#ffd875 !important; box-shadow:0 0 12px rgba(255,216,117,.3); }
+</style>
 </body>
 </html>
