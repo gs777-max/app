@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BATTLE OF GOLF - GOAT | Next-Gen 3D Action RPG World</title>
+  <title>BATTLE OF GOLF - GOAT | Next-Gen 3D Action RPG World v4.2</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@700;900&display=swap');
 
@@ -1042,7 +1042,7 @@
 
     var container = document.getElementById("gl");
     var renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 820 ? 1.5 : 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1209,8 +1209,8 @@
     var sunLight = new THREE.DirectionalLight(THEME.sunColor, 1.45);
     sunLight.position.set(58, 74, -85);
     sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 2048;
-    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.mapSize.width = window.innerWidth < 820 ? 1024 : 2048;
+    sunLight.shadow.mapSize.height = window.innerWidth < 820 ? 1024 : 2048;
     sunLight.shadow.camera.near = 10;
     sunLight.shadow.camera.far = 260;
     var sBox = 95;
@@ -2118,6 +2118,8 @@
 
     function refreshPurificationAtmosphere() {
       var ratio = (AREA_IDX === 5 || MOBS.length === 0) ? 1.0 : (countPurified() / MOBS.length);
+      /* v4.1（項目7）: ボス撃破済みエリアは残影の浄化率によらず光が満ちた状態にする */
+      if (STATE.bossDefeated) ratio = 1.0;
       skyUniforms.uPure.value = Math.min(1.0, 0.16 + ratio * 0.84);
       var cDark = new THREE.Color(THEME.fogColor);
       var cPure = new THREE.Color(THEME.fogPure);
@@ -3547,6 +3549,9 @@
         if (typeof d.tp === "number") STATE.tp = d.tp;
         if (d.gearStats) STATE.gearStats = d.gearStats;
         STATE.subTrialDone = !!d.subTrialDone;
+        /* v4.1（項目7）: エリアボス撃破済みなら「天岩戸の光が戻った」状態として大気を完全浄化側へ */
+        STATE.bossDefeated = !!d.bossDefeated;
+        refreshPurificationAtmosphere();
         if (subTrialTargetMesh) {
           subTrialTargetMesh.visible = !STATE.subTrialDone;
           if (subTrialTargetMesh.userData.beam) subTrialTargetMesh.userData.beam.visible = !STATE.subTrialDone;
@@ -3568,6 +3573,40 @@
     postToParent({ type: "goat:hello" });
     animate();
   </script>
+
+<script>
+/* v4.1（項目17）: Three.js が読み込めなかった場合の代替表示（本体が起動していない時だけ出す） */
+setTimeout(function(){
+  if(typeof THREE === "undefined" && !document.getElementById("v41LoadFallback")){
+    var d = document.createElement("div");
+    d.id = "v41LoadFallback";
+    d.style.cssText = "position:fixed;inset:0;z-index:99999;background:#0a0d1e;color:#ffe9a8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:'Noto Serif JP',serif;text-align:center;padding:24px;";
+    d.innerHTML = "<div style='font-size:20px;font-weight:700;'>⛳ 3Dエンジンの読み込みに失敗しました</div>" +
+      "<div style='font-size:13.5px;color:#aebadd;line-height:1.8;'>通信環境を確認してから、再読み込みしてください。<br>セーブデータはブラウザ内に安全に残っています。</div>";
+    var b = document.createElement("button");
+    b.textContent = "🔄 再読み込み";
+    b.style.cssText = "background:#c9a227;color:#14161f;border:none;font-size:15px;font-weight:700;padding:10px 26px;border-radius:8px;cursor:pointer;";
+    b.onclick = function(){ location.reload(); };
+    d.appendChild(b);
+    document.body.appendChild(d);
+  }
+}, 4000);
+
+/* v4.1（項目8）: 時間の流れの表情 ― 太陽の方位と空の明るさが数分かけて静かに移ろう（エリア固有の空の色は変えない） */
+(function(){
+  var t0 = Date.now();
+  var baseA = Math.atan2(-85, 58), R = Math.hypot(58, 85);
+  setInterval(function(){
+    if(typeof sunLight === "undefined" || typeof hemiLight === "undefined") return;
+    if(typeof STATE !== "undefined" && STATE.paused) return;
+    var t = (Date.now() - t0) / 1000;
+    var ang = Math.sin(t * Math.PI * 2 / 300) * 0.22;
+    sunLight.position.x = Math.cos(baseA + ang) * R;
+    sunLight.position.z = Math.sin(baseA + ang) * R;
+    hemiLight.intensity = 0.72 * (1 + 0.07 * Math.sin(t * Math.PI * 2 / 180));
+  }, 1000);
+})();
+</script>
 </body>
 
 </html>

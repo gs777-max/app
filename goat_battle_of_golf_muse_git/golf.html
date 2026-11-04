@@ -5,958 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>⛳ golf_3d_20260620_2_777 — Pattern B (Floating HUD)</title>
-<style>
+<title>BATTLE OF GOLF - GOAT | 3D Golf Battle v4.2</title>
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-:root{--green:#00c850;--gold:#ffd700;--dark:#0a0f1e;--accent:#00c4ff;--red:#ff2244;--white:#e8f4f8;--putt:#aaffdd;--approach:#ffcc44;
-  /* ショットUIの高さ（全パネルの bottom 基準値） */
-  --sui-h:290px;
-}
-html{height:-webkit-fill-available;}
-html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidden;background:#000;font-family:'Noto Sans JP',sans-serif;color:var(--white);touch-action:none;-webkit-user-select:none;user-select:none;}
-#canvas{display:block;position:fixed;top:0;left:0;width:100%;height:100%;}
-
-/* ===== スタート画面 ===== */
-#startScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;overflow-y:auto;background:linear-gradient(160deg,#071210 0%,#0d2a10 40%,#0a1520 100%);display:none;flex-direction:column;align-items:center;padding:16px 12px 30px;}
-.start-title{font-family:'Orbitron',sans-serif;font-size:5vw;font-weight:900;background:linear-gradient(90deg,var(--gold),#aaff44,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:4px;letter-spacing:0.08em;}
-.start-sub{color:#7ba;font-size:0.8rem;text-align:center;margin-bottom:18px;}
-.section-title{font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--gold);border-bottom:1px solid rgba(255,215,0,0.25);padding-bottom:5px;margin-bottom:10px;letter-spacing:0.1em;width:100%;max-width:700px;}
-#charGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:700px;margin-bottom:18px;}
-.char-card{background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 8px;cursor:pointer;transition:all 0.18s;text-align:center;}
-.char-card:hover,.char-card:active{border-color:var(--green);}.char-card.selected{border-color:var(--gold);background:rgba(255,215,0,0.1);}
-.char-avatar{font-size:1.8rem;margin-bottom:3px;}.char-name{font-family:'Orbitron',sans-serif;font-size:0.75rem;font-weight:700;color:var(--white);margin-bottom:4px;}
-.stat-row{display:flex;justify-content:space-between;align-items:center;font-size:0.62rem;margin:2px 0;}.stat-label{color:#8ab;}
-.stat-bar{width:48px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
-.stat-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;}.star-row{color:var(--gold);font-size:0.65rem;}
-#courseGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;max-width:700px;margin-bottom:14px;}
-.course-btn{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px;cursor:pointer;transition:all 0.18s;}
-.course-btn:hover,.course-btn:active{border-color:var(--accent);}.course-btn.selected{border-color:var(--gold);background:rgba(255,215,0,0.08);}
-.course-name{font-size:0.78rem;font-weight:700;color:var(--white);margin-bottom:2px;}.course-info{font-size:0.62rem;color:#6af;}
-#weatherGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;width:100%;max-width:700px;margin-bottom:18px;}
-.weather-btn{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px;cursor:pointer;transition:all 0.18s;text-align:center;}
-.weather-btn:hover,.weather-btn:active{border-color:var(--accent);}.weather-btn.selected{border-color:var(--gold);background:rgba(255,215,0,0.08);}
-.weather-icon{font-size:1.3rem;margin-bottom:2px;}.weather-name{font-size:0.65rem;color:#8ab;}
-/* 飛距離モード選択ボタン */
-.dist-mode-btn:active{transform:scale(0.97);}
-.dist-mode-btn.selected[data-mode="normal"]{
-  border-color:var(--green)!important;
-  background:rgba(0,200,80,0.18)!important;
-  box-shadow:0 0 16px rgba(0,200,80,0.35);
-}
-.dist-mode-btn.selected[data-mode="super"]{
-  border-color:#ff6600!important;
-  background:rgba(255,100,0,0.18)!important;
-  box-shadow:0 0 16px rgba(255,100,0,0.35);
-}
-/* ラウンド数選択ボタン */
-.round-btn{background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.15);border-radius:10px;padding:12px;cursor:pointer;text-align:center;transition:all 0.18s;-webkit-tap-highlight-color:transparent;}
-.round-btn:active{transform:scale(0.96);}
-.round-btn.selected{border-color:var(--gold)!important;background:rgba(255,215,0,0.14)!important;box-shadow:0 0 14px rgba(255,215,0,0.3);}
-.round-btn.selected .rn-num{color:var(--gold)!important;}
-.rn-num{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:#fff;}
-.rn-label{font-size:0.72rem;color:#8ab;margin-top:2px;}
-.rn-sub{font-size:0.6rem;color:#6af;}
-#startBtn{font-family:'Orbitron',sans-serif;background:linear-gradient(135deg,#004418,#009933);color:#fff;border:none;padding:13px 55px;border-radius:50px;font-size:1.05rem;font-weight:700;cursor:pointer;letter-spacing:0.15em;transition:all 0.2s;box-shadow:0 0 25px rgba(0,180,60,0.3);}
-#startBtn:hover{transform:scale(1.06);}
-
-/* ===== インゲームUI ===== */
-#gameUI{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;display:none;}
-/* ===== ホール情報バー（topHUD直下・横一列）===== */
-#holeInfo{
-  position:absolute;
-  top:44px;
-  left:0;right:0;
-  background:rgba(0,8,20,0.58);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-  border-bottom:2px solid rgba(255,215,0,0.35);
-  padding:4px 12px;
-  pointer-events:none;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:nowrap;
-  overflow:hidden;
-  z-index:10;
-}
-.hi-hole{
-  font-family:'Orbitron',sans-serif;
-  font-size:1.1rem;color:var(--gold);font-weight:900;
-  line-height:1;letter-spacing:0.04em;
-  text-shadow:0 0 8px rgba(255,215,0,0.5);
-  white-space:nowrap;flex-shrink:0;
-}
-.hi-sep{color:rgba(255,255,255,0.2);font-size:0.8rem;flex-shrink:0;}
-.hi-progress{
-  font-family:'Orbitron',sans-serif;
-  font-size:0.65rem;color:#00ffaa;
-  letter-spacing:0.04em;font-weight:700;white-space:nowrap;flex-shrink:0;
-}
-.hi-yards{font-size:0.82rem;color:var(--white);font-weight:700;white-space:nowrap;flex-shrink:0;}
-.hi-par{font-size:0.72rem;color:#88ccff;font-weight:700;white-space:nowrap;flex-shrink:0;}
-.hi-name{font-size:0.65rem;color:#6af;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#topHUD{position:absolute;top:0;left:0;right:0;padding:4px 8px;background:rgba(0,8,20,0.62);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;gap:4px;height:44px;}
-.hud-panel{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:3px 8px;min-width:60px;max-width:36vw;overflow:hidden;}
-.hud-label{font-size:0.48rem;color:#8ab;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;}
-.hud-value{font-family:'Orbitron',sans-serif;font-size:0.82rem;font-weight:700;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-.hud-small{font-size:0.62rem;color:var(--white);white-space:nowrap;}
-#compass{position:absolute;top:72px;left:50%;transform:translateX(-50%);pointer-events:none;}
-
-/* ===== 残り距離パネル（左・ShotUI直上）===== */
-#distPanel{
-  position:absolute;
-  bottom:var(--sui-h,290px);left:0;
-  background:rgba(0,10,24,0.62);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-  border-left:4px solid var(--gold);
-  border-radius:0 8px 8px 0;
-  padding:5px 10px 5px 8px;
-  pointer-events:none;min-width:105px;
-}
-#distLabel{font-size:0.55rem;color:#8ab;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:1px;}
-#distMain{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:var(--gold);line-height:1;display:flex;align-items:baseline;gap:3px;}
-#distNum{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:var(--gold);}
-#distUnit{font-size:0.72rem;color:#cda;font-family:'Orbitron',sans-serif;}
-#distSub{font-size:0.72rem;color:#aaffaa;margin-top:3px;font-weight:700;font-family:'Orbitron',sans-serif;}
-#distBreak{font-size:0.65rem;color:#66ddff;margin-top:2px;font-family:'Orbitron',sans-serif;}
-#distPanel.inflight{border-left-color:var(--accent);}
-#distPanel.inflight #distNum{color:var(--accent);}
-
-/* クラブ推定距離バー（距離パネルの右横・大きく見やすく）*/
-#clubDistBar{
-  position:absolute;
-  bottom:var(--sui-h,290px);left:118px;
-  background:rgba(0,10,24,0.62);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-  border:1.5px solid rgba(255,215,0,0.35);
-  border-radius:8px;padding:6px 12px;
-  pointer-events:none;display:none;
-  min-width:140px;
-}
-#clubDistBarLabel{
-  font-size:0.58rem;color:#8ab;margin-bottom:4px;
-  font-family:'Orbitron',sans-serif;letter-spacing:0.05em;
-}
-/* 推定飛距離の大きな数字 */
-#clubDistBarNum{
-  font-family:'Orbitron',sans-serif;
-  font-size:1.4rem;font-weight:900;
-  color:var(--gold);line-height:1;
-  text-shadow:0 0 8px rgba(255,215,0,0.4);
-  margin-bottom:4px;
-}
-/* バー（細くシンプルに） */
-#clubDistBarTrack{
-  width:100%;height:5px;
-  background:rgba(255,255,255,0.08);
-  border-radius:3px;overflow:hidden;
-  margin-bottom:4px;
-}
-#clubDistBarFill{height:100%;background:linear-gradient(90deg,var(--green),var(--gold));border-radius:3px;transition:width 0.35s;}
-/* キャリー/ランの内訳 */
-#clubDistBarBreakdown{
-  font-size:0.62rem;color:#aaffaa;
-  font-family:'Orbitron',sans-serif;
-  display:flex;gap:6px;
-}
-
-/* パットモード距離表示 */
-#puttDistPanel{
-  position:absolute;
-  bottom:var(--sui-h,290px);left:0;
-  background:rgba(0,10,40,0.9);
-  border-left:4px solid var(--putt);
-  border-radius:0 8px 8px 0;
-  padding:5px 10px 5px 8px;
-  pointer-events:none;min-width:105px;display:none;
-}
-#puttDistFtBig{font-family:'Orbitron',sans-serif;font-size:1.6rem;font-weight:900;color:var(--putt);line-height:1;}
-#puttDistYdSub{font-size:0.56rem;color:#8ab;margin-top:2px;}
-
-/* ===== ナイスショット結果ポップアップ ===== */
-#niceShotPopup{
-  position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);
-  font-family:'Orbitron',sans-serif;font-size:1.6rem;font-weight:900;
-  text-align:center;pointer-events:none;display:none;
-  text-shadow:0 0 20px currentColor,0 0 40px currentColor;
-  -webkit-animation:nicePop;animation:nicePop 0.4s ease-out forwards;
-}
-@keyframes nicePop{
-  0%{opacity:0;transform:translate(-50%,-50%) scale(0.3) rotate(-10deg)}
-  60%{transform:translate(-50%,-50%) scale(1.2) rotate(2deg)}
-  100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
-}
-/* 方向矢印UI */
-#dirArrowUI{position:absolute;bottom:calc(var(--sui-h,290px) + 4px);left:50%;transform:translateX(-50%);pointer-events:none;display:none;}
-#dirArrowCanvas{display:block;}
-#modeBadge{position:absolute;top:70px;right:8px;background:rgba(0,0,0,0.85);border-radius:6px;padding:3px 8px;font-family:'Orbitron',sans-serif;font-size:0.65rem;font-weight:700;pointer-events:none;display:none;z-index:11;}
-#modeBadge.approach{color:var(--approach);border:1px solid var(--approach);}
-#modeBadge.putt{color:var(--putt);border:1px solid var(--putt);}
-
-/* グリーンオン */
-#greenOnPopup{position:absolute;top:36%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:#00ffaa;text-shadow:0 0 30px #00ffaa,0 0 60px #00aa66;display:none;pointer-events:none;text-align:center;-webkit-animation:greenOnAnim;animation:greenOnAnim 0.5s ease-out;}
-@keyframes greenOnAnim{0%{opacity:0;transform:translate(-50%,-50%) scale(0.3)}70%{transform:translate(-50%,-50%) scale(1.2)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
-#scorePopup{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;text-align:center;text-shadow:0 0 20px currentColor;display:none;pointer-events:none;-webkit-animation:popIn;animation:popIn 0.4s ease-out forwards;}
-@keyframes popIn{0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)}60%{transform:translate(-50%,-50%) scale(1.15)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
-
-#weatherHUD{
-  position:absolute;
-  top:44px;      /* topHUD高さ（44px）直下のholeInfoバーの右端に重ねる */
-  right:0;
-  background:rgba(0,0,0,0.82);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:8px 0 0 8px;
-  padding:4px 10px;
-  pointer-events:none;
-  display:flex;
-  flex-direction:row;
-  align-items:center;
-  gap:8px;
-  z-index:12;
-}
-.weather-row{display:flex;align-items:center;gap:3px;font-size:0.62rem;}
-#obAlert{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:var(--red);text-shadow:0 0 25px var(--red);display:none;-webkit-animation:obPulse;animation:obPulse 0.45s ease-in-out infinite alternate;pointer-events:none;}
-@keyframes obPulse{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0.25;transform:translate(-50%,-50%) scale(1.12)}}
-
-/* 飛行ステータスバー */
-#flightBar{
-  position:absolute;top:72px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,0.82);border:1px solid rgba(0,180,255,0.3);
-  border-radius:7px;padding:3px 14px;font-size:0.62rem;
-  display:none;pointer-events:none;text-align:center;white-space:nowrap;color:var(--accent);
-  z-index:11;
-}
-
-#miniMap{position:absolute;bottom:var(--sui-h,290px);right:0;width:90px;height:90px;background:rgba(0,10,24,0.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.15);border-radius:8px 0 0 8px;overflow:hidden;}
-#puttLineHint{position:absolute;bottom:var(--sui-h,290px);left:50%;transform:translateX(-50%);background:rgba(0,50,80,0.9);border:1px solid var(--putt);border-radius:8px;padding:3px 12px;font-size:0.62rem;color:var(--putt);pointer-events:none;display:none;text-align:center;white-space:nowrap;}
-#slopeLegend{position:absolute;bottom:var(--sui-h,290px);right:95px;background:rgba(0,0,0,0.75);border-radius:6px;padding:3px 7px;font-size:0.52rem;pointer-events:none;display:none;text-align:left;line-height:1.6;}
-#keyHint{position:absolute;bottom:var(--sui-h,290px);left:0;background:rgba(0,0,0,0.55);border-radius:0 7px 7px 0;padding:3px 8px;font-size:0.5rem;color:#7ab;pointer-events:none;white-space:nowrap;display:none;}
-
-/* ===== D-Plane コントロールパネル（横一列・超コンパクト）===== */
-#dplanePanel{
-  background:rgba(0,10,26,0.52);
-  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-  border:1px solid rgba(0,180,255,0.3);
-  border-radius:8px;
-  padding:4px 6px 3px;
-  margin-bottom:3px;
-  pointer-events:auto;
-}
-.dp-row{display:flex;align-items:center;gap:2px;margin-bottom:2px;}
-.dp-label{
-  font-family:'Orbitron',sans-serif;font-size:0.48rem;font-weight:700;
-  color:#88aacc;min-width:30px;flex-shrink:0;
-}
-.dp-btns{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;flex:1;}
-.dp-btn{
-  padding:3px 1px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);
-  background:rgba(255,255,255,0.05);
-  font-size:0.44rem;color:#99aacc;cursor:pointer;
-  font-family:'Noto Sans JP',sans-serif;font-weight:700;
-  transition:all 0.1s;-webkit-tap-highlight-color:transparent;
-  white-space:nowrap;text-align:center;line-height:1.3;
-  display:flex;align-items:center;justify-content:center;min-height:22px;
-}
-.dp-btn:active{transform:scale(0.93);}
-.dp-btn.dp-active{
-  background:rgba(0,200,255,0.3);border-color:rgba(0,200,255,0.8);
-  color:#00eeff;box-shadow:0 0 4px rgba(0,200,255,0.5);
-}
-.dp-val{font-family:'Orbitron',sans-serif;font-size:0.48rem;color:#557;min-width:22px;text-align:right;flex-shrink:0;}
-#dpPreview{
-  font-family:'Orbitron',sans-serif;font-size:0.58rem;font-weight:700;
-  text-align:center;color:#00ffcc;letter-spacing:0.04em;
-  text-shadow:0 0 6px currentColor;padding:1px 0;
-  border-top:1px solid rgba(0,200,255,0.15);margin-top:1px;
-}
-/* D-Plane ショット形状ポップアップ */
-#dplaneShotShape{
-  position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);
-  font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:900;
-  text-align:center;pointer-events:none;display:none;
-  background:rgba(0,0,0,0.8);border-radius:10px;padding:7px 18px;
-  border:2px solid rgba(0,200,255,0.5);
-  color:#00ffcc;text-shadow:0 0 10px currentColor;z-index:50;
-}
-
-/* ===== ショットUI（下部固定・全要素収める）===== */
-#shotUI{
-  position:absolute;bottom:0;left:0;right:0;
-  background:linear-gradient(180deg,rgba(5,15,25,0.48) 0%,rgba(6,16,28,0.72) 100%);
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
-  box-shadow:0 -4px 25px rgba(0,0,0,0.4);
-  border-top:1px solid rgba(255,255,255,0.1);
-  padding:4px 8px calc(10px + env(safe-area-inset-bottom,0px)) 8px;
-  pointer-events:auto;
-  /* 実際の高さをJS側でCSS変数に反映 */
-}
-#clubScroll{
-  display:flex;gap:3px;
-  overflow-x:auto;overflow-y:hidden;
-  padding-bottom:2px;margin-bottom:3px;
-  scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;touch-action:pan-x;
-  scroll-snap-type:x mandatory;
-}
-#clubScroll::-webkit-scrollbar{display:none;}
-/* クラブボタン — 縦2行レイアウト・大きく見やすく */
-.club-btn{
-  background:rgba(255,255,255,0.07);
-  border:1.5px solid rgba(255,255,255,0.15);
-  border-radius:7px;
-  padding:5px 6px 4px;
-  cursor:pointer;white-space:nowrap;
-  text-align:center;transition:all 0.12s;flex-shrink:0;
-  min-width:52px;
-  display:flex;flex-direction:column;align-items:center;gap:1px;
-  scroll-snap-align:start;-webkit-tap-highlight-color:transparent;
-}
-/* クラブ名：大きく太く */
-.club-btn-name{
-  font-family:'Orbitron',sans-serif;
-  font-size:0.82rem;font-weight:900;
-  color:var(--white);line-height:1.1;
-  letter-spacing:0.02em;
-}
-/* 推定飛距離：明るく・十分なサイズ */
-.club-btn-dist{
-  font-family:'Orbitron',sans-serif;
-  font-size:0.72rem;font-weight:700;
-  color:#66ddff;line-height:1.2;
-}
-/* アクティブ状態 */
-.club-btn.active{
-  border-color:var(--gold);
-  background:rgba(255,215,0,0.22);
-  box-shadow:0 0 8px rgba(255,215,0,0.35);
-}
-.club-btn.active .club-btn-name{color:var(--gold);}
-.club-btn.active .club-btn-dist{color:#ffd700;font-size:0.78rem;}
-.club-btn.putt-mode{border-color:var(--putt)!important;background:rgba(0,255,200,0.1)!important;}
-.club-btn.putt-mode .club-btn-name{color:var(--putt)!important;}
-
-/* ===== パワーメーター ===== */
-#powerRow{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;margin-bottom:2px;}
-/* スイング中：大きな数字表示スペース確保 */
-#powerRow.swinging{margin-top:0 !important;}
-#powerMeterWrap{position:relative;width:96vw;max-width:500px;height:26px;overflow:visible;margin-bottom:24px;}
-#powerTrack{width:100%;height:40px;border-radius:13px;
-  background:linear-gradient(90deg,
-    #002200 0%,#00aa00 28%,#88ff00 42%,
-    #ffdd00 52%,#ff8800 68%,
-    #ff3300 80%,#ff0000 88%,#ff00ff 95%,#ffffff 100%);
-  border:1.5px solid rgba(255,255,255,0.25);position:relative;overflow:visible;
-}
-#nsZone{position:absolute;top:0;bottom:0;left:78%;width:8%;background:rgba(0,255,100,0.3);border:1.5px solid rgba(0,255,100,0.8);border-radius:4px;pointer-events:none;}
-#snsZone{position:absolute;top:0;bottom:0;left:88%;width:5%;background:rgba(255,220,0,0.4);border:1.5px solid rgba(255,220,0,1);border-radius:4px;pointer-events:none;}
-#unsZone{position:absolute;top:0;bottom:0;left:94%;width:6%;background:rgba(255,0,200,0.5);border:1.5px solid rgba(255,100,255,1);border-radius:4px;pointer-events:none;}
-#impactZone{position:absolute;top:0;bottom:0;background:rgba(0,255,120,0.5);border-radius:5px;left:44%;display:none;}
-#impactZoneUNS{position:absolute;top:0;bottom:0;width:4%;background:rgba(255,100,255,0.8);border:2px solid #ff44ff;border-radius:4px;left:48%;display:none;pointer-events:none;}
-#powerNeedle{position:absolute;top:-10px;bottom:-10px;width:8px;background:#fff;border-radius:2px;box-shadow:0 0 10px rgba(255,255,255,1);left:0%;pointer-events:none;}
-
-/* パワー数字行 */
-#powerValueRow{display:none;position:absolute;top:-40px;left:0;right:0;align-items:center;justify-content:space-between;padding:0 4px;pointer-events:none;z-index:20;}
-#powerValueNum{font-family:'Orbitron',sans-serif;font-size:1.6rem;font-weight:900;color:#fff;text-shadow:0 0 12px rgba(255,255,255,0.9);min-width:4ch;line-height:1;background:rgba(0,0,0,0.55);border-radius:6px;padding:2px 7px;}
-#powerZoneHint{font-family:'Orbitron',sans-serif;font-size:0.78rem;font-weight:900;color:var(--gold);text-shadow:0 0 8px currentColor;background:rgba(0,0,0,0.55);border-radius:5px;padding:2px 6px;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-#powerZoneRow{
-  display:flex;
-  position:absolute;
-  bottom:-22px;   /* powerTrackの下にオーバーレイ */
-  right:0;
-  gap:3px;padding-right:2px;
-  pointer-events:none;
-}
-.pz-lbl{font-size:0.58rem;font-family:'Orbitron',sans-serif;padding:1px 5px;border-radius:3px;font-weight:700;}
-.pz-ns{background:rgba(0,200,60,0.2);color:#55ff99;border:1px solid rgba(0,200,60,0.5);}
-.pz-sns{background:rgba(255,200,0,0.2);color:#ffee55;border:1px solid rgba(255,200,0,0.6);}
-.pz-uns{background:rgba(255,0,200,0.2);color:#ff99ff;border:1px solid rgba(255,0,200,0.6);}
-
-/* パットメーター */
-#puttMeterWrap{position:relative;width:92vw;max-width:480px;height:34px;display:none;flex-direction:column;align-items:center;gap:1px;}
-#puttTrack{width:100%;height:40px;border-radius:10px;background:linear-gradient(90deg,#001833 0%,#003388 15%,#0066cc 35%,#00aaff 50%,#00ddcc 65%,#aaffdd 80%,#ffffff 100%);border:1.5px solid rgba(0,220,255,0.5);position:relative;overflow:visible;}
-#puttScaleRow{width:100%;display:flex;justify-content:space-between;padding:0 2px;}
-.putt-scale-lbl{font-size:0.62rem;color:rgba(0,230,255,0.9);font-family:'Orbitron',sans-serif;font-weight:700;}
-#puttImpactZone{position:absolute;top:0;bottom:0;background:rgba(0,255,160,0.5);border:1.5px solid rgba(0,255,160,0.9);border-radius:5px;display:none;pointer-events:none;}
-#puttNeedle{position:absolute;top:-10px;bottom:-10px;width:8px;background:#fff;border-radius:2px;box-shadow:0 0 10px rgba(0,255,200,1);left:0%;pointer-events:none;}
-#puttPowerLabel{font-size:0.9rem;color:var(--putt);font-family:'Orbitron',sans-serif;text-align:center;font-weight:900;text-shadow:0 0 10px currentColor;line-height:1.2;}
-
-/* ===== コントロール行（エイム・SHOT・サブ）===== */
-#controlRow{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;margin-top:3px;}
-#aimPad{display:flex;gap:4px;align-items:center;}
-.aim-btn{width:52px;height:52px;border-radius:10px;border:2px solid rgba(255,255,255,0.25);background:rgba(20,30,20,0.75);display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;pointer-events:auto;flex-shrink:0;}
-.aim-btn:active,.aim-btn.pressing{background:rgba(0,200,80,0.35);border-color:var(--green);}
-.aim-btn.putt-mode{border-color:var(--putt)!important;}
-#aimAnglePad{font-family:'Orbitron',sans-serif;font-size:0.52rem;color:var(--gold);text-align:center;line-height:1.2;white-space:nowrap;min-width:28px;}
-#shotCenter{display:flex;flex-direction:column;align-items:center;gap:3px;}
-/* SHOTガイドテキスト - スイング中は小さく表示 */
-#shotGuide{
-  font-family:'Orbitron',sans-serif;font-size:0.68rem;font-weight:700;
-  color:var(--gold);letter-spacing:0.03em;text-align:center;
-  min-height:1em;text-shadow:0 0 4px rgba(255,215,0,0.3);
-  max-width:140px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
-}
-#shootBtn{font-family:'Orbitron',sans-serif;background:linear-gradient(135deg,#004f18,#00b83a);color:#fff;border:none;border-radius:12px;padding:11px 22px;font-size:0.9rem;font-weight:900;cursor:pointer;letter-spacing:0.08em;transition:all 0.1s;box-shadow:0 3px 14px rgba(0,200,60,0.4);-webkit-tap-highlight-color:transparent;}
-#shootBtn:active{transform:scale(0.94);}
-#shootBtn.putt-mode{background:linear-gradient(135deg,#003366,#0066cc)!important;}
-#subBtns{display:flex;flex-direction:column;gap:3px;align-items:flex-end;}
-.sub-btn{font-family:'Orbitron',sans-serif;border:none;border-radius:6px;padding:6px 9px;font-size:0.58rem;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
-#camBtn{background:rgba(255,255,255,0.09);color:var(--white);border:1px solid rgba(255,255,255,0.18);}
-#nextHoleBtn{background:linear-gradient(135deg,#220055,#6600cc);color:#fff;display:none;}
-#scoreBtn{background:rgba(255,215,0,0.1);color:var(--gold);border:1px solid var(--gold);font-size:0.56rem;}
-#scoreCard{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;}
-#scoreTable{background:rgba(18,26,42,0.97);border:2px solid rgba(255,215,0,0.3);border-radius:14px;padding:18px;max-width:95vw;overflow-x:auto;max-height:80vh;overflow-y:auto;}
-#scoreTable h2{font-family:'Orbitron',sans-serif;color:var(--gold);text-align:center;margin-bottom:10px;font-size:1.1rem;}
-#scoreTable table{border-collapse:collapse;font-size:0.7rem;width:100%;}
-#scoreTable th{background:rgba(255,215,0,0.14);color:var(--gold);padding:5px 7px;text-align:center;border:1px solid rgba(255,215,0,0.18);}
-#scoreTable td{padding:4px 7px;text-align:center;border:1px solid rgba(255,255,255,0.05);}
-.sc-eagle{color:#ff88ff;font-weight:700;}.sc-birdie{color:var(--green);font-weight:700;}.sc-bogey{color:#ff9966;}.sc-double{color:var(--red);font-weight:700;}
-#closeScoreBtn{margin-top:14px;font-family:'Orbitron',sans-serif;background:rgba(255,255,255,0.09);color:var(--white);border:1px solid rgba(255,255,255,0.2);padding:8px 22px;border-radius:6px;cursor:pointer;font-size:0.78rem;}
-#loading{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--dark);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
-.loading-spinner{width:46px;height:46px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--green);border-radius:50%;-webkit-animation:spin;animation:spin 0.75s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:480px){
-  #charGrid{grid-template-columns:repeat(2,1fr);}
-  #courseGrid{grid-template-columns:1fr;}
-  #weatherGrid{grid-template-columns:repeat(2,1fr);}
-  .aim-btn{width:58px;height:58px;font-size:1.4rem;}
-  #shootBtn{padding:12px 24px;font-size:0.9rem;}
-}
-/* ===== トーナメント順位表 ===== */
-#tournamentScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:500;display:none;background:linear-gradient(160deg,#0a0a1a 0%,#0c1a08 40%,#001a0a 100%);flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 14px 30px;overflow-y:auto;}
-.tournament-title{font-family:'Orbitron',sans-serif;font-size:4vw;font-weight:900;background:linear-gradient(90deg,var(--gold),#aaff44,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:4px;letter-spacing:0.1em;}
-.tournament-sub{color:#8ab;font-size:0.78rem;text-align:center;margin-bottom:16px;}
-#leaderboardTable{width:100%;max-width:680px;border-collapse:collapse;font-size:0.75rem;margin-bottom:20px;}
-#leaderboardTable th{background:rgba(255,215,0,0.15);color:var(--gold);padding:7px 10px;text-align:center;border-bottom:2px solid rgba(255,215,0,0.3);font-family:'Orbitron',sans-serif;font-size:0.65rem;letter-spacing:0.05em;}
-#leaderboardTable td{padding:6px 10px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);}
-.lb-rank{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1rem;}
-.lb-player{font-weight:700;font-size:0.82rem;}
-.lb-score{font-family:'Orbitron',sans-serif;font-weight:700;}
-.lb-you{background:rgba(0,255,136,0.1)!important;border-left:3px solid var(--green)!important;}
-.lb-prize{font-size:0.68rem;color:#aaffaa;}
-.rank-1{color:#ffd700;font-size:1.2rem;}.rank-2{color:#cccccc;}.rank-3{color:#cc8844;}
-#playAgainBtn{font-family:'Orbitron',sans-serif;background:linear-gradient(135deg,#004418,#009933);color:#fff;border:none;padding:12px 48px;border-radius:50px;font-size:0.95rem;font-weight:700;cursor:pointer;letter-spacing:0.12em;transition:all 0.2s;box-shadow:0 0 20px rgba(0,180,60,0.3);margin-top:8px;}
-#playAgainBtn:hover{transform:scale(1.05);}
-/* ===== 賞金授与画面（優勝時） ===== */
-#prizeScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:600;display:none;background:radial-gradient(ellipse at center,#1a1000 0%,#000 70%);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;}
-.prize-trophy{font-size:5rem;margin-bottom:12px;-webkit-animation:trophySpin;animation:trophySpin 3s ease-in-out infinite;}
-@keyframes trophySpin{0%,100%{transform:scale(1) rotate(-3deg);}50%{transform:scale(1.08) rotate(3deg);}}
-.prize-winner{font-family:'Orbitron',sans-serif;font-size:4vw;font-weight:900;color:var(--gold);margin-bottom:6px;letter-spacing:0.08em;text-shadow:0 0 20px rgba(255,215,0,0.6);}
-.prize-congrats{font-size:5vw;font-weight:900;font-family:'Orbitron',sans-serif;background:linear-gradient(90deg,#ff8800,#ffdd00,#00ff88,#00ccff,#ff00cc,#ff8800);background-size:300% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;-webkit-animation:prizeRainbow;animation:prizeRainbow 2s linear infinite;margin-bottom:20px;}
-@keyframes prizeRainbow{0%{background-position:0%}100%{background-position:300%}}
-.prize-amount{font-family:'Orbitron',sans-serif;font-size:8vw;font-weight:900;color:#ffd700;text-shadow:0 0 40px rgba(255,215,0,0.8),0 0 80px rgba(255,150,0,0.4);margin-bottom:8px;letter-spacing:0.05em;}
-.prize-label{font-size:0.85rem;color:#cda;margin-bottom:28px;letter-spacing:0.1em;}
-#confettiCanvas{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:601;}
-.prize-finBtn{font-family:'Orbitron',sans-serif;background:linear-gradient(135deg,#440000,#cc0000);color:#fff;border:none;padding:14px 60px;border-radius:50px;font-size:1.1rem;font-weight:700;cursor:pointer;letter-spacing:0.2em;transition:all 0.2s;box-shadow:0 0 30px rgba(255,0,0,0.3);}
-.prize-finBtn:hover{transform:scale(1.06);}
-/* ===== FIN画面 ===== */
-#finScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:700;display:none;background:#000;flex-direction:column;align-items:center;justify-content:center;}
-.fin-text{font-family:'Orbitron',sans-serif;font-size:15vw;font-weight:900;color:#fff;letter-spacing:0.3em;-webkit-animation:finFade;animation:finFade 2s ease-out forwards;}
-.fin-sub{font-size:0.9rem;color:#555;margin-top:16px;letter-spacing:0.2em;-webkit-animation:finFade;animation:finFade 3s ease-out forwards;}
-@keyframes finFade{0%{opacity:0;transform:scale(0.5);}60%{opacity:1;transform:scale(1.05);}100%{opacity:1;transform:scale(1);}}
-
-#screenFlashOverlay{position:fixed;top:0;left:0;right:0;bottom:0;background:#fff;opacity:0;pointer-events:none;z-index:999;transition:opacity 0.05s ease-out;}
-#flyoverToast{position:absolute;top:54px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);border:1px solid rgba(0,200,255,0.6);border-radius:20px;padding:5px 16px;font-family:'Orbitron',sans-serif;font-size:0.65rem;color:#00ffcc;pointer-events:auto;cursor:pointer;z-index:100;display:none;letter-spacing:0.06em;box-shadow:0 0 15px rgba(0,200,255,0.3);}
-
-
-/* ===== 添付画像準拠: スマートドック＆左下デュアルHUDスタイル ===== */
-:root {
-  --sui-h: 74px !important;
-}
-
-/* 最上部HUD（右側に天気HUDをインライン水平統合） */
-#topHUD {
-  position: absolute !important;
-  top: 0 !important; left: 0 !important; right: 0 !important;
-  padding: 2px 185px 2px 8px !important;
-  background: rgba(0, 8, 20, 0.75) !important;
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  display: flex !important; justify-content: space-between !important; align-items: center !important;
-  gap: 4px !important; height: 44px !important;
-  z-index: 10;
-}
-
-/* 天気HUD（最上部バー右端に水平並列インライン配置） */
-#weatherHUD {
-  position: absolute !important;
-  top: 0 !important; right: 8px !important;
-  height: 44px !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  padding: 0 6px !important;
-  pointer-events: none !important;
-  display: flex !important; flex-direction: row !important; align-items: center !important;
-  gap: 8px !important;
-  z-index: 12 !important;
-}
-
-/* 重複ボタン・不要バッジの非表示 */
-#brightnessBtn, #brightnessPanel, #windIndicator {
-  display: none !important;
-}
-
-/* ホール情報バー（topHUD直下・横一列） */
-#holeInfo {
-  position: absolute !important;
-  top: 44px !important; left: 0 !important; right: 0 !important;
-  background: rgba(0, 8, 20, 0.65) !important;
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  border-bottom: 2px solid rgba(255, 215, 0, 0.35) !important;
-  padding: 3px 12px !important;
-  pointer-events: none !important;
-  display: flex !important; align-items: center !important;
-  gap: 10px !important; flex-wrap: nowrap !important;
-  z-index: 10 !important;
-}
-
-/* 残り距離パネル（左下・ショットバー直上：全クラブ共通で統一表示） */
-#distPanel {
-  position: absolute !important;
-  top: auto !important;
-  bottom: calc(var(--sui-h, 74px) + 6px) !important;
-  left: 10px !important;
-  background: rgba(4, 14, 28, 0.85) !important;
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  border: 1.5px solid rgba(0, 200, 255, 0.45) !important;
-  border-radius: 8px !important;
-  padding: 5px 12px 4px 10px !important;
-  pointer-events: none !important;
-  min-width: 115px !important;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.6) !important;
-  z-index: 20 !important;
-}
-#distPanel.putt-style {
-  border-color: rgba(0, 255, 200, 0.6) !important;
-  box-shadow: 0 4px 20px rgba(0, 255, 200, 0.25) !important;
-}
-#distPanel.inflight { border-color: var(--accent) !important; }
-#distPanel.inflight #distNum { color: var(--accent) !important; }
-#distLabel {
-  font-size: 0.58rem !important; color: #ff5500 !important;
-  letter-spacing: 0.06em; margin-bottom: 1px; font-weight: 700;
-  display: flex; align-items: center; gap: 3px;
-}
-#distMain {
-  font-family: 'Orbitron', sans-serif !important;
-  font-size: 1.75rem !important; font-weight: 900 !important;
-  color: var(--gold) !important; line-height: 1 !important;
-  display: flex !important; align-items: baseline !important; gap: 2px !important;
-}
-#distNum { font-size: 1.75rem !important; font-weight: 900 !important; color: var(--gold) !important; }
-#distUnit { font-size: 0.72rem !important; color: #8ab !important; font-family: 'Orbitron', sans-serif !important; }
-#distSub { font-size: 0.65rem !important; color: #88ccff !important; margin-top: 3px !important; font-weight: 700 !important; font-family: 'Orbitron', sans-serif !important; }
-#distBreak { font-size: 0.58rem !important; color: #66ddff !important; margin-top: 1px !important; font-family: 'Orbitron', sans-serif !important; }
-
-/* クラブ推定飛距離パネル（黄色枠カード） */
-#clubDistBar {
-  position: absolute !important;
-  top: auto !important;
-  bottom: calc(var(--sui-h, 74px) + 6px) !important;
-  left: 132px !important;
-  background: rgba(4, 14, 28, 0.85) !important;
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  border: 1.5px solid rgba(255, 215, 0, 0.65) !important;
-  border-radius: 8px !important;
-  padding: 5px 12px 4px 10px !important;
-  pointer-events: none !important;
-  min-width: 132px !important;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.6) !important;
-  z-index: 20 !important;
-}
-#clubDistBarLabel {
-  font-size: 0.58rem !important; color: #00eeff !important;
-  font-family: 'Orbitron', sans-serif !important; letter-spacing: 0.05em !important;
-  font-weight: 700 !important; margin-bottom: 2px !important;
-}
-#clubDistBarNum {
-  font-family: 'Orbitron', sans-serif !important;
-  font-size: 1.6rem !important; font-weight: 900 !important;
-  color: var(--gold) !important; line-height: 1 !important;
-  text-shadow: 0 0 8px rgba(255,215,0,0.35) !important;
-  margin-bottom: 2px !important;
-}
-#clubDistBarTrack { display: none !important; }
-#clubDistBarBreakdown {
-  font-size: 0.62rem !important; color: #aaffaa !important;
-  font-family: 'Orbitron', sans-serif !important; display: flex !important; gap: 6px !important;
-}
-
-/* 旧パット距離パネルは非表示 */
-#puttDistPanel {
-  display: none !important;
-}
-
-/* 右下ミニマップ（角丸四角形・緑枠） */
-#miniMap {
-  position: absolute !important;
-  top: auto !important;
-  bottom: calc(var(--sui-h, 74px) + 6px) !important;
-  right: 10px !important;
-  width: 86px !important; height: 86px !important;
-  background: rgba(4, 14, 28, 0.72) !important;
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  border: 1.5px solid rgba(0, 200, 100, 0.6) !important;
-  border-radius: 8px !important;
-  overflow: hidden !important;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.6) !important;
-  z-index: 20 !important;
-}
-
-/* 案内バナー位置調整 */
-#camHint {
-  position: absolute !important;
-  bottom: calc(var(--sui-h, 74px) + 40px) !important;
-  left: 50% !important; transform: translateX(-50%) !important;
-  background: rgba(0, 0, 0, 0.72) !important;
-  border-radius: 8px !important; padding: 4px 14px !important;
-  font-size: 0.56rem !important; color: #cce0ff !important;
-  pointer-events: none !important; text-align: center !important;
-  white-space: nowrap !important; z-index: 13 !important;
-}
-/* 傾斜ヒントバナー（パット時にゲージ上部にスッキリ配置） */
-#puttLineHint {
-  position: absolute !important;
-  bottom: calc(var(--sui-h, 74px) + 40px) !important;
-  left: 50% !important; transform: translateX(-50%) !important;
-  background: rgba(0, 24, 50, 0.88) !important;
-  border: 1px solid rgba(0, 255, 200, 0.6) !important;
-  border-radius: 8px !important; padding: 4px 16px !important;
-  font-family: 'Orbitron', 'Noto Sans JP', sans-serif !important;
-  font-size: 0.65rem !important; color: #00ffcc !important;
-  pointer-events: none !important; text-align: center !important;
-  white-space: nowrap !important; z-index: 25 !important;
-  box-shadow: 0 0 14px rgba(0, 200, 255, 0.35) !important;
-}
-#holeDescHUD {
-  position: absolute !important;
-  bottom: calc(var(--sui-h, 74px) + 6px) !important;
-  left: 50% !important; transform: translateX(-50%) !important;
-  background: rgba(0, 0, 0, 0.78) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  border-radius: 8px !important; padding: 4px 14px !important;
-  font-size: 0.6rem !important; color: #ccc !important;
-  pointer-events: none !important; text-align: center !important;
-  max-width: 360px !important; z-index: 14 !important;
-}
-
-/* フライオーバーボタン */
-#flyoverToast {
-  position: absolute !important;
-  top: 48px !important; left: 50% !important;
-  transform: translateX(-50%) !important;
-  background: rgba(0, 10, 24, 0.88) !important;
-  border: 1.5px solid rgba(0, 200, 255, 0.85) !important;
-  box-shadow: 0 0 14px rgba(0, 200, 255, 0.45) !important;
-  border-radius: 20px !important; padding: 4px 20px !important;
-  font-family: 'Orbitron', sans-serif !important;
-  font-size: 0.65rem !important; font-weight: 700 !important;
-  color: #00f0ff !important; letter-spacing: 0.08em !important;
-  pointer-events: auto !important; cursor: pointer !important;
-  z-index: 100 !important;
-}
-
-/* ===== 最下部ショットバー（横一列ドック型レイアウト・全幅固定） ===== */
-#shotUI {
-  position: absolute !important;
-  bottom: 0 !important; left: 0 !important; right: 0 !important;
-  height: var(--sui-h, 74px) !important;
-  background: linear-gradient(180deg, rgba(6, 16, 28, 0.72) 0%, rgba(4, 10, 20, 0.92) 100%) !important;
-  -webkit-backdrop-filter: blur(12px) !important; backdrop-filter: blur(12px) !important;
-  border-top: 1.5px solid rgba(0, 200, 255, 0.35) !important;
-  box-shadow: 0 -6px 30px rgba(0, 0, 0, 0.5) !important;
-  padding: 4px 12px calc(4px + env(safe-area-inset-bottom, 0px)) 12px !important;
-  display: flex !important; flex-direction: row !important;
-  align-items: center !important; justify-content: space-between !important; gap: 8px !important;
-  pointer-events: auto !important;
-  z-index: 100 !important;
-}
-
-/* 左側：クラブ切替 ＆ エイム */
-#leftControls {
-  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
-}
-.compact-club-box {
-  display: flex; align-items: center; background: rgba(0, 200, 255, 0.08);
-  border: 1.5px solid rgba(0, 200, 255, 0.5); border-radius: 8px;
-  padding: 2px 4px; gap: 4px;
-}
-.compact-club-box.putt-active {
-  border-color: #00ffcc !important; background: rgba(0, 255, 200, 0.15) !important;
-  box-shadow: 0 0 10px rgba(0, 255, 200, 0.4);
-}
-.compact-nav-btn {
-  background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 6px; color: #fff; width: 28px; height: 38px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; cursor: pointer; user-select: none;
-  transition: all 0.1s;
-}
-.compact-nav-btn:active {
-  background: rgba(0, 200, 100, 0.4); border-color: var(--green); transform: scale(0.92);
-}
-.compact-club-info {
-  display: flex; flex-direction: column; align-items: center; min-width: 60px;
-}
-.compact-club-name {
-  font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 900;
-  color: var(--gold); line-height: 1.1;
-}
-.compact-club-dist {
-  font-family: 'Orbitron', sans-serif; font-size: 0.72rem; font-weight: 700;
-  color: #66ddff; line-height: 1.1;
-}
-.compact-aim-box {
-  display: flex; align-items: center; background: rgba(255, 255, 255, 0.06);
-  border: 1.5px solid rgba(255, 255, 255, 0.22); border-radius: 8px;
-  padding: 2px 4px; gap: 3px;
-}
-.compact-aim-deg {
-  font-family: 'Orbitron', sans-serif; font-size: 0.65rem; font-weight: 700;
-  color: var(--gold); text-align: center; min-width: 32px; line-height: 1.1;
-}
-
-/* 中央：パワーメーター ＆ SHOT（完全位置固定・揺れゼロ） */
-#centerControls {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  flex: 1; max-width: 480px; gap: 2px; margin: 0 4px; height: 100%;
-}
-#centerControls #powerRow {
-  width: 100%; height: 26px; margin: 0 0 2px 0; position: relative;
-  display: flex; align-items: center; justify-content: center;
-}
-#centerControls #powerRow.swinging { margin-top: 0 !important; }
-#centerControls #powerMeterWrap, #centerControls #puttMeterWrap {
-  width: 100%; max-width: 440px; height: 40px; position: relative; margin: 0 !important;
-  cursor: pointer; touch-action: manipulation;
-}
-#centerControls #powerTrack, #centerControls #puttTrack { height: 40px; border-radius: 20px; }
-#centerControls #powerZoneRow { display: none; }
-#centerControls #powerValueRow {
-  position: absolute; top: -32px; left: 0; right: 0;
-  display: none; align-items: center; justify-content: space-between;
-  padding: 0 4px; pointer-events: none; z-index: 25;
-}
-
-/* ===== 新・高品質パターメーター（オートレンジ＆ジャストインジケーター） ===== */
-#puttMeterWrap {
-  display: none; flex-direction: column; align-items: center;
-}
-#puttScaleRow {
-  width: 100%; display: flex; justify-content: space-between; padding: 0 4px;
-  position: absolute; bottom: -13px; left: 0; right: 0; pointer-events: none;
-}
-#puttValueRow {
-  position: absolute; top: -30px; left: 0; right: 0;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0 4px; pointer-events: none; z-index: 20;
-}
-#puttValueNum {
-  font-family: 'Orbitron', sans-serif; font-size: 1.25rem; font-weight: 900;
-  color: #00ffcc; text-shadow: 0 0 10px rgba(0,255,200,0.8);
-  background: rgba(0, 10, 30, 0.75); border: 1px solid rgba(0,255,200,0.4);
-  border-radius: 6px; padding: 2px 8px; line-height: 1;
-}
-#puttZoneHint {
-  font-family: 'Orbitron', 'Noto Sans JP', sans-serif; font-size: 0.75rem; font-weight: 700;
-  color: #ffd700; text-shadow: 0 0 8px currentColor;
-  background: rgba(0, 10, 30, 0.75); border-radius: 6px; padding: 2px 8px;
-}
-#puttTrack {
-  width: 100%; height: 18px; border-radius: 9px;
-  background: linear-gradient(90deg, #001830 0%, #004488 45%, #00aa77 65%, #00ff88 75%, #ffdd00 84%, #ff4444 95%, #ffffff 100%);
-  border: 1.5px solid rgba(0, 220, 255, 0.6); position: relative; overflow: visible;
-  box-shadow: 0 0 14px rgba(0, 200, 255, 0.3);
-}
-/* ジャストタッチゾーン（ピン付近71%〜79%：カップイン確率最大） */
-#puttImpactZone {
-  position: absolute; top: -1px; bottom: -1px; left: 71%; width: 8%;
-  background: rgba(0, 255, 136, 0.45); border: 1.5px solid #00ff88;
-  border-radius: 4px; pointer-events: none;
-  box-shadow: 0 0 10px rgba(0,255,136,0.7);
-}
-/* 目標カップピン位置マーカー（75%位置にクッキリ固定） */
-#puttTargetPinMarker {
-  position: absolute; top: -6px; bottom: -6px; left: 75%; width: 2.5px;
-  background: #ffd700; box-shadow: 0 0 12px #ffd700; pointer-events: none; z-index: 5;
-}
-#puttTargetPinLabel {
-  position: absolute; top: -18px; left: -14px; font-family: 'Orbitron', sans-serif;
-  font-size: 0.55rem; font-weight: 900; color: #ffd700; white-space: nowrap;
-}
-#puttNeedle {
-  position: absolute; top: -6px; bottom: -6px; width: 4px;
-  background: #fff; border-radius: 2px; box-shadow: 0 0 12px rgba(255,255,255,1);
-  left: 0%; pointer-events: none; z-index: 10;
-}
-#puttScaleRow {
-  width: 100%; display: flex; justify-content: space-between; padding: 0 4px; margin-top: 2px;
-}
-.putt-scale-lbl {
-  font-size: 0.58rem; color: #88ccff; font-family: 'Orbitron', sans-serif; font-weight: 700;
-}
-
-#centerControls #shootBtn {
-  min-width: 136px; height: 34px; padding: 4px 34px !important;
-  font-size: 0.92rem !important; font-weight: 900 !important;
-  border-radius: 17px !important; letter-spacing: 0.12em !important;
-  background: linear-gradient(135deg, #00882d, #00e64d) !important;
-  box-shadow: 0 0 16px rgba(0, 230, 77, 0.5) !important;
-  color: #fff; border: none; cursor: pointer; user-select: none; touch-action: manipulation;
-  display: flex; align-items: center; justify-content: center;
-}
-#shootBtn.putt-mode {
-  background: linear-gradient(135deg, #004488, #00bbcc) !important;
-  box-shadow: 0 0 16px rgba(0, 220, 255, 0.6) !important;
-}
-
-/* 右側：サブボタン（横並び） */
-#rightControls {
-  display: flex; align-items: center; gap: 5px; flex-shrink: 0;
-}
-.compact-sub-btn {
-  font-family: 'Orbitron', 'Noto Sans JP', sans-serif;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px; padding: 6px 9px; font-size: 0.62rem; font-weight: 700;
-  cursor: pointer; background: rgba(255, 255, 255, 0.08); color: #fff;
-  transition: all 0.15s; white-space: nowrap; height: 38px;
-  display: flex; align-items: center; justify-content: center; gap: 3px;
-}
-.compact-sub-btn:active { transform: scale(0.93); }
-#btnTrajectoryToggle {
-  background: rgba(0, 200, 255, 0.2) !important;
-  border-color: rgba(0, 200, 255, 0.6) !important;
-  color: #00eeff !important;
-}
-#scoreBtn {
-  border-color: rgba(255, 215, 0, 0.45) !important;
-  color: var(--gold) !important;
-}
-
-/* D-Plane 微調整ポップアップモーダル */
-#dplaneModal {
-  position: absolute;
-  bottom: calc(var(--sui-h, 74px) + 8px); right: 12px;
-  background: rgba(4, 14, 28, 0.94);
-  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-  border: 1.5px solid rgba(0, 200, 255, 0.5);
-  border-radius: 12px; padding: 8px 10px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
-  display: none; min-width: 290px;
-  z-index: 200; pointer-events: auto;
-}
-#dplaneModal.show {
-  display: block !important;
-  -webkit-animation: popModal 0.2s ease-out; animation: popModal 0.2s ease-out;
-}
-@keyframes popModal {
-  from { opacity: 0; transform: translateY(12px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-#dplaneModalHeader {
-  display: flex; justify-content: space-between; align-items: center;
-  font-family: 'Orbitron', sans-serif; font-size: 0.68rem; color: #00eeff;
-  border-bottom: 1px solid rgba(0, 200, 255, 0.25); padding-bottom: 4px; margin-bottom: 6px;
-}
-#dplaneModalClose {
-  background: none; border: none; color: #aaa; font-size: 0.9rem; cursor: pointer;
-}
-
-#shootBtn.next-hole-mode {
-  background: linear-gradient(135deg, #7928ca, #ff0080) !important;
-  box-shadow: 0 0 22px rgba(255, 0, 128, 0.85), 0 4px 15px rgba(0, 0, 0, 0.6) !important;
-  color: #fff !important;
-  font-size: 0.95rem !important;
-  letter-spacing: 0.12em !important;
-  animation: pulseNextHoleBtn 1s infinite alternate ease-in-out !important;
-}
-#nextHoleBtn.active {
-  display: block !important;
-  background: linear-gradient(135deg, #7928ca, #ff0088) !important;
-  box-shadow: 0 0 16px rgba(255, 0, 136, 0.85) !important;
-  color: #fff !important;
-  font-size: 0.72rem !important;
-  font-weight: 900 !important;
-  padding: 6px 12px !important;
-  border-radius: 8px !important;
-  animation: pulseNextHoleBtn 1s infinite alternate ease-in-out !important;
-}
-@keyframes pulseNextHoleBtn {
-  from { transform: scale(1); filter: brightness(1); }
-  to { transform: scale(1.05); filter: brightness(1.25); }
-}
-
-/* ★★★ AAAスポーツ中継・没入型ビジュアル演出 CSS ★★★ */
-#fxFlashOverlay {
-  position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  background: radial-gradient(circle, rgba(255,255,255,0.92) 0%, rgba(200,240,255,0.4) 70%, transparent 100%);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 99999;
-  transition: opacity 0.08s ease-out;
-}
-#fxFlashOverlay.flash {
-  opacity: 1;
-}
-
-#zoneVignette {
-  position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 15, 30, 0.72) 100%);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 9999;
-  transition: opacity 0.6s ease-in-out;
-}
-#zoneVignette.active {
-  opacity: 1;
-}
-
-#pgaBroadcastBanner {
-  position: fixed;
-  top: 48px;
-  left: 50%;
-  transform: translateX(-50%) translateY(-30px);
-  background: linear-gradient(135deg, rgba(10,25,40,0.92) 0%, rgba(20,45,70,0.85) 100%);
-  border: 1px solid rgba(255,215,0,0.6);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 15px rgba(255,215,0,0.3);
-  backdrop-filter: blur(8px);
-  border-radius: 24px;
-  padding: 8px 24px;
-  color: #fff;
-  font-family: 'Segoe UI', -apple-system, sans-serif;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 10000;
-  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s ease;
-}
-#pgaBroadcastBanner.show {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-}
-#pgaBroadcastBanner .badge {
-  background: linear-gradient(135deg, #ffd700, #ff8800);
-  color: #000;
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-/* 3Dターゲットリングのアニメーション強調 */
-@keyframes targetRingPulse {
-  0% { transform: scale(1); opacity: 0.85; }
-  50% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 8px #00ffff); }
-  100% { transform: scale(1); opacity: 0.85; }
-}
-
-</style>
 </head>
 <body>
 
@@ -7393,212 +6443,7 @@ window.addEventListener("load",()=>{
 
 <!-- ===== GOAT BATTLE ENGINE v3.0 (PS5+ IBL/Shader & Complete Master Spec Integration) ===== -->
 
-<style>
-  /* ===== GOAT BATTLE ENGINE v3.0 額縁HUDスタイル（中央80%クリア・TV中継品質・重なりゼロ配置） ===== */
-  body.goat-duel #pgaBroadcastBanner,
-  body.goat-duel #pgaBroadcastBanner.show {
-    top: 84px !important;
-  }
-  #goatMatchCard {
-    position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 9500;
-    display: none; align-items: center; gap: 14px; padding: 7px 18px;
-    background: linear-gradient(180deg, rgba(10, 14, 30, 0.92) 0%, rgba(6, 8, 18, 0.95) 100%);
-    border: 1px solid rgba(255, 216, 117, 0.48); border-radius: 14px;
-    box-shadow: 0 8px 28px rgba(0,0,0,0.7), 0 0 18px rgba(255,205,80,0.18);
-    backdrop-filter: blur(10px); color: #eef2ff; font-family: 'Noto Sans JP', sans-serif;
-    pointer-events: none; white-space: nowrap;
-  }
-  .gmc-side { display: flex; flex-direction: column; min-width: 135px; }
-  .gmc-side.opp { text-align: right; align-items: flex-end; }
-  .gmc-name { font-size: 13.5px; font-weight: 900; color: #fff; }
-  .gmc-sub  { font-size: 10px; color: #ffd875; font-weight: 700; }
-  .gmc-oppbar { width: 120px; height: 6px; background: rgba(255,255,255,0.14); border-radius: 4px; overflow: hidden; margin-top: 3px; }
-  #gmcOppPowFill { height: 100%; width: 100%; background: linear-gradient(90deg, #ff4757, #ffa502, #ffd875); transition: width 0.35s ease; }
-  .gmc-center {
-    text-align: center; padding: 0 12px;
-    border-left: 1px solid rgba(255,255,255,0.14); border-right: 1px solid rgba(255,255,255,0.14);
-  }
-  #gmcStatus { font-size: 13px; font-weight: 900; color: #5ce1e6; letter-spacing: 1px; }
-  #gmcMarks  { font-size: 11px; color: #ffe69c; margin-top: 2px; font-weight: 800; }
 
-  /* 左下：炎パワー＆運命の糸メンタル＋特殊ショットコマンドパレット（下部距離パネルと一切重ならない段差配置） */
-  #goatBattleLeft {
-    position: fixed; left: 10px; bottom: calc(var(--sui-h, 118px) + 76px); z-index: 9500;
-    display: none; width: 252px; padding: 9px 11px;
-    background: linear-gradient(165deg, rgba(10, 13, 28, 0.88), rgba(6, 8, 18, 0.94));
-    border: 1px solid rgba(255, 216, 117, 0.42); border-radius: 13px;
-    backdrop-filter: blur(8px); box-shadow: 0 8px 26px rgba(0,0,0,0.65);
-    color: #fff; font-family: 'Noto Sans JP', sans-serif;
-  }
-  .gbl-row { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 800; margin-bottom: 2px; }
-  #gFlameCv { width: 100%; height: 18px; border-radius: 6px; background: rgba(0,0,0,0.5); display: block; border: 1px solid rgba(255,210,110,0.28); }
-  #gThreadCv { width: 100%; height: 12px; border-radius: 5px; background: rgba(0,0,0,0.5); display: block; border: 1px solid rgba(170,140,255,0.28); margin-bottom: 6px; }
-  .sp-toggle-btn {
-    width: 100%; padding: 6px 10px; border-radius: 8px; cursor: pointer;
-    background: linear-gradient(135deg, #5e4208, #362503); border: 1px solid #ffd875;
-    color: #fff3c9; font-size: 11.5px; font-weight: 800; text-align: center;
-  }
-  .sp-toggle-btn.armed {
-    background: linear-gradient(135deg, #8b1e3f, #4c0d21); border-color: #ff7597; color: #ffeef2;
-    box-shadow: 0 0 14px rgba(255, 90, 130, 0.5);
-  }
-  #goatSpMenu {
-    display: none; flex-direction: column; gap: 4px; margin-top: 6px;
-    max-height: 215px; overflow-y: auto; padding-right: 2px;
-  }
-  #goatSpMenu.open { display: flex; }
-  .sp-item {
-    text-align: left; padding: 5px 8px; border-radius: 7px; cursor: pointer;
-    background: rgba(24, 30, 58, 0.92); border: 1px solid rgba(140, 160, 220, 0.32);
-    color: #eef2ff; font-size: 11px; font-weight: 700; transition: all 0.14s;
-  }
-  .sp-item:hover:not(:disabled) { border-color: #ffd875; background: rgba(58, 45, 16, 0.92); }
-  .sp-item.sel { border-color: #5ce1e6; background: rgba(16, 56, 72, 0.95); }
-  .sp-item:disabled { opacity: 0.38; cursor: not-allowed; }
-  .sp-item small { display: block; font-size: 9.5px; color: #a9b6d8; font-weight: 400; }
-
-  /* 下部イベント字幕（相手ゴーストの重大局面のみ静かに通知・カメラ操作ガイドと重ならない段差配置） */
-  #goatGhostCaption {
-    position: fixed; left: 50%; bottom: calc(var(--sui-h, 118px) + 46px); transform: translateX(-50%);
-    z-index: 9500; display: none; pointer-events: none;
-    background: rgba(8, 10, 24, 0.88); border: 1px solid rgba(255, 216, 117, 0.5);
-    color: #ffefb8; border-radius: 999px; padding: 6px 20px; font-size: 12.5px; font-weight: 800;
-    box-shadow: 0 6px 22px rgba(0,0,0,0.75); white-space: nowrap;
-  }
-
-  /* 決着＆ニアピンプレーオフ特大リザルトモーダル */
-  #goatFinishOverlay {
-    position: fixed; inset: 0; z-index: 99990; display: none;
-    align-items: center; justify-content: center; padding: 20px;
-    background: rgba(4, 5, 14, 0.84); backdrop-filter: blur(10px);
-  }
-  .gfo-card {
-    max-width: 620px; width: 100%; padding: 30px 34px; text-align: center;
-    background: linear-gradient(170deg, rgba(18, 22, 46, 0.97), rgba(8, 10, 22, 0.99));
-    border: 1.5px solid #ffd875; border-radius: 22px;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.92), 0 0 45px rgba(255, 200, 65, 0.24);
-    color: #fff; font-family: 'Noto Sans JP', sans-serif;
-  }
-  .gfo-tag { font-size: 11px; letter-spacing: 3px; color: #ffd875; font-weight: 800; }
-  .gfo-title { font-size: 28px; font-weight: 900; margin-top: 6px; color: #fff4ce; }
-  .gfo-body {
-    font-size: 13.5px; line-height: 1.85; color: #d8e0f8; margin: 16px 0 22px;
-    background: rgba(255,255,255,0.04); padding: 14px 18px; border-radius: 12px;
-  }
-  .gfo-btn {
-    background: linear-gradient(135deg, #b88b1e, #785506); color: #fffaf0;
-    border: 1px solid #ffd875; border-radius: 999px; padding: 12px 34px;
-    font-size: 15px; font-weight: 900; cursor: pointer;
-    box-shadow: 0 6px 24px rgba(210, 155, 25, 0.42);
-  }
-  .gfo-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
-  /* =====================================================================
-     LAYOUT FIX v4.0（①上段レイアウト最適化／②炎パネル一列ストリップ化と下部バー全幅収納／④隠れ表示の救済）
-     ・3Dコース描画(canvas)は一切縮小しない。HUDの配置とサイズのみを最適化する。
-     ・広幅(1101px以上): ホール情報を対戦カードへ統合した1本バー。赤バナーと対戦状況は最上段の余白へ
-     ・中幅(641〜1100px): ホール情報バー＋対戦カードの段差配置。赤バナーは最上段の余白へ
-     ・スマホ(640px以下): 段差配置のまま、各パネルを小型化して全項目を画面内へ
-     ===================================================================== */
-  /* ② 左下パネルは距離パネル(高さ約90px)の上に段差を空けて配置し、重ならないようにする */
-  #goatBattleLeft { bottom: calc(var(--sui-h, 74px) + 108px); }
-
-  @media (min-width: 641px) {
-    /* ① 最上段のパネルは3行が44pxに収まる大きさにし、下のバーに隠れないようにする */
-    body.goat-duel #topHUD .hud-label { font-size: 0.5rem !important; }
-    body.goat-duel #topHUD .hud-value { font-size: 1.02rem !important; }
-    body.goat-duel #topHUD .hud-small { font-size: 0.55rem !important; }
-    body.goat-duel #topHUD .hud-panel { line-height: 1.15 !important; }
-    /* ① 赤い特徴バナー（戦術アラート）は最上段の余白に組み込み、対戦バーに隠れないようにする */
-    #topHUD #tacticalAlertBadge { position: static !important; flex-shrink: 1; min-width: 0; max-width: 285px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  }
-
-  @media (min-width: 641px) and (max-width: 1100px) {
-    /* ① 中幅：対戦カードはホール情報バー(44〜71px)の下に置き、重なりをなくす */
-    #goatMatchCard { top: 78px; max-width: calc(100vw - 16px); }
-    body.goat-duel #pgaBroadcastBanner, body.goat-duel #pgaBroadcastBanner.show { top: 146px !important; }
-    body.goat-duel #flightBar { top: 146px !important; }
-  }
-
-  @media (min-width: 1101px) {
-    /* ① 広幅：対戦カード（ホール情報の項目を取り込み済み）を上段直下の1本バーに統合し、上段の余白を活かしてコース表示を広げる */
-    body.goat-duel #holeInfo { display: none !important; }
-    #goatMatchCard { top: 48px; height: 40px; padding: 4px 18px; gap: 18px; border-radius: 11px; max-width: calc(100vw - 16px); }
-    .gmc-hole { display: flex; align-items: center; gap: 8px; padding-right: 12px; border-right: 1px solid rgba(255,255,255,0.14); min-width: 0; }
-    .gmc-hole .hi-hole { font-size: 1rem; }
-    .gmc-hole .hi-progress { font-size: 0.62rem; }
-    .gmc-hole .hi-yards { font-size: 0.8rem; }
-    .gmc-hole .hi-par { font-size: 0.7rem; }
-    .gmc-hole .hi-name { font-size: 0.62rem; }
-    .gmc-side { flex-direction: row; align-items: baseline; gap: 7px; min-width: 0; }
-    .gmc-side.opp { flex-direction: row; align-items: center; text-align: left; }
-    .gmc-oppbar { width: 90px; }
-    #gmcMarks { margin-top: 0; }
-    /* ① 広幅：対戦状況も最上段の余白へ（残り距離の隣） */
-    #topHUD .gmc-center { border: none; padding: 0 4px; min-width: 0; text-align: center; }
-    #topHUD #tacticalAlertBadge { max-width: 320px; }
-    body.goat-duel #pgaBroadcastBanner, body.goat-duel #pgaBroadcastBanner.show { top: 96px !important; }
-    body.goat-duel #flightBar { top: 96px !important; }
-    body.goat-duel #holeDescToast { top: 96px !important; }
-  }
-
-  @media (max-width: 640px) {
-    /* ① 上段：天気の予約幅を実幅に合わせ、プレイヤー/スコア/残り距離をすべて見せる */
-    #topHUD { padding: 2px 144px 2px 6px !important; }
-    #hudScore span { font-size: 0.95rem !important; }
-    .hud-label { font-size: 0.42rem !important; }
-    .hud-panel { min-width: 0 !important; padding: 2px 5px !important; }
-    .hud-value { font-size: 0.7rem !important; }
-    .hud-small { font-size: 0.55rem !important; }
-    #weatherHUD { gap: 4px !important; right: 4px !important; }
-    .weather-row { font-size: 0.55rem !important; }
-    /* ① 対戦カードはホール情報バー(44〜71px)の下に置き、重なりをなくす。各欄は縮小可能にして相手側が画面外へはみ出さないようにする */
-    #goatMatchCard { top: 74px; width: calc(100vw - 12px); max-width: calc(100vw - 12px); padding: 5px 6px; gap: 4px; flex-wrap: wrap; row-gap: 2px; }
-    .gmc-side, .gmc-center { min-width: 0; }
-    .gmc-side { order: 1; flex: 1 1 0; }
-    .gmc-side.opp { order: 2; flex: 1 1 0; }
-    /* スマホでは対戦状況を2段目に全幅で置き、文字を小さくしすぎず全項目を読めるようにする */
-    .gmc-center { order: 3; flex: 1 1 100%; flex-direction: row; align-items: baseline; justify-content: center; gap: 8px; border: none; border-top: 1px solid rgba(255,255,255,0.10); padding: 2px 4px 0; margin-top: 1px; }
-    .gmc-name { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-    .gmc-sub { font-size: 8.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-    #gmcStatus { font-size: 10.5px; letter-spacing: 0; }
-    #gmcMarks { font-size: 9px; }
-    .gmc-oppbar { width: 100%; max-width: 120px; }
-    body.goat-duel #pgaBroadcastBanner, body.goat-duel #pgaBroadcastBanner.show { top: 166px !important; }
-    body.goat-duel #flightBar { top: 166px !important; }
-    /* ① 赤い特徴バナーが対戦カードに隠れないよう、カードの下にずらす */
-    #tacticalAlertBadge { top: 166px !important; left: 8px !important; }
-    /* ② 左下：炎パワー＆運命の糸メンタル＆特殊ショットを横一列の細長い帯にして、コース中央を空ける（案D） */
-    #goatBattleLeft { left: 10px; right: 10px; width: auto; bottom: calc(var(--sui-h, 74px) + 102px); padding: 6px 8px; }
-    body.goat-duel #goatBattleLeft { display: flex !important; flex-direction: row; align-items: stretch; gap: 7px; }
-    #goatBattleLeft .gbl-cell { flex: 0 0 104px; display: flex; flex-direction: column; justify-content: center; gap: 3px; min-width: 0; }
-    #goatBattleLeft .gbl-cell .gbl-row { font-size: 8.5px; white-space: nowrap; }
-    #goatBattleLeft .gbl-bar { display: flex; align-items: center; gap: 5px; }
-    #goatBattleLeft .gbl-bar canvas { flex: 1 1 auto; width: auto !important; min-width: 0; }
-    #goatBattleLeft .gbl-bar > span { font-size: 9.5px !important; font-weight: 700; white-space: nowrap; }
-    #gFlameCv { height: 13px; }
-    #gThreadCv { height: 9px; margin-bottom: 5px; }
-    .sp-toggle-btn { font-size: 10px; padding: 5px 6px; white-space: normal; line-height: 1.3; flex: 1 1 auto; min-width: 0; }
-    /* ②④ 下部ショットバー：右側ボタン群まで全て画面内に収める */
-    #shotUI { gap: 5px !important; padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px)) 6px !important; }
-    /* ショットパラメーター横長化（案F2）: DR/PINは縦積みの小型スタックにする */
-    #leftControls { flex-direction: column; flex: 0 0 96px; min-width: 0; gap: 3px; }
-    .compact-club-box, .compact-aim-box { width: 96px; height: 33px; padding: 1px 2px; gap: 2px; }
-    .compact-nav-btn { width: 19px; height: 27px; font-size: 0.82rem; }
-    .compact-club-info { min-width: 36px; }
-    .compact-club-name { font-size: 0.78rem; }
-    .compact-club-dist { font-size: 0.6rem; }
-    .compact-aim-deg { min-width: 20px; font-size: 0.55rem; }
-    #centerControls { flex: 1 1 auto; min-width: 0; margin: 0 3px; }
-    /* 案F2: 右ボタンも縦積みにして、空いた幅をメーターへ */
-    #rightControls { flex-shrink: 0; flex-direction: column; gap: 2px; }
-    .compact-sub-btn { width: 48px; height: 21px; padding: 2px 3px; font-size: 0.54rem; }
-    /* ② SHOTボタンは中央カラムの幅に収め、左右の操作ボタンに被せない */
-    #centerControls #shootBtn { min-width: 0; width: 100%; height: 32px; padding: 4px 6px !important; font-size: 0.8rem !important; letter-spacing: 0.06em !important; }
-    #miniMap { width: 74px !important; height: 74px !important; }
-    /* ④ 中継テロップ：長い文でも画面からはみ出さない */
-    #goatGhostCaption { white-space: normal; text-align: center; max-width: 94vw; font-size: 11px; padding: 5px 12px; line-height: 1.45; }
-  }
-</style>
 
 <!-- GOAT額縁HUD要素群 -->
 <div id="goatMatchCard">
@@ -7633,66 +6478,9 @@ window.addEventListener("load",()=>{
 </div>
 
 <div id="goatGhostCaption"></div>
-<style>
-@media (max-width: 640px) {
-  /* 案G1 上部圧縮v2: ホール情報/対戦カード/赤バナーを薄く（topHUDは不変更） */
-  #holeInfo { font-size: 0.78rem !important; padding-top: 2px !important; padding-bottom: 2px !important; }
-  #goatMatchCard { top: 62px !important; padding: 6px 10px !important; }
-  #tacticalAlertBadge { top: 144px !important; font-size: 0.74rem !important; padding: 4px 12px !important; }
-}
-</style>
-<style>
-@media (max-width: 640px) {
-  /* 案G2 下部圧縮: 炎の帯と距離パネル列を薄く（ショットバーは不変更） */
-  body.goat-duel #goatBattleLeft { height: 42px !important; padding: 4px 10px !important; bottom: calc(var(--sui-h, 74px) + 84px) !important; }
-  #distPanel { padding: 5px 8px !important; }
-  #distNum { font-size: 1.5rem !important; }
-  #clubDistBar { padding: 5px 8px !important; }
-  #miniMap { width: 60px !important; height: 60px !important; }
-}
-</style>
-<style>
-@media (max-width: 640px) {
 
-  .gmc-name { font-size: 12px !important; } .gmc-sub { font-size: 9px !important; }
-  #gmcStatus { font-size: 11.5px !important; } #gmcMarks { font-size: 9.5px !important; margin-top: 0 !important; }
-  #goatMatchCard { padding: 4px 6px !important; gap: 2px !important; row-gap: 1px !important; top: 58px !important; }
-  #tacticalAlertBadge { font-size: 0.68rem !important; padding: 2px 10px !important; top: 145px !important; }
-  #holeInfo { font-size: 0.72rem !important; }
-  #distPanel { padding: 4px 8px !important; line-height: 1.15 !important; font-size: 0.72rem !important; }
-  #clubDistBar { padding: 4px 8px !important; line-height: 1.15 !important; }
-  body.goat-duel #distNum { font-size: 1.15rem !important; }
-  body.goat-duel #clubDistBarNum { font-size: 1.15rem !important; }
-  body.goat-duel #goatBattleLeft { height: 36px !important; padding: 3px 10px !important; bottom: calc(var(--sui-h, 74px) + 72px) !important; }
-  #miniMap { width: 60px !important; height: 60px !important; }
 
-  #goatInfoBar { position: fixed; left: 6px; right: 6px; bottom: calc(var(--sui-h, 74px) + 4px); z-index: 9400; display: none; flex-direction: column; gap: 3px; padding: 5px 8px; background: linear-gradient(165deg, rgba(10,13,28,0.92), rgba(6,8,18,0.96)); border: 1px solid rgba(255,216,117,0.4); border-radius: 12px; box-shadow: 0 8px 26px rgba(0,0,0,0.6); }
-  body.goat-duel #goatInfoBar { display: flex; }
-  #goatInfoBar #goatBattleLeft { position: static !important; width: auto !important; height: 30px !important; padding: 2px 6px !important; border: none !important; background: none !important; box-shadow: none !important; }
-  #goatInfoBar .gib-row { display: flex; gap: 8px; align-items: center; }
-  #goatInfoBar #distPanel { position: static !important; flex: 1 1 auto !important; width: auto !important; display: flex !important; align-items: baseline !important; gap: 7px !important; flex-wrap: nowrap !important; padding: 2px 4px !important; background: none !important; border: none !important; box-shadow: none !important; }
-  #goatInfoBar #distPanel > * { margin: 0 !important; }
-  #goatInfoBar #clubDistBar { position: static !important; width: auto !important; display: flex !important; align-items: baseline !important; gap: 7px !important; padding: 1px 4px !important; background: none !important; border: none !important; box-shadow: none !important; font-size: 0.66rem !important; }
-  #goatInfoBar #clubDistBar > * { margin: 0 !important; }
-  #goatInfoBar #miniMap { position: static !important; width: 38px !important; height: 38px !important; flex: 0 0 38px !important; }
 
-  #goatInfoBar { padding: 4px 7px !important; gap: 2px !important; bottom: calc(var(--sui-h, 74px) + 2px) !important; }
-  #goatInfoBar #goatBattleLeft { height: 36px !important; }
-  #goatMatchCard { top: 54px !important; }
-  #tacticalAlertBadge { top: 141px !important; }
-  #holeInfo { font-size: 0.68rem !important; }
-
-  #topHUD { height: 40px !important; }
-  .gmc-name { font-size: 11px !important; } #gmcStatus { font-size: 10.5px !important; }
-  body.goat-duel #distNum { font-size: 1.05rem !important; }
-  body.goat-duel #clubDistBarNum { font-size: 1.05rem !important; }
-
-  .gmc-side { min-width: 104px !important; }
-  .gmc-center { padding: 0 5px !important; }
-  #goatMatchCard { flex-wrap: nowrap !important; }
-  #tacticalAlertBadge { top: 112px !important; }
-}
-</style>
 
 <script>
 /* 情報バー統合v3＋マップドック（スマホ・対戦中のみ） */
@@ -7718,93 +6506,12 @@ document.addEventListener('DOMContentLoaded', function () {
   document.body.appendChild(fb);
 });
 </script>
-<style>
-@media (max-width: 640px) {
 
-  /* 統合行: 距離と推定を1行に並べる（距離側の重複サブ行は推定側と同内容のため畳む） */
-  #goatInfoBar #distSub, #goatInfoBar #distBreak { display: none !important; }
-  #goatInfoBar #distPanel { flex: 0 1 auto !important; }
-  #goatInfoBar #clubDistBar { position: static !important; flex: 1 1 auto !important; display: flex !important; align-items: baseline !important; gap: 6px !important; background: none !important; border: none !important; box-shadow: none !important; padding: 2px 4px !important; width: auto !important; }
-  #goatInfoBar #clubDistBar > * { margin: 0 !important; }
-  #goatInfoBar #miniMap { width: 30px !important; height: 30px !important; flex: 0 0 30px !important; }
-}
-</style>
-<style>
-@media (max-width: 640px) {
 
-  /* 仕上げ: ホール情報バーは上段/カードと重複するため対戦中は畳む（デスクトップと同じ扱い） */
-  body.goat-duel #holeInfo { display: none !important; }
-  /* 情報バーのラベルは折り返さない */
-  #goatInfoBar #distLabel, #goatInfoBar #clubDistBarLabel { white-space: nowrap !important; flex-shrink: 0 !important; }
-  /* 特殊ボタンの文字が枠からはみ出さないように */
-  #goatBattleLeft button { font-size: 0.72rem !important; line-height: 1.12 !important; padding: 3px 6px !important; }
 
-  /* カード1行化でもサブ(称号/敵炎%)を切らずに折り返して全表示 */
-  .gmc-sub { white-space: normal !important; line-height: 1.15 !important; }
-}
-</style>
-<style>
-@media (max-width: 640px) {
 
-  /* マップドック: フィールド右下に常駐し、右サイドへ畳める */
-  #mapDock { position: fixed; right: 6px; bottom: calc(var(--sui-h, 74px) + 76px); width: 88px; height: 88px; z-index: 9300; display: none; transition: transform .25s ease; }
-  body.goat-duel #mapDock { display: block; }
-  #mapDock .map-strip { position: absolute; left: 0; top: 0; bottom: 0; width: 17px; z-index: 2; background: rgba(8,10,22,.88); border: 1px solid rgba(255,216,117,.45); border-right: none; border-radius: 9px 0 0 9px; color: #ffd875; font-size: 9px; writing-mode: vertical-rl; display: flex; align-items: center; justify-content: center; letter-spacing: 2px; cursor: pointer; }
-  #mapDock #miniMap { position: absolute !important; left: 17px !important; top: 10px !important; width: 68px !important; height: 68px !important; }
-  body.map-folded #mapDock { transform: translateX(73px); }
 
-  /* 対戦カードの折りたたみ */
-  #foldCardBtn { position: fixed; top: 114px; right: 8px; z-index: 9900; display: none; padding: 3px 9px; border-radius: 999px; background: rgba(10,13,28,.88); border: 1px solid rgba(255,216,117,.5); color: #ffd875; font-size: 10px; cursor: pointer; }
-  body.goat-duel #foldCardBtn { display: block; }
-  body.card-folded #foldCardBtn { top: 86px; }
-  body.card-folded #goatMatchCard { padding: 2px 8px !important; }
-  body.card-folded .gmc-sub, body.card-folded #gmcMarks, body.card-folded .gmc-oppbar { display: none !important; }
-  body.card-folded #tacticalAlertBadge { top: 88px !important; }
-}
-</style>
-<style>
-@media (max-width: 640px) {
-  /* 特殊ショットボタンを帯の中に2行で収める */
-  #goatInfoBar #goatBattleLeft button { flex: 0 0 150px !important; font-size: 0.66rem !important; line-height: 1.15 !important; }
-}
-</style>
-<style>
-@media (max-width: 640px) {
 
-  /* 入れ替え: 情報バーを最下段へ、ショットバーをその上へ */
-  #goatInfoBar { bottom: 2px !important; }
-  #shotUI { bottom: 69px !important; }
-  /* ショットバー直上にいた案内類も一緒に持ち上げる */
-  #dirArrowUI { bottom: calc(var(--sui-h, 74px) + 71px) !important; }
-  #camHint { bottom: calc(var(--sui-h, 74px) + 107px) !important; }
-  #puttLineHint { bottom: calc(var(--sui-h, 74px) + 73px) !important; }
-  #holeDescHUD { bottom: calc(var(--sui-h, 74px) + 73px) !important; }
-  #slopeLegend { bottom: calc(var(--sui-h, 74px) + 67px) !important; }
-
-  /* 上段の青空の隙間を詰める: カードをHUDへ寄せる */
-  #goatMatchCard { top: 44px !important; }
-  #tacticalAlertBadge { top: 102px !important; }
-  #foldCardBtn { top: 104px !important; }
-  body.card-folded #tacticalAlertBadge { top: 70px !important; }
-  body.card-folded #foldCardBtn { top: 72px !important; }
-}
-</style>
-<style>
-@media (max-width: 640px) {
-  /* パット: 数値行をスリムな1行バーにしてメーター直上へ密着 */
-  #puttValueRow { top: -27px !important; right: 0 !important; height: 24px; justify-content: flex-start !important; }
-  #puttValueNum { white-space: nowrap; font-size: 0.98rem !important; padding: 1px 7px !important; }
-  #puttZoneHint { position: absolute !important; left: 0; top: -25px; white-space: nowrap; font-size: 0.62rem !important; padding: 1px 5px !important; }
-  #puttLineHint { bottom: calc(var(--sui-h, 74px) + 130px) !important; }
-  /* 推定まわりの数字を大きく（折り返し防止つき） */
-  #goatInfoBar .gib-row { gap: 6px !important; }
-  #goatInfoBar #distNum { font-size: 20px !important; }
-  #goatInfoBar #clubDistBarNum { font-size: 22px !important; }
-  #goatInfoBar #clubDistBarLabel, #goatInfoBar #clubDistCarry, #goatInfoBar #clubDistRun, #goatInfoBar #distLabel { font-size: 11.5px !important; white-space: nowrap !important; }
-  #goatInfoBar #clubDistBar { flex-wrap: nowrap !important; gap: 5px !important; }
-  #goatInfoBar #distPanel { gap: 5px !important; }
-}
-</style>
 <script>
 /* LAYOUT FIX v4.0（①上段の余白へ項目を移す：要素の移動のみ。内容の更新は従来どおりID経由でそのまま効く） */
 (function(){
@@ -8044,7 +6751,7 @@ document.addEventListener('DOMContentLoaded', function () {
   window.addEventListener("message", function(ev){
     var d = ev.data;
     if(!d || typeof d !== "object") return;
-    if(d.type === "goat:battleContext" && d.ctx && !B.started){
+    if(d.type === "goat:battleContext" && d.ctx && !B.started && !window.__GOAT_WARM){
       B.ctx = d.ctx;
       bootBattle();
       return;
@@ -8711,6 +7418,12 @@ document.addEventListener('DOMContentLoaded', function () {
       "残り炎パワー：<b>" + Math.round(B.playerPower) + "%</b> ｜ 残りメンタル：<b>" + Math.round(B.playerMental) + "%</b> ｜ 相手残りパワー：<b>" + Math.round(B.oppPower) + "%</b>";
     ov.style.display = "flex";
 
+    /* v4.1: 自己記録用に集計フィールドを追加（既存フィールドは不変更・追加のみ） */
+    var tPar = 0, tStr = 0;
+    try {
+      var hs = game.currentCourse.holes;
+      for(var hi = 0; hi < hs.length; hi++){ tPar += (hs[hi].par || 0); tStr += (game.scores[hi] || 0); }
+    } catch(e){}
     var payload = {
       type: "goat:golfResult",
       outcome: outcome,
@@ -8718,7 +7431,12 @@ document.addEventListener('DOMContentLoaded', function () {
       isPlayoff: !!wasPlayoff,
       powerLeft: B.playerPower,
       mentalLeft: B.playerMental,
-      ballsLeft: B.balls
+      ballsLeft: B.balls,
+      oppName: B.oppName,
+      holesCount: B.holesCount,
+      totalStrokes: tStr,
+      totalPar: tPar,
+      relScore: tStr - tPar
     };
 
     document.getElementById("gfoBtn").onclick = function(){
@@ -8850,7 +7568,13 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function requestBoot(){
-    try { parent.postMessage({ type:"goat:golfHello", version:"4.0", goat:(B.mode === "goat") }, "*"); } catch(e){}
+    /* v4.2 項目10: warmup モード（シェルの先読み）では対戦を開始しない。
+       Three.js とスクリプトの読込・初期化だけを済ませ、本番起動は新規文書で行う。 */
+    if(q.get("warmup") === "1"){
+      window.__GOAT_WARM = true;
+      return;
+    }
+    try { parent.postMessage({ type:"goat:golfHello", version:"4.2", goat:(B.mode === "goat") }, "*"); } catch(e){}
     setTimeout(function(){ if(!B.started) bootBattle(); }, 180);
   }
 
@@ -8860,7 +7584,1315 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <style>
+/* v4.2: 散在していた全12個の style ブロックを物理統合（ルールの順序・内容は一切変更なし。import 文は仕様上ブロック先頭へ集約） */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&display=swap');
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+JP:wght@500;700&display=swap");
+/* ===== merged from style block 1 ===== */
+
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{--green:#00c850;--gold:#ffd700;--dark:#0a0f1e;--accent:#00c4ff;--red:#ff2244;--white:#e8f4f8;--putt:#aaffdd;--approach:#ffcc44;
+  /* ショットUIの高さ（全パネルの bottom 基準値） */
+  --sui-h:290px;
+}
+html{height:-webkit-fill-available;}
+html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidden;background:#000;font-family:'Noto Sans JP',sans-serif;color:var(--white);touch-action:none;-webkit-user-select:none;user-select:none;}
+#canvas{display:block;position:fixed;top:0;left:0;width:100%;height:100%;}
+
+/* ===== スタート画面 ===== */
+#startScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;overflow-y:auto;background:linear-gradient(160deg,#071210 0%,#0d2a10 40%,#0a1520 100%);display:none;flex-direction:column;align-items:center;padding:16px 12px 30px;}
+.start-title{font-family:'Orbitron',sans-serif;font-size:5vw;font-weight:900;background:linear-gradient(90deg,var(--gold),#aaff44,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:4px;letter-spacing:0.08em;}
+.start-sub{color:#7ba;font-size:0.8rem;text-align:center;margin-bottom:18px;}
+.section-title{font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--gold);border-bottom:1px solid rgba(255,215,0,0.25);padding-bottom:5px;margin-bottom:10px;letter-spacing:0.1em;width:100%;max-width:700px;}
+#charGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:700px;margin-bottom:18px;}
+.char-card{background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 8px;cursor:pointer;transition:all 0.18s;text-align:center;}
+.char-card:hover,.char-card:active{border-color:var(--green);}.char-card.selected{border-color:var(--gold);background:rgba(255,215,0,0.1);}
+.char-avatar{font-size:1.8rem;margin-bottom:3px;}.char-name{font-family:'Orbitron',sans-serif;font-size:0.75rem;font-weight:700;color:var(--white);margin-bottom:4px;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;font-size:0.62rem;margin:2px 0;}.stat-label{color:#8ab;}
+.stat-bar{width:48px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
+.stat-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;}.star-row{color:var(--gold);font-size:0.65rem;}
+#courseGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;max-width:700px;margin-bottom:14px;}
+.course-btn{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px;cursor:pointer;transition:all 0.18s;}
+.course-btn:hover,.course-btn:active{border-color:var(--accent);}.course-btn.selected{border-color:var(--gold);background:rgba(255,215,0,0.08);}
+.course-name{font-size:0.78rem;font-weight:700;color:var(--white);margin-bottom:2px;}.course-info{font-size:0.62rem;color:#6af;}
+#weatherGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;width:100%;max-width:700px;margin-bottom:18px;}
+.weather-btn{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px;cursor:pointer;transition:all 0.18s;text-align:center;}
+.weather-btn:hover,.weather-btn:active{border-color:var(--accent);}.weather-btn.selected{border-color:var(--gold);background:rgba(255,215,0,0.08);}
+.weather-icon{font-size:1.3rem;margin-bottom:2px;}.weather-name{font-size:0.65rem;color:#8ab;}
+/* 飛距離モード選択ボタン */
+.dist-mode-btn:active{transform:scale(0.97);}
+.dist-mode-btn.selected[data-mode="normal"]{
+  border-color:var(--green)!important;
+  background:rgba(0,200,80,0.18)!important;
+  box-shadow:0 0 16px rgba(0,200,80,0.35);
+}
+.dist-mode-btn.selected[data-mode="super"]{
+  border-color:#ff6600!important;
+  background:rgba(255,100,0,0.18)!important;
+  box-shadow:0 0 16px rgba(255,100,0,0.35);
+}
+/* ラウンド数選択ボタン */
+.round-btn{background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.15);border-radius:10px;padding:12px;cursor:pointer;text-align:center;transition:all 0.18s;-webkit-tap-highlight-color:transparent;}
+.round-btn:active{transform:scale(0.96);}
+.round-btn.selected{border-color:var(--gold)!important;background:rgba(255,215,0,0.14)!important;box-shadow:0 0 14px rgba(255,215,0,0.3);}
+.round-btn.selected .rn-num{color:var(--gold)!important;}
+.rn-num{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:#fff;}
+.rn-label{font-size:0.72rem;color:#8ab;margin-top:2px;}
+.rn-sub{font-size:0.6rem;color:#6af;}
+#startBtn{font-family:'Orbitron',sans-serif;background:linear-gradient(135deg,#004418,#009933);color:#fff;border:none;padding:13px 55px;border-radius:50px;font-size:1.05rem;font-weight:700;cursor:pointer;letter-spacing:0.15em;transition:all 0.2s;box-shadow:0 0 25px rgba(0,180,60,0.3);}
+#startBtn:hover{transform:scale(1.06);}
+
+/* ===== インゲームUI ===== */
+#gameUI{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;display:none;}
+/* ===== ホール情報バー（topHUD直下・横一列）===== */
+#holeInfo{
+  position:absolute;
+  top:44px;
+  left:0;right:0;
+  background:rgba(0,8,20,0.58);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border-bottom:2px solid rgba(255,215,0,0.35);
+  padding:4px 12px;
+  pointer-events:none;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:nowrap;
+  overflow:hidden;
+  z-index:10;
+}
+.hi-hole{
+  font-family:'Orbitron',sans-serif;
+  font-size:1.1rem;color:var(--gold);font-weight:900;
+  line-height:1;letter-spacing:0.04em;
+  text-shadow:0 0 8px rgba(255,215,0,0.5);
+  white-space:nowrap;flex-shrink:0;
+}
+.hi-sep{color:rgba(255,255,255,0.2);font-size:0.8rem;flex-shrink:0;}
+.hi-progress{
+  font-family:'Orbitron',sans-serif;
+  font-size:0.65rem;color:#00ffaa;
+  letter-spacing:0.04em;font-weight:700;white-space:nowrap;flex-shrink:0;
+}
+.hi-yards{font-size:0.82rem;color:var(--white);font-weight:700;white-space:nowrap;flex-shrink:0;}
+.hi-par{font-size:0.72rem;color:#88ccff;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.hi-name{font-size:0.65rem;color:#6af;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#topHUD{position:absolute;top:0;left:0;right:0;padding:4px 8px;background:rgba(0,8,20,0.62);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;gap:4px;height:44px;}
+.hud-panel{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:3px 8px;min-width:60px;max-width:36vw;overflow:hidden;}
+.hud-label{font-size:0.48rem;color:#8ab;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;}
+.hud-value{font-family:'Orbitron',sans-serif;font-size:0.82rem;font-weight:700;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.hud-small{font-size:0.62rem;color:var(--white);white-space:nowrap;}
+#compass{position:absolute;top:72px;left:50%;transform:translateX(-50%);pointer-events:none;}
+
+/* ===== 残り距離パネル（左・ShotUI直上）===== */
+#distPanel{
+  position:absolute;
+  bottom:var(--sui-h,290px);left:0;
+  background:rgba(0,10,24,0.62);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border-left:4px solid var(--gold);
+  border-radius:0 8px 8px 0;
+  padding:5px 10px 5px 8px;
+  pointer-events:none;min-width:105px;
+}
+#distLabel{font-size:0.55rem;color:#8ab;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:1px;}
+#distMain{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:var(--gold);line-height:1;display:flex;align-items:baseline;gap:3px;}
+#distNum{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:var(--gold);}
+#distUnit{font-size:0.72rem;color:#cda;font-family:'Orbitron',sans-serif;}
+#distSub{font-size:0.72rem;color:#aaffaa;margin-top:3px;font-weight:700;font-family:'Orbitron',sans-serif;}
+#distBreak{font-size:0.65rem;color:#66ddff;margin-top:2px;font-family:'Orbitron',sans-serif;}
+#distPanel.inflight{border-left-color:var(--accent);}
+#distPanel.inflight #distNum{color:var(--accent);}
+
+/* クラブ推定距離バー（距離パネルの右横・大きく見やすく）*/
+#clubDistBar{
+  position:absolute;
+  bottom:var(--sui-h,290px);left:118px;
+  background:rgba(0,10,24,0.62);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border:1.5px solid rgba(255,215,0,0.35);
+  border-radius:8px;padding:6px 12px;
+  pointer-events:none;display:none;
+  min-width:140px;
+}
+#clubDistBarLabel{
+  font-size:0.58rem;color:#8ab;margin-bottom:4px;
+  font-family:'Orbitron',sans-serif;letter-spacing:0.05em;
+}
+/* 推定飛距離の大きな数字 */
+#clubDistBarNum{
+  font-family:'Orbitron',sans-serif;
+  font-size:1.4rem;font-weight:900;
+  color:var(--gold);line-height:1;
+  text-shadow:0 0 8px rgba(255,215,0,0.4);
+  margin-bottom:4px;
+}
+/* バー（細くシンプルに） */
+#clubDistBarTrack{
+  width:100%;height:5px;
+  background:rgba(255,255,255,0.08);
+  border-radius:3px;overflow:hidden;
+  margin-bottom:4px;
+}
+#clubDistBarFill{height:100%;background:linear-gradient(90deg,var(--green),var(--gold));border-radius:3px;transition:width 0.35s;}
+/* キャリー/ランの内訳 */
+#clubDistBarBreakdown{
+  font-size:0.62rem;color:#aaffaa;
+  font-family:'Orbitron',sans-serif;
+  display:flex;gap:6px;
+}
+
+/* パットモード距離表示 */
+#puttDistPanel{
+  position:absolute;
+  bottom:var(--sui-h,290px);left:0;
+  background:rgba(0,10,40,0.9);
+  border-left:4px solid var(--putt);
+  border-radius:0 8px 8px 0;
+  padding:5px 10px 5px 8px;
+  pointer-events:none;min-width:105px;display:none;
+}
+#puttDistFtBig{font-family:'Orbitron',sans-serif;font-size:1.6rem;font-weight:900;color:var(--putt);line-height:1;}
+#puttDistYdSub{font-size:0.56rem;color:#8ab;margin-top:2px;}
+
+/* ===== ナイスショット結果ポップアップ ===== */
+#niceShotPopup{
+  position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);
+  font-family:'Orbitron',sans-serif;font-size:1.6rem;font-weight:900;
+  text-align:center;pointer-events:none;display:none;
+  text-shadow:0 0 20px currentColor,0 0 40px currentColor;
+  -webkit-animation:nicePop;animation:nicePop 0.4s ease-out forwards;
+}
+@keyframes nicePop{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(0.3) rotate(-10deg)}
+  60%{transform:translate(-50%,-50%) scale(1.2) rotate(2deg)}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
+}
+/* 方向矢印UI */
+#dirArrowUI{position:absolute;bottom:calc(var(--sui-h,290px) + 4px);left:50%;transform:translateX(-50%);pointer-events:none;display:none;}
+#dirArrowCanvas{display:block;}
+#modeBadge{position:absolute;top:70px;right:8px;background:rgba(0,0,0,0.85);border-radius:6px;padding:3px 8px;font-family:'Orbitron',sans-serif;font-size:0.65rem;font-weight:700;pointer-events:none;display:none;z-index:11;}
+#modeBadge.approach{color:var(--approach);border:1px solid var(--approach);}
+#modeBadge.putt{color:var(--putt);border:1px solid var(--putt);}
+
+/* グリーンオン */
+#greenOnPopup{position:absolute;top:36%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:#00ffaa;text-shadow:0 0 30px #00ffaa,0 0 60px #00aa66;display:none;pointer-events:none;text-align:center;-webkit-animation:greenOnAnim;animation:greenOnAnim 0.5s ease-out;}
+@keyframes greenOnAnim{0%{opacity:0;transform:translate(-50%,-50%) scale(0.3)}70%{transform:translate(-50%,-50%) scale(1.2)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+#scorePopup{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;text-align:center;text-shadow:0 0 20px currentColor;display:none;pointer-events:none;-webkit-animation:popIn;animation:popIn 0.4s ease-out forwards;}
+@keyframes popIn{0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)}60%{transform:translate(-50%,-50%) scale(1.15)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+
+#weatherHUD{
+  position:absolute;
+  top:44px;      /* topHUD高さ（44px）直下のholeInfoバーの右端に重ねる */
+  right:0;
+  background:rgba(0,0,0,0.82);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px 0 0 8px;
+  padding:4px 10px;
+  pointer-events:none;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:8px;
+  z-index:12;
+}
+.weather-row{display:flex;align-items:center;gap:3px;font-size:0.62rem;}
+#obAlert{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:var(--red);text-shadow:0 0 25px var(--red);display:none;-webkit-animation:obPulse;animation:obPulse 0.45s ease-in-out infinite alternate;pointer-events:none;}
+@keyframes obPulse{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0.25;transform:translate(-50%,-50%) scale(1.12)}}
+
+/* 飛行ステータスバー */
+#flightBar{
+  position:absolute;top:72px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.82);border:1px solid rgba(0,180,255,0.3);
+  border-radius:7px;padding:3px 14px;font-size:0.62rem;
+  display:none;pointer-events:none;text-align:center;white-space:nowrap;color:var(--accent);
+  z-index:11;
+}
+
+#miniMap{position:absolute;bottom:var(--sui-h,290px);right:0;width:90px;height:90px;background:rgba(0,10,24,0.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.15);border-radius:8px 0 0 8px;overflow:hidden;}
+#puttLineHint{position:absolute;bottom:var(--sui-h,290px);left:50%;transform:translateX(-50%);background:rgba(0,50,80,0.9);border:1px solid var(--putt);border-radius:8px;padding:3px 12px;font-size:0.62rem;color:var(--putt);pointer-events:none;display:none;text-align:center;white-space:nowrap;}
+#slopeLegend{position:absolute;bottom:var(--sui-h,290px);right:95px;background:rgba(0,0,0,0.75);border-radius:6px;padding:3px 7px;font-size:0.52rem;pointer-events:none;display:none;text-align:left;line-height:1.6;}
+#keyHint{position:absolute;bottom:var(--sui-h,290px);left:0;background:rgba(0,0,0,0.55);border-radius:0 7px 7px 0;padding:3px 8px;font-size:0.5rem;color:#7ab;pointer-events:none;white-space:nowrap;display:none;}
+
+/* ===== D-Plane コントロールパネル（横一列・超コンパクト）===== */
+#dplanePanel{
+  background:rgba(0,10,26,0.52);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  border:1px solid rgba(0,180,255,0.3);
+  border-radius:8px;
+  padding:4px 6px 3px;
+  margin-bottom:3px;
+  pointer-events:auto;
+}
+.dp-row{display:flex;align-items:center;gap:2px;margin-bottom:2px;}
+.dp-label{
+  font-family:'Orbitron',sans-serif;font-size:0.48rem;font-weight:700;
+  color:#88aacc;min-width:30px;flex-shrink:0;
+}
+.dp-btns{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;flex:1;}
+.dp-btn{
+  padding:3px 1px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);
+  font-size:0.44rem;color:#99aacc;cursor:pointer;
+  font-family:'Noto Sans JP',sans-serif;font-weight:700;
+  transition:all 0.1s;-webkit-tap-highlight-color:transparent;
+  white-space:nowrap;text-align:center;line-height:1.3;
+  display:flex;align-items:center;justify-content:center;min-height:22px;
+}
+.dp-btn:active{transform:scale(0.93);}
+.dp-btn.dp-active{
+  background:rgba(0,200,255,0.3);border-color:rgba(0,200,255,0.8);
+  color:#00eeff;box-shadow:0 0 4px rgba(0,200,255,0.5);
+}
+.dp-val{font-family:'Orbitron',sans-serif;font-size:0.48rem;color:#557;min-width:22px;text-align:right;flex-shrink:0;}
+#dpPreview{
+  font-family:'Orbitron',sans-serif;font-size:0.58rem;font-weight:700;
+  text-align:center;color:#00ffcc;letter-spacing:0.04em;
+  text-shadow:0 0 6px currentColor;padding:1px 0;
+  border-top:1px solid rgba(0,200,255,0.15);margin-top:1px;
+}
+/* D-Plane ショット形状ポップアップ */
+#dplaneShotShape{
+  position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);
+  font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:900;
+  text-align:center;pointer-events:none;display:none;
+  background:rgba(0,0,0,0.8);border-radius:10px;padding:7px 18px;
+  border:2px solid rgba(0,200,255,0.5);
+  color:#00ffcc;text-shadow:0 0 10px currentColor;z-index:50;
+}
+
+/* ===== ショットUI（下部固定・全要素収める）===== */
+#shotUI{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(180deg,rgba(5,15,25,0.48) 0%,rgba(6,16,28,0.72) 100%);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  box-shadow:0 -4px 25px rgba(0,0,0,0.4);
+  border-top:1px solid rgba(255,255,255,0.1);
+  padding:4px 8px calc(10px + env(safe-area-inset-bottom,0px)) 8px;
+  pointer-events:auto;
+  /* 実際の高さをJS側でCSS変数に反映 */
+}
+#clubScroll{
+  display:flex;gap:3px;
+  overflow-x:auto;overflow-y:hidden;
+  padding-bottom:2px;margin-bottom:3px;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;touch-action:pan-x;
+  scroll-snap-type:x mandatory;
+}
+#clubScroll::-webkit-scrollbar{display:none;}
+/* クラブボタン — 縦2行レイアウト・大きく見やすく */
+.club-btn{
+  background:rgba(255,255,255,0.07);
+  border:1.5px solid rgba(255,255,255,0.15);
+  border-radius:7px;
+  padding:5px 6px 4px;
+  cursor:pointer;white-space:nowrap;
+  text-align:center;transition:all 0.12s;flex-shrink:0;
+  min-width:52px;
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  scroll-snap-align:start;-webkit-tap-highlight-color:transparent;
+}
+/* クラブ名：大きく太く */
+.club-btn-name{
+  font-family:'Orbitron',sans-serif;
+  font-size:0.82rem;font-weight:900;
+  color:var(--white);line-height:1.1;
+  letter-spacing:0.02em;
+}
+/* 推定飛距離：明るく・十分なサイズ */
+.club-btn-dist{
+  font-family:'Orbitron',sans-serif;
+  font-size:0.72rem;font-weight:700;
+  color:#66ddff;line-height:1.2;
+}
+/* アクティブ状態 */
+.club-btn.active{
+  border-color:var(--gold);
+  background:rgba(255,215,0,0.22);
+  box-shadow:0 0 8px rgba(255,215,0,0.35);
+}
+.club-btn.active .club-btn-name{color:var(--gold);}
+.club-btn.active .club-btn-dist{color:#ffd700;font-size:0.78rem;}
+.club-btn.putt-mode{border-color:var(--putt)!important;background:rgba(0,255,200,0.1)!important;}
+.club-btn.putt-mode .club-btn-name{color:var(--putt)!important;}
+
+/* ===== パワーメーター ===== */
+#powerRow{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;margin-bottom:2px;}
+/* スイング中：大きな数字表示スペース確保 */
+#powerRow.swinging{margin-top:0 !important;}
+#powerMeterWrap{position:relative;width:96vw;max-width:500px;height:26px;overflow:visible;margin-bottom:24px;}
+#powerTrack{width:100%;height:40px;border-radius:13px;
+  background:linear-gradient(90deg,
+    #002200 0%,#00aa00 28%,#88ff00 42%,
+    #ffdd00 52%,#ff8800 68%,
+    #ff3300 80%,#ff0000 88%,#ff00ff 95%,#ffffff 100%);
+  border:1.5px solid rgba(255,255,255,0.25);position:relative;overflow:visible;
+}
+#nsZone{position:absolute;top:0;bottom:0;left:78%;width:8%;background:rgba(0,255,100,0.3);border:1.5px solid rgba(0,255,100,0.8);border-radius:4px;pointer-events:none;}
+#snsZone{position:absolute;top:0;bottom:0;left:88%;width:5%;background:rgba(255,220,0,0.4);border:1.5px solid rgba(255,220,0,1);border-radius:4px;pointer-events:none;}
+#unsZone{position:absolute;top:0;bottom:0;left:94%;width:6%;background:rgba(255,0,200,0.5);border:1.5px solid rgba(255,100,255,1);border-radius:4px;pointer-events:none;}
+#impactZone{position:absolute;top:0;bottom:0;background:rgba(0,255,120,0.5);border-radius:5px;left:44%;display:none;}
+#impactZoneUNS{position:absolute;top:0;bottom:0;width:4%;background:rgba(255,100,255,0.8);border:2px solid #ff44ff;border-radius:4px;left:48%;display:none;pointer-events:none;}
+#powerNeedle{position:absolute;top:-10px;bottom:-10px;width:8px;background:#fff;border-radius:2px;box-shadow:0 0 10px rgba(255,255,255,1);left:0%;pointer-events:none;}
+
+/* パワー数字行 */
+#powerValueRow{display:none;position:absolute;top:-40px;left:0;right:0;align-items:center;justify-content:space-between;padding:0 4px;pointer-events:none;z-index:20;}
+#powerValueNum{font-family:'Orbitron',sans-serif;font-size:1.6rem;font-weight:900;color:#fff;text-shadow:0 0 12px rgba(255,255,255,0.9);min-width:4ch;line-height:1;background:rgba(0,0,0,0.55);border-radius:6px;padding:2px 7px;}
+#powerZoneHint{font-family:'Orbitron',sans-serif;font-size:0.78rem;font-weight:900;color:var(--gold);text-shadow:0 0 8px currentColor;background:rgba(0,0,0,0.55);border-radius:5px;padding:2px 6px;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#powerZoneRow{
+  display:flex;
+  position:absolute;
+  bottom:-22px;   /* powerTrackの下にオーバーレイ */
+  right:0;
+  gap:3px;padding-right:2px;
+  pointer-events:none;
+}
+.pz-lbl{font-size:0.58rem;font-family:'Orbitron',sans-serif;padding:1px 5px;border-radius:3px;font-weight:700;}
+.pz-ns{background:rgba(0,200,60,0.2);color:#55ff99;border:1px solid rgba(0,200,60,0.5);}
+.pz-sns{background:rgba(255,200,0,0.2);color:#ffee55;border:1px solid rgba(255,200,0,0.6);}
+.pz-uns{background:rgba(255,0,200,0.2);color:#ff99ff;border:1px solid rgba(255,0,200,0.6);}
+
+/* パットメーター */
+#puttMeterWrap{position:relative;width:92vw;max-width:480px;height:34px;display:none;flex-direction:column;align-items:center;gap:1px;}
+#puttTrack{width:100%;height:40px;border-radius:10px;background:linear-gradient(90deg,#001833 0%,#003388 15%,#0066cc 35%,#00aaff 50%,#00ddcc 65%,#aaffdd 80%,#ffffff 100%);border:1.5px solid rgba(0,220,255,0.5);position:relative;overflow:visible;}
+#puttScaleRow{width:100%;display:flex;justify-content:space-between;padding:0 2px;}
+.putt-scale-lbl{font-size:0.62rem;color:rgba(0,230,255,0.9);font-family:'Orbitron',sans-serif;font-weight:700;}
+#puttImpactZone{position:absolute;top:0;bottom:0;background:rgba(0,255,160,0.5);border:1.5px solid rgba(0,255,160,0.9);border-radius:5px;display:none;pointer-events:none;}
+#puttNeedle{position:absolute;top:-10px;bottom:-10px;width:8px;background:#fff;border-radius:2px;box-shadow:0 0 10px rgba(0,255,200,1);left:0%;pointer-events:none;}
+#puttPowerLabel{font-size:0.9rem;color:var(--putt);font-family:'Orbitron',sans-serif;text-align:center;font-weight:900;text-shadow:0 0 10px currentColor;line-height:1.2;}
+
+/* ===== コントロール行（エイム・SHOT・サブ）===== */
+#controlRow{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;margin-top:3px;}
+#aimPad{display:flex;gap:4px;align-items:center;}
+.aim-btn{width:52px;height:52px;border-radius:10px;border:2px solid rgba(255,255,255,0.25);background:rgba(20,30,20,0.75);display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;pointer-events:auto;flex-shrink:0;}
+.aim-btn:active,.aim-btn.pressing{background:rgba(0,200,80,0.35);border-color:var(--green);}
+.aim-btn.putt-mode{border-color:var(--putt)!important;}
+#aimAnglePad{font-family:'Orbitron',sans-serif;font-size:0.52rem;color:var(--gold);text-align:center;line-height:1.2;white-space:nowrap;min-width:28px;}
+#shotCenter{display:flex;flex-direction:column;align-items:center;gap:3px;}
+/* SHOTガイドテキスト - スイング中は小さく表示 */
+#shotGuide{
+  font-family:'Orbitron',sans-serif;font-size:0.68rem;font-weight:700;
+  color:var(--gold);letter-spacing:0.03em;text-align:center;
+  min-height:1em;text-shadow:0 0 4px rgba(255,215,0,0.3);
+  max-width:140px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+#shootBtn{font-family:'Orbitron',sans-serif;background:linear-gradient(135deg,#004f18,#00b83a);color:#fff;border:none;border-radius:12px;padding:11px 22px;font-size:0.9rem;font-weight:900;cursor:pointer;letter-spacing:0.08em;transition:all 0.1s;box-shadow:0 3px 14px rgba(0,200,60,0.4);-webkit-tap-highlight-color:transparent;}
+#shootBtn:active{transform:scale(0.94);}
+#shootBtn.putt-mode{background:linear-gradient(135deg,#003366,#0066cc)!important;}
+#subBtns{display:flex;flex-direction:column;gap:3px;align-items:flex-end;}
+.sub-btn{font-family:'Orbitron',sans-serif;border:none;border-radius:6px;padding:6px 9px;font-size:0.58rem;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
+#camBtn{background:rgba(255,255,255,0.09);color:var(--white);border:1px solid rgba(255,255,255,0.18);}
+#nextHoleBtn{background:linear-gradient(135deg,#220055,#6600cc);color:#fff;display:none;}
+#scoreBtn{background:rgba(255,215,0,0.1);color:var(--gold);border:1px solid var(--gold);font-size:0.56rem;}
+#scoreCard{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;}
+#scoreTable{background:rgba(18,26,42,0.97);border:2px solid rgba(255,215,0,0.3);border-radius:14px;padding:18px;max-width:95vw;overflow-x:auto;max-height:80vh;overflow-y:auto;}
+#scoreTable h2{font-family:'Orbitron',sans-serif;color:var(--gold);text-align:center;margin-bottom:10px;font-size:1.1rem;}
+#scoreTable table{border-collapse:collapse;font-size:0.7rem;width:100%;}
+#scoreTable th{background:rgba(255,215,0,0.14);color:var(--gold);padding:5px 7px;text-align:center;border:1px solid rgba(255,215,0,0.18);}
+#scoreTable td{padding:4px 7px;text-align:center;border:1px solid rgba(255,255,255,0.05);}
+.sc-eagle{color:#ff88ff;font-weight:700;}.sc-birdie{color:var(--green);font-weight:700;}.sc-bogey{color:#ff9966;}.sc-double{color:var(--red);font-weight:700;}
+#closeScoreBtn{margin-top:14px;font-family:'Orbitron',sans-serif;background:rgba(255,255,255,0.09);color:var(--white);border:1px solid rgba(255,255,255,0.2);padding:8px 22px;border-radius:6px;cursor:pointer;font-size:0.78rem;}
+#loading{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--dark);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.loading-spinner{width:46px;height:46px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--green);border-radius:50%;-webkit-animation:spin;animation:spin 0.75s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:480px){
+  #charGrid{grid-template-columns:repeat(2,1fr);}
+  #courseGrid{grid-template-columns:1fr;}
+  #weatherGrid{grid-template-columns:repeat(2,1fr);}
+  .aim-btn{width:58px;height:58px;font-size:1.4rem;}
+  #shootBtn{padding:12px 24px;font-size:0.9rem;}
+}
+/* ===== トーナメント順位表 ===== */
+#tournamentScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:500;display:none;background:linear-gradient(160deg,#0a0a1a 0%,#0c1a08 40%,#001a0a 100%);flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 14px 30px;overflow-y:auto;}
+.tournament-title{font-family:'Orbitron',sans-serif;font-size:4vw;font-weight:900;background:linear-gradient(90deg,var(--gold),#aaff44,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:4px;letter-spacing:0.1em;}
+.tournament-sub{color:#8ab;font-size:0.78rem;text-align:center;margin-bottom:16px;}
+#leaderboardTable{width:100%;max-width:680px;border-collapse:collapse;font-size:0.75rem;margin-bottom:20px;}
+#leaderboardTable th{background:rgba(255,215,0,0.15);color:var(--gold);padding:7px 10px;text-align:center;border-bottom:2px solid rgba(255,215,0,0.3);font-family:'Orbitron',sans-serif;font-size:0.65rem;letter-spacing:0.05em;}
+#leaderboardTable td{padding:6px 10px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);}
+.lb-rank{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1rem;}
+.lb-player{font-weight:700;font-size:0.82rem;}
+.lb-score{font-family:'Orbitron',sans-serif;font-weight:700;}
+.lb-you{background:rgba(0,255,136,0.1)!important;border-left:3px solid var(--green)!important;}
+.lb-prize{font-size:0.68rem;color:#aaffaa;}
+.rank-1{color:#ffd700;font-size:1.2rem;}.rank-2{color:#cccccc;}.rank-3{color:#cc8844;}
+#playAgainBtn{font-family:'Orbitron',sans-serif;background:linear-gradient(135deg,#004418,#009933);color:#fff;border:none;padding:12px 48px;border-radius:50px;font-size:0.95rem;font-weight:700;cursor:pointer;letter-spacing:0.12em;transition:all 0.2s;box-shadow:0 0 20px rgba(0,180,60,0.3);margin-top:8px;}
+#playAgainBtn:hover{transform:scale(1.05);}
+/* ===== 賞金授与画面（優勝時） ===== */
+#prizeScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:600;display:none;background:radial-gradient(ellipse at center,#1a1000 0%,#000 70%);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;}
+.prize-trophy{font-size:5rem;margin-bottom:12px;-webkit-animation:trophySpin;animation:trophySpin 3s ease-in-out infinite;}
+@keyframes trophySpin{0%,100%{transform:scale(1) rotate(-3deg);}50%{transform:scale(1.08) rotate(3deg);}}
+.prize-winner{font-family:'Orbitron',sans-serif;font-size:4vw;font-weight:900;color:var(--gold);margin-bottom:6px;letter-spacing:0.08em;text-shadow:0 0 20px rgba(255,215,0,0.6);}
+.prize-congrats{font-size:5vw;font-weight:900;font-family:'Orbitron',sans-serif;background:linear-gradient(90deg,#ff8800,#ffdd00,#00ff88,#00ccff,#ff00cc,#ff8800);background-size:300% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;-webkit-animation:prizeRainbow;animation:prizeRainbow 2s linear infinite;margin-bottom:20px;}
+@keyframes prizeRainbow{0%{background-position:0%}100%{background-position:300%}}
+.prize-amount{font-family:'Orbitron',sans-serif;font-size:8vw;font-weight:900;color:#ffd700;text-shadow:0 0 40px rgba(255,215,0,0.8),0 0 80px rgba(255,150,0,0.4);margin-bottom:8px;letter-spacing:0.05em;}
+.prize-label{font-size:0.85rem;color:#cda;margin-bottom:28px;letter-spacing:0.1em;}
+#confettiCanvas{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:601;}
+.prize-finBtn{font-family:'Orbitron',sans-serif;background:linear-gradient(135deg,#440000,#cc0000);color:#fff;border:none;padding:14px 60px;border-radius:50px;font-size:1.1rem;font-weight:700;cursor:pointer;letter-spacing:0.2em;transition:all 0.2s;box-shadow:0 0 30px rgba(255,0,0,0.3);}
+.prize-finBtn:hover{transform:scale(1.06);}
+/* ===== FIN画面 ===== */
+#finScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:700;display:none;background:#000;flex-direction:column;align-items:center;justify-content:center;}
+.fin-text{font-family:'Orbitron',sans-serif;font-size:15vw;font-weight:900;color:#fff;letter-spacing:0.3em;-webkit-animation:finFade;animation:finFade 2s ease-out forwards;}
+.fin-sub{font-size:0.9rem;color:#555;margin-top:16px;letter-spacing:0.2em;-webkit-animation:finFade;animation:finFade 3s ease-out forwards;}
+@keyframes finFade{0%{opacity:0;transform:scale(0.5);}60%{opacity:1;transform:scale(1.05);}100%{opacity:1;transform:scale(1);}}
+
+#screenFlashOverlay{position:fixed;top:0;left:0;right:0;bottom:0;background:#fff;opacity:0;pointer-events:none;z-index:999;transition:opacity 0.05s ease-out;}
+#flyoverToast{position:absolute;top:54px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);border:1px solid rgba(0,200,255,0.6);border-radius:20px;padding:5px 16px;font-family:'Orbitron',sans-serif;font-size:0.65rem;color:#00ffcc;pointer-events:auto;cursor:pointer;z-index:100;display:none;letter-spacing:0.06em;box-shadow:0 0 15px rgba(0,200,255,0.3);}
+
+
+/* ===== 添付画像準拠: スマートドック＆左下デュアルHUDスタイル ===== */
+:root {
+  --sui-h: 74px !important;
+}
+
+/* 最上部HUD（右側に天気HUDをインライン水平統合） */
+#topHUD {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  padding: 2px 185px 2px 8px !important;
+  background: rgba(0, 8, 20, 0.75) !important;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  display: flex !important; justify-content: space-between !important; align-items: center !important;
+  gap: 4px !important; height: 44px !important;
+  z-index: 10;
+}
+
+/* 天気HUD（最上部バー右端に水平並列インライン配置） */
+#weatherHUD {
+  position: absolute !important;
+  top: 0 !important; right: 8px !important;
+  height: 44px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 6px !important;
+  pointer-events: none !important;
+  display: flex !important; flex-direction: row !important; align-items: center !important;
+  gap: 8px !important;
+  z-index: 12 !important;
+}
+
+/* 重複ボタン・不要バッジの非表示 */
+#brightnessBtn, #brightnessPanel, #windIndicator {
+  display: none !important;
+}
+
+/* ホール情報バー（topHUD直下・横一列） */
+#holeInfo {
+  position: absolute !important;
+  top: 44px !important; left: 0 !important; right: 0 !important;
+  background: rgba(0, 8, 20, 0.65) !important;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border-bottom: 2px solid rgba(255, 215, 0, 0.35) !important;
+  padding: 3px 12px !important;
+  pointer-events: none !important;
+  display: flex !important; align-items: center !important;
+  gap: 10px !important; flex-wrap: nowrap !important;
+  z-index: 10 !important;
+}
+
+/* 残り距離パネル（左下・ショットバー直上：全クラブ共通で統一表示） */
+#distPanel {
+  position: absolute !important;
+  top: auto !important;
+  bottom: calc(var(--sui-h, 74px) + 6px) !important;
+  left: 10px !important;
+  background: rgba(4, 14, 28, 0.85) !important;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(0, 200, 255, 0.45) !important;
+  border-radius: 8px !important;
+  padding: 5px 12px 4px 10px !important;
+  pointer-events: none !important;
+  min-width: 115px !important;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.6) !important;
+  z-index: 20 !important;
+}
+#distPanel.putt-style {
+  border-color: rgba(0, 255, 200, 0.6) !important;
+  box-shadow: 0 4px 20px rgba(0, 255, 200, 0.25) !important;
+}
+#distPanel.inflight { border-color: var(--accent) !important; }
+#distPanel.inflight #distNum { color: var(--accent) !important; }
+#distLabel {
+  font-size: 0.58rem !important; color: #ff5500 !important;
+  letter-spacing: 0.06em; margin-bottom: 1px; font-weight: 700;
+  display: flex; align-items: center; gap: 3px;
+}
+#distMain {
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 1.75rem !important; font-weight: 900 !important;
+  color: var(--gold) !important; line-height: 1 !important;
+  display: flex !important; align-items: baseline !important; gap: 2px !important;
+}
+#distNum { font-size: 1.75rem !important; font-weight: 900 !important; color: var(--gold) !important; }
+#distUnit { font-size: 0.72rem !important; color: #8ab !important; font-family: 'Orbitron', sans-serif !important; }
+#distSub { font-size: 0.65rem !important; color: #88ccff !important; margin-top: 3px !important; font-weight: 700 !important; font-family: 'Orbitron', sans-serif !important; }
+#distBreak { font-size: 0.58rem !important; color: #66ddff !important; margin-top: 1px !important; font-family: 'Orbitron', sans-serif !important; }
+
+/* クラブ推定飛距離パネル（黄色枠カード） */
+#clubDistBar {
+  position: absolute !important;
+  top: auto !important;
+  bottom: calc(var(--sui-h, 74px) + 6px) !important;
+  left: 132px !important;
+  background: rgba(4, 14, 28, 0.85) !important;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 215, 0, 0.65) !important;
+  border-radius: 8px !important;
+  padding: 5px 12px 4px 10px !important;
+  pointer-events: none !important;
+  min-width: 132px !important;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.6) !important;
+  z-index: 20 !important;
+}
+#clubDistBarLabel {
+  font-size: 0.58rem !important; color: #00eeff !important;
+  font-family: 'Orbitron', sans-serif !important; letter-spacing: 0.05em !important;
+  font-weight: 700 !important; margin-bottom: 2px !important;
+}
+#clubDistBarNum {
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 1.6rem !important; font-weight: 900 !important;
+  color: var(--gold) !important; line-height: 1 !important;
+  text-shadow: 0 0 8px rgba(255,215,0,0.35) !important;
+  margin-bottom: 2px !important;
+}
+#clubDistBarTrack { display: none !important; }
+#clubDistBarBreakdown {
+  font-size: 0.62rem !important; color: #aaffaa !important;
+  font-family: 'Orbitron', sans-serif !important; display: flex !important; gap: 6px !important;
+}
+
+/* 旧パット距離パネルは非表示 */
+#puttDistPanel {
+  display: none !important;
+}
+
+/* 右下ミニマップ（角丸四角形・緑枠） */
+#miniMap {
+  position: absolute !important;
+  top: auto !important;
+  bottom: calc(var(--sui-h, 74px) + 6px) !important;
+  right: 10px !important;
+  width: 86px !important; height: 86px !important;
+  background: rgba(4, 14, 28, 0.72) !important;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(0, 200, 100, 0.6) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.6) !important;
+  z-index: 20 !important;
+}
+
+/* 案内バナー位置調整 */
+#camHint {
+  position: absolute !important;
+  bottom: calc(var(--sui-h, 74px) + 40px) !important;
+  left: 50% !important; transform: translateX(-50%) !important;
+  background: rgba(0, 0, 0, 0.72) !important;
+  border-radius: 8px !important; padding: 4px 14px !important;
+  font-size: 0.56rem !important; color: #cce0ff !important;
+  pointer-events: none !important; text-align: center !important;
+  white-space: nowrap !important; z-index: 13 !important;
+}
+/* 傾斜ヒントバナー（パット時にゲージ上部にスッキリ配置） */
+#puttLineHint {
+  position: absolute !important;
+  bottom: calc(var(--sui-h, 74px) + 40px) !important;
+  left: 50% !important; transform: translateX(-50%) !important;
+  background: rgba(0, 24, 50, 0.88) !important;
+  border: 1px solid rgba(0, 255, 200, 0.6) !important;
+  border-radius: 8px !important; padding: 4px 16px !important;
+  font-family: 'Orbitron', 'Noto Sans JP', sans-serif !important;
+  font-size: 0.65rem !important; color: #00ffcc !important;
+  pointer-events: none !important; text-align: center !important;
+  white-space: nowrap !important; z-index: 25 !important;
+  box-shadow: 0 0 14px rgba(0, 200, 255, 0.35) !important;
+}
+#holeDescHUD {
+  position: absolute !important;
+  bottom: calc(var(--sui-h, 74px) + 6px) !important;
+  left: 50% !important; transform: translateX(-50%) !important;
+  background: rgba(0, 0, 0, 0.78) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important; padding: 4px 14px !important;
+  font-size: 0.6rem !important; color: #ccc !important;
+  pointer-events: none !important; text-align: center !important;
+  max-width: 360px !important; z-index: 14 !important;
+}
+
+/* フライオーバーボタン */
+#flyoverToast {
+  position: absolute !important;
+  top: 48px !important; left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: rgba(0, 10, 24, 0.88) !important;
+  border: 1.5px solid rgba(0, 200, 255, 0.85) !important;
+  box-shadow: 0 0 14px rgba(0, 200, 255, 0.45) !important;
+  border-radius: 20px !important; padding: 4px 20px !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 0.65rem !important; font-weight: 700 !important;
+  color: #00f0ff !important; letter-spacing: 0.08em !important;
+  pointer-events: auto !important; cursor: pointer !important;
+  z-index: 100 !important;
+}
+
+/* ===== 最下部ショットバー（横一列ドック型レイアウト・全幅固定） ===== */
+#shotUI {
+  position: absolute !important;
+  bottom: 0 !important; left: 0 !important; right: 0 !important;
+  height: var(--sui-h, 74px) !important;
+  background: linear-gradient(180deg, rgba(6, 16, 28, 0.72) 0%, rgba(4, 10, 20, 0.92) 100%) !important;
+  -webkit-backdrop-filter: blur(12px) !important; backdrop-filter: blur(12px) !important;
+  border-top: 1.5px solid rgba(0, 200, 255, 0.35) !important;
+  box-shadow: 0 -6px 30px rgba(0, 0, 0, 0.5) !important;
+  padding: 4px 12px calc(4px + env(safe-area-inset-bottom, 0px)) 12px !important;
+  display: flex !important; flex-direction: row !important;
+  align-items: center !important; justify-content: space-between !important; gap: 8px !important;
+  pointer-events: auto !important;
+  z-index: 100 !important;
+}
+
+/* 左側：クラブ切替 ＆ エイム */
+#leftControls {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+.compact-club-box {
+  display: flex; align-items: center; background: rgba(0, 200, 255, 0.08);
+  border: 1.5px solid rgba(0, 200, 255, 0.5); border-radius: 8px;
+  padding: 2px 4px; gap: 4px;
+}
+.compact-club-box.putt-active {
+  border-color: #00ffcc !important; background: rgba(0, 255, 200, 0.15) !important;
+  box-shadow: 0 0 10px rgba(0, 255, 200, 0.4);
+}
+.compact-nav-btn {
+  background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px; color: #fff; width: 28px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; cursor: pointer; user-select: none;
+  transition: all 0.1s;
+}
+.compact-nav-btn:active {
+  background: rgba(0, 200, 100, 0.4); border-color: var(--green); transform: scale(0.92);
+}
+.compact-club-info {
+  display: flex; flex-direction: column; align-items: center; min-width: 60px;
+}
+.compact-club-name {
+  font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 900;
+  color: var(--gold); line-height: 1.1;
+}
+.compact-club-dist {
+  font-family: 'Orbitron', sans-serif; font-size: 0.72rem; font-weight: 700;
+  color: #66ddff; line-height: 1.1;
+}
+.compact-aim-box {
+  display: flex; align-items: center; background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.22); border-radius: 8px;
+  padding: 2px 4px; gap: 3px;
+}
+.compact-aim-deg {
+  font-family: 'Orbitron', sans-serif; font-size: 0.65rem; font-weight: 700;
+  color: var(--gold); text-align: center; min-width: 32px; line-height: 1.1;
+}
+
+/* 中央：パワーメーター ＆ SHOT（完全位置固定・揺れゼロ） */
+#centerControls {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1; max-width: 480px; gap: 2px; margin: 0 4px; height: 100%;
+}
+#centerControls #powerRow {
+  width: 100%; height: 26px; margin: 0 0 2px 0; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+#centerControls #powerRow.swinging { margin-top: 0 !important; }
+#centerControls #powerMeterWrap, #centerControls #puttMeterWrap {
+  width: 100%; max-width: 440px; height: 40px; position: relative; margin: 0 !important;
+  cursor: pointer; touch-action: manipulation;
+}
+#centerControls #powerTrack, #centerControls #puttTrack { height: 40px; border-radius: 20px; }
+#centerControls #powerZoneRow { display: none; }
+#centerControls #powerValueRow {
+  position: absolute; top: -32px; left: 0; right: 0;
+  display: none; align-items: center; justify-content: space-between;
+  padding: 0 4px; pointer-events: none; z-index: 25;
+}
+
+/* ===== 新・高品質パターメーター（オートレンジ＆ジャストインジケーター） ===== */
+#puttMeterWrap {
+  display: none; flex-direction: column; align-items: center;
+}
+#puttScaleRow {
+  width: 100%; display: flex; justify-content: space-between; padding: 0 4px;
+  position: absolute; bottom: -13px; left: 0; right: 0; pointer-events: none;
+}
+#puttValueRow {
+  position: absolute; top: -30px; left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 4px; pointer-events: none; z-index: 20;
+}
+#puttValueNum {
+  font-family: 'Orbitron', sans-serif; font-size: 1.25rem; font-weight: 900;
+  color: #00ffcc; text-shadow: 0 0 10px rgba(0,255,200,0.8);
+  background: rgba(0, 10, 30, 0.75); border: 1px solid rgba(0,255,200,0.4);
+  border-radius: 6px; padding: 2px 8px; line-height: 1;
+}
+#puttZoneHint {
+  font-family: 'Orbitron', 'Noto Sans JP', sans-serif; font-size: 0.75rem; font-weight: 700;
+  color: #ffd700; text-shadow: 0 0 8px currentColor;
+  background: rgba(0, 10, 30, 0.75); border-radius: 6px; padding: 2px 8px;
+}
+#puttTrack {
+  width: 100%; height: 18px; border-radius: 9px;
+  background: linear-gradient(90deg, #001830 0%, #004488 45%, #00aa77 65%, #00ff88 75%, #ffdd00 84%, #ff4444 95%, #ffffff 100%);
+  border: 1.5px solid rgba(0, 220, 255, 0.6); position: relative; overflow: visible;
+  box-shadow: 0 0 14px rgba(0, 200, 255, 0.3);
+}
+/* ジャストタッチゾーン（ピン付近71%〜79%：カップイン確率最大） */
+#puttImpactZone {
+  position: absolute; top: -1px; bottom: -1px; left: 71%; width: 8%;
+  background: rgba(0, 255, 136, 0.45); border: 1.5px solid #00ff88;
+  border-radius: 4px; pointer-events: none;
+  box-shadow: 0 0 10px rgba(0,255,136,0.7);
+}
+/* 目標カップピン位置マーカー（75%位置にクッキリ固定） */
+#puttTargetPinMarker {
+  position: absolute; top: -6px; bottom: -6px; left: 75%; width: 2.5px;
+  background: #ffd700; box-shadow: 0 0 12px #ffd700; pointer-events: none; z-index: 5;
+}
+#puttTargetPinLabel {
+  position: absolute; top: -18px; left: -14px; font-family: 'Orbitron', sans-serif;
+  font-size: 0.55rem; font-weight: 900; color: #ffd700; white-space: nowrap;
+}
+#puttNeedle {
+  position: absolute; top: -6px; bottom: -6px; width: 4px;
+  background: #fff; border-radius: 2px; box-shadow: 0 0 12px rgba(255,255,255,1);
+  left: 0%; pointer-events: none; z-index: 10;
+}
+#puttScaleRow {
+  width: 100%; display: flex; justify-content: space-between; padding: 0 4px; margin-top: 2px;
+}
+.putt-scale-lbl {
+  font-size: 0.58rem; color: #88ccff; font-family: 'Orbitron', sans-serif; font-weight: 700;
+}
+
+#centerControls #shootBtn {
+  min-width: 136px; height: 34px; padding: 4px 34px !important;
+  font-size: 0.92rem !important; font-weight: 900 !important;
+  border-radius: 17px !important; letter-spacing: 0.12em !important;
+  background: linear-gradient(135deg, #00882d, #00e64d) !important;
+  box-shadow: 0 0 16px rgba(0, 230, 77, 0.5) !important;
+  color: #fff; border: none; cursor: pointer; user-select: none; touch-action: manipulation;
+  display: flex; align-items: center; justify-content: center;
+}
+#shootBtn.putt-mode {
+  background: linear-gradient(135deg, #004488, #00bbcc) !important;
+  box-shadow: 0 0 16px rgba(0, 220, 255, 0.6) !important;
+}
+
+/* 右側：サブボタン（横並び） */
+#rightControls {
+  display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+}
+.compact-sub-btn {
+  font-family: 'Orbitron', 'Noto Sans JP', sans-serif;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px; padding: 6px 9px; font-size: 0.62rem; font-weight: 700;
+  cursor: pointer; background: rgba(255, 255, 255, 0.08); color: #fff;
+  transition: all 0.15s; white-space: nowrap; height: 38px;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+}
+.compact-sub-btn:active { transform: scale(0.93); }
+#btnTrajectoryToggle {
+  background: rgba(0, 200, 255, 0.2) !important;
+  border-color: rgba(0, 200, 255, 0.6) !important;
+  color: #00eeff !important;
+}
+#scoreBtn {
+  border-color: rgba(255, 215, 0, 0.45) !important;
+  color: var(--gold) !important;
+}
+
+/* D-Plane 微調整ポップアップモーダル */
+#dplaneModal {
+  position: absolute;
+  bottom: calc(var(--sui-h, 74px) + 8px); right: 12px;
+  background: rgba(4, 14, 28, 0.94);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(0, 200, 255, 0.5);
+  border-radius: 12px; padding: 8px 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+  display: none; min-width: 290px;
+  z-index: 200; pointer-events: auto;
+}
+#dplaneModal.show {
+  display: block !important;
+  -webkit-animation: popModal 0.2s ease-out; animation: popModal 0.2s ease-out;
+}
+@keyframes popModal {
+  from { opacity: 0; transform: translateY(12px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+#dplaneModalHeader {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: 'Orbitron', sans-serif; font-size: 0.68rem; color: #00eeff;
+  border-bottom: 1px solid rgba(0, 200, 255, 0.25); padding-bottom: 4px; margin-bottom: 6px;
+}
+#dplaneModalClose {
+  background: none; border: none; color: #aaa; font-size: 0.9rem; cursor: pointer;
+}
+
+#shootBtn.next-hole-mode {
+  background: linear-gradient(135deg, #7928ca, #ff0080) !important;
+  box-shadow: 0 0 22px rgba(255, 0, 128, 0.85), 0 4px 15px rgba(0, 0, 0, 0.6) !important;
+  color: #fff !important;
+  font-size: 0.95rem !important;
+  letter-spacing: 0.12em !important;
+  animation: pulseNextHoleBtn 1s infinite alternate ease-in-out !important;
+}
+#nextHoleBtn.active {
+  display: block !important;
+  background: linear-gradient(135deg, #7928ca, #ff0088) !important;
+  box-shadow: 0 0 16px rgba(255, 0, 136, 0.85) !important;
+  color: #fff !important;
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+  padding: 6px 12px !important;
+  border-radius: 8px !important;
+  animation: pulseNextHoleBtn 1s infinite alternate ease-in-out !important;
+}
+@keyframes pulseNextHoleBtn {
+  from { transform: scale(1); filter: brightness(1); }
+  to { transform: scale(1.05); filter: brightness(1.25); }
+}
+
+/* ★★★ AAAスポーツ中継・没入型ビジュアル演出 CSS ★★★ */
+#fxFlashOverlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: radial-gradient(circle, rgba(255,255,255,0.92) 0%, rgba(200,240,255,0.4) 70%, transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 99999;
+  transition: opacity 0.08s ease-out;
+}
+#fxFlashOverlay.flash {
+  opacity: 1;
+}
+
+#zoneVignette {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 15, 30, 0.72) 100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transition: opacity 0.6s ease-in-out;
+}
+#zoneVignette.active {
+  opacity: 1;
+}
+
+#pgaBroadcastBanner {
+  position: fixed;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-30px);
+  background: linear-gradient(135deg, rgba(10,25,40,0.92) 0%, rgba(20,45,70,0.85) 100%);
+  border: 1px solid rgba(255,215,0,0.6);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 15px rgba(255,215,0,0.3);
+  backdrop-filter: blur(8px);
+  border-radius: 24px;
+  padding: 8px 24px;
+  color: #fff;
+  font-family: 'Segoe UI', -apple-system, sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10000;
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s ease;
+}
+#pgaBroadcastBanner.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+#pgaBroadcastBanner .badge {
+  background: linear-gradient(135deg, #ffd700, #ff8800);
+  color: #000;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+/* 3Dターゲットリングのアニメーション強調 */
+@keyframes targetRingPulse {
+  0% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 8px #00ffff); }
+  100% { transform: scale(1); opacity: 0.85; }
+}
+
+
+/* ===== merged from style block 2 ===== */
+  /* ===== GOAT BATTLE ENGINE v3.0 額縁HUDスタイル（中央80%クリア・TV中継品質・重なりゼロ配置） ===== */
+  body.goat-duel #pgaBroadcastBanner,
+  body.goat-duel #pgaBroadcastBanner.show {
+    top: 84px !important;
+  }
+  #goatMatchCard {
+    position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 9500;
+    display: none; align-items: center; gap: 14px; padding: 7px 18px;
+    background: linear-gradient(180deg, rgba(10, 14, 30, 0.92) 0%, rgba(6, 8, 18, 0.95) 100%);
+    border: 1px solid rgba(255, 216, 117, 0.48); border-radius: 14px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.7), 0 0 18px rgba(255,205,80,0.18);
+    backdrop-filter: blur(10px); color: #eef2ff; font-family: 'Noto Sans JP', sans-serif;
+    pointer-events: none; white-space: nowrap;
+  }
+  .gmc-side { display: flex; flex-direction: column; min-width: 135px; }
+  .gmc-side.opp { text-align: right; align-items: flex-end; }
+  .gmc-name { font-size: 13.5px; font-weight: 900; color: #fff; }
+  .gmc-sub  { font-size: 10px; color: #ffd875; font-weight: 700; }
+  .gmc-oppbar { width: 120px; height: 6px; background: rgba(255,255,255,0.14); border-radius: 4px; overflow: hidden; margin-top: 3px; }
+  #gmcOppPowFill { height: 100%; width: 100%; background: linear-gradient(90deg, #ff4757, #ffa502, #ffd875); transition: width 0.35s ease; }
+  .gmc-center {
+    text-align: center; padding: 0 12px;
+    border-left: 1px solid rgba(255,255,255,0.14); border-right: 1px solid rgba(255,255,255,0.14);
+  }
+  #gmcStatus { font-size: 13px; font-weight: 900; color: #5ce1e6; letter-spacing: 1px; }
+  #gmcMarks  { font-size: 11px; color: #ffe69c; margin-top: 2px; font-weight: 800; }
+
+  /* 左下：炎パワー＆運命の糸メンタル＋特殊ショットコマンドパレット（下部距離パネルと一切重ならない段差配置） */
+  #goatBattleLeft {
+    position: fixed; left: 10px; bottom: calc(var(--sui-h, 118px) + 76px); z-index: 9500;
+    display: none; width: 252px; padding: 9px 11px;
+    background: linear-gradient(165deg, rgba(10, 13, 28, 0.88), rgba(6, 8, 18, 0.94));
+    border: 1px solid rgba(255, 216, 117, 0.42); border-radius: 13px;
+    backdrop-filter: blur(8px); box-shadow: 0 8px 26px rgba(0,0,0,0.65);
+    color: #fff; font-family: 'Noto Sans JP', sans-serif;
+  }
+  .gbl-row { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 800; margin-bottom: 2px; }
+  #gFlameCv { width: 100%; height: 18px; border-radius: 6px; background: rgba(0,0,0,0.5); display: block; border: 1px solid rgba(255,210,110,0.28); }
+  #gThreadCv { width: 100%; height: 12px; border-radius: 5px; background: rgba(0,0,0,0.5); display: block; border: 1px solid rgba(170,140,255,0.28); margin-bottom: 6px; }
+  .sp-toggle-btn {
+    width: 100%; padding: 6px 10px; border-radius: 8px; cursor: pointer;
+    background: linear-gradient(135deg, #5e4208, #362503); border: 1px solid #ffd875;
+    color: #fff3c9; font-size: 11.5px; font-weight: 800; text-align: center;
+  }
+  .sp-toggle-btn.armed {
+    background: linear-gradient(135deg, #8b1e3f, #4c0d21); border-color: #ff7597; color: #ffeef2;
+    box-shadow: 0 0 14px rgba(255, 90, 130, 0.5);
+  }
+  #goatSpMenu {
+    display: none; flex-direction: column; gap: 4px; margin-top: 6px;
+    max-height: 215px; overflow-y: auto; padding-right: 2px;
+  }
+  #goatSpMenu.open { display: flex; }
+  .sp-item {
+    text-align: left; padding: 5px 8px; border-radius: 7px; cursor: pointer;
+    background: rgba(24, 30, 58, 0.92); border: 1px solid rgba(140, 160, 220, 0.32);
+    color: #eef2ff; font-size: 11px; font-weight: 700; transition: all 0.14s;
+  }
+  .sp-item:hover:not(:disabled) { border-color: #ffd875; background: rgba(58, 45, 16, 0.92); }
+  .sp-item.sel { border-color: #5ce1e6; background: rgba(16, 56, 72, 0.95); }
+  .sp-item:disabled { opacity: 0.38; cursor: not-allowed; }
+  .sp-item small { display: block; font-size: 9.5px; color: #a9b6d8; font-weight: 400; }
+
+  /* 下部イベント字幕（相手ゴーストの重大局面のみ静かに通知・カメラ操作ガイドと重ならない段差配置） */
+  #goatGhostCaption {
+    position: fixed; left: 50%; bottom: calc(var(--sui-h, 118px) + 46px); transform: translateX(-50%);
+    z-index: 9500; display: none; pointer-events: none;
+    background: rgba(8, 10, 24, 0.88); border: 1px solid rgba(255, 216, 117, 0.5);
+    color: #ffefb8; border-radius: 999px; padding: 6px 20px; font-size: 12.5px; font-weight: 800;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.75); white-space: nowrap;
+  }
+
+  /* 決着＆ニアピンプレーオフ特大リザルトモーダル */
+  #goatFinishOverlay {
+    position: fixed; inset: 0; z-index: 99990; display: none;
+    align-items: center; justify-content: center; padding: 20px;
+    background: rgba(4, 5, 14, 0.84); backdrop-filter: blur(10px);
+  }
+  .gfo-card {
+    max-width: 620px; width: 100%; padding: 30px 34px; text-align: center;
+    background: linear-gradient(170deg, rgba(18, 22, 46, 0.97), rgba(8, 10, 22, 0.99));
+    border: 1.5px solid #ffd875; border-radius: 22px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.92), 0 0 45px rgba(255, 200, 65, 0.24);
+    color: #fff; font-family: 'Noto Sans JP', sans-serif;
+  }
+  .gfo-tag { font-size: 11px; letter-spacing: 3px; color: #ffd875; font-weight: 800; }
+  .gfo-title { font-size: 28px; font-weight: 900; margin-top: 6px; color: #fff4ce; }
+  .gfo-body {
+    font-size: 13.5px; line-height: 1.85; color: #d8e0f8; margin: 16px 0 22px;
+    background: rgba(255,255,255,0.04); padding: 14px 18px; border-radius: 12px;
+  }
+  .gfo-btn {
+    background: linear-gradient(135deg, #b88b1e, #785506); color: #fffaf0;
+    border: 1px solid #ffd875; border-radius: 999px; padding: 12px 34px;
+    font-size: 15px; font-weight: 900; cursor: pointer;
+    box-shadow: 0 6px 24px rgba(210, 155, 25, 0.42);
+  }
+  .gfo-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  /* =====================================================================
+     LAYOUT FIX v4.0（①上段レイアウト最適化／②炎パネル一列ストリップ化と下部バー全幅収納／④隠れ表示の救済）
+     ・3Dコース描画(canvas)は一切縮小しない。HUDの配置とサイズのみを最適化する。
+     ・広幅(1101px以上): ホール情報を対戦カードへ統合した1本バー。赤バナーと対戦状況は最上段の余白へ
+     ・中幅(641〜1100px): ホール情報バー＋対戦カードの段差配置。赤バナーは最上段の余白へ
+     ・スマホ(640px以下): 段差配置のまま、各パネルを小型化して全項目を画面内へ
+     ===================================================================== */
+  /* ② 左下パネルは距離パネル(高さ約90px)の上に段差を空けて配置し、重ならないようにする */
+  #goatBattleLeft { bottom: calc(var(--sui-h, 74px) + 108px); }
+
+  @media (min-width: 641px) {
+    /* ① 最上段のパネルは3行が44pxに収まる大きさにし、下のバーに隠れないようにする */
+    body.goat-duel #topHUD .hud-label { font-size: 0.5rem !important; }
+    body.goat-duel #topHUD .hud-value { font-size: 1.02rem !important; }
+    body.goat-duel #topHUD .hud-small { font-size: 0.55rem !important; }
+    body.goat-duel #topHUD .hud-panel { line-height: 1.15 !important; }
+    /* ① 赤い特徴バナー（戦術アラート）は最上段の余白に組み込み、対戦バーに隠れないようにする */
+    #topHUD #tacticalAlertBadge { position: static !important; flex-shrink: 1; min-width: 0; max-width: 285px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  }
+
+  @media (min-width: 641px) and (max-width: 1100px) {
+    /* ① 中幅：対戦カードはホール情報バー(44〜71px)の下に置き、重なりをなくす */
+    #goatMatchCard { top: 78px; max-width: calc(100vw - 16px); }
+    body.goat-duel #pgaBroadcastBanner, body.goat-duel #pgaBroadcastBanner.show { top: 146px !important; }
+    body.goat-duel #flightBar { top: 146px !important; }
+  }
+
+  @media (min-width: 1101px) {
+    /* ① 広幅：対戦カード（ホール情報の項目を取り込み済み）を上段直下の1本バーに統合し、上段の余白を活かしてコース表示を広げる */
+    body.goat-duel #holeInfo { display: none !important; }
+    #goatMatchCard { top: 48px; height: 40px; padding: 4px 18px; gap: 18px; border-radius: 11px; max-width: calc(100vw - 16px); }
+    .gmc-hole { display: flex; align-items: center; gap: 8px; padding-right: 12px; border-right: 1px solid rgba(255,255,255,0.14); min-width: 0; }
+    .gmc-hole .hi-hole { font-size: 1rem; }
+    .gmc-hole .hi-progress { font-size: 0.62rem; }
+    .gmc-hole .hi-yards { font-size: 0.8rem; }
+    .gmc-hole .hi-par { font-size: 0.7rem; }
+    .gmc-hole .hi-name { font-size: 0.62rem; }
+    .gmc-side { flex-direction: row; align-items: baseline; gap: 7px; min-width: 0; }
+    .gmc-side.opp { flex-direction: row; align-items: center; text-align: left; }
+    .gmc-oppbar { width: 90px; }
+    #gmcMarks { margin-top: 0; }
+    /* ① 広幅：対戦状況も最上段の余白へ（残り距離の隣） */
+    #topHUD .gmc-center { border: none; padding: 0 4px; min-width: 0; text-align: center; }
+    #topHUD #tacticalAlertBadge { max-width: 320px; }
+    body.goat-duel #pgaBroadcastBanner, body.goat-duel #pgaBroadcastBanner.show { top: 96px !important; }
+    body.goat-duel #flightBar { top: 96px !important; }
+    body.goat-duel #holeDescToast { top: 96px !important; }
+  }
+
+  @media (max-width: 640px) {
+    /* ① 上段：天気の予約幅を実幅に合わせ、プレイヤー/スコア/残り距離をすべて見せる */
+    #topHUD { padding: 2px 144px 2px 6px !important; }
+    #hudScore span { font-size: 0.95rem !important; }
+    .hud-label { font-size: 0.42rem !important; }
+    .hud-panel { min-width: 0 !important; padding: 2px 5px !important; }
+    .hud-value { font-size: 0.7rem !important; }
+    .hud-small { font-size: 0.55rem !important; }
+    #weatherHUD { gap: 4px !important; right: 4px !important; }
+    .weather-row { font-size: 0.55rem !important; }
+    /* ① 対戦カードはホール情報バー(44〜71px)の下に置き、重なりをなくす。各欄は縮小可能にして相手側が画面外へはみ出さないようにする */
+    #goatMatchCard { top: 74px; width: calc(100vw - 12px); max-width: calc(100vw - 12px); padding: 5px 6px; gap: 4px; flex-wrap: wrap; row-gap: 2px; }
+    .gmc-side, .gmc-center { min-width: 0; }
+    .gmc-side { order: 1; flex: 1 1 0; }
+    .gmc-side.opp { order: 2; flex: 1 1 0; }
+    /* スマホでは対戦状況を2段目に全幅で置き、文字を小さくしすぎず全項目を読めるようにする */
+    .gmc-center { order: 3; flex: 1 1 100%; flex-direction: row; align-items: baseline; justify-content: center; gap: 8px; border: none; border-top: 1px solid rgba(255,255,255,0.10); padding: 2px 4px 0; margin-top: 1px; }
+    .gmc-name { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .gmc-sub { font-size: 8.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    #gmcStatus { font-size: 10.5px; letter-spacing: 0; }
+    #gmcMarks { font-size: 9px; }
+    .gmc-oppbar { width: 100%; max-width: 120px; }
+    body.goat-duel #pgaBroadcastBanner, body.goat-duel #pgaBroadcastBanner.show { top: 166px !important; }
+    body.goat-duel #flightBar { top: 166px !important; }
+    /* ① 赤い特徴バナーが対戦カードに隠れないよう、カードの下にずらす */
+    #tacticalAlertBadge { top: 166px !important; left: 8px !important; }
+    /* ② 左下：炎パワー＆運命の糸メンタル＆特殊ショットを横一列の細長い帯にして、コース中央を空ける（案D） */
+    #goatBattleLeft { left: 10px; right: 10px; width: auto; bottom: calc(var(--sui-h, 74px) + 102px); padding: 6px 8px; }
+    body.goat-duel #goatBattleLeft { display: flex !important; flex-direction: row; align-items: stretch; gap: 7px; }
+    #goatBattleLeft .gbl-cell { flex: 0 0 104px; display: flex; flex-direction: column; justify-content: center; gap: 3px; min-width: 0; }
+    #goatBattleLeft .gbl-cell .gbl-row { font-size: 8.5px; white-space: nowrap; }
+    #goatBattleLeft .gbl-bar { display: flex; align-items: center; gap: 5px; }
+    #goatBattleLeft .gbl-bar canvas { flex: 1 1 auto; width: auto !important; min-width: 0; }
+    #goatBattleLeft .gbl-bar > span { font-size: 9.5px !important; font-weight: 700; white-space: nowrap; }
+    #gFlameCv { height: 13px; }
+    #gThreadCv { height: 9px; margin-bottom: 5px; }
+    .sp-toggle-btn { font-size: 10px; padding: 5px 6px; white-space: normal; line-height: 1.3; flex: 1 1 auto; min-width: 0; }
+    /* ②④ 下部ショットバー：右側ボタン群まで全て画面内に収める */
+    #shotUI { gap: 5px !important; padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px)) 6px !important; }
+    /* ショットパラメーター横長化（案F2）: DR/PINは縦積みの小型スタックにする */
+    #leftControls { flex-direction: column; flex: 0 0 96px; min-width: 0; gap: 3px; }
+    .compact-club-box, .compact-aim-box { width: 96px; height: 33px; padding: 1px 2px; gap: 2px; }
+    .compact-nav-btn { width: 19px; height: 27px; font-size: 0.82rem; }
+    .compact-club-info { min-width: 36px; }
+    .compact-club-name { font-size: 0.78rem; }
+    .compact-club-dist { font-size: 0.6rem; }
+    .compact-aim-deg { min-width: 20px; font-size: 0.55rem; }
+    #centerControls { flex: 1 1 auto; min-width: 0; margin: 0 3px; }
+    /* 案F2: 右ボタンも縦積みにして、空いた幅をメーターへ */
+    #rightControls { flex-shrink: 0; flex-direction: column; gap: 2px; }
+    .compact-sub-btn { width: 48px; height: 21px; padding: 2px 3px; font-size: 0.54rem; }
+    /* ② SHOTボタンは中央カラムの幅に収め、左右の操作ボタンに被せない */
+    #centerControls #shootBtn { min-width: 0; width: 100%; height: 32px; padding: 4px 6px !important; font-size: 0.8rem !important; letter-spacing: 0.06em !important; }
+    #miniMap { width: 74px !important; height: 74px !important; }
+    /* ④ 中継テロップ：長い文でも画面からはみ出さない */
+    #goatGhostCaption { white-space: normal; text-align: center; max-width: 94vw; font-size: 11px; padding: 5px 12px; line-height: 1.45; }
+  }
+
+/* ===== merged from style block 3 ===== */
+@media (max-width: 640px) {
+  /* 案G1 上部圧縮v2: ホール情報/対戦カード/赤バナーを薄く（topHUDは不変更） */
+  #holeInfo { font-size: 0.78rem !important; padding-top: 2px !important; padding-bottom: 2px !important; }
+  #goatMatchCard { top: 62px !important; padding: 6px 10px !important; }
+  #tacticalAlertBadge { top: 144px !important; font-size: 0.74rem !important; padding: 4px 12px !important; }
+}
+
+/* ===== merged from style block 4 ===== */
+@media (max-width: 640px) {
+  /* 案G2 下部圧縮: 炎の帯と距離パネル列を薄く（ショットバーは不変更） */
+  body.goat-duel #goatBattleLeft { height: 42px !important; padding: 4px 10px !important; bottom: calc(var(--sui-h, 74px) + 84px) !important; }
+  #distPanel { padding: 5px 8px !important; }
+  #distNum { font-size: 1.5rem !important; }
+  #clubDistBar { padding: 5px 8px !important; }
+  #miniMap { width: 60px !important; height: 60px !important; }
+}
+
+/* ===== merged from style block 5 ===== */
+@media (max-width: 640px) {
+
+  .gmc-name { font-size: 12px !important; } .gmc-sub { font-size: 9px !important; }
+  #gmcStatus { font-size: 11.5px !important; } #gmcMarks { font-size: 9.5px !important; margin-top: 0 !important; }
+  #goatMatchCard { padding: 4px 6px !important; gap: 2px !important; row-gap: 1px !important; top: 58px !important; }
+  #tacticalAlertBadge { font-size: 0.68rem !important; padding: 2px 10px !important; top: 145px !important; }
+  #holeInfo { font-size: 0.72rem !important; }
+  #distPanel { padding: 4px 8px !important; line-height: 1.15 !important; font-size: 0.72rem !important; }
+  #clubDistBar { padding: 4px 8px !important; line-height: 1.15 !important; }
+  body.goat-duel #distNum { font-size: 1.15rem !important; }
+  body.goat-duel #clubDistBarNum { font-size: 1.15rem !important; }
+  body.goat-duel #goatBattleLeft { height: 36px !important; padding: 3px 10px !important; bottom: calc(var(--sui-h, 74px) + 72px) !important; }
+  #miniMap { width: 60px !important; height: 60px !important; }
+
+  #goatInfoBar { position: fixed; left: 6px; right: 6px; bottom: calc(var(--sui-h, 74px) + 4px); z-index: 9400; display: none; flex-direction: column; gap: 3px; padding: 5px 8px; background: linear-gradient(165deg, rgba(10,13,28,0.92), rgba(6,8,18,0.96)); border: 1px solid rgba(255,216,117,0.4); border-radius: 12px; box-shadow: 0 8px 26px rgba(0,0,0,0.6); }
+  body.goat-duel #goatInfoBar { display: flex; }
+  #goatInfoBar #goatBattleLeft { position: static !important; width: auto !important; height: 30px !important; padding: 2px 6px !important; border: none !important; background: none !important; box-shadow: none !important; }
+  #goatInfoBar .gib-row { display: flex; gap: 8px; align-items: center; }
+  #goatInfoBar #distPanel { position: static !important; flex: 1 1 auto !important; width: auto !important; display: flex !important; align-items: baseline !important; gap: 7px !important; flex-wrap: nowrap !important; padding: 2px 4px !important; background: none !important; border: none !important; box-shadow: none !important; }
+  #goatInfoBar #distPanel > * { margin: 0 !important; }
+  #goatInfoBar #clubDistBar { position: static !important; width: auto !important; display: flex !important; align-items: baseline !important; gap: 7px !important; padding: 1px 4px !important; background: none !important; border: none !important; box-shadow: none !important; font-size: 0.66rem !important; }
+  #goatInfoBar #clubDistBar > * { margin: 0 !important; }
+  #goatInfoBar #miniMap { position: static !important; width: 38px !important; height: 38px !important; flex: 0 0 38px !important; }
+
+  #goatInfoBar { padding: 4px 7px !important; gap: 2px !important; bottom: calc(var(--sui-h, 74px) + 2px) !important; }
+  #goatInfoBar #goatBattleLeft { height: 36px !important; }
+  #goatMatchCard { top: 54px !important; }
+  #tacticalAlertBadge { top: 141px !important; }
+  #holeInfo { font-size: 0.68rem !important; }
+
+  #topHUD { height: 40px !important; }
+  .gmc-name { font-size: 11px !important; } #gmcStatus { font-size: 10.5px !important; }
+  body.goat-duel #distNum { font-size: 1.05rem !important; }
+  body.goat-duel #clubDistBarNum { font-size: 1.05rem !important; }
+
+  .gmc-side { min-width: 104px !important; }
+  .gmc-center { padding: 0 5px !important; }
+  #goatMatchCard { flex-wrap: nowrap !important; }
+  #tacticalAlertBadge { top: 112px !important; }
+}
+
+/* ===== merged from style block 6 ===== */
+@media (max-width: 640px) {
+
+  /* 統合行: 距離と推定を1行に並べる（距離側の重複サブ行は推定側と同内容のため畳む） */
+  #goatInfoBar #distSub, #goatInfoBar #distBreak { display: none !important; }
+  #goatInfoBar #distPanel { flex: 0 1 auto !important; }
+  #goatInfoBar #clubDistBar { position: static !important; flex: 1 1 auto !important; display: flex !important; align-items: baseline !important; gap: 6px !important; background: none !important; border: none !important; box-shadow: none !important; padding: 2px 4px !important; width: auto !important; }
+  #goatInfoBar #clubDistBar > * { margin: 0 !important; }
+  #goatInfoBar #miniMap { width: 30px !important; height: 30px !important; flex: 0 0 30px !important; }
+}
+
+/* ===== merged from style block 7 ===== */
+@media (max-width: 640px) {
+
+  /* 仕上げ: ホール情報バーは上段/カードと重複するため対戦中は畳む（デスクトップと同じ扱い） */
+  body.goat-duel #holeInfo { display: none !important; }
+  /* 情報バーのラベルは折り返さない */
+  #goatInfoBar #distLabel, #goatInfoBar #clubDistBarLabel { white-space: nowrap !important; flex-shrink: 0 !important; }
+  /* 特殊ボタンの文字が枠からはみ出さないように */
+  #goatBattleLeft button { font-size: 0.72rem !important; line-height: 1.12 !important; padding: 3px 6px !important; }
+
+  /* カード1行化でもサブ(称号/敵炎%)を切らずに折り返して全表示 */
+  .gmc-sub { white-space: normal !important; line-height: 1.15 !important; }
+}
+
+/* ===== merged from style block 8 ===== */
+@media (max-width: 640px) {
+
+  /* マップドック: フィールド右下に常駐し、右サイドへ畳める */
+  #mapDock { position: fixed; right: 6px; bottom: calc(var(--sui-h, 74px) + 76px); width: 88px; height: 88px; z-index: 9300; display: none; transition: transform .25s ease; }
+  body.goat-duel #mapDock { display: block; }
+  #mapDock .map-strip { position: absolute; left: 0; top: 0; bottom: 0; width: 17px; z-index: 2; background: rgba(8,10,22,.88); border: 1px solid rgba(255,216,117,.45); border-right: none; border-radius: 9px 0 0 9px; color: #ffd875; font-size: 9px; writing-mode: vertical-rl; display: flex; align-items: center; justify-content: center; letter-spacing: 2px; cursor: pointer; }
+  #mapDock #miniMap { position: absolute !important; left: 17px !important; top: 10px !important; width: 68px !important; height: 68px !important; }
+  body.map-folded #mapDock { transform: translateX(73px); }
+
+  /* 対戦カードの折りたたみ */
+  #foldCardBtn { position: fixed; top: 114px; right: 8px; z-index: 9900; display: none; padding: 3px 9px; border-radius: 999px; background: rgba(10,13,28,.88); border: 1px solid rgba(255,216,117,.5); color: #ffd875; font-size: 10px; cursor: pointer; }
+  body.goat-duel #foldCardBtn { display: block; }
+  body.card-folded #foldCardBtn { top: 86px; }
+  body.card-folded #goatMatchCard { padding: 2px 8px !important; }
+  body.card-folded .gmc-sub, body.card-folded #gmcMarks, body.card-folded .gmc-oppbar { display: none !important; }
+  body.card-folded #tacticalAlertBadge { top: 88px !important; }
+}
+
+/* ===== merged from style block 9 ===== */
+@media (max-width: 640px) {
+  /* 特殊ショットボタンを帯の中に2行で収める */
+  #goatInfoBar #goatBattleLeft button { flex: 0 0 150px !important; font-size: 0.66rem !important; line-height: 1.15 !important; }
+}
+
+/* ===== merged from style block 10 ===== */
+@media (max-width: 640px) {
+
+  /* 入れ替え: 情報バーを最下段へ、ショットバーをその上へ */
+  #goatInfoBar { bottom: 2px !important; }
+  #shotUI { bottom: 69px !important; }
+  /* ショットバー直上にいた案内類も一緒に持ち上げる */
+  #dirArrowUI { bottom: calc(var(--sui-h, 74px) + 71px) !important; }
+  #camHint { bottom: calc(var(--sui-h, 74px) + 107px) !important; }
+  #puttLineHint { bottom: calc(var(--sui-h, 74px) + 73px) !important; }
+  #holeDescHUD { bottom: calc(var(--sui-h, 74px) + 73px) !important; }
+  #slopeLegend { bottom: calc(var(--sui-h, 74px) + 67px) !important; }
+
+  /* 上段の青空の隙間を詰める: カードをHUDへ寄せる */
+  #goatMatchCard { top: 44px !important; }
+  #tacticalAlertBadge { top: 102px !important; }
+  #foldCardBtn { top: 104px !important; }
+  body.card-folded #tacticalAlertBadge { top: 70px !important; }
+  body.card-folded #foldCardBtn { top: 72px !important; }
+}
+
+/* ===== merged from style block 11 ===== */
+@media (max-width: 640px) {
+  /* パット: 数値行をスリムな1行バーにしてメーター直上へ密着 */
+  #puttValueRow { top: -27px !important; right: 0 !important; height: 24px; justify-content: flex-start !important; }
+  #puttValueNum { white-space: nowrap; font-size: 0.98rem !important; padding: 1px 7px !important; }
+  #puttZoneHint { position: absolute !important; left: 0; top: -25px; white-space: nowrap; font-size: 0.62rem !important; padding: 1px 5px !important; }
+  #puttLineHint { bottom: calc(var(--sui-h, 74px) + 130px) !important; }
+  /* 推定まわりの数字を大きく（折り返し防止つき） */
+  #goatInfoBar .gib-row { gap: 6px !important; }
+  #goatInfoBar #distNum { font-size: 20px !important; }
+  #goatInfoBar #clubDistBarNum { font-size: 22px !important; }
+  #goatInfoBar #clubDistBarLabel, #goatInfoBar #clubDistCarry, #goatInfoBar #clubDistRun, #goatInfoBar #distLabel { font-size: 11.5px !important; white-space: nowrap !important; }
+  #goatInfoBar #clubDistBar { flex-wrap: nowrap !important; gap: 5px !important; }
+  #goatInfoBar #distPanel { gap: 5px !important; }
+}
+
+/* ===== merged from style block 12 ===== */
+
 /* ===== Mythic PGA Broadcast テーマ統合層（商用品質アップグレード） ===== */
 #shotUI{ border-top:2px solid rgba(255,216,117,.55) !important; box-shadow:0 -8px 28px rgba(0,0,0,.5); }
 #goatInfoBar{ font-variant-numeric:tabular-nums; }
@@ -8872,6 +8904,155 @@ document.addEventListener('DOMContentLoaded', function () {
 .char-name{ font-family:"Cinzel",serif !important; color:#ffd875 !important; letter-spacing:.07em; }
 .course-btn{ font-family:"Noto Serif JP",serif; border:1px solid rgba(255,216,117,.3) !important; background:rgba(10,13,30,.92) !important; color:#e9e2cf !important; }
 .course-btn.selected{ border-color:#ffd875 !important; color:#ffd875 !important; box-shadow:0 0 12px rgba(255,216,117,.3); }
+
 </style>
+
+<script>
+/* =========================================================================
+   v4.1 追加モジュール：プレイヤー紹介カメラ（項目13）／適応的解像度（項目15）／読込失敗時の代替表示（項目17）
+   レイアウト寸法・セーブ・postMessage には触れない
+   ========================================================================= */
+(function(){
+  "use strict";
+
+  /* ---- 項目17: Three.js が読み込めなかった場合の代替表示 ---- */
+  function showLoadFallback(){
+    if(document.getElementById("v41LoadFallback")) return;
+    var d = document.createElement("div");
+    d.id = "v41LoadFallback";
+    d.style.cssText = "position:fixed;inset:0;z-index:99999;background:#0a0d1e;color:#ffe9a8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:'Noto Serif JP',serif;text-align:center;padding:24px;";
+    d.innerHTML = "<div style='font-size:20px;font-weight:700;'>⛳ 3Dエンジンの読み込みに失敗しました</div>" +
+      "<div style='font-size:13.5px;color:#aebadd;line-height:1.8;'>通信環境を確認してから、再読み込みしてください。<br>セーブデータはブラウザ内に安全に残っています。</div>";
+    var b = document.createElement("button");
+    b.textContent = "🔄 再読み込み";
+    b.style.cssText = "background:#c9a227;color:#14161f;border:none;font-size:15px;font-weight:700;padding:10px 26px;border-radius:8px;cursor:pointer;";
+    b.onclick = function(){ location.reload(); };
+    d.appendChild(b);
+    document.body.appendChild(d);
+  }
+  setTimeout(function(){
+    if(typeof THREE === "undefined") showLoadFallback();
+  }, 4000);
+
+  /* ---- ゲーム本体の準備を待つ ---- */
+  var tries = 0;
+  var iv = setInterval(function(){
+    tries++;
+    var g = window.game;
+    if(!g || !g.renderer || !g.scene){ if(tries > 200) clearInterval(iv); return; }
+    clearInterval(iv);
+    initWithGame(g);
+  }, 150);
+
+  function initWithGame(g){
+
+    /* ---- 項目13: ホール開始時だけ、アドレスに入るプレイヤーの姿を小窓（ピクチャ・イン・ピクチャ）で映す ----
+       通常カメラはボール後方からピンを見るため、プレイヤーが画角の外（下端のHUD裏）に隠れてしまう。
+       そこでホール開始の約2.4秒だけ、同じ3Dシーンを「プレイヤーを横前方から見るカメラ」で右端の小窓に描画する。
+       レイアウト寸法は変えず、操作を始めたら即座に消える。 */
+    var pipUntil = 0, pipLabel = null;
+    function cancelPip(){ pipUntil = 0; if(pipLabel){ pipLabel.remove(); pipLabel = null; } }
+    ["pointerdown","touchstart"].forEach(function(ev){
+      window.addEventListener(ev, function(){ if(Date.now() < pipUntil) cancelPip(); }, { passive:true });
+    });
+    function startPip(){
+      if(window.GOAT_BATTLE && GOAT_BATTLE.inPlayoff) return;
+      if(g.gameMode === "putt") return;
+      pipUntil = Date.now() + 2400;
+      if(!pipLabel){
+        pipLabel = document.createElement("div");
+        pipLabel.textContent = "🏌 PLAYER CAM";
+        pipLabel.style.cssText = "position:fixed;z-index:60;background:rgba(8,10,22,.85);color:#ffd875;border:1px solid rgba(255,216,117,.6);border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 8px;pointer-events:none;font-family:'Cinzel',serif;";
+        document.body.appendChild(pipLabel);
+      }
+    }
+    if(typeof g.loadHole === "function" && !g.__v41CamHooked){
+      g.__v41CamHooked = true;
+      var origLoadHole = g.loadHole.bind(g);
+      g.loadHole = function(){
+        var r = origLoadHole.apply(null, arguments);
+        setTimeout(startPip, 80);
+        return r;
+      };
+    }
+    setTimeout(startPip, 1000);
+
+    var pipCam = null;
+    function pipLoop(){
+      requestAnimationFrame(pipLoop);
+      if(Date.now() > pipUntil){
+        if(pipLabel){ pipLabel.remove(); pipLabel = null; }
+        return;
+      }
+      if(!g.playerMesh || !g.pinPos) return;
+      var W = window.innerWidth, H = window.innerHeight;
+      var S = W < 820 ? 148 : 272;
+      var x = W - S - 12, yB = Math.round(H * 0.30);
+      if(pipLabel){
+        pipLabel.style.right = "12px";
+        pipLabel.style.top = (H - yB - S - 30) + "px";
+      }
+      if(!pipCam) pipCam = new THREE.PerspectiveCamera(38, 1, 0.1, 600);
+      var pp = g.playerMesh.position;
+      var toPin = new THREE.Vector3(g.pinPos.x - pp.x, 0, g.pinPos.z - pp.z).normalize();
+      var side = new THREE.Vector3(-toPin.z, 0, toPin.x);
+      var camPos = pp.clone().add(side.multiplyScalar(5.2)).add(toPin.clone().multiplyScalar(-1.6));
+      camPos.y = pp.y + 2.1;
+      pipCam.position.copy(camPos);
+      pipCam.lookAt(pp.x, pp.y + 1.35, pp.z);
+      var r = g.renderer;
+      var prevAuto = r.autoClear;
+      try {
+        r.autoClear = false;
+        r.setScissorTest(true);
+        r.setViewport(x, yB, S, S);
+        r.setScissor(x, yB, S, S);
+        r.clearColor();
+        r.clearDepth();
+        r.render(g.scene, pipCam);
+      } catch(e){}
+      try {
+        r.setScissorTest(false);
+        r.setViewport(0, 0, W, H);
+        r.autoClear = prevAuto;
+      } catch(e){}
+    }
+    requestAnimationFrame(pipLoop);
+
+    /* ---- 項目15: 実測フレームレートに応じた適応的解像度（重い端末でのみ自動で軽くし、滑らかさを取り戻す） ---- */
+    var basePR = g.renderer.getPixelRatio ? g.renderer.getPixelRatio() : 1;
+    var curPR = basePR;
+    var frames = 0, lastT = performance.now(), lowStreak = 0, highStreak = 0;
+    function loop(){
+      requestAnimationFrame(loop);
+      frames++;
+      var now = performance.now();
+      if(now - lastT >= 2000){
+        var fps = frames * 1000 / (now - lastT);
+        frames = 0; lastT = now;
+        if(document.hidden) return;
+        if(fps < 42 && curPR > 1.0){
+          lowStreak++; highStreak = 0;
+          if(lowStreak >= 2){
+            curPR = Math.max(1.0, +(curPR - 0.25).toFixed(2));
+            try { g.renderer.setPixelRatio(curPR); } catch(e){}
+            lowStreak = 0;
+          }
+        } else if(fps > 57 && curPR < basePR){
+          highStreak++; lowStreak = 0;
+          if(highStreak >= 3){
+            curPR = Math.min(basePR, +(curPR + 0.25).toFixed(2));
+            try { g.renderer.setPixelRatio(curPR); } catch(e){}
+            highStreak = 0;
+          }
+        } else { lowStreak = 0; highStreak = 0; }
+        window.__v41Fps = Math.round(fps);
+        window.__v41PR = curPR;
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+})();
+</script>
 </body>
 </html>
