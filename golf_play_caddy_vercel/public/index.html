@@ -2302,27 +2302,32 @@
       return moveCoord(baseTee, moveDist, moveBearing);
     }
 
-    // 選択グリーン(L/R)に応じた精密ピン座標の解決 (完全独立読取)
+    // 選択グリーン(L/R)に応じた精密ピン座標の解決 (完全独立読取・ズレ防止)
     function resolvePinCoordinate(hole, greenSide = currentGreenSide) {
       if (!hole) return [35.9, 140.1];
 
-      // 1. キャリブレーション登録位置 (手動ドラッグ微調整)
+      // 1. メモリ上の即時微調整ピン位置 (L/R完全独立・最優先)
+      if (hole.calibPins && Array.isArray(hole.calibPins[greenSide]) && isValidCoord(hole.calibPins[greenSide])) {
+        return [...hole.calibPins[greenSide]];
+      }
+
+      // 2. キャリブレーション登録位置 (手動ドラッグ微調整 - localStorage独立キー)
       const calib = getCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, greenSide);
       if (calib && Array.isArray(calib.pin) && isValidCoord(calib.pin)) {
         return [...calib.pin];
       }
 
-      // 2. 2タップ手動登録位置 (グリーン別)
+      // 3. 2タップ手動登録位置 (グリーン別)
       const manual = loadManualHole(currentCourse.id, hole.h, greenSide);
       if (manual && Array.isArray(manual.pin) && isValidCoord(manual.pin)) {
         return [...manual.pin];
       }
 
-      // 3. ホールデータ基準座標
+      // 4. ホールデータ基準座標 (pinL / pinR 独立解決)
       if (greenSide === 'R') {
         if (hole.pinR && isValidCoord(hole.pinR)) return [...hole.pinR];
         // R未登録時の初期配置: メインピンから直交方向へ22mオフセット
-        const basePin = isValidCoord(hole.pin) ? hole.pin : hole.tee;
+        const basePin = (hole.pinL && isValidCoord(hole.pinL)) ? hole.pinL : (isValidCoord(hole.pin) ? hole.pin : hole.tee);
         const bearing = calcBearing(hole.tee, basePin);
         return moveCoord(basePin, 22, (bearing + 85) % 360);
       } else {
@@ -2584,6 +2589,7 @@
         hole.calibTees = hole.calibTees || {};
         hole.calibTees[currentTeeType] = [...currentTeeCoord];
 
+        markLocalModified(currentCourse.id); // ★ 自端末の更新フラグを確実に立てる
         hole.yard = calcDistanceYards(currentTeeCoord, currentPinCoord);
         synchronizeAllHoleYards();
         saveCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, currentTeeCoord, null, currentGreenSide);
@@ -2616,6 +2622,7 @@
         hole.calibPins = hole.calibPins || {};
         hole.calibPins[currentGreenSide] = [...currentPinCoord];
 
+        markLocalModified(currentCourse.id); // ★ 自端末の更新フラグを確実に立てる
         hole.yard = calcDistanceYards(currentTeeCoord, currentPinCoord);
         synchronizeAllHoleYards();
         saveCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, null, currentPinCoord, currentGreenSide);
@@ -3182,9 +3189,12 @@
       currentTeeCoord = resolveTeeCoordinate(hole, currentTeeType);
       updateTeeMarkerVisual();
 
-      // 1. 当該グリーン(L/R)の保存済みピン座標を解決・反映
+      // 1. 当該グリーン(L/R)の保存済みピン座標を解決・反映 (独立解決)
       currentPinCoord = resolvePinCoordinate(hole, side);
       if (pinMarker) pinMarker.setLatLng(currentPinCoord);
+      if (targetGuideLine && typeof targetGuideLine.setLatLngs === 'function') {
+        targetGuideLine.setLatLngs([userCoord, currentPinCoord]);
+      }
 
       // 2. 当該グリーン(L/R)の保存済みIPルートを再計算・反映
       updateIpRoute();
@@ -3196,6 +3206,7 @@
       populateHoleSelect();
 
       // 3. HUD・ヤード数・PlaysLike・風計算の即時更新
+      drawYardArcs();
       updateHUDAndSimulation();
 
       // 4. ショット履歴軌跡の再描画
@@ -4825,8 +4836,13 @@
             if (typeof cHole.placeholder === 'boolean') target.placeholder = cHole.placeholder;
 
             // ★ 重要: localStorage 個別キャリブレーションキーも同時に同期 (resolvePinCoordinate で即座に参照可能にする)
-            const pinValL = (Array.isArray(cHole.pinL) && isValidCoord(cHole.pinL)) ? cHole.pinL : cHole.pin;
-            const pinValR = (Array.isArray(cHole.pinR) && isValidCoord(cHole.pinR)) ? cHole.pinR : cHole.pin;
+            // ※ L/Rそれぞれの実測データのみ独立代入し、片方のピン座標でもう片方を汚染・上書きしない
+            const pinValL = (Array.isArray(cHole.pinL) && isValidCoord(cHole.pinL))
+              ? cHole.pinL
+              : ((!cHole.pinR && isValidCoord(cHole.pin)) ? cHole.pin : null);
+            const pinValR = (Array.isArray(cHole.pinR) && isValidCoord(cHole.pinR))
+              ? cHole.pinR
+              : (cHole.calibPins && Array.isArray(cHole.calibPins.R) && isValidCoord(cHole.calibPins.R) ? cHole.calibPins.R : null);
             if (isValidCoord(pinValL)) {
               localStorage.setItem(`golf_calib_pin_${courseId}_${cHole.h}_L`, JSON.stringify({ pin: pinValL, greenSide: 'L', updatedAt: cloudData.updatedAt }));
             }
@@ -4996,14 +5012,17 @@
       }
 
       if (!opts.skipPull) {
-        const d = await fetchCourseFromVercelKv(courseId, { noPush: true });
-        if (d === 'busy') { pendingSyncCourseId = courseId; return; }
-        if (d === 'error') {
-          showCalibrationToast('⚠️ Vercel KV未接続のため端末内に保存しました (HTTPステータスまたは通信確認)', 3500);
-          return;
+        // ★ 自端末で新規ローカル変更がある場合は、KV から古いデータを引っ張って巻き戻されるのを100%防止
+        if (!hasUnsyncedLocalChanges(courseId)) {
+          const d = await fetchCourseFromVercelKv(courseId, { noPush: true });
+          if (d === 'busy') { pendingSyncCourseId = courseId; return; }
+          if (d === 'error') {
+            showCalibrationToast('⚠️ Vercel KV未接続のため端末内に保存しました (HTTPステータスまたは通信確認)', 3500);
+            return;
+          }
+          if (d !== 'push') return; // apply(他端末の方が新しい) / none(送信不要)
+          if (isVercelKvSyncing) { pendingSyncCourseId = courseId; return; }
         }
-        if (d !== 'push') return; // apply(他端末の方が新しい) / none(送信不要)
-        if (isVercelKvSyncing) { pendingSyncCourseId = courseId; return; }
       }
 
       isVercelKvSyncing = true;
@@ -5591,6 +5610,19 @@
             if (mR.par) hole.par = mR.par;
           }
         }
+        // ★ キャリブレーションピン(ドラッグ微調整)も復元反映し、2グリーンの座標を完全独立保持
+        const calibL = getCalibratedTeePinCoord(course.id, hole.h, 'white', 'L');
+        if (calibL && isValidCoord(calibL.pin)) {
+          hole.pinL = [...calibL.pin];
+          hole.calibPins = hole.calibPins || {};
+          hole.calibPins['L'] = [...calibL.pin];
+        }
+        const calibR = getCalibratedTeePinCoord(course.id, hole.h, 'white', 'R');
+        if (calibR && isValidCoord(calibR.pin)) {
+          hole.pinR = [...calibR.pin];
+          hole.calibPins = hole.calibPins || {};
+          hole.calibPins['R'] = [...calibR.pin];
+        }
         const activePin = (currentGreenSide === 'R' && hole.pinR) ? hole.pinR : (hole.pinL || hole.pin);
         if (hole.tee && activePin) {
           hole.yard = calcDistanceYards(hole.tee, activePin);
@@ -5913,17 +5945,14 @@
       if (yard < 40) { showCalibrationToast('ティーとピンが近すぎます。もう一度ピンをタップ'); return; }
       const par = hole.manual ? hole.par : parFromYard(yard);
       try {
+        markLocalModified(currentCourse.id);
         localStorage.setItem(`golf_manual_hole_${currentCourse.id}_${hole.h}_${currentGreenSide}`, JSON.stringify({ tee, pin, par, greenSide: currentGreenSide, updatedAt: new Date().toISOString() }));
-        triggerVercelKvAutoSync(currentCourse.id);
-        // 旧キャリブ/IP保存が新座標を上書きしないよう破棄 (_L/_R、独立キーも完全クリア)
-        Object.keys(TEE_DEFINITIONS).forEach(t => {
-          localStorage.removeItem(`golf_calib_${currentCourse.id}_${hole.h}_${t}`);
-          localStorage.removeItem(`golf_calib_${currentCourse.id}_${hole.h}_${t}_${currentGreenSide}`);
-          localStorage.removeItem(`smart_ip_route_${currentCourse.id}_${hole.h}_${t}`);
-          localStorage.removeItem(`smart_ip_route_${currentCourse.id}_${hole.h}_${t}_${currentGreenSide}`);
-          localStorage.removeItem(`golf_calib_tee_${currentCourse.id}_${hole.h}_${t}`);
-        });
+        // 当該グリーンの古いキャリブピンのみ破棄 (別グリーンおよびティーキャリブは絶対消さない！)
         localStorage.removeItem(`golf_calib_pin_${currentCourse.id}_${hole.h}_${currentGreenSide}`);
+        Object.keys(TEE_DEFINITIONS).forEach(t => {
+          localStorage.removeItem(`golf_calib_${currentCourse.id}_${hole.h}_${t}_${currentGreenSide}`);
+          localStorage.removeItem(`smart_ip_route_${currentCourse.id}_${hole.h}_${t}_${currentGreenSide}`);
+        });
       } catch (e) {}
       hole.tee = tee;
       if (currentGreenSide === 'R') {
