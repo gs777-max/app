@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>BATTLE OF GOLF - GOAT | 3D Golf Battle v4.2</title>
+<title>BATTLE OF GOLF - GOAT | 3D Golf Battle v4.3</title>
 
 </head>
 <body>
@@ -388,6 +388,52 @@
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="assets/lib/GLTFLoader.js"></script>
+<script src="assets/lib/meshopt_decoder.js"></script>
+<script>
+/* ===== v4.3 HQアセット (読込失敗時は従来表示に自動フォールバック) ===== */
+window.HQG = { parts:null, pending:[], tex:{}, _ready:{}, _waiters:{} };
+(function(){
+  var TL = new THREE.TextureLoader();
+  function loadTex(name, srgb, rx, ry){
+    var t = TL.load('assets/textures/' + name + '.png', function(){
+      window.HQG._ready[name] = 1;
+      var w = window.HQG._waiters[name] || []; window.HQG._waiters[name] = [];
+      for(var i=0;i<w.length;i++){ try{ w[i](); }catch(e){} }
+    });
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    if(rx) t.repeat.set(rx, ry || rx);
+    if(srgb) t.encoding = THREE.sRGBEncoding;
+    window.HQG.tex[name] = t;
+    return t;
+  }
+  window.HQG.whenTex = function(name, cb){
+    if(window.HQG._ready[name]){ cb(); }
+    else { (window.HQG._waiters[name] = window.HQG._waiters[name] || []).push(cb); }
+  };
+  loadTex('skin_map', 1); loadTex('skin_nrm'); loadTex('skin_rgh');
+  loadTex('head_map', 1); loadTex('head_nrm'); loadTex('eye', 1);
+  loadTex('pants_map', 1); loadTex('pants_nrm'); loadTex('pants_rgh');
+  loadTex('shirt_nrm'); loadTex('shirt_rgh');
+  loadTex('ball_nrm');
+  loadTex('grass_detail', 1); loadTex('grass_nrm'); loadTex('cloud', 1); loadTex('sand_detail', 1); loadTex('sand_nrm'); loadTex('water_nrm');
+  window.HQG.loadParts = function(){
+    if(window.HQG._started) return; window.HQG._started = 1;
+    try{
+      var loader = new THREE.GLTFLoader();
+      if(window.MeshoptDecoder) loader.setMeshoptDecoder(window.MeshoptDecoder);
+      loader.load('assets/models/hero_golf.glb', function(gltf){
+        var parts = {};
+        gltf.scene.children.forEach(function(root){ if(root && root.name) parts[root.name] = root; });
+        if(Object.keys(parts).length < 10) return;
+        window.HQG.parts = parts;
+        var pend = window.HQG.pending.splice(0);
+        for(var i=0;i<pend.length;i++){ try{ pend[i](); }catch(e){} }
+      }, undefined, function(){});
+    }catch(e){}
+  };
+})();
+</script>
 <script>
 "use strict";
 // ================================================
@@ -2717,6 +2763,7 @@ class GolfGame{
     this._buildTerrain(hole,course);
     this._buildPin();this._buildPlayer();this._buildBallMesh();
     this._buildCourseLandmark(course);
+    this._hqUpgradeGround();
     if(this.weather.rainIntensity>0)this._buildRain();
     this._buildAimViz();
     this.camera.position.set(this.teePos.x,this.teePos.y+10,this.teePos.z+22);
@@ -4413,8 +4460,8 @@ const bCntGreen=Math.min(bunkerCount,5);
     const S=(v,r,m)=>new THREE.MeshStandardMaterial({color:v,roughness:(r===undefined?0.6:r),metalness:(m===undefined?0.05:m)});
     const skinM=S(skin,0.55), shirtM=S(shirt,0.65), pantsM=S(pants,0.72), darkM=S(0x181820,0.5,0.2);
     try{
-      const cv=document.createElement("canvas"); cv.width=cv.height=128;
-      const cx=cv.getContext("2d");
+      const cv=document.createElement("canvas"); cv.width=cv.height=512;
+      const cx=cv.getContext("2d"); cx.scale(4,4);
       cx.fillStyle="#"+(shirt>>>0).toString(16).padStart(6,"0"); cx.fillRect(0,0,128,128);
       cx.fillStyle="rgba(255,255,255,0.28)";
       if(ch&&ch.name==="Junbo"){ for(let i=0;i<4;i++){ cx.fillRect(0,i*32,128,7); cx.fillRect(i*32,0,7,128); } }
@@ -4504,6 +4551,7 @@ const bCntGreen=Math.min(bunkerCount,5);
     g.position.copy(this.teePos);
     this.playerMesh=g; this.playerJoints=J; this.scene.add(g);
     this._startPlayerIdle();
+    this._hqApplied=false; this._hqApplyPlayer();
   }
   /* アドレス中のワッグル＆呼吸（スイング中は干渉しない） */
   _startPlayerIdle(){
@@ -4519,18 +4567,152 @@ const bCntGreen=Math.min(bunkerCount,5);
     };
     loop();
   }
+  /* v4.3: HQモデルパーツへの差し替え (未読込/失敗時は従来モデルのまま) */
+  _hqApplyPlayer(){
+    const H = window.HQG; if(!H) return;
+    if(!H.parts){
+      if(!this._hqQueued){ this._hqQueued = true; const self = this; H.pending.push(function(){ self._hqQueued = false; if(self.playerMesh && self.playerMesh.parent) self._hqApplyPlayer(); }); H.loadParts(); }
+      return;
+    }
+    if(this._hqApplied) return; this._hqApplied = true;
+    try{
+      const J = this.playerJoints, ch = this.character, P = H.parts, T = H.tex;
+      const skin = ch && ch.skinColor ? ch.skinColor : 0xffcc88;
+      const shirt = ch && ch.shirtColor ? ch.shirtColor : 0x1e44bb;
+      const pants = ch && ch.pantsColor ? ch.pantsColor : 0x222244;
+      const hatC = ch && ch.hatColor ? ch.hatColor : 0x111122;
+      const S = (o) => new THREE.MeshStandardMaterial(o);
+      const shirtBase = J.torsoMesh.material;
+      const shirtM2 = shirtBase.clone();
+      if(T.shirt_nrm){ shirtM2.normalMap = T.shirt_nrm; shirtM2.roughnessMap = T.shirt_rgh; shirtM2.needsUpdate = true; }
+      const SLOT = {
+        MAT_SKIN: S({color: 0xd8d8d8, roughness: 1.0, envMapIntensity: 0.45, map: T.skin_map || null, normalMap: T.skin_nrm || null, roughnessMap: T.skin_rgh || null}),
+        MAT_HEAD: S({color: 0xd8d8d8, roughness: 1.0, envMapIntensity: 0.45, map: T.head_map || null, normalMap: T.head_nrm || null, roughnessMap: T.skin_rgh || null}),
+        MAT_EYE: S({color: 0xffffff, roughness: 0.12, map: T.eye || null}),
+        MAT_SHIRT: shirtM2,
+        MAT_PANTS: S({color: pants, roughness: 0.72, map: T.pants_map || null, normalMap: T.pants_nrm || null, roughnessMap: T.pants_rgh || null}),
+        MAT_HAT: S({color: hatC, roughness: 0.55}),
+        MAT_SHOE: S({color: 0xf2f2f2, roughness: 0.38, normalMap: T.skin_nrm || null}),
+        MAT_SHOE2: S({color: hatC, roughness: 0.35}),
+        MAT_DARK: S({color: 0x181820, roughness: 0.5, metalness: 0.2}),
+        MAT_METAL: S({color: 0xb8c0cc, roughness: 0.28, metalness: 0.9}),
+        MAT_METALD: S({color: 0x2a2e36, roughness: 0.32, metalness: 0.92}),
+        MAT_GOLD: S({color: 0xffd875, roughness: 0.3, metalness: 0.85}),
+        MAT_WHITE: S({color: 0xf6f6f6, roughness: 0.5}),
+        MAT_STRAW: S({color: 0xb08a34, roughness: 0.9, envMapIntensity: 0.35})
+      };
+      const put = (name, parent, flip) => {
+        const tpl = P[name]; if(!tpl || !parent) return null;
+        const o = tpl.clone();
+        o.traverse((n) => { if(n.isMesh){ n.castShadow = true; n.userData.hqPart = true; const mn = n.material && n.material.name; if(mn && SLOT[mn]) n.material = SLOT[mn]; } });
+        if(flip){ o.rotation.y += Math.PI; o.position.x *= -1; o.position.z *= -1; }
+        parent.add(o);
+        return o;
+      };
+      const hide = (grp) => { if(!grp) return; for(let i = 0; i < grp.children.length; i++){ const c = grp.children[i]; if(c.isMesh && c.material && !c.userData.hqPart) c.material.visible = false; } };
+      for(const sd of ['L', 'R']){
+        const leg = J.legs[sd];
+        put('thigh', leg.hip, true); hide(leg.hip);
+        put('shin', leg.knee, true); hide(leg.knee);
+        put('shoe', leg.ank, true); put('toe', leg.ank, true); hide(leg.ank);
+      }
+      put('pelvis', J.hips, true); put('belt', J.hips, true); hide(J.hips);
+      put('torso', J.torsoMesh, true);
+      shirtBase.visible = false;
+      put('head', J.head, true); put('earL', J.head, true); put('earR', J.head, true); put('nose', J.head, true);
+      const hatKind = (ch && ch.name === 'DeCham') ? 'flat' : (ch && ch.name === 'Watu') ? 'straw' : 'cap';
+      if(hatKind === 'cap'){ put('cap', J.head, true); put('cap_brim', J.head, true); put('cap_logo', J.head, true); }
+      else if(hatKind === 'straw'){ put('straw', J.head, true); put('straw_top', J.head, true); }
+      else { put('flat', J.head, true); }
+      hide(J.head);
+      put('upperarm', J.shoulderL, true); hide(J.shoulderL);
+      put('upperarm', J.shoulderR, true); hide(J.shoulderR);
+      put('forearm', J.elbowL, true); hide(J.elbowL);
+      put('forearm', J.elbowR, true); hide(J.elbowR);
+      put('hand', J.wristL, true); put('glove', J.wristL, true); hide(J.wristL);
+      put('hand', J.wristR, true); hide(J.wristR);
+      put('club_grip', J.club, false); put('club_shaft', J.club, false);
+      this._hqHeads = { driver: put('club_driver', J.club, false), iron: put('club_iron', J.club, false), putter: put('club_putter', J.club, false), top: put('club_driver_top', J.club, false) };
+      hide(J.club);
+      if(!this._hqSyncOn){
+        this._hqSyncOn = true; const self = this;
+        const sync = () => {
+          requestAnimationFrame(sync);
+          if(!self.playerMesh || !self.playerMesh.parent){ self._hqSyncOn = false; return; }
+          if(self._hqHeads){
+            let ty = 'iron'; try{ ty = (CLUBS[self.currentClubIdx] || {}).type || 'iron'; }catch(e){}
+            const want = ty === 'putter' ? 'putter' : (ty === 'driver' || ty === 'wood') ? 'driver' : 'iron';
+            for(const k of ['driver', 'iron', 'putter']) if(self._hqHeads[k]) self._hqHeads[k].visible = (k === want);
+            if(self._hqHeads.top) self._hqHeads.top.visible = (want === 'driver');
+          }
+        };
+        sync();
+      }
+    }catch(e){ /* 差し替え失敗時も従来表示で継続 */ }
+  }
+  /* v4.3: 地面・ランドマーク素材のPBR化 (Lambert→Standard+詳細テクスチャ) */
+  _hqUpgradeGround(){
+    try{
+      const H = window.HQG; if(!H || !this.scene) return;
+      const T = H.tex;
+      const mkTex = (t, rx, ry) => { if(!t || !t.image || !t.image.width) return null; const c = t.clone(); c.needsUpdate = true; c.repeat.set(rx, ry); return c; };
+      this.scene.traverse((o) => {
+        if(!o.isMesh) return;
+        const m = o.material;
+        if(!m || m.type !== 'MeshLambertMaterial' || m.transparent || m.userData.hqUp) return;
+        m.userData.hqUp = true;
+        const c = m.color; if(!c) return;
+        if(c.r > 0.9 && c.g > 0.9 && c.b > 0.9) return;
+        let kind = null;
+        if(c.g >= c.r && c.g >= c.b && c.g > 0.15) kind = 'grass';
+        else if(c.b > c.r && c.b > c.g) kind = 'water';
+        else if(c.r > 0.55 && c.g > 0.4 && (c.r - c.b) > 0.08 && (c.r - c.b) < 0.45 && (c.g - c.b) < 0.35) kind = 'sand';
+        if(!kind) return;
+        let rx = 6, ry = 6;
+        const geo = o.geometry;
+        if(geo){ geo.computeBoundingBox(); const bb = geo.boundingBox; const dims = [bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z].sort((a, b) => b - a); rx = Math.max(1, Math.min(48, Math.round(dims[0] / 6))); ry = Math.max(1, Math.min(48, Math.round(dims[1] / 6))); }
+        const nm = new THREE.MeshStandardMaterial({ color: c.getHex(), roughness: kind === 'water' ? 0.12 : 0.94, metalness: kind === 'water' ? 0.05 : 0.0 });
+        if(kind === 'grass'){ nm.map = mkTex(T.grass_detail, rx, ry); nm.normalMap = mkTex(T.grass_nrm, rx, ry); }
+        else if(kind === 'sand'){ nm.map = mkTex(T.sand_detail, rx, ry); nm.normalMap = mkTex(T.sand_nrm, rx, ry); }
+        else { nm.normalMap = mkTex(T.water_nrm, rx, ry); nm.envMapIntensity = 1.3; if(nm.normalMap){ nm.normalMap.wrapS = nm.normalMap.wrapT = THREE.RepeatWrapping; (H.waterMats = H.waterMats || []).push(nm); } }
+        if(nm.map || nm.normalMap) o.material = nm;
+      });
+      /* v4.3改: 雲スプライトと水面アニメーション */
+      if(T.cloud && !H._clouds){
+        H._clouds = [];
+        for(let i = 0; i < 16; i++){
+          const sm = new THREE.SpriteMaterial({ map: T.cloud, transparent: true, depthWrite: false, opacity: 0.55 + Math.random() * 0.3 });
+          const sp = new THREE.Sprite(sm);
+          const sc = 60 + Math.random() * 70;
+          sp.scale.set(sc, sc * 0.32, 1);
+          sp.position.set(-280 + Math.random() * 560, 48 + Math.random() * 40, -280 + Math.random() * 560);
+          sp.userData.v = 1.4 + Math.random() * 1.6;
+          this.scene.add(sp); H._clouds.push(sp);
+        }
+      }
+      if(!H._envTick){
+        H._envTick = true;
+        let last = performance.now();
+        const tick = () => {
+          requestAnimationFrame(tick);
+          const now = performance.now(); const dt = Math.min(0.05, (now - last) / 1000); last = now;
+          try{
+            if(H.waterMats) for(const wm of H.waterMats){ if(wm.normalMap){ wm.normalMap.offset.x += dt * 0.010; wm.normalMap.offset.y += dt * 0.004; } }
+            if(H._clouds) for(const sp of H._clouds){ sp.position.x += sp.userData.v * dt; if(sp.position.x > 300) sp.position.x = -300; }
+          }catch(e){}
+        };
+        tick();
+      }
+    }catch(e){}
+  }
   _buildBallMesh(){
     // ★ ディンプル感のある高品質ボール（MeshPhongMaterial）
     const mesh=new THREE.Mesh(
       new THREE.SphereGeometry(0.22,32,24),
-      new THREE.MeshPhongMaterial({
-        color:0xffffff,
-        shininess:80,
-        specular:0xaaaaaa,
-        emissive:0x111111,
-      })
+      new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.34, metalness:0.0 })
     );
     mesh.castShadow=true;mesh.receiveShadow=false;
+    if(window.HQG) window.HQG.whenTex('ball_nrm', function(){ try{ mesh.material.normalMap = window.HQG.tex.ball_nrm; mesh.material.normalScale = new THREE.Vector2(1.6, 1.6); mesh.material.needsUpdate = true; }catch(e){} });
     if(this.ball){this.ball.mesh=mesh;this.ball.position.copy(this.teePos);mesh.position.copy(this.teePos);}
     this.scene.add(mesh);
 

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BATTLE OF GOLF - GOAT | Next-Gen 3D Action RPG World v4.2</title>
+  <title>BATTLE OF GOLF - GOAT | Next-Gen 3D Action RPG World v4.3</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@700;900&display=swap');
 
@@ -851,6 +851,109 @@
   <div id="toastArea"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="assets/lib/GLTFLoader.js"></script>
+  <script src="assets/lib/meshopt_decoder.js"></script>
+  <script>
+  /* ===== v4.3 HQアセット (読込失敗時は従来表示に自動フォールバック) ===== */
+  window.HQW = { parts:null, pending:[], tex:{}, _ready:{}, _waiters:{} };
+  (function(){
+    var TL = new THREE.TextureLoader();
+    function loadTex(name, srgb, rx, ry){
+      var t = TL.load('assets/textures/' + name + '.png', function(){
+        window.HQW._ready[name] = 1;
+        var w = window.HQW._waiters[name] || []; window.HQW._waiters[name] = [];
+        for(var i=0;i<w.length;i++){ try{ w[i](); }catch(e){} }
+      });
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      if(rx) t.repeat.set(rx, ry || rx);
+      if(srgb) t.encoding = THREE.sRGBEncoding;
+      window.HQW.tex[name] = t;
+      return t;
+    }
+    window.HQW.whenTex = function(name, cb){
+      if(window.HQW._ready[name]){ cb(); }
+      else { (window.HQW._waiters[name] = window.HQW._waiters[name] || []).push(cb); }
+    };
+    loadTex('skin_map', 1); loadTex('skin_nrm'); loadTex('skin_rgh'); loadTex('eye', 1);
+    loadTex('head_map', 1); loadTex('head_nrm');
+    loadTex('pants_map', 1); loadTex('pants_nrm'); loadTex('pants_rgh');
+    loadTex('shirt_nrm'); loadTex('shirt_rgh');
+    loadTex('grass_map', 1, 26, 26); loadTex('grass_nrm', 0, 26, 26); loadTex('grass_rgh', 0, 26, 26);
+    loadTex('leaf_map', 1); loadTex('leaf_nrm');
+    loadTex('stone_map', 1); loadTex('stone_nrm'); loadTex('stone_rgh');
+    loadTex('bark_map', 1); loadTex('bark_nrm');
+    window.HQW.loadParts = function(){
+      if(window.HQW._started) return; window.HQW._started = 1;
+      try{
+        var loader = new THREE.GLTFLoader();
+        if(window.MeshoptDecoder) loader.setMeshoptDecoder(window.MeshoptDecoder);
+        loader.load('assets/models/hero_world.glb', function(gltf){
+          var parts = {};
+          gltf.scene.children.forEach(function(root){ if(root && root.name) parts[root.name] = root; });
+          if(Object.keys(parts).length < 10) return;
+          window.HQW.parts = parts;
+          var pend = window.HQW.pending.splice(0);
+          for(var i=0;i<pend.length;i++){ try{ window.HQW.applyGolfer(pend[i][0], pend[i][1]); }catch(e){} }
+        }, undefined, function(){});
+      }catch(e){}
+    };
+    window.HQW.enqueueGolfer = function(g, ctx){
+      if(window.HQW.parts){ try{ window.HQW.applyGolfer(g, ctx); }catch(e){} }
+      else { window.HQW.pending.push([g, ctx]); window.HQW.loadParts(); }
+    };
+    var INV = new THREE.MeshBasicMaterial(); INV.visible = false;
+    window.HQW.applyGolfer = function(g, ctx){
+      var P = window.HQW.parts; if(!P) return;
+      var T = window.HQW.tex;
+      var sm = ctx.shirtMat, pm = ctx.pantsMat, sk = ctx.skinMat;
+      if(!sm.userData.hq){ sm.userData.hq = 1; if(T.shirt_nrm){ sm.normalMap = T.shirt_nrm; sm.roughnessMap = T.shirt_rgh; } sm.needsUpdate = true; }
+      if(!pm.userData.hq){ pm.userData.hq = 1; if(T.pants_map){ pm.map = T.pants_map; pm.normalMap = T.pants_nrm; pm.roughnessMap = T.pants_rgh; } pm.needsUpdate = true; }
+      if(!sk.userData.hq){ sk.userData.hq = 1; if(T.skin_nrm){ sk.normalMap = T.skin_nrm; sk.roughnessMap = T.skin_rgh; } sk.needsUpdate = true; }
+      var headM = sk.clone(); if(T.head_map){ headM.map = T.head_map; headM.normalMap = T.head_nrm; headM.color.set(0xd8d8d8); } headM.roughness = 1.0; headM.envMapIntensity = 0.5; headM.needsUpdate = true;
+      if(T.skin_map){ sk.color.set(0xd9b28c); } sk.roughness = 1.0; sk.envMapIntensity = 0.5; sk.needsUpdate = true;
+      var strawM = new THREE.MeshStandardMaterial({ color: 0xb08a34, roughness: 0.9, envMapIntensity: 0.35 });
+      var hatM2 = (ctx.hatType === 'straw') ? strawM : new THREE.MeshStandardMaterial({ color: ctx.hatCol, roughness: 0.55 });
+      var SLOT = { MAT_SKIN: sk, MAT_HEAD: headM, MAT_SHIRT: sm, MAT_PANTS: pm, MAT_HAT: hatM2, MAT_STRAW: strawM,
+        MAT_SHOE: ctx.shoeMat, MAT_SHOE2: ctx.toeMat,
+        MAT_DARK: new THREE.MeshStandardMaterial({ color: 0x181820, roughness: 0.5, metalness: 0.2 }),
+        MAT_METAL: new THREE.MeshStandardMaterial({ color: 0xd8e2f0, roughness: 0.15, metalness: 0.92 }),
+        MAT_GOLD: new THREE.MeshStandardMaterial({ color: 0xffd466, roughness: 0.2, metalness: 0.9 }),
+        MAT_WHITE: new THREE.MeshStandardMaterial({ color: 0xf6f6f6, roughness: 0.5 }),
+        MAT_EYE: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.12, map: T.eye || null }) };
+      var put = function(name, parent){
+        var tpl = P[name]; if(!tpl || !parent) return null;
+        var o = tpl.clone();
+        o.traverse(function(n){ if(n.isMesh){ n.castShadow = true; n.userData.hqPart = true; var mn = n.material && n.material.name; if(mn && SLOT[mn]) n.material = SLOT[mn]; } });
+        parent.add(o);
+        return o;
+      };
+      var bodyMats = [ctx.shirtMat, ctx.pantsMat, ctx.skinMat, ctx.hatMat, ctx.shoeMat, ctx.toeMat];
+      var hideBody = function(grp){
+        if(!grp) return;
+        for(var i=0;i<grp.children.length;i++){ var c = grp.children[i]; if(c.isMesh && c !== ctx.torso && !c.userData.hqPart && bodyMats.indexOf(c.material) >= 0) c.visible = false; }
+      };
+      var J = ctx.joints;
+      for(var i=0;i<2;i++){
+        put('thigh', ctx.legs[i]); put('shin', ctx.knees[i]); put('shoe', ctx.ankles[i]); put('toe', ctx.ankles[i]);
+        hideBody(ctx.legs[i]); hideBody(ctx.knees[i]); hideBody(ctx.ankles[i]);
+      }
+      put('pelvis', J.hips); put('belt', J.hips); hideBody(J.hips);
+      put('torso', ctx.torso); ctx.torso.material = INV; hideBody(J.torso);
+      put('head', J.head); put('earL', J.head); put('earR', J.head); put('nose', J.head);
+      if(ctx.hatType === 'cap'){ put('cap', J.head); put('cap_brim', J.head); put('cap_logo', J.head); }
+      else if(ctx.hatType === 'visor'){ put('cap_brim', J.head); }
+      else if(ctx.hatType === 'straw'){ put('straw', J.head); put('straw_top', J.head); }
+      else { put('flat', J.head); }
+      hideBody(J.head);
+      put('upperarm', J.shoulderC); put('upperarm', J.shoulderF);
+      put('forearm', J.elbowC); put('forearm', J.elbowF);
+      put('hand', J.wristC); put('glove', J.wristC); put('hand', J.wristF);
+      hideBody(J.shoulderC); hideBody(J.shoulderF); hideBody(J.elbowC); hideBody(J.elbowF); hideBody(J.wristC); hideBody(J.wristF);
+      put('clubw_grip', ctx.clubGroup); put('clubw_shaft', ctx.clubGroup); put('clubw_head', ctx.clubGroup);
+      for(var ci=0; ci<ctx.clubGroup.children.length; ci++){ var cc = ctx.clubGroup.children[ci]; if(cc.isMesh && !cc.userData.hqPart) cc.visible = false; }
+    };
+  })();
+  </script>
   <script>
     "use strict";
     /* =========================================================================
@@ -1298,6 +1401,7 @@
         roughness: 0.82,
         metalness: 0.04
       });
+      if (window.HQW) HQW.whenTex('grass_map', function(){ mat.map = HQW.tex.grass_map; mat.normalMap = HQW.tex.grass_nrm; mat.roughnessMap = HQW.tex.grass_rgh; mat.bumpMap = null; mat.needsUpdate = true; });
       var ground = new THREE.Mesh(geo, mat);
       ground.receiveShadow = true;
       groundMesh = ground;
@@ -1376,8 +1480,10 @@
       var goldMat = new THREE.MeshStandardMaterial({ color: 0xffcf56, roughness: 0.24, metalness: 0.86 });
       var marbMat = new THREE.MeshStandardMaterial({ map: marbleTex, roughness: 0.35, metalness: 0.08 });
       var stoneMat = new THREE.MeshStandardMaterial({ map: stoneTex, roughness: 0.85, metalness: 0.06 });
+      if (window.HQW) HQW.whenTex('stone_map', function(){ stoneMat.map = HQW.tex.stone_map; stoneMat.normalMap = HQW.tex.stone_nrm; stoneMat.roughnessMap = HQW.tex.stone_rgh; stoneMat.needsUpdate = true; });
       var vermMat = new THREE.MeshStandardMaterial({ color: 0xc8251d, roughness: 0.42, metalness: 0.12 });
       var darkWood = new THREE.MeshStandardMaterial({ color: 0x2b1e16, roughness: 0.75 });
+      if (window.HQW) HQW.whenTex('bark_map', function(){ darkWood.map = HQW.tex.bark_map; darkWood.normalMap = HQW.tex.bark_nrm; darkWood.needsUpdate = true; });
 
       function makeTorii(x, z, rotY, sc, matOverride) {
         var g = new THREE.Group();
@@ -1406,6 +1512,7 @@
         tr.castShadow = true;
         g.add(tr);
         var cMat = new THREE.MeshStandardMaterial({ color: crownColor, roughness: 0.78 });
+        if (window.HQW) HQW.whenTex('leaf_map', function(){ cMat.normalMap = HQW.tex.leaf_nrm; cMat.bumpMap = HQW.tex.leaf_map; cMat.bumpScale = 0.6; cMat.needsUpdate = true; });
         if (tall) {
           var cone = new THREE.Mesh(new THREE.ConeGeometry(1.4, 7.2, 10), cMat);
           cone.position.y = 6.2; cone.castShadow = true;
@@ -1773,8 +1880,8 @@
     var GOLFER_RIGS = [];
     function golferShirtTexture(kind, baseHex) {
       try {
-        var cv = document.createElement("canvas"); cv.width = cv.height = 128;
-        var cx = cv.getContext("2d");
+        var cv = document.createElement("canvas"); cv.width = cv.height = 512;
+        var cx = cv.getContext("2d"); cx.scale(4, 4);
         cx.fillStyle = baseHex; cx.fillRect(0, 0, 128, 128);
         cx.strokeStyle = "rgba(255,255,255,0.35)"; cx.lineWidth = 5;
         if (kind === "argyle") {
@@ -1921,6 +2028,7 @@
       var joints = { hips: hips, torso: torsoG, head: headG, shoulderC: armC.sh, elbowC: armC.el, wristC: armC.wr, shoulderF: armF.sh, elbowF: armF.el, knees: kneePivots, ankles: anklePivots };
       g.userData = { shirtMat: shirtMat, pantsMat: pantsMat, armPivot: armPivot, clubHead: clubHead, legs: legPivots, origShirt: opts.shirt, origPants: opts.pants, joints: joints, torsoMesh: torso };
       GOLFER_RIGS.push({ g: g, arm: armPivot, j: joints, torso: torso, seed: Math.random() * 10 });
+      if (window.HQW) HQW.enqueueGolfer(g, { shirtMat: shirtMat, pantsMat: pantsMat, skinMat: skinMat, hatMat: hatMat, shoeMat: shoeMat, toeMat: toeMat, hatCol: hatCol, hatType: hatType, joints: joints, legs: legPivots, knees: kneePivots, ankles: anklePivots, clubGroup: clubGroup, torso: torso });
       return g;
     }
     /* 運動連鎖＆呼吸モーション（既存の armPivot 駆動から全身へ配分する） */
