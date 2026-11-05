@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>BATTLE OF GOLF - GOAT | 3D Golf Battle v4.3</title>
+<title>BATTLE OF GOLF - GOAT | 3D Golf Battle v4.4</title>
 
 </head>
 <body>
@@ -413,10 +413,12 @@ window.HQG = { parts:null, pending:[], tex:{}, _ready:{}, _waiters:{} };
   };
   loadTex('skin_map', 1); loadTex('skin_nrm'); loadTex('skin_rgh');
   loadTex('head_map', 1); loadTex('head_nrm'); loadTex('eye', 1);
+  /* v4.4: 6人分の顔/肌バリエーション (無い場合は汎用マップ+色調で代替) */
+  ['watu','matuya','tiiger','junbo','mcilro','decham'].forEach(function(k){ loadTex('head_' + k, 1); loadTex('skin_' + k, 1); });
   loadTex('pants_map', 1); loadTex('pants_nrm'); loadTex('pants_rgh');
   loadTex('shirt_nrm'); loadTex('shirt_rgh');
   loadTex('ball_nrm');
-  loadTex('grass_detail', 1); loadTex('grass_nrm'); loadTex('cloud', 1); loadTex('sand_detail', 1); loadTex('sand_nrm'); loadTex('water_nrm');
+  loadTex('grass_detail', 1); loadTex('grass_nrm'); loadTex('cloud', 1); loadTex('leaf_map', 1); loadTex('bark_map', 1); loadTex('sand_detail', 1); loadTex('sand_nrm'); loadTex('water_nrm');
   window.HQG.loadParts = function(){
     if(window.HQG._started) return; window.HQG._started = 1;
     try{
@@ -926,27 +928,27 @@ class Character{
 const CHARACTERS=[
   {name:"Watu",   realName:"ゴルフの神",    emoji:"🌟",nationality:"JPN",
    driverSpeed:75,ironStability:"不安定",approachStability:"不安定",putterStability:"安定",
-   skinColor:0xffcc88,shirtColor:0x1144cc,pantsColor:0x222244,hatColor:0x111133,
+   skinColor:0xeab98e,shirtColor:0x1144cc,pantsColor:0x222244,hatColor:0x111133,
    desc:"謎の天才ゴルファー"},
   {name:"Matuya", realName:"マスターズ覇者・東洋の翠竜",       emoji:"🇯🇵",nationality:"JPN",
    driverSpeed:80,ironStability:"最高に安定",approachStability:"最高に安定",putterStability:"安定",
-   skinColor:0xffbb77,shirtColor:0xffffff,pantsColor:0x111111,hatColor:0x222222,
+   skinColor:0xe8b184,shirtColor:0xffffff,pantsColor:0x111111,hatColor:0x222222,
    desc:"マスターズ覇者・日本の誇り"},
   {name:"TIiger", realName:"サンデーレッドの絶対王者",emoji:"🐯",nationality:"USA",
    driverSpeed:85,ironStability:"最高に安定",approachStability:"最高に安定",putterStability:"最高に安定",
-   skinColor:0xcc8855,shirtColor:0xcc0000,pantsColor:0x111111,hatColor:0x222222,
+   skinColor:0x8d5b36,shirtColor:0xcc0000,pantsColor:0x111111,hatColor:0x222222,
    desc:"最強レジェンド 14メジャー制覇"},
   {name:"Junbo",  realName:"九十四勝・地の帝王",   emoji:"👑",nationality:"JPN",
    driverSpeed:82,ironStability:"安定",approachStability:"安定",putterStability:"安定",
-   skinColor:0xffaa66,shirtColor:0x0055aa,pantsColor:0x334455,hatColor:0x112233,
+   skinColor:0xe0a878,shirtColor:0x0055aa,pantsColor:0x334455,hatColor:0x112233,
    desc:"国内94勝・プロゴルフの帝王"},
   {name:"McIlro", realName:"北の貴公子・蒼穹のドライブ",emoji:"🍀",nationality:"IRL",
    driverSpeed:90,ironStability:"安定",approachStability:"安定",putterStability:"不安定",
-   skinColor:0xffddbb,shirtColor:0x003399,pantsColor:0xffffff,hatColor:0x001166,
+   skinColor:0xf2c8a2,shirtColor:0x003399,pantsColor:0xffffff,hatColor:0x001166,
    desc:"世界最長飛距離 4メジャー覇者"},
   {name:"DeCham", realName:"科学の探究者・物理の飛ばし屋",emoji:"💪",nationality:"USA",
    driverSpeed:95,ironStability:"安定",approachStability:"不安定",putterStability:"安定",
-   skinColor:0xffcc99,shirtColor:0xff6600,pantsColor:0x222222,hatColor:0x333333,
+   skinColor:0xe2aa7c,shirtColor:0xff6600,pantsColor:0x222222,hatColor:0x333333,
    desc:"科学の申し子 超飛距離ゴルファー"},
 ];
 
@@ -1433,10 +1435,10 @@ class TerrainGen{
 // ─────────────────────────────────────────────────────────────
 const TODA_PALETTE = {
   tee:      0x34b233, // 鮮やかな緑（高麗芝）
-  fairway:  0x368c1e, // 濃淡美しい高麗芝フェアウェイ
-  firstCut: 0x266814, // FWより一段階暗く抵抗を感じさせる
+  fairway:  0x1d5210, // 濃淡美しい高麗芝フェアウェイ
+  firstCut: 0x1a4d0e, // FWより一段階暗く抵抗を感じさせる
   rough:    0x184210, // 深く密集した高麗芝の重さ
-  green:    0x2ec428, // 砲台グリーン高麗芝
+  green:    0x1e7d16, // 砲台グリーン高麗芝
   bunker:   0xd8b47c, // 重く湿り気のある河川敷ダークベージュ
   water:    0x1e6ca8, // 荒川スチールブルー
   bush:     0x0d4f0d, // 視覚的圧迫感を与える深い深緑
@@ -2764,6 +2766,7 @@ class GolfGame{
     this._buildPin();this._buildPlayer();this._buildBallMesh();
     this._buildCourseLandmark(course);
     this._hqUpgradeGround();
+    try{ this._hqCourseDress(); }catch(e){}
     if(this.weather.rainIntensity>0)this._buildRain();
     this._buildAimViz();
     this.camera.position.set(this.teePos.x,this.teePos.y+10,this.teePos.z+22);
@@ -2945,6 +2948,7 @@ class GolfGame{
         const cGeo=new THREE.SphereGeometry(cw*0.25+j*cw*0.12,10,6);
         const cMat=new THREE.MeshBasicMaterial({color:cloudCol,transparent:true,opacity:cloudOpa*(0.7+j*0.1)});
         const cloud=new THREE.Mesh(cGeo,cMat);
+        cloud.userData.v44OldCloud=true;
         cloud.position.set(cx+j*cw*0.22,cy+(j===1?ch*0.18:0),cz_);
         cloud.scale.set(1,0.4+Math.random()*0.25,0.55);
         this.scene.add(cloud);
@@ -2957,12 +2961,13 @@ class GolfGame{
       for(let m=0;m<5;m++){
         const mx=(m-2)*260+80*(Math.random()-0.5);
         const mh=80+Math.random()*140;
-        const mGeo=new THREE.ConeGeometry(120+Math.random()*80,mh,8);
+        const mGeo=new THREE.SphereGeometry(120+Math.random()*80,14,10);
         const mMat=new THREE.MeshBasicMaterial({
           color:mtColors[m%3],transparent:true,opacity:0.55+m*0.04
         });
         const mt=new THREE.Mesh(mGeo,mMat);
-        mt.position.set(mx,-60+mh*0.5,-700-m*80);
+        mt.scale.set(1,mh/260,0.72);
+        mt.position.set(mx,-mh*0.10,-700-m*80);
         this.scene.add(mt);
       }
     }
@@ -3036,6 +3041,13 @@ class GolfGame{
       // ─── ティー位置・ピン位置の動的バインド ───
       const teeCoord = hole.tee || {x:0, y:0.36, z:0};
       const pinCoord = hole.pin || {x:-5, y:1.8, z:gZ};
+      /* v4.4: 戸田でも dogleg ホールはピンを横へずらし実際に曲げる (8番直角は既存仕様) */
+      if(((hole.physHole || ((hole.n - 1) % 9 + 1))) !== 8){
+        if(hole.dogleg === "right"){ pinCoord.x += 24; pinCoord.z += 16; }
+        else if(hole.dogleg === "left"){ pinCoord.x -= 24; pinCoord.z += 16; }
+        else if(hole.dogleg === "slight_right"){ pinCoord.x += 10; pinCoord.z += 6; }
+        else if(hole.dogleg === "slight_left"){ pinCoord.x -= 10; pinCoord.z += 6; }
+      }
       const subPinCoord = hole.subPin || {x:5, y:1.8, z:gZ};
 
       this.teePos.set(teeCoord.x, teeCoord.y, teeCoord.z);
@@ -3055,12 +3067,12 @@ class GolfGame{
         this.scene.add(fwMesh);
 
         // PS5級・高麗芝刈り目ストライプ＆河川敷防風林・OB白杭
-        const stW = 5.5, stN = Math.floor(fwWidth / stW);
-        for(let s = 0; s < stN; s++){
+        const bandD = 12, bandN = Math.ceil(TH*0.98 / bandD);
+        for(let s = 0; s < bandN; s++){
           if(s % 2 === 0) continue;
-          const stM = new THREE.Mesh(new THREE.PlaneGeometry(stW - 0.1, TH*0.975), new THREE.MeshLambertMaterial({color: 0x419f26}));
+          const stM = new THREE.Mesh(new THREE.PlaneGeometry(fwWidth, bandD - 0.15), new THREE.MeshLambertMaterial({color: 0x276314}));
           stM.rotation.x = -Math.PI/2;
-          stM.position.set(-fwWidth/2 + (s + 0.5)*stW, 0.016, -TH/2);
+          stM.position.set(0, 0.016, -(s + 0.5)*bandD);
           this.scene.add(stM);
         }
         for(let z = -22; z >= -TH*0.95; z -= 34){
@@ -3281,6 +3293,11 @@ class GolfGame{
       window._obVolumes.push({minX: TW*1.45, maxX: TW*4, minZ: -TH*2.2, maxZ: 60, reason:"コース右外周OB"});
       window._obVolumes.push({minX: -TW*4, maxX: TW*4, minZ: -TH*2.2, maxZ: -TH*1.55, reason:"グリーン奥外周OB"});
 
+      this._centerline = isRightAngleDogleg
+        ? [{x:teeCoord.x, z:teeCoord.z}, {x:0, z:-205}, {x:pinCoord.x, z:pinCoord.z}]
+        : [{x:teeCoord.x, z:teeCoord.z},
+           {x:teeCoord.x + (pinCoord.x - teeCoord.x) * 0.6 + (hole.dogleg === "right" ? 14 : (hole.dogleg === "left" ? -14 : (hole.dogleg === "slight_right" ? 6 : (hole.dogleg === "slight_left" ? -6 : 0)))), z:teeCoord.z + (pinCoord.z - teeCoord.z) * 0.6},
+           {x:pinCoord.x, z:pinCoord.z}];
       console.log(`[Toda Public] Built 2WAY Hole ${hole.n} (Physical Hole ${ph}, isIN: ${hole.isIN}, Dogleg: ${hole.dogleg})`);
       return; // 戸田パブリック固有の構築完了
     }
@@ -3298,6 +3315,29 @@ class GolfGame{
     const hasOBLeft=feat.includes("ob_left");
     const hasElevGreen=feat.includes("elevated_green");
     const bunkerCount=parseInt((feat.match(/bunker(\d)/)||[0,0])[1])||0;
+    /* v4.4 dogleg実形化: 中心線 tee->corner(60%)->pin、ピンを中心線終端へ */
+    let gX = 0; let gZv = gZ;
+    let dlSide = 0, dlTheta = 0;
+    if(feat.includes("leftDogleg") || hole.dogleg === "left"){ dlSide = -1; dlTheta = 38; }
+    else if(feat.includes("rightDogleg") || hole.dogleg === "right"){ dlSide = 1; dlTheta = 38; }
+    else if(hole.dogleg === "slight_right"){ dlSide = 1; dlTheta = 13; }
+    else if(hole.dogleg === "slight_left"){ dlSide = -1; dlTheta = 13; }
+    else if(hole.dogleg === "sharp_left"){ dlSide = -1; dlTheta = 80; }
+    else if(hole.dogleg === "sharp_right"){ dlSide = 1; dlTheta = 80; }
+    const DL1 = TH * 0.60, DL2 = TH * 0.40;
+    if(dlSide !== 0){
+      const thR = dlTheta * Math.PI / 180;
+      gX = dlSide * DL2 * Math.sin(thR);
+      gZv = -(DL1 + DL2 * Math.cos(thR));
+    }
+    this._centerline = dlSide !== 0
+      ? [{x:0,z:0},{x:0,z:-DL1},{x:gX,z:gZv}]
+      : [{x:0,z:0},{x:0,z:gZv}];
+    if(dlSide !== 0 && Math.abs(dlTheta) >= 30){
+      const chX = gX / 2, chZ = gZv / 2;
+      const inX = (chX) * 0.38, inZ = -DL1 + (chZ + DL1) * 0.38;
+      window._shortcutBanZone = { minX: inX - 8, maxX: inX + 8, minZ: inZ - 8, maxZ: inZ + 8, maxY: 60 };
+    }
     // isLinks/isCoastal/isHilly は冒頭の isLinks0/isCoastal0/isHilly0 を使用
     const isLinks=isLinks0;
     const isCoastal=isCoastal0;
@@ -3431,40 +3471,43 @@ class GolfGame{
     // ═══════════════════════════════════════════════════════
     // ③  フェアウェイ（精密地形 + 7段の刈り目縞）
     // ═══════════════════════════════════════════════════════
-    const fwGeo=new THREE.PlaneGeometry(TW,TH,SW,SH);
+    const fwW2 = dlSide!==0 ? TW*2.3 : TW;
+    const fwGeo=new THREE.PlaneGeometry(fwW2,TH,dlSide!==0?110:SW,SH);
     fwGeo.rotateX(-Math.PI/2);
     const pa=fwGeo.attributes.position;
-    for(let i=0;i<=SH;i++)for(let j=0;j<=SW;j++){
-      const idx=i*(SW+1)+j;
-      pa.setY(idx,gen.getHeight(j*(TW/SW),i*(TH/SH)));
+    const colsX=Math.round(fwW2/(TW/SW));
+    for(let i=0;i<=SH;i++)for(let j=0;j<=colsX;j++){
+      const idx=i*(colsX+1)+j;
+      pa.setY(idx,gen.getHeight(pa.getX(idx)+TW/2,i*(TH/SH)));
     }
     fwGeo.computeVertexNormals();
     // ★ コース・天候・季節別リアルフェアウェイカラー
-    let fwBase = 0x6ab04c;
-    if(isLinks) fwBase=rain?0x4a7028:0x6a9a38;        // リンクス=フェスキュー芝（黄緑系）
-    else if(isCoastal) fwBase=rain?0x287018:0x38a028;  // 海岸=洋芝
+    let fwBase = 0x356b24;
+    if(isLinks) fwBase=rain?0x3a5c22:0x527a2c;        // リンクス=フェスキュー芝（黄緑系）
+    else if(isCoastal) fwBase=rain?0x1f5c14:0x2c7a1e;  // 海岸=洋芝
     else if(isHilly) fwBase=rain?0x205518:0x2a8020;    // 丘陵=バミューダ芝
     const fwC=rain?Math.round(fwBase*0.82):fog?Math.round(fwBase*0.95):fwBase;
     // ★ フェアウェイ高品質マテリアル（MeshLambertMaterial）
     const fwMat=new THREE.MeshLambertMaterial({color:fwC});
+    if(dlSide!==0) fwMat.color.set(rain?0x24471a:0x1c4210); /* dogleg: 下地はラフトーン、本FWは中心線リボン */
     const fw=new THREE.Mesh(fwGeo,fwMat);
     fw.receiveShadow=true;
     fw.position.set(0,0,-TH/2);this.scene.add(fw);this.terrain=fw;
 
     // 刈り目縞（コース別幅・3トーン）
-    const swid=isAugusta?5:isStAndrews?8:6;
-    const ns=Math.ceil(TW/swid)+2;
+    const bandD2=12;
+    const ns=Math.ceil(TH/bandD2)+1;
     const toneA=rain?0x348018:isLinks?0x5a8828:0x44c020,
           toneB=rain?0x2a700e:isLinks?0x4a7820:0x38aa18,
           toneC=rain?0x307518:isLinks?0x508030:0x3fb01a;
     for(let s=0;s<ns;s++){
-      const col=[toneA,toneB,toneC][s%3];
+      const col=s%2===0?toneA:toneB;
       const stripe=new THREE.Mesh(
-        new THREE.PlaneGeometry(swid-0.06,TH*0.985),
-        new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:isAugusta?0.50:0.42})
+        new THREE.PlaneGeometry(TW,bandD2-0.12),
+        new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:dlSide!==0?0.16:0.5})
       );
       stripe.rotation.x=-Math.PI/2;
-      stripe.position.set(-TW/2-swid+s*swid+swid/2,0.01,-TH/2);
+      stripe.position.set(0,0.01,-(s+0.5)*bandD2+2);
       this.scene.add(stripe);
     }
 
@@ -3573,8 +3616,8 @@ const bCntGreen=Math.min(bunkerCount,5);
       const ang=bAngles[b]||b*0.5;
       const br=8.5+Math.random()*1.5;
       blist.push({
-        x:Math.sin(ang)*br,
-        z:gZ+Math.cos(ang)*(12+Math.random()*3),
+        x:gX+Math.sin(ang)*br,
+        z:gZv+Math.cos(ang)*(12+Math.random()*3),
         r:4.2+Math.random()*2.0,d:true,green:true});
     }
     // フェアウェイバンカー（ホール距離に応じて配置）
@@ -3649,7 +3692,7 @@ const bCntGreen=Math.min(bunkerCount,5);
       // 左〜中央寄りに配置し、右サイドに安全なフェアウェイ・花道迂回路を確保！
       const waterW = TW * 0.52;
       const waterX = -(TW * 0.14);
-      waterDefs.push({wx: waterX, wz: gZ + TH * 0.08, wW: waterW, wH: TH * 0.12, stakes: "yellow"});
+      waterDefs.push({wx: waterX, wz: gZv + TH * 0.08, wW: waterW, wH: TH * 0.12, stakes: "yellow"});
     }
     // 後方互換（旧featフォーマット）
     const hasPondOld=hole.feat&&(hole.feat.includes("池")||hole.feat.includes("水"))
@@ -3751,10 +3794,10 @@ const bCntGreen=Math.min(bunkerCount,5);
     } // end waterDefs loop
     if(hole.name==="Island Green"){
       const ig=addC(new THREE.CylinderGeometry(13.5,14.5,0.6,40),0x3dbb28);
-      ig.position.set(0,0.25,gZ);
+      ig.position.set(gX,0.25,gZv);
       const ocean=new THREE.PlaneGeometry(110,110);ocean.rotateX(-Math.PI/2);
       this.scene.add(new THREE.Mesh(ocean,new THREE.MeshBasicMaterial({color:0x0c4280,transparent:true,opacity:0.93})));
-      this.obZones.push([new THREE.Vector2(-55,gZ-55),new THREE.Vector2(55,gZ-55),new THREE.Vector2(55,gZ+55),new THREE.Vector2(-55,gZ+55)]);
+      this.obZones.push([new THREE.Vector2(-55,gZv-55),new THREE.Vector2(55,gZv-55),new THREE.Vector2(55,gZv+55),new THREE.Vector2(-55,gZv+55)]);
     }
 
     // ═══════════════════════════════════════════════════════
@@ -3765,16 +3808,16 @@ const bCntGreen=Math.min(bunkerCount,5);
     const gR=isAugusta?11.2:isStAndrews?10.6:isPebble?9.6:isSawgrass?8.5:9.5;
     const gColMain=isAugusta?(rain?0x2aa010:0x42d818):isLinks?(rain?0x28880a:0x3aaa18):(rain?0x28a010:0x40cc18);
     // L1: 土台（土手）
-    addC(new THREE.CylinderGeometry(gR+2.3,gR+3.8,0.95,40),0x144808).position.set(0,gY-0.46,gZ);
+    addC(new THREE.CylinderGeometry(gR+2.3,gR+3.8,0.95,40),0x144808).position.set(gX,gY-0.46,gZv);
     // L2: 外縁ラフ移行帯
-    addC(new THREE.CylinderGeometry(gR+1.6,gR+2.0,0.32,36),0x1e6010).position.set(0,gY+0.0,gZ);
+    addC(new THREE.CylinderGeometry(gR+1.6,gR+2.0,0.32,36),0x1e6010).position.set(gX,gY+0.0,gZv);
     // L3: フリンジ外
-    addC(new THREE.CylinderGeometry(gR+1.0,gR+1.4,0.25,36),0x2a8018).position.set(0,gY+0.06,gZ);
+    addC(new THREE.CylinderGeometry(gR+1.0,gR+1.4,0.25,36),0x2a8018).position.set(gX,gY+0.06,gZv);
     // L4: フリンジ内（エプロン）
-    addC(new THREE.CylinderGeometry(gR+0.3,gR+0.8,0.22,36),0x38a822).position.set(0,gY+0.1,gZ);
+    addC(new THREE.CylinderGeometry(gR+0.3,gR+0.8,0.22,36),0x38a822).position.set(gX,gY+0.1,gZv);
     // L5: グリーン本体
-    addC(new THREE.CylinderGeometry(gR,gR+0.3,0.30,40),gColMain).position.set(0,gY,gZ);
-    this.greenPos={x:0,z:gZ,r:gR+0.3,y:gY};
+    addC(new THREE.CylinderGeometry(gR,gR+0.3,0.30,40),gColMain).position.set(gX,gY,gZv);
+    this.greenPos={x:gX,z:gZv,r:gR+0.3,y:gY};
 
     // グリーン刈り目（3トーン・8本縞）
     const gSW=2.3,nGS=8;
@@ -3784,7 +3827,7 @@ const bCntGreen=Math.min(bunkerCount,5);
         new THREE.PlaneGeometry(gSW-0.06,18.5),
         new THREE.MeshBasicMaterial({color:gT[s%3],transparent:true,opacity:0.42}));
       gst.rotation.x=-Math.PI/2;
-      gst.position.set(-nGS*gSW/2+gSW*(s+0.5),gY+0.17,gZ);this.scene.add(gst);
+      gst.position.set(gX-nGS*gSW/2+gSW*(s+0.5),gY+0.17,gZv);this.scene.add(gst);
     }
 
     // アンジュレーション（傾斜矢印 + 等高線）
@@ -3794,7 +3837,7 @@ const bCntGreen=Math.min(bunkerCount,5);
     aS.lineTo(-0.44,-1.9);aS.lineTo(0.44,-1.9);aS.lineTo(0.44,-0.24);aS.lineTo(1.15,-0.55);aS.closePath();
     const aMesh=new THREE.Mesh(new THREE.ShapeGeometry(aS),
       new THREE.MeshBasicMaterial({color:0x00ffd0,transparent:true,opacity:0.82,side:THREE.DoubleSide}));
-    aMesh.rotation.x=-Math.PI/2;aMesh.rotation.z=sDir;aMesh.position.set(0,gY+0.18,gZ);
+    aMesh.rotation.x=-Math.PI/2;aMesh.rotation.z=sDir;aMesh.position.set(gX,gY+0.18,gZv);
     this.scene.add(aMesh);
     // サブ矢印（4隅）
     for(let a=0;a<4;a++){
@@ -3804,7 +3847,7 @@ const bCntGreen=Math.min(bunkerCount,5);
       const sAM=new THREE.Mesh(new THREE.ShapeGeometry(sAS),
         new THREE.MeshBasicMaterial({color:0x00ffb0,transparent:true,opacity:0.58,side:THREE.DoubleSide}));
       sAM.rotation.x=-Math.PI/2;sAM.rotation.z=sDir;
-      sAM.position.set(Math.cos(ang)*5.8,gY+0.18,gZ+Math.sin(ang)*5.8);this.scene.add(sAM);
+      sAM.position.set(gX+Math.cos(ang)*5.8,gY+0.18,gZv+Math.sin(ang)*5.8);this.scene.add(sAM);
     }
     // 等高線リング（4本）
     for(let c=0;c<4;c++){
@@ -3812,13 +3855,13 @@ const bCntGreen=Math.min(bunkerCount,5);
       const ct=new THREE.Mesh(
         new THREE.TorusGeometry(cr,0.065,5,32),
         new THREE.MeshBasicMaterial({color:0x00ee99,transparent:true,opacity:0.55}));
-      ct.rotation.x=Math.PI/2;ct.position.set(0,gY+0.17,gZ);this.scene.add(ct);
+      ct.rotation.x=Math.PI/2;ct.position.set(gX,gY+0.17,gZv);this.scene.add(ct);
     }
     // カップリング（白円）
     const cupR=new THREE.Mesh(
       new THREE.RingGeometry(0.52,0.82,24),
       new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.65,side:THREE.DoubleSide}));
-    cupR.rotation.x=-Math.PI/2;cupR.position.set(0,gY+0.19,gZ);this.scene.add(cupR);
+    cupR.rotation.x=-Math.PI/2;cupR.position.set(gX,gY+0.19,gZv);this.scene.add(cupR);
     this._slopeDir=sDir;
 
     // ═══════════════════════════════════════════════════════
@@ -3932,7 +3975,7 @@ const bCntGreen=Math.min(bunkerCount,5);
         ttype=Math.random()<0.45?"broad":"pine";
         tsize=1.5+Math.random()*2.2;
       }
-      if(Math.sqrt(sx*sx+(sz-gZ)**2)<22||Math.sqrt(sx*sx+sz*sz)<12)continue;
+      if(Math.sqrt((sx-gX)**2+(sz-gZv)**2)<22||Math.sqrt(sx*sx+sz*sz)<12)continue;
       this._addTree(sx,sz,gen,tsize,ttype);
     }
 
@@ -3940,8 +3983,8 @@ const bCntGreen=Math.min(bunkerCount,5);
     if(isAugusta&&!mob){
       for(let bt=0;bt<8;bt++){
         const bx=(Math.random()-0.5)*TW*0.8;
-        const bz=gZ-12-Math.random()*20;
-        if(Math.sqrt(bx*bx+(bz-gZ)**2)<16)continue;
+        const bz=gZv-12-Math.random()*20;
+        if(Math.sqrt((bx-gX)**2+(bz-gZv)**2)<16)continue;
         this._addTree(bx,bz,gen,1.6+Math.random()*1.8,"broad");
       }
     }
@@ -3957,7 +4000,7 @@ const bCntGreen=Math.min(bunkerCount,5);
       const gx=(Math.random()>0.5?1:-1)*(gxMin+Math.random()*gxRange);
       const gz=-TH*(0.05+Math.random()*0.9);
       const gy2=gen.getHeight(gx+TW/2,-gz-TH/2);
-      if(Math.sqrt(gx*gx+(gz-gZ)**2)<18)continue;
+      if(Math.sqrt((gx-gX)**2+(gz-gZv)**2)<18)continue;
       const gh=isAugusta?0.6+Math.random()*1.1:0.45+Math.random()*0.85;
       const tft=new THREE.Mesh(
         new THREE.CylinderGeometry(0.04,0.20,gh,5),
@@ -3984,7 +4027,7 @@ const bCntGreen=Math.min(bunkerCount,5);
       for(let i=0;i<6;i++){
         const rx=(Math.random()-0.5)*TW*0.75;
         const rz=-TH*(0.1+Math.random()*0.75);
-        if(Math.sqrt(rx*rx+(rz-gZ)**2)<26)continue;
+        if(Math.sqrt((rx-gX)**2+(rz-gZv)**2)<26)continue;
         const rs=0.35+Math.random()*1.2;
         const gy2=gen.getHeight(rx+TW/2,-rz-TH/2);
         const rock=new THREE.Mesh(
@@ -3997,9 +4040,9 @@ const bCntGreen=Math.min(bunkerCount,5);
 
     // 位置・OBゾーン
     this.teePos.set(0,0.36,0);
-    this.pinPos.set(0,gY+0.45,gZ);
+    this.pinPos.set(gX,gY+0.45,gZv);
     // ★★★ feat別リアル地形追加 ★★★
-    const gpx=0, gpz=gZ;
+    const gpx=gX, gpz=gZv;
     // ─── 水ハザード（左） ───
     if(hasWaterLeft){
       const wW=TW*0.42, wH=TH*(0.28+Math.random()*0.18);
@@ -4158,94 +4201,36 @@ const bCntGreen=Math.min(bunkerCount,5);
   }
 
   _addTree(x,z,gen,sm,type="pine"){
-    const h=(5+Math.random()*7)*sm;
+    /* v4.4: 円錐/球を廃止し、幹+複数クラスタの樹冠に置換（色ばらつき・葉テクスチャ） */
     const gy=gen.getHeight(x+this.terrainW/2,-z-this.terrainH/2);
     const mob=this.isMobile;
     const rain=this.weather&&this.weather.type==="rain";
-    const course=this.currentCourse||{};
-    const cid=course.id||"";
-    const isLinks=course.terrainProfile==="links";
-
-    // Augusta特有の木（マグノリア・アザレア・パインなど）
-    const isAugusta=(cid==="augusta"||cid==="augusta_divine");
-    const isPebble=cid==="pebble";
-
-    // ★ 幹色（重厚で深みのあるリアルなウッドバークブラウン）
-    const trunkCol=isAugusta?0x382410:isLinks?0x4e381c:0x402a14;
-    const trunkH=h*0.45;
+    const H=window.HQG; const leafTex=(H&&H.tex&&H.tex.leaf_map)?H.tex.leaf_map:null;
+    let seed=Math.floor(Math.abs(x*131.7+z*57.3))%9973+11;
+    const rnd=()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+    const trunkH=(2.6+rnd()*1.6)*sm;
     const trunk=new THREE.Mesh(
-      new THREE.CylinderGeometry(0.28*sm,0.42*sm,trunkH,7),
-      new THREE.MeshLambertMaterial({color:trunkCol})
+      new THREE.CylinderGeometry(0.22*sm,0.40*sm,trunkH,7),
+      new THREE.MeshLambertMaterial({color:rain?0x33241a:0x402a14})
     );
     trunk.position.set(x,gy+trunkH*0.5,z);
     trunk.castShadow=!mob; trunk.receiveShadow=!mob;
     this.scene.add(trunk);
-
-    // ★ 葉の色：FW（黄緑・ライム系）と鮮明に区別がつく名門コースの「重厚なディープフォレスト・エバーグリーン」
-    if(type==="pine"||isAugusta){
-      if(isAugusta){
-        // Augusta風：ジョージアパイン・マグノリア（濃密で品格ある深緑）
-        const augCols = [
-          rain ? 0x081e0a : 0x0e2612,  // 下段（影を湛えた最深フォレストグリーン）
-          rain ? 0x0b240e : 0x133016,  // 中段（重厚なパイングリーン）
-          rain ? 0x0f2a11 : 0x183a1b   // 上段（品格あるエバーグリーン）
-        ];
-        const augLayers=mob?2:3;
-        for(let li=0;li<augLayers;li++){
-          const lw=(5.5-li*0.8)*sm, lh=(2.5+li*0.5)*sm;
-          const augLeaf=new THREE.Mesh(
-            new THREE.ConeGeometry(lw,lh,10),
-            new THREE.MeshLambertMaterial({color:augCols[li%augCols.length]})
-          );
-          augLeaf.position.set(x,gy+trunkH+li*lh*0.7,z);
-          augLeaf.castShadow=!mob; this.scene.add(augLeaf);
-        }
-      } else {
-        // 標準松（名門パイン：深い針葉樹グリーンでFWとのコントラストを最大化）
-        const pineCols = [
-          rain ? 0x081c0a : 0x0d2812,
-          rain ? 0x0c220e : 0x123216,
-          rain ? 0x102812 : 0x173c1c
-        ];
-        const pineLayers=mob?2:3;
-        for(let li=0;li<pineLayers;li++){
-          const lw=(4.5-li*0.9)*sm, lh=(3+li*0.4)*sm;
-          const pineLeaf=new THREE.Mesh(
-            new THREE.ConeGeometry(lw,lh,8),
-            new THREE.MeshLambertMaterial({color:pineCols[li%pineCols.length]})
-          );
-          pineLeaf.position.set(x,gy+trunkH+li*lh*0.65,z);
-          pineLeaf.castShadow=!mob; this.scene.add(pineLeaf);
-        }
-      }
-    } else if(type==="broad"){
-      // 広葉樹（落ち着いた深みのある濃密リーフグリーン）
-      const broadLeafCol=rain ? 0x0e2612 : 0x143618;
-      const ballR=(3.8+Math.random()*1.8)*sm;
-      const broadLeaf=new THREE.Mesh(
-        new THREE.SphereGeometry(ballR,10,7),
-        new THREE.MeshLambertMaterial({color:broadLeafCol,transparent:true,opacity:0.95})
-      );
-      broadLeaf.position.set(x,gy+trunkH+ballR*0.7,z);
-      broadLeaf.castShadow=!mob; this.scene.add(broadLeaf);
-      // 副冠
-      if(!mob){
-        const sub=new THREE.Mesh(
-          new THREE.SphereGeometry(ballR*0.6,8,5),
-          new THREE.MeshLambertMaterial({color:rain ? 0x112e14 : 0x18401c})
-        );
-        sub.position.set(x+ballR*0.5,gy+trunkH+ballR*0.5,z+ballR*0.3);
-        this.scene.add(sub);
-      }
-    } else if(type==="cypress"){
-      // イトスギ（引き締まったダークサイプレス）
-      const leafCol=rain ? 0x0a220e : 0x103214;
-      const leaf=new THREE.Mesh(
-        new THREE.ConeGeometry(1.2*sm,h*0.85,7),
-        new THREE.MeshLambertMaterial({color:leafCol})
-      );
-      leaf.position.set(x,gy+h*0.55,z);
-      leaf.castShadow=!mob; this.scene.add(leaf);
+    const greens=rain?[0x14351a,0x1a4520,0x0f2c14]:[0x1d4d16,0x27631d,0x2e6b22,0x1a4218];
+    const nCl=(type==="pine")?4:3;
+    const crownR=(type==="pine"?2.5:3.1)*sm;
+    for(let k=0;k<nCl;k++){
+      const cr=crownR*(1.0-k*0.16)*(0.85+rnd()*0.3);
+      const cm=new THREE.MeshLambertMaterial({color:greens[Math.floor(rnd()*greens.length)]});
+      if(leafTex){ cm.map=leafTex; }
+      const blob=new THREE.Mesh(new THREE.IcosahedronGeometry(cr,1),cm);
+      blob.position.set(
+        x+(rnd()-0.5)*crownR*0.9,
+        gy+trunkH+cr*0.55+k*(type==="pine"?1.15:0.8)*sm,
+        z+(rnd()-0.5)*crownR*0.9);
+      blob.scale.y=0.82;
+      blob.castShadow=!mob;
+      this.scene.add(blob);
     }
   }
 
@@ -4459,6 +4444,7 @@ const bCntGreen=Math.min(bunkerCount,5);
     /* 商用品質アップグレード： MeshBasicMaterial廃止 → PBR（MeshStandardMaterial）多関節階層モデル */
     const S=(v,r,m)=>new THREE.MeshStandardMaterial({color:v,roughness:(r===undefined?0.6:r),metalness:(m===undefined?0.05:m)});
     const skinM=S(skin,0.55), shirtM=S(shirt,0.65), pantsM=S(pants,0.72), darkM=S(0x181820,0.5,0.2);
+    skinM.side=THREE.DoubleSide; shirtM.side=THREE.DoubleSide; pantsM.side=THREE.DoubleSide;
     try{
       const cv=document.createElement("canvas"); cv.width=cv.height=512;
       const cx=cv.getContext("2d"); cx.scale(4,4);
@@ -4474,23 +4460,23 @@ const bCntGreen=Math.min(bunkerCount,5);
     /* 脚：股関節→膝→足首＋ツートンシューズ */
     J.legs={};
     for(const sideN of [-1,1]){
-      const hip=new THREE.Group(); hip.position.set(0.15*sideN,0.62,0); g.add(hip);
-      const thigh=new THREE.Mesh(new THREE.CylinderGeometry(0.105,0.09,0.32,10),pantsM); thigh.position.y=-0.16; thigh.castShadow=true; hip.add(thigh);
-      const knee=new THREE.Group(); knee.position.y=-0.32; hip.add(knee);
-      const shin=new THREE.Mesh(new THREE.CylinderGeometry(0.085,0.07,0.30,10),pantsM); shin.position.y=-0.15; knee.add(shin);
-      const ank=new THREE.Group(); ank.position.y=-0.30; knee.add(ank);
+      const hip=new THREE.Group(); hip.position.set(0.14*sideN,0.88,0); g.add(hip);
+      const thigh=new THREE.Mesh(new THREE.CylinderGeometry(0.098,0.082,0.46,10),pantsM); thigh.position.y=-0.23; thigh.castShadow=true; hip.add(thigh);
+      const knee=new THREE.Group(); knee.position.y=-0.46; hip.add(knee);
+      const shin=new THREE.Mesh(new THREE.CylinderGeometry(0.076,0.062,0.42,10),pantsM); shin.position.y=-0.21; knee.add(shin);
+      const ank=new THREE.Group(); ank.position.y=-0.42; knee.add(ank);
       const shoe=new THREE.Mesh(new THREE.BoxGeometry(0.17,0.09,0.36),S(0xf2f2f2,0.4)); shoe.position.set(0,-0.045,-0.05); ank.add(shoe);
       const toe=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.07,0.12),S(hatC,0.4)); toe.position.set(0,-0.05,-0.26); ank.add(toe);
       J.legs[sideN<0?"L":"R"]={hip:hip,knee:knee,ank:ank};
     }
     /* 骨盤→胸郭→頭 */
-    const hips=new THREE.Group(); hips.position.y=0.60; g.add(hips); J.hips=hips;
+    const hips=new THREE.Group(); hips.position.y=0.88; g.add(hips); J.hips=hips;
     const pelvis=new THREE.Mesh(new THREE.CylinderGeometry(0.21,0.19,0.16,12),pantsM); pelvis.position.y=0.04; hips.add(pelvis);
     const belt=new THREE.Mesh(new THREE.CylinderGeometry(0.215,0.215,0.05,12),darkM); belt.position.y=0.11; hips.add(belt);
     const torsoG=new THREE.Group(); torsoG.position.y=0.10; hips.add(torsoG); J.torso=torsoG;
-    const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.20,0.225,0.60,12),shirtM); torso.position.y=0.30; torso.castShadow=true; torsoG.add(torso); J.torsoMesh=torso;
-    const collar=new THREE.Mesh(new THREE.TorusGeometry(0.105,0.032,8,16),shirtM); collar.position.y=0.60; collar.rotation.x=Math.PI/2-0.3; torsoG.add(collar);
-    const headG=new THREE.Group(); headG.position.y=0.66; torsoG.add(headG); J.head=headG;
+    const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.185,0.215,0.56,12),shirtM); torso.position.y=0.28; torso.castShadow=true; torsoG.add(torso); J.torsoMesh=torso;
+    const collar=new THREE.Mesh(new THREE.TorusGeometry(0.10,0.03,8,16),shirtM); collar.position.y=0.56; collar.rotation.x=Math.PI/2-0.3; torsoG.add(collar);
+    const headG=new THREE.Group(); headG.position.y=0.59; torsoG.add(headG); J.head=headG;
     const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.085,0.14,10),skinM); neck.position.y=0.02; headG.add(neck);
     const head=new THREE.Mesh(new THREE.SphereGeometry(0.21,16,12),skinM); head.scale.set(0.95,1.1,0.98); head.position.y=0.24; head.castShadow=true; headG.add(head);
     const jaw=new THREE.Mesh(new THREE.SphereGeometry(0.155,12,8),skinM); jaw.scale.set(0.95,0.75,0.95); jaw.position.set(0,0.115,-0.03); headG.add(jaw);
@@ -4531,9 +4517,9 @@ const bCntGreen=Math.min(bunkerCount,5);
     const glove=new THREE.Mesh(new THREE.SphereGeometry(0.076,8,6),S(0xf6f6f6,0.5)); glove.position.y=-0.04; aL.wr.add(glove);
     /* クラブ（右手首のクラブグループ配下） */
     const clubG=new THREE.Group();
-    const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.016,0.02,1.5,8),S(0xb8c0cc,0.28,0.9)); shaft.position.y=-0.40; clubG.add(shaft);
+    const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.016,0.02,1.78,8),S(0xb8c0cc,0.28,0.9)); shaft.position.y=-0.54; clubG.add(shaft);
     const grip=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.027,0.28,8),S(0x1c1c22,0.7)); grip.position.y=0.47; clubG.add(grip);
-    const chead=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.11,0.05),S(0xd8dce2,0.25,0.95)); chead.position.set(0,-1.17,-0.03); clubG.add(chead);
+    const chead=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.11,0.05),S(0xd8dce2,0.25,0.95)); chead.position.set(0,-1.45,-0.03); clubG.add(chead);
     clubG.position.set(0,-0.06,-0.02);
     aR.wr.add(clubG);
     this.clubMesh=clubG; J.club=clubG;
@@ -4548,6 +4534,11 @@ const bCntGreen=Math.min(bunkerCount,5);
     const shadow=new THREE.Mesh(new THREE.CircleGeometry(0.35,16),
       new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.3}));
     shadow.rotation.x=-Math.PI/2;shadow.position.y=0.005;g.add(shadow);
+    /* v4.4: 体格の作り分け (driverSpeedは6人とも固有値のため識別子として使う) */
+    var BP = {75:{h:0.97,w:0.92},80:{h:1.00,w:1.00},85:{h:1.02,w:1.06},82:{h:1.01,w:1.15},90:{h:1.05,w:0.95},95:{h:1.04,w:1.23}};
+    var BPN = {Watu:{h:0.97,w:0.92},Matuya:{h:1.00,w:1.00},TIiger:{h:1.02,w:1.06},Junbo:{h:1.01,w:1.15},McIlro:{h:1.05,w:0.95},DeCham:{h:1.04,w:1.23}}; /* v4.4是正3: GOAT時はdriverSpeedが99に化けるためnameを主キーにする */
+    var bp = BPN[ch && ch.name] || BP[ch && ch.driverSpeed] || {h:1,w:1};
+    g.scale.set(bp.w, bp.h, bp.w);
     g.position.copy(this.teePos);
     this.playerMesh=g; this.playerJoints=J; this.scene.add(g);
     this._startPlayerIdle();
@@ -4560,7 +4551,7 @@ const bCntGreen=Math.min(bunkerCount,5);
       requestAnimationFrame(loop);
       if(this._swinging||!this.playerJoints||!this.playerMesh||!this.playerMesh.parent) return;
       const J=this.playerJoints, t=performance.now()/1000;
-      J.torsoMesh.position.y=0.30+Math.sin(t*1.7)*0.008;
+      J.torsoMesh.position.y=0.28+Math.sin(t*1.7)*0.008;
       J.club.rotation.x=J.addr.club[0]+Math.sin(t*2.3)*0.035;
       J.club.rotation.z=J.addr.club[2]+Math.sin(t*1.9+1.3)*0.02;
       J.head.rotation.y=Math.sin(t*0.6)*0.05;
@@ -4585,9 +4576,15 @@ const bCntGreen=Math.min(bunkerCount,5);
       const shirtBase = J.torsoMesh.material;
       const shirtM2 = shirtBase.clone();
       if(T.shirt_nrm){ shirtM2.normalMap = T.shirt_nrm; shirtM2.roughnessMap = T.shirt_rgh; shirtM2.needsUpdate = true; }
+      /* v4.4: 国籍・人種設定に合わせた肌色/顔の作り分け (全員固定色だった v4.3 の是正) */
+      var CKN = {Watu:['watu',0xffffff,0x241a12],Matuya:['matuya',0xfdf6ec,0x201812],TIiger:['tiiger',0x9a7a58,0x14100c],Junbo:['junbo',0xf5ebd6,0x6a625a],McIlro:['mcilro',0xffffff,0x7a4a26],DeCham:['decham',0xfff6e0,0x4a3420]}; /* v4.4是正3: name主キー(GOAT時driverSpeed=99対策) */
+      var CK = CKN[ch && ch.name] || {75:CKN.Watu,80:CKN.Matuya,85:CKN.TIiger,82:CKN.Junbo,90:CKN.McIlro,95:CKN.DeCham}[ch && ch.driverSpeed] || CKN.Watu;
+      var vH = T['head_' + CK[0]] || null; /* v4.4是正2: _readyゲートを廃止しロード完了と同時に差し替わるようにする(従来は適用競合で汎用顔に戻っていた) */
+      var vS = T['skin_' + CK[0]] || null;
       const SLOT = {
-        MAT_SKIN: S({color: 0xd8d8d8, roughness: 1.0, envMapIntensity: 0.45, map: T.skin_map || null, normalMap: T.skin_nrm || null, roughnessMap: T.skin_rgh || null}),
-        MAT_HEAD: S({color: 0xd8d8d8, roughness: 1.0, envMapIntensity: 0.45, map: T.head_map || null, normalMap: T.head_nrm || null, roughnessMap: T.skin_rgh || null}),
+        MAT_SKIN: S({color: vS ? 0xffffff : CK[1], roughness: 1.0, envMapIntensity: 0.45, map: vS || T.skin_map || null, normalMap: T.skin_nrm || null, roughnessMap: T.skin_rgh || null}),
+        MAT_HEAD: S({color: vH ? 0xffffff : CK[1], roughness: 1.0, envMapIntensity: 0.45, map: vH || T.head_map || null, normalMap: T.head_nrm || null, roughnessMap: T.skin_rgh || null}),
+        MAT_BROW: S({color: CK[2], roughness: 0.85}),
         MAT_EYE: S({color: 0xffffff, roughness: 0.12, map: T.eye || null}),
         MAT_SHIRT: shirtM2,
         MAT_PANTS: S({color: pants, roughness: 0.72, map: T.pants_map || null, normalMap: T.pants_nrm || null, roughnessMap: T.pants_rgh || null}),
@@ -4601,6 +4598,7 @@ const bCntGreen=Math.min(bunkerCount,5);
         MAT_WHITE: S({color: 0xf6f6f6, roughness: 0.5}),
         MAT_STRAW: S({color: 0xb08a34, roughness: 0.9, envMapIntensity: 0.35})
       };
+      Object.keys(SLOT).forEach(function(k){ SLOT[k].side = THREE.DoubleSide; });
       const put = (name, parent, flip) => {
         const tpl = P[name]; if(!tpl || !parent) return null;
         const o = tpl.clone();
@@ -4609,28 +4607,32 @@ const bCntGreen=Math.min(bunkerCount,5);
         parent.add(o);
         return o;
       };
-      const hide = (grp) => { if(!grp) return; for(let i = 0; i < grp.children.length; i++){ const c = grp.children[i]; if(c.isMesh && c.material && !c.userData.hqPart) c.material.visible = false; } };
+      const hide = (grp) => { if(!grp) return; for(let i = 0; i < grp.children.length; i++){ const c = grp.children[i]; if(c.isMesh && !c.userData.hqPart) c.visible = false; } };
+      /* v4.4: 透け根絶 - 従来モデルを 0.93 倍の内側ブロッカーとして残し、HQパーツの隙間から背景が見えないようにする */
+      const block = (grp) => { if(!grp) return; for(let i = 0; i < grp.children.length; i++){ const c = grp.children[i]; if(c.isMesh && !c.userData.hqPart){ c.scale.x *= 0.93; c.scale.z *= 0.93; } } };
       for(const sd of ['L', 'R']){
         const leg = J.legs[sd];
-        put('thigh', leg.hip, true); hide(leg.hip);
-        put('shin', leg.knee, true); hide(leg.knee);
-        put('shoe', leg.ank, true); put('toe', leg.ank, true); hide(leg.ank);
+        put('thigh', leg.hip, true); block(leg.hip);
+        put('shin', leg.knee, true); block(leg.knee);
+        put('shoe', leg.ank, true); put('toe', leg.ank, true); block(leg.ank);
       }
-      put('pelvis', J.hips, true); put('belt', J.hips, true); hide(J.hips);
+      put('pelvis', J.hips, true); put('belt', J.hips, true); block(J.hips);
       put('torso', J.torsoMesh, true);
-      shirtBase.visible = false;
+      /* v4.4: シャツもブロッカーとして残す (襟だけは二重になるため隠す) */
+      J.torsoMesh.scale.x *= 0.94; J.torsoMesh.scale.z *= 0.94;
+      if(J.torso) for(let i = 0; i < J.torso.children.length; i++){ const c = J.torso.children[i]; if(c.isMesh && c.geometry && c.geometry.type === 'TorusGeometry') c.visible = false; }
       put('head', J.head, true); put('earL', J.head, true); put('earR', J.head, true); put('nose', J.head, true);
       const hatKind = (ch && ch.name === 'DeCham') ? 'flat' : (ch && ch.name === 'Watu') ? 'straw' : 'cap';
       if(hatKind === 'cap'){ put('cap', J.head, true); put('cap_brim', J.head, true); put('cap_logo', J.head, true); }
       else if(hatKind === 'straw'){ put('straw', J.head, true); put('straw_top', J.head, true); }
       else { put('flat', J.head, true); }
       hide(J.head);
-      put('upperarm', J.shoulderL, true); hide(J.shoulderL);
-      put('upperarm', J.shoulderR, true); hide(J.shoulderR);
-      put('forearm', J.elbowL, true); hide(J.elbowL);
-      put('forearm', J.elbowR, true); hide(J.elbowR);
-      put('hand', J.wristL, true); put('glove', J.wristL, true); hide(J.wristL);
-      put('hand', J.wristR, true); hide(J.wristR);
+      put('upperarm', J.shoulderL, true); block(J.shoulderL);
+      put('upperarm', J.shoulderR, true); block(J.shoulderR);
+      put('forearm', J.elbowL, true); block(J.elbowL);
+      put('forearm', J.elbowR, true); block(J.elbowR);
+      put('hand', J.wristL, true); put('glove', J.wristL, true); block(J.wristL);
+      put('hand', J.wristR, true); block(J.wristR);
       put('club_grip', J.club, false); put('club_shaft', J.club, false);
       this._hqHeads = { driver: put('club_driver', J.club, false), iron: put('club_iron', J.club, false), putter: put('club_putter', J.club, false), top: put('club_driver_top', J.club, false) };
       hide(J.club);
@@ -4705,6 +4707,214 @@ const bCntGreen=Math.min(bunkerCount,5);
       }
     }catch(e){}
   }
+  /* v4.4: コースの作り込み - 林(幹+葉クラスタのInstancedMesh) / バンカー窪みの強調 / 空の空気感 */
+  _hqCourseDress(){
+    /* v4.4-2: 中心線フェアウェイリボン / 林 / 丘陵 / 色補正 (ホール単位で再実行) */
+    const holeKey = ((this.currentCourse&&this.currentCourse.id)||'') + '#' + this.currentHoleIdx;
+    if(this._dressHoleKey === holeKey) return; this._dressHoleKey = holeKey;
+    const TW = this.terrainW, TH = this.terrainH;
+    const mob = this.isMobile;
+    let seed = 987654;
+    const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+    const hole = (this.currentCourse && this.currentCourse.holes) ? this.currentCourse.holes[this.currentHoleIdx] : null;
+    const cid = (this.currentCourse && this.currentCourse.id) || '';
+    const isToda = (cid === 'toda' || cid === 'toda_dark' || !!(this.currentCourse && this.currentCourse.isToda2Way));
+    const physHole = hole ? (hole.physHole || ((hole.n - 1) % 9 + 1)) : 1;
+    const isSharpDogleg = isToda && physHole === 8;
+
+    /* --- 色の白飛び補正: 全ライトを 0.68 倍に (画素実測で調整) --- */
+    try{
+      if(this._allLights) for(const e of this._allLights){ if(e.light && e.base){ e.base *= 0.58; e.light.intensity = e.base * (this._brightnessMultiplier || 1); } } if(this.renderer) this.renderer.toneMappingExposure = 0.8;
+      if(this.scene && this.scene.fog && this.scene.fog.color) this.scene.fog.color.lerp(new THREE.Color(0x9db8cc), 0.2);
+    }catch(e){}
+
+    /* --- 旧・球体雲を隠し、柔らかいスプライト雲に置換 --- */
+    try{
+      this.scene.traverse(o => { if(o.userData && o.userData.v44OldCloud) o.visible = false; });
+      const H = window.HQG;
+      if(H && H.tex && H.tex.cloud){
+        for(let i = 0; i < (mob ? 6 : 11); i++){
+          const sm = new THREE.SpriteMaterial({ map: H.tex.cloud, transparent: true, depthWrite: false, opacity: 0.45 + rnd() * 0.3 });
+          const sp = new THREE.Sprite(sm);
+          const sc = 130 + rnd() * 130;
+          sp.scale.set(sc, sc * 0.30, 1);
+          sp.position.set(-420 + rnd() * 840, 95 + rnd() * 70, -80 - rnd() * 520);
+          this.scene.add(sp);
+        }
+      }
+    }catch(e){}
+
+    /* --- 中心線 (tee -> pin, dogleg で膨らむ) --- */
+    const tee = this.teePos || new THREE.Vector3(0, 0, 0);
+    const pin = this.pinPos || new THREE.Vector3(0, 0, -TH * 0.97);
+    const dx = pin.x - tee.x, dz = pin.z - tee.z;
+    const L = Math.hypot(dx, dz) || TH;
+    const ux = dx / L, uz = dz / L;           /* 進行方向 */
+    const px = uz, pz = -ux;                  /* 横方向 */
+    const greenR = this.greenPos ? this.greenPos.r : 10;
+    const clPts = (this._centerline && this._centerline.length > 1) ? this._centerline : [{x:tee.x, z:tee.z}, {x:pin.x, z:pin.z}];
+    const clSeg = []; let PL = 0;
+    for(let i = 0; i < clPts.length - 1; i++){ const sl = Math.hypot(clPts[i + 1].x - clPts[i].x, clPts[i + 1].z - clPts[i].z); clSeg.push(sl); PL += sl; }
+    if(PL < 1) PL = L;
+    const centerAt = (t) => {
+      let d = Math.max(0, Math.min(1, t)) * PL;
+      let i = 0; while(i < clSeg.length - 1 && d > clSeg[i]){ d -= clSeg[i]; i++; }
+      const a = clPts[i], b = clPts[i + 1]; const sl = clSeg[i] || 1; const k = Math.max(0, Math.min(1, d / sl));
+      return { x: a.x + (b.x - a.x) * k, z: a.z + (b.z - a.z) * k, off: 0 };
+    };
+    const perpAt = (t) => {
+      const c1 = centerAt(t), c2 = centerAt(Math.min(1, t + 0.012));
+      let vx = c2.x - c1.x, vz = c2.z - c1.z; const vl = Math.hypot(vx, vz) || 1; vx /= vl; vz /= vl;
+      return { x: vz, z: -vx };
+    };
+
+    /* --- フェアウェイリボン (幅変化 + 12単位の横帯モアライン) --- */
+    if(!isSharpDogleg){
+      const baseHW = isToda ? 27 : 25;
+      const t0 = 2 / PL, t1 = 1 - (greenR + 7) / PL;
+      const N = 52;
+      const buildRibbon = (extraW, yOff, colFn) => {
+        const pos = [], col = [], idx = [];
+        const cA = new THREE.Color(0x1e5c12), cB = new THREE.Color(0x113a09), cEdge = new THREE.Color(0x256b14);
+        for(let i = 0; i <= N; i++){
+          const t = t0 + (t1 - t0) * (i / N);
+          const c = centerAt(t);
+          const qp = perpAt(t);
+          const hw = baseHW * (1 + 0.13 * Math.sin(t * Math.PI * 2 + 1.0)) + extraW;
+          const dist = t * PL;
+          const band = Math.floor(dist / 12) % 2;
+          const cc = colFn ? colFn(band, cA, cB, cEdge) : cA;
+          const y = this.getGY(c.x, c.z) + yOff;
+          pos.push(c.x - qp.x * hw, y, c.z - qp.z * hw, c.x + qp.x * hw, y, c.z + qp.z * hw);
+          col.push(cc.r, cc.g, cc.b, cc.r, cc.g, cc.b);
+          if(i < N){ const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+        }
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+        g.setIndex(idx); g.computeVertexNormals();
+        const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true }));
+        m.receiveShadow = true;
+        this.scene.add(m);
+        return m;
+      };
+      buildRibbon(3.4, 0.028, (band, cA, cB, cEdge) => cEdge);                 /* ファーストカット縁 */
+      buildRibbon(0, 0.045, (band, cA, cB) => band ? cB : cA);                  /* フェアウェイ本体 */
+    }
+
+    /* --- 林: 中心線の両脇に幹+葉クラスタを連続配置 (InstancedMesh) --- */
+    {
+      const NT = mob ? 56 : 104;
+      const trunkG = new THREE.CylinderGeometry(0.20, 0.36, 3.0, 6); trunkG.translate(0, 1.5, 0);
+      const trunkM = new THREE.MeshStandardMaterial({ color: 0x4a3420, roughness: 1.0 });
+      const trunks = new THREE.InstancedMesh(trunkG, trunkM, NT);
+      const blobG = new THREE.IcosahedronGeometry(1.8, 1);
+      const blobM = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, flatShading: true });
+      const blobs = new THREE.InstancedMesh(blobG, blobM, NT * 3);
+      const dummy = new THREE.Object3D();
+      const leafCols = [new THREE.Color(0x1d4d16), new THREE.Color(0x27631d), new THREE.Color(0x2e6b22), new THREE.Color(0x1a4218)];
+      let ti = 0, bi = 0;
+      for(let sIdx = 0; sIdx < NT; sIdx++){
+        const t = 0.03 + 0.94 * (sIdx / NT) + (rnd() - 0.5) * 0.012;
+        const tc = Math.max(0, Math.min(1, t));
+        const c = centerAt(tc);
+        const qp = perpAt(tc);
+        const side = sIdx % 2 === 0 ? 1 : -1;
+        const hw = (isToda ? 27 : 25) * (1 + 0.13 * Math.sin(t * Math.PI * 2 + 1.0));
+        const off = hw + 6 + rnd() * 15;
+        const x = c.x + qp.x * side * off, z = c.z + qp.z * side * off;
+        if(this.greenPos && Math.hypot(x - this.greenPos.x, z - this.greenPos.z) < greenR + 8) continue;
+        if(Math.hypot(x - tee.x, z - tee.z) < 10) continue;
+        let bad = false;
+        if(this._bunkerZones) for(const bz of this._bunkerZones){ if(Math.hypot(x - bz.x, z - bz.z) < bz.r + 3.5){ bad = true; break; } }
+        if(bad) continue;
+        if(window._waterBoxes) for(const wb of window._waterBoxes){ if(x > wb.minX - 2 && x < wb.maxX + 2 && z > wb.minZ - 2 && z < wb.maxZ + 2){ bad = true; break; } }
+        if(bad) continue;
+        const y = this.getGY(x, z);
+        const sc = 0.9 + rnd() * 0.9;
+        dummy.position.set(x, y - 0.1, z); dummy.scale.setScalar(sc); dummy.rotation.set(0, rnd() * 3.14, 0);
+        dummy.updateMatrix(); trunks.setMatrixAt(ti, dummy.matrix);
+        for(let k = 0; k < 3; k++){
+          dummy.position.set(x + (rnd() - 0.5) * 1.9 * sc, y + (2.9 + k * 0.95) * sc, z + (rnd() - 0.5) * 1.9 * sc);
+          dummy.scale.setScalar(sc * (1.06 - k * 0.17)); dummy.rotation.set(rnd(), rnd() * 3, rnd());
+          dummy.updateMatrix(); blobs.setMatrixAt(bi, dummy.matrix);
+          blobs.setColorAt(bi, leafCols[Math.floor(rnd() * leafCols.length)]);
+          bi++;
+        }
+        ti++;
+      }
+      trunks.count = ti; blobs.count = bi;
+      if(blobs.instanceColor) blobs.instanceColor.needsUpdate = true;
+      trunks.castShadow = !mob; blobs.castShadow = !mob;
+      this.scene.add(trunks); this.scene.add(blobs);
+    }
+    /* コーナー内側の林 (ショートカット防止) */
+    if(clPts.length > 2 && this._terrainGen){
+      const cn = clPts[1];
+      const chX = (clPts[0].x + clPts[clPts.length - 1].x) / 2, chZ = (clPts[0].z + clPts[clPts.length - 1].z) / 2;
+      const inX = cn.x + (chX - cn.x) * 0.38, inZ = cn.z + (chZ - cn.z) * 0.38;
+      for(let k = 0; k < 9; k++){
+        const a = rnd() * Math.PI * 2, rr = 3 + rnd() * 9;
+        this._addTree(inX + Math.cos(a) * rr, inZ + Math.sin(a) * rr, this._terrainGen, 1.5 + rnd() * 1.1, 'broad');
+      }
+    }
+
+    /* --- バンカーが無いホールにはグリーン周りに2基を物理ごと追加 --- */
+    if(!isSharpDogleg && this._bunkerZones && this._bunkerZones.length === 0 && this.greenPos){
+      const gp = this.greenPos;
+      for(const sd of [-1, 1]){
+        const bx = gp.x + sd * (greenR + 3.0), bz = gp.z + 7.5, br = 4.6;
+        this._bunkerZones.push({ x: bx, z: bz, r: br, radius: br });
+        if(window._bunkerZones) window._bunkerZones.push({ x: bx, z: bz, r: br, radius: br });
+      }
+    }
+
+    /* --- バンカー可視化: 窪み+砂+縁の影 (物理ゾーンと一致) --- */
+    if(this._bunkerZones){
+      const H = window.HQG;
+      const ringM = new THREE.MeshStandardMaterial({ color: 0x6e5527, roughness: 1 });
+      const dipM = new THREE.MeshStandardMaterial({ color: 0xe8cf8f, roughness: 1 });
+      if(H && H.tex && H.tex.sand_detail){ dipM.map = H.tex.sand_detail; }
+      const pitM = new THREE.MeshStandardMaterial({ color: 0xc9ab68, roughness: 1 });
+      for(const bz of this._bunkerZones){
+        const gy = this.getGY(bz.x, bz.z);
+        const pit = new THREE.Mesh(new THREE.CylinderGeometry(bz.r * 1.05, bz.r * 0.8, 0.5, 24), pitM);
+        pit.position.set(bz.x, gy - 0.16, bz.z); this.scene.add(pit);
+        const dip = new THREE.Mesh(new THREE.CircleGeometry(bz.r * 0.92, 24), dipM);
+        dip.rotation.x = -Math.PI / 2; dip.position.set(bz.x, gy + 0.10, bz.z); this.scene.add(dip);
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(bz.r * 1.04, 0.34, 6, 26), ringM);
+        ring.rotation.x = Math.PI / 2; ring.position.set(bz.x, gy + 0.12, bz.z); this.scene.add(ring);
+      }
+    }
+
+    /* --- グリーン: フリンジの輪 (汎用コースのみ) --- */
+    if(this.terrain && this.greenPos){
+      const gp = this.greenPos;
+      const fr = new THREE.Mesh(new THREE.RingGeometry(greenR + 0.3, greenR + 2.8, 36),
+        new THREE.MeshLambertMaterial({ color: 0x59b83a }));
+      fr.rotation.x = -Math.PI / 2;
+      fr.position.set(gp.x, this.getGY(gp.x, gp.z + greenR + 1.6) + 0.07, gp.z);
+      this.scene.add(fr);
+    }
+
+    /* --- 遠景: なだらかな丘陵+樹海の地平線 (三角山は廃止) --- */
+    {
+      const hillCols = [0x274d21, 0x2f5a26, 0x22451d];
+      const nH = mob ? 5 : 8;
+      for(let i = 0; i < nH; i++){
+        const ang = (i / nH) * Math.PI * 2 + rnd() * 0.3;
+        const dist = 600 + rnd() * 200;
+        const hx = Math.cos(ang) * dist, hz = -TH / 2 + Math.sin(ang) * dist;
+        const hr = 190 + rnd() * 150;
+        const hill = new THREE.Mesh(new THREE.SphereGeometry(hr, 14, 10),
+          new THREE.MeshLambertMaterial({ color: hillCols[i % 3] }));
+        hill.scale.set(1, 0.26 + rnd() * 0.10, 0.75);
+        hill.position.set(hx, -hr * 0.06, hz);
+        this.scene.add(hill);
+      }
+    }
+  }
+
   _buildBallMesh(){
     // ★ ディンプル感のある高品質ボール（MeshPhongMaterial）
     const mesh=new THREE.Mesh(
@@ -4951,8 +5161,18 @@ const bCntGreen=Math.min(bunkerCount,5);
         if(bd<bz.r)return"bunker";
       }
     }
-    if(Math.abs(x)>42)return"rough";
-    if(Math.abs(x)>32)return"rough"; // セミラフ帯
+    if(this._centerline && this._centerline.length > 1){
+      let best = 1e18; const cl = this._centerline;
+      for(let i = 0; i < cl.length - 1; i++){
+        const ax = cl[i].x, az = cl[i].z, bx2 = cl[i + 1].x, bz2 = cl[i + 1].z;
+        const abx = bx2 - ax, abz = bz2 - az; const len2 = abx * abx + abz * abz || 1;
+        let t = ((x - ax) * abx + (z - az) * abz) / len2; t = Math.max(0, Math.min(1, t));
+        const ddx = x - (ax + abx * t), ddz = z - (az + abz * t);
+        const dd = ddx * ddx + ddz * ddz; if(dd < best) best = dd;
+      }
+      return Math.sqrt(best) <= 32 ? "fairway" : "rough";
+    }
+    if(Math.abs(x)>32)return"rough";
     return"fairway";
   }
   checkOB(x,z){
@@ -5412,31 +5632,39 @@ const bCntGreen=Math.min(bunkerCount,5);
       // ═════════════════════════════════════════════════════════════
       // 通常ホール：手前（下）がティー、奥（上）がグリーン
       // ═════════════════════════════════════════════════════════════
-      const sX = W / 100;
+      const sX = W / 190;
       const sZ = (H - 24) / Math.max(100, this.terrainH);
       const cx = W / 2;
       const teeY = H - 12;
       const pinY = 12;
 
-      // フェアウェイ帯（下から上へまっすぐ）
-      ctx.fillStyle = "#2a7a1a";
-      ctx.fillRect(cx - 18*sX, pinY, 36*sX, teeY - pinY);
-
-      // ファーストカット境界
+      // フェアウェイ帯（中心線ポリライン = 実形状）
+      const pinMX = cx + (this.pinPos ? this.pinPos.x : 0) * sX;
+      const pinMY = Math.max(8, teeY + (this.pinPos ? this.pinPos.z : -this.terrainH * 0.97) * sZ);
+      const teeMX = cx + (this.teePos ? this.teePos.x : 0) * sX;
+      const cl = (this._centerline && this._centerline.length > 1) ? this._centerline : [{x:0, z:0}, {x:0, z:-this.terrainH * 0.97}];
+      ctx.strokeStyle = "#2a7a1a";
+      ctx.lineWidth = Math.max(9, 34 * sX);
+      ctx.lineJoin = "round"; ctx.lineCap = "round";
+      ctx.beginPath();
+      cl.forEach((pt, i) => { const mx = cx + pt.x * sX, my = teeY + pt.z * sZ; if(i === 0) ctx.moveTo(mx, my); else ctx.lineTo(mx, my); });
+      ctx.stroke();
       ctx.strokeStyle = "#388a24";
       ctx.lineWidth = 1.5;
-      ctx.strokeRect(cx - 18*sX, pinY, 36*sX, teeY - pinY);
+      ctx.beginPath();
+      cl.forEach((pt, i) => { const mx = cx + pt.x * sX, my = teeY + pt.z * sZ; if(i === 0) ctx.moveTo(mx, my); else ctx.lineTo(mx, my); });
+      ctx.stroke();
 
       // グリーン
       ctx.fillStyle = "#00cc44";
       ctx.beginPath();
-      ctx.arc(cx, pinY, 7.5, 0, Math.PI*2);
+      ctx.arc(pinMX, pinMY, 7.5, 0, Math.PI*2);
       ctx.fill();
 
       // ピンマーカー
       ctx.fillStyle = "#ff2222";
       ctx.beginPath();
-      ctx.arc(cx, pinY, 3.5, 0, Math.PI*2);
+      ctx.arc(pinMX, pinMY, 3.5, 0, Math.PI*2);
       ctx.fill();
       ctx.strokeStyle = "#fff";
       ctx.lineWidth = 1;
@@ -5445,19 +5673,17 @@ const bCntGreen=Math.min(bunkerCount,5);
       // ティー（手前下側）
       ctx.fillStyle = (curHole && curHole.isIN) ? "#ee3333" : "#4488ff";
       ctx.beginPath();
-      ctx.arc(cx, teeY, 3.5, 0, Math.PI*2);
+      ctx.arc(teeMX, teeY, 3.5, 0, Math.PI*2);
       ctx.fill();
 
       // ボール
       if(this.ball){
         const bx = Math.max(4, Math.min(W - 4, cx + this.ball.position.x * sX));
-        const distRatio = Math.max(0, Math.min(1.0, Math.abs(this.ball.position.z) / Math.max(100, this.terrainH)));
-        const by = Math.max(pinY, Math.min(teeY, teeY - distRatio * (teeY - pinY)));
+        const by = Math.max(6, Math.min(teeY, teeY + this.ball.position.z * sZ));
 
         // 飛行軌跡
         if(this.ball.inFlight && this.ball.phase === "carry"){
-          const startRatio = Math.max(0, Math.min(1.0, Math.abs(this.ball.carryStartPos.z) / Math.max(100, this.terrainH)));
-          const sy = teeY - startRatio * (teeY - pinY);
+          const sy = Math.max(6, Math.min(teeY, teeY + this.ball.carryStartPos.z * sZ));
           const sx = cx + this.ball.carryStartPos.x * sX;
           ctx.strokeStyle = "rgba(255,255,100,0.55)";
           ctx.lineWidth = 1.5;
@@ -6120,7 +6346,7 @@ const bCntGreen=Math.min(bunkerCount,5);
     const cpuNames=[
       {name:"TIiger",flag:"🇺🇸"},{name:"McIlro",flag:"🇮🇪"},
       {name:"DeCham",flag:"🇺🇸"},{name:"Matuya",flag:"🇯🇵"},
-      {name:"Junbo",flag:"🇰🇷"},{name:"Watu",flag:"🇯🇵"},
+      {name:"Junbo",flag:"🇯🇵"},{name:"Watu",flag:"🇯🇵"},
       {name:"Scheff",flag:"🇸🇪"},{name:"Thomas",flag:"🇺🇸"},
       {name:"Lowry",flag:"🇮🇪"},{name:"Rahm",flag:"🇪🇸"},
     ].filter(c=>c.name!==playerName);
@@ -7448,10 +7674,10 @@ document.addEventListener('DOMContentLoaded', function () {
       var ctx = cv.getContext("2d");
       var W = cv.width, H = cv.height;
       var cx = W * 0.5, pinY = 14, teeY = H - 12;
-      var sX = (W * 0.72) / Math.max(60, this.terrainW || 100);
+      var sX = W / 190;
+      var sZ = (H - 24) / Math.max(100, this.terrainH || 350);
       var gx = Math.max(5, Math.min(W - 5, cx + B.ghost.x * sX));
-      var dRatio = Math.max(0, Math.min(1, Math.abs(B.ghost.z) / Math.max(100, this.terrainH || 350)));
-      var gy = Math.max(pinY, Math.min(teeY, teeY - dRatio * (teeY - pinY)));
+      var gy = Math.max(6, Math.min(teeY, teeY + B.ghost.z * sZ));
 
       ctx.save();
       ctx.fillStyle = "#12131c";
