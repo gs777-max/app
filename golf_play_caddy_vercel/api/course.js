@@ -26,6 +26,15 @@ function findRedisEnv() {
       return { url: env[key], token: env[tokenKey], urlKey: key };
     }
   }
+  // 汎用: *_REST_URL / *_REST_API_URL (https) と対になる *_TOKEN を広く拾う
+  for (const key of Object.keys(env)) {
+    if (!/(REST_URL|REST_API_URL)$/.test(key)) continue;
+    if (typeof env[key] !== 'string' || !env[key].startsWith('https://')) continue;
+    const tokenKey = key.replace(/URL$/, 'TOKEN');
+    if (env[tokenKey]) {
+      return { url: env[key], token: env[tokenKey], urlKey: key };
+    }
+  }
   return null;
 }
 
