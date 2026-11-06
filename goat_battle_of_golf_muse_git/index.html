@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BATTLE OF GOLF - GOAT | Complete Edition v4.4</title>
+<title>BATTLE OF GOLF - GOAT | Complete Edition v4.5</title>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://archive.org">
 <link rel="dns-prefetch" href="https://fonts.googleapis.com">
@@ -458,7 +458,7 @@
       <button class="bigbtn ghost" id="loadSlotBtn">📂 セーブスロット（5枠）</button>
     </div>
     <div style="margin-top:16px;font-size:11.5px;color:#7e88ab;">
-      Complete Master Edition v4.4 ｜ 全5エリア＋天空の神域 ｜ 全11コース3D決戦 ｜ 全11枠ギア80種 ｜ 四神波動MAX ｜ 5モード高速移動搭載
+      Complete Master Edition v4.5 ｜ 全5エリア＋天空の神域 ｜ 全11コース3D決戦 ｜ 全11枠ギア80種 ｜ 四神波動MAX ｜ 5モード高速移動搭載
     </div>
   </div>
 </div>
@@ -2093,8 +2093,46 @@ function startGolfBattle(customTarget){
   launchGolfIframe(tgt);
 }
 
+/* v4.5: 対戦起動ウォッチドッグ。golf からの hello が来ない（CDN失敗等）場合、
+   1回だけ自動で読み直し、それでも駄目ならワールド（生存中）へ戻す。タイトルへは落とさない。 */
+function __v45Toast(msg){
+  var t = document.getElementById("v45Toast");
+  if(!t){
+    t = document.createElement("div");
+    t.id = "v45Toast";
+    t.style.cssText = "position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(10,12,26,.94);border:1px solid #c9a227;color:#ffe9a8;font-size:13.5px;padding:10px 18px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.5);display:none;max-width:92vw;text-align:center;";
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.display = "block";
+  clearTimeout(t._tm);
+  t._tm = setTimeout(function(){ t.style.display = "none"; }, 4200);
+}
+function __armBattleWatchdog(url){
+  if(window.__bwTimer) clearTimeout(window.__bwTimer);
+  var tries = 0;
+  var check = function(){
+    window.__bwTimer = null;
+    var gf = document.getElementById("golfFrame");
+    if(!gf || !gf.classList.contains("active") || window.__golfBooted) return;
+    tries++;
+    if(tries === 1){
+      __v45Toast("対戦の読み込みに時間がかかっています。再試行します…");
+      gf.src = url;
+      window.__bwTimer = setTimeout(check, 15000);
+    } else {
+      __v45Toast("対戦を開始できませんでした。ワールドに戻ります");
+      enterWorld(false);
+    }
+  };
+  window.__bwTimer = setTimeout(check, 15000);
+}
+
 function launchGolfIframe(tgt, overrideCharId){
   if(!S || !tgt) return;
+  /* v4.5: 二重発火ガード（二度押し・ゲート到達とボタンの競合で重い golf 文書の読込がやり直されるのを防ぐ） */
+  if(window.__launchLock && Date.now() - window.__launchLock < 2500) return;
+  window.__launchLock = Date.now();
   var useCharId = overrideCharId || S.activeCharId;
   var ch = charById(useCharId);
   var gs = calcGearStats(S);
@@ -2153,6 +2191,8 @@ function launchGolfIframe(tgt, overrideCharId){
   if(window.__curtainShow) __curtainShow();
   gf.src = "golf.html?goat=1&course=" + encodeURIComponent(tgt.course) +
            "&holes=" + tgt.holes + "&mode=" + encodeURIComponent(S.mode) + "&v=4.2";
+  window.__golfBooted = false;
+  __armBattleWatchdog(gf.src);
   if(window.__curtainWatch) __curtainWatch(gf);
   setTimeout(function(){
     try { gf.focus(); if(gf.contentWindow) gf.contentWindow.focus(); } catch(e){}
@@ -3347,6 +3387,9 @@ function resumeFromLoadedState(){
     gf.classList.add("active");
     gf.src = "golf.html?goat=1&course=" + encodeURIComponent(S.activeBattle.course) +
              "&holes=" + S.activeBattle.holes + "&mode=" + encodeURIComponent(S.mode) + "&resume=1&v=4.2";
+    window.__golfBooted = false;
+    __armBattleWatchdog(gf.src);
+    if(window.__curtainWatch) __curtainWatch(gf);
     setTimeout(function(){
       try { gf.focus(); if(gf.contentWindow) gf.contentWindow.focus(); } catch(e){}
     }, 80);
@@ -3574,6 +3617,8 @@ window.addEventListener("message", function(ev){
 
   /* golf.html 起動挨拶 → 最新の対戦コンテキストを送信 */
   if(d.type === "goat:golfHello"){
+    window.__golfBooted = true;
+    if(window.__bwTimer){ clearTimeout(window.__bwTimer); window.__bwTimer = null; }
     var gf = document.getElementById("golfFrame");
     if(gf && gf.contentWindow && S.activeBattle){
       gf.contentWindow.postMessage({ type:"goat:battleContext", ctx:S.activeBattle }, "*");
@@ -3723,7 +3768,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var cur = document.getElementById("transCurtain"), hideTimer = null;
   window.__curtainShow = function(){ if(!cur) return; cur.classList.add("show"); if(hideTimer) clearTimeout(hideTimer); hideTimer = setTimeout(function(){ window.__curtainHide(); }, 2800); };
   window.__curtainHide = function(){ if(!cur) return; cur.classList.remove("show"); if(hideTimer){ clearTimeout(hideTimer); hideTimer = null; } };
-  window.__curtainWatch = function(frame){ if(!frame){ setTimeout(function(){ window.__curtainHide(); }, 300); return; } var done = false; var off = function(){ if(done) return; done = true; setTimeout(function(){ window.__curtainHide(); }, 60); }; frame.addEventListener("load", off, { once:true }); setTimeout(off, 2400); };
+  window.__curtainWatch = function(frame){ if(!frame){ setTimeout(function(){ window.__curtainHide(); }, 300); return; } var done = false; var off = function(){ if(done) return; done = true; try{ frame.removeEventListener("load", off); }catch(e){} setTimeout(function(){ window.__curtainHide(); }, 60); }; frame.addEventListener("load", off, { once:true }); setTimeout(off, 2400); };
 })();
 /* キャラ肖像画エンブレム（象徴カラー・帽子シルエット・神話の後光を描くSVG生成） */
 function renderCharPortraitSVG(c){

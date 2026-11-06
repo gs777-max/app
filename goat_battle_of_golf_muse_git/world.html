@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BATTLE OF GOLF - GOAT | Next-Gen 3D Action RPG World v4.4</title>
+  <title>BATTLE OF GOLF - GOAT | Next-Gen 3D Action RPG World v4.5</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@700;900&display=swap');
 
@@ -2890,7 +2890,19 @@
     ];
 
     function spawnAreaMobs(mobDefs, purifiedIds) {
-      MOBS.forEach(function (m) { scene.remove(m.mesh); });
+      /* v4.5: 旧モブのシャツ用 CanvasTexture を解放し、残影リグ配列から除去済み分を剪定（sync のたびの単調増加を止める） */
+      MOBS.forEach(function (m) {
+        if (m.mesh) {
+          m.mesh.traverse(function (o) {
+            if (o.material) {
+              var mats = Array.isArray(o.material) ? o.material : [o.material];
+              mats.forEach(function (mm) { if (mm.map && mm.map.isCanvasTexture) { try { mm.map.dispose(); } catch (e) {} } });
+            }
+          });
+          scene.remove(m.mesh);
+        }
+      });
+      for (var ri = GOLFER_RIGS.length - 1; ri >= 0; ri--) { if (!GOLFER_RIGS[ri].g.parent) GOLFER_RIGS.splice(ri, 1); }
       MOBS = [];
       if (AREA_IDX === 5) return; // 天空の神域は神聖領域
 
@@ -3905,9 +3917,8 @@
     function animate() {
       requestAnimationFrame(animate);
       var dt = Math.min(0.05, clock.getDelta());
-      if (STATE.paused) {
-        renderer.render(scene, camera);
-        return;
+      if (STATE.paused || document.hidden) {
+        return; /* v4.5: 対戦中・非表示中は描画自体を止め、GPU/帯域を対戦側へ譲る（状態は保持され復帰は即時） */
       }
       if (hitstopTimer > 0) {
         hitstopTimer -= dt;
@@ -4394,6 +4405,11 @@
         window.parent.postMessage(msg, "*");
       }
     }
+
+    /* v4.5: 文書破棄時に WebGL を明示解放し、遷移ピークの GPU メモリを下げる */
+    window.addEventListener("pagehide", function () {
+      try { if (renderer) { renderer.forceContextLoss(); renderer.dispose(); } } catch (e) {}
+    });
 
     window.addEventListener("message", function (ev) {
       var d = ev.data;

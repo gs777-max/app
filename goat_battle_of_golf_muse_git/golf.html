@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>BATTLE OF GOLF - GOAT | 3D Golf Battle v4.4</title>
+<title>BATTLE OF GOLF - GOAT | 3D Golf Battle v4.5</title>
 
 </head>
 <body>
@@ -395,7 +395,9 @@
 window.HQG = { parts:null, pending:[], tex:{}, _ready:{}, _waiters:{} };
 (function(){
   var TL = new THREE.TextureLoader();
+  var __WARM = /[?&]warmup=1/.test(location.search); /* v4.5: 先読み時はテクスチャを読み込まない */
   function loadTex(name, srgb, rx, ry){
+    if(__WARM) return null;
     var t = TL.load('assets/textures/' + name + '.png', function(){
       window.HQG._ready[name] = 1;
       var w = window.HQG._waiters[name] || []; window.HQG._waiters[name] = [];
@@ -4657,7 +4659,12 @@ const bCntGreen=Math.min(bunkerCount,5);
     try{
       const H = window.HQG; if(!H || !this.scene) return;
       const T = H.tex;
-      const mkTex = (t, rx, ry) => { if(!t || !t.image || !t.image.width) return null; const c = t.clone(); c.needsUpdate = true; c.repeat.set(rx, ry); return c; };
+      /* v4.5: 前ホールのテクスチャ clone を解放し、ホール遷移ごとの GPU 累積を止める。水面マテリアル/雲の参照も現ホール分へ切り替える */
+      if(H._cloneTexs){ for(const ct of H._cloneTexs){ try{ ct.dispose(); }catch(e){} } }
+      H._cloneTexs = [];
+      H.waterMats = [];
+      H._clouds = null;
+      const mkTex = (t, rx, ry) => { if(!t || !t.image || !t.image.width) return null; const c = t.clone(); c.needsUpdate = true; c.repeat.set(rx, ry); H._cloneTexs.push(c); return c; };
       this.scene.traverse((o) => {
         if(!o.isMesh) return;
         const m = o.material;
@@ -6752,8 +6759,10 @@ window.addEventListener("load",()=>{
     const ld = document.getElementById("loading");
     if(ld) ld.style.display = "none";
   }
+  var isWarm = new URLSearchParams(location.search).get("warmup") === "1";
   setTimeout(()=>{
     document.getElementById("loading").style.display="none";
+    if(isWarm) return; /* v4.5: 先読み時はレンダラ/シーンを作らない（スクリプトのキャッシュだけを温める） */
     if(!isGoatDuel) document.getElementById("startScreen").style.display="flex";
     game.init();
     buildStartUI();
@@ -9461,6 +9470,10 @@ html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidd
     requestAnimationFrame(loop);
   }
 })();
+</script>
+<script>
+/* v4.5: 文書破棄時に WebGL を明示解放し、遷移ピークの GPU メモリを下げる */
+window.addEventListener("pagehide", function(){ try{ var g = window.game; if(g && g.renderer){ g.renderer.forceContextLoss(); g.renderer.dispose(); } }catch(e){} });
 </script>
 </body>
 </html>
