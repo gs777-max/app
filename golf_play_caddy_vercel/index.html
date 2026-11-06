@@ -2372,6 +2372,30 @@
     let targetGuideLine = null;
     let simCircleLayer = null;
     let simArcPolyline = null;
+
+    // ★ 打席マーカー (緑○) とシミュレーション軌道 (白点線) は「ラウンド中のみ表示」 (ユーザー指示 2026-11-06)。
+    //   閲覧・予習時は ティーマーク＋IPルート線＋ピンマーク だけのクリーンな表示にする。
+    //   ラウンド中 = GPS追従ON、またはショット計測中。距離計算の起点 userCoord 自体は常時保持する。
+    function isPlayDisplayActive() {
+      try {
+        if (typeof isGpsTracking !== 'undefined' && isGpsTracking) return true;
+        if (typeof activeShotTracking !== 'undefined' && activeShotTracking && activeShotTracking.active) return true;
+      } catch (e) { /* 宣言前の過渡期は非表示扱い */ }
+      return false;
+    }
+    function syncPlayDisplayVisibility() {
+      if (!map) return;
+      const show = isPlayDisplayActive();
+      if (userMarker) {
+        const onMap = map.hasLayer(userMarker);
+        if (show && !onMap) userMarker.addTo(map);
+        else if (!show && onMap) map.removeLayer(userMarker);
+      }
+      if (!show && simArcPolyline && map.hasLayer(simArcPolyline)) {
+        map.removeLayer(simArcPolyline);
+        simArcPolyline = null;
+      }
+    }
     let yardCircles = [];
     let shotHistoryLines = [];
 
@@ -2862,6 +2886,9 @@
       targetGuideLine = null;
 
       simCircleLayer = null; // 円形は不要とするため生成しない
+
+      // ★ ラウンド中でなければ打席マーカーは地図に出さない (閲覧・予習時のクリーン表示)
+      syncPlayDisplayVisibility();
 
       // ドラッグイベントリスナー (リアルタイム追従 & ティー移動時の打席追従)
       teeMarker.on('drag', (e) => {
@@ -4280,9 +4307,10 @@
         simCircleLayer.setRadius(Math.max(10, simDist * 0.07));
       }
 
-      if (simArcPolyline && map) map.removeLayer(simArcPolyline);
+      if (simArcPolyline && map) { map.removeLayer(simArcPolyline); simArcPolyline = null; }
       const arcPoints = generateArcPoints(userCoord, landingCoord, 12);
-      if (map) {
+      // ★ 予測軌道はラウンド中のみ描画する (閲覧・予習時はIPルート線だけのクリーン表示)
+      if (map && isPlayDisplayActive()) {
         // ★ ルート線 (エメラルド実線) と同色だと線が重複して見えるため、
         //   シミュレーション軌跡は白の点線トレーサーに変えて明確に区別する
         simArcPolyline = L.polyline(arcPoints, {
@@ -5364,6 +5392,7 @@
           }
         );
       }
+      syncPlayDisplayVisibility();
     }
 
     function handleShotRecordButton() {
@@ -5407,6 +5436,8 @@
         shotIndex: nextIndex,
         startTime: new Date().toISOString()
       };
+      // ★ 計測中は打席マーカーを表示する (GPS追従OFFでも計測開始で出す)
+      syncPlayDisplayVisibility();
 
       // ★ 打席に立っている間 (数秒) に静止平均が改善したら、開始点を静かに差し替える (追加操作なし)
       setTimeout(() => {
@@ -5533,6 +5564,8 @@
       if (banner) banner.style.display = 'none';
       const textBtn = document.getElementById('btn-dock-record-text');
       if (textBtn) textBtn.innerText = '打席を記録';
+      // ★ 計測終了: GPS追従もOFFなら打席マーカーと軌道を隠す (completeShotTracking からも呼ばれる)
+      syncPlayDisplayVisibility();
     }
 
     function renderHoleShotHistoryGraphics(holeNum) {
