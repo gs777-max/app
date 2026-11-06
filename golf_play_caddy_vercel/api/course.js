@@ -38,13 +38,45 @@ function findRedisEnv() {
   return null;
 }
 
-// Redis クライアントの安全な初期化
-function getRedisClient() {
+// Redis クライアントの安全な初期化。
+// 1) REST (URL+TOKEN) が見つかれば @upstash/redis を使う。
+// 2) 無ければ REDIS_URL (redis:// / rediss://) を TCP クライアント (ioredis) で使う。
+//    Vercel 純正の Redis 連携は環境変数として REDIS_URL だけを注入するため、
+//    REST ペアが無い環境ではこちらが唯一の接続経路になる。
+// 返り値は { get, set } 互換のアダプタ。TCP の場合は __close で切断する。
+async function getRedisClient() {
   const found = findRedisEnv();
-  matchedRedisEnvKey = found ? found.urlKey : null;
   if (found) {
+    matchedRedisEnvKey = found.urlKey;
     return new Redis({ url: found.url, token: found.token });
   }
+  const redisUrl = process.env.REDIS_URL;
+  if (typeof redisUrl === 'string' && /^rediss?:\/\//.test(redisUrl)) {
+    matchedRedisEnvKey = 'REDIS_URL';
+    const { default: IoRedis } = await import('ioredis');
+    const client = new IoRedis(redisUrl, {
+      connectTimeout: 5000,
+      commandTimeout: 5000,
+      maxRetriesPerRequest: 1,
+      retryStrategy: () => null
+    });
+    client.on('error', () => {});
+    return {
+      async get(key) {
+        const raw = await client.get(key);
+        if (raw === null || raw === undefined) return null;
+        try { return JSON.parse(raw); } catch (e) { return raw; }
+      },
+      async set(key, value) {
+        const str = typeof value === 'string' ? value : JSON.stringify(value);
+        return client.set(key, str);
+      },
+      __close() {
+        try { client.disconnect(); } catch (e) { /* noop */ }
+      }
+    };
+  }
+  matchedRedisEnvKey = null;
   return null;
 }
 
@@ -180,9 +212,10 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const redis = getRedisClient();
+  let redis = null;
 
   try {
+    redis = await getRedisClient();
     // -------------------------------------------------------------
     // GET /api/course?id={courseId}
     // GET /api/course (id なし) / ?health=1 → 死活確認
@@ -371,5 +404,9 @@ export default async function handler(req, res) {
       success: false,
       error: error.message || 'Internal Server Error'
     });
+  } finally {
+    if (redis && typeof redis.__close === 'function') {
+      redis.__close();
+    }
   }
 }
