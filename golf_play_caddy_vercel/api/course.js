@@ -1,11 +1,40 @@
 import { Redis } from '@upstash/redis';
 
-// Redis クライアントの安全な初期化 (Upstash Redis & Vercel KV 両環境変数に対応)
+// Redis 接続用環境変数の解決。
+// 標準名 (UPSTASH_REDIS_REST_URL / KV_REST_API_URL) を最優先し、無ければ
+// Vercel の新しい Storage 接続が付ける接頭辞付きの名前
+// (例: REDIS_YELLOW_MOUNTAIN_KV_REST_API_URL) も自動検出する。
+// 値そのものは返さず、health では一致した「変数名」だけを診断用に返す。
+let matchedRedisEnvKey = null;
+function findRedisEnv() {
+  const env = process.env;
+  const directPairs = [
+    ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN'],
+    ['KV_REST_API_URL', 'KV_REST_API_TOKEN']
+  ];
+  for (const [urlKey, tokenKey] of directPairs) {
+    if (env[urlKey] && env[tokenKey]) {
+      return { url: env[urlKey], token: env[tokenKey], urlKey };
+    }
+  }
+  for (const key of Object.keys(env)) {
+    const m = key.match(/^(.*_)?(KV_REST_API_URL|UPSTASH_REDIS_REST_URL)$/);
+    if (!m) continue;
+    const prefix = key.slice(0, key.length - m[2].length);
+    const tokenKey = prefix + m[2].replace('URL', 'TOKEN');
+    if (env[key] && env[tokenKey]) {
+      return { url: env[key], token: env[tokenKey], urlKey: key };
+    }
+  }
+  return null;
+}
+
+// Redis クライアントの安全な初期化
 function getRedisClient() {
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-  if (url && token) {
-    return new Redis({ url, token });
+  const found = findRedisEnv();
+  matchedRedisEnvKey = found ? found.urlKey : null;
+  if (found) {
+    return new Redis({ url: found.url, token: found.token });
   }
   return null;
 }
@@ -157,6 +186,7 @@ export default async function handler(req, res) {
         return res.status(200).json({
           success: true,
           configured: !!redis,
+          envKey: matchedRedisEnvKey,
           time: new Date().toISOString()
         });
       }
