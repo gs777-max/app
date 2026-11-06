@@ -54,14 +54,7 @@ async function getRedisClient() {
   if (typeof redisUrl === 'string' && /^rediss?:\/\//.test(redisUrl)) {
     matchedRedisEnvKey = 'REDIS_URL';
     const { default: IoRedis } = await import('ioredis');
-    const client = new IoRedis(redisUrl, {
-      connectTimeout: 5000,
-      commandTimeout: 5000,
-      maxRetriesPerRequest: 1,
-      retryStrategy: () => null
-    });
-    client.on('error', () => {});
-    return {
+    const makeAdapter = (client) => ({
       async get(key) {
         const raw = await client.get(key);
         if (raw === null || raw === undefined) return null;
@@ -71,9 +64,49 @@ async function getRedisClient() {
         const str = typeof value === 'string' ? value : JSON.stringify(value);
         return client.set(key, str);
       },
+      async __ping() { return client.ping(); },
+      __connectError: null,
       __close() {
         try { client.disconnect(); } catch (e) { /* noop */ }
       }
+    });
+    // 接続を明示的に試みる。redis:// の場合は平文→TLS の順に試す
+    // (エンドポイントが TLS 必須でも平文 URL が渡されるケースへの備え)。
+    // 失敗した場合は理由を保持したアダプタを返し、health とエラー応答で
+    // 本当の原因 (認証/TLS/DNS 等) が分かるようにする。
+    const attempts = /^rediss:\/\//.test(redisUrl) ? [{}] : [{}, { tls: {} }];
+    let connectError = null;
+    for (const extra of attempts) {
+      let candidate = null;
+      // connect() の reject は "Connection is closed." のような汎用文言に
+      // なることがあるため、error イベントで飛ぶ実エラーも拾っておく
+      let firstSocketError = null;
+      try {
+        candidate = new IoRedis(redisUrl, {
+          connectTimeout: 5000,
+          commandTimeout: 5000,
+          maxRetriesPerRequest: 1,
+          retryStrategy: () => null,
+          lazyConnect: true,
+          family: 4,
+          ...extra
+        });
+        candidate.on('error', (e) => { if (!firstSocketError) firstSocketError = e; });
+        await candidate.connect();
+        return makeAdapter(candidate);
+      } catch (e) {
+        connectError = firstSocketError || e;
+        if (candidate) {
+          try { candidate.disconnect(); } catch (err) { /* noop */ }
+        }
+      }
+    }
+    const message = connectError ? connectError.message : 'unknown connection error';
+    return {
+      async get() { throw new Error(`Redis connection failed: ${message}`); },
+      async set() { throw new Error(`Redis connection failed: ${message}`); },
+      __connectError: message,
+      __close() {}
     };
   }
   matchedRedisEnvKey = null;
@@ -223,12 +256,32 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const { id, health } = req.query || {};
 
-      // 死活確認: データは返さず、Redis 設定状況とサーバー時刻のみ返す
+      // 死活確認: データは返さず、Redis 設定状況とサーバー時刻のみ返す。
+      // 設定がある場合は実際に PING して接続可否 (db / dbError) まで返す。
       if (!id || health === '1' || health === 'true') {
+        let db = null;
+        let dbError = null;
+        if (redis) {
+          if (redis.__connectError) {
+            db = 'error';
+            dbError = redis.__connectError;
+          } else {
+            try {
+              if (typeof redis.__ping === 'function') await redis.__ping();
+              else if (typeof redis.ping === 'function') await redis.ping();
+              db = 'ok';
+            } catch (e) {
+              db = 'error';
+              dbError = e && e.message ? e.message : String(e);
+            }
+          }
+        }
         return res.status(200).json({
           success: true,
           configured: !!redis,
           envKey: matchedRedisEnvKey,
+          db,
+          dbError,
           time: new Date().toISOString()
         });
       }
