@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <!--
   SEAT WARS ― 満員電車椅子取合戦 (単一ファイル版)
-  Version: 1.1.0
+  Version: 1.1.1
   Created: 20261107
   Three.js (CDN) によるブラウザ3D FPS。音楽は Internet Archive API から情景に合うクラシックをランダム再生。
   v1.1.0 (20261107): 路線・乗車駅セレクト、十字キー/Enter操作、スマホのタッチ操作（ジョイスティック/視点ドラッグ/ボタン）を復活。
+  v1.1.1 (20261107): 操作性改善 — 解像度の自動調整 (適応品質)、影マップ縮小、dt上限緩和で低FPS時の時間減速を解消、移動速度と応答性向上、ジョイスティックをアナログ化、開始時のシェーダ事前コンパイルとボタン blur。
 -->
 <html lang="ja">
 <head>
@@ -195,15 +196,21 @@ function blip(freq,dur,type,vol){const ctx=AC();if(!ctx)return;const o=ctx.creat
 /* ================= THREE setup ================= */
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x0d1420);scene.fog=new THREE.Fog(0x0d1420,30,90);
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,0.1,200);
-const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
 $("app").appendChild(renderer.domElement);
 addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 scene.add(new THREE.AmbientLight(0xffffff,0.55));
 const dl=new THREE.DirectionalLight(0xfff2d8,0.9);dl.position.set(6,14,8);scene.add(dl);
-dl.castShadow=true;dl.shadow.mapSize.set(2048,2048);
+dl.castShadow=true;dl.shadow.mapSize.set(1024,1024);
 dl.shadow.camera.left=-22;dl.shadow.camera.right=22;dl.shadow.camera.top=16;dl.shadow.camera.bottom=-10;dl.shadow.bias=-0.0004;
+/* 適応品質: FPSが低い端末では解像度を段階的に下げて操作性を守る */
+const _qRatios=[Math.min(window.devicePixelRatio||1,2),1.5,1.25,1];let _qLevel=0,_qT=0,_qF=0;
+renderer.setPixelRatio(_qRatios[0]);
+function adaptQuality(rawDt){_qT+=rawDt;_qF++;if(_qT<2)return;const fps=_qF/_qT;_qT=0;_qF=0;
+if(fps<24&&_qLevel<3){_qLevel++;renderer.setPixelRatio(_qRatios[_qLevel]);}
+else if(fps>50&&_qLevel>0){_qLevel--;renderer.setPixelRatio(_qRatios[_qLevel]);}}
 const MAT=(c,r,m)=>new THREE.MeshStandardMaterial({color:c,roughness:r===undefined?0.85:r,metalness:m||0.02});
 function box(w,h,d,c,x,y,z,parent){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),MAT(c));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;(parent||scene).add(m);return m;}
 /* ---- platform ---- */
@@ -355,7 +362,7 @@ function sitNPC(n,si){const s=seats[si];s.takenBy=n;n.seat=si;n.state="seated";
 n.group.position.set(s.x+train.position.x,-0.24,s.z);n.group.rotation.y=s.ry;poseSit(n);}
 function freeSeatOf(n){if(n.seat>=0){seats[n.seat].takenBy=null;n.seat=-1;}n.group.position.y=0;poseStand(n);}
 /* player */
-const player={x:0,z:5.2,yaw:0,pitch:0,vx:0,vz:0,inside:false,speedWalk:3.4};
+const player={x:0,z:5.2,yaw:0,pitch:0,vx:0,vz:0,inside:false,speedWalk:3.8};
 camera.position.set(player.x,1.62,player.z);
 /* pointer lock look */
 let locked=false;
@@ -496,7 +503,9 @@ function updateStationUI(){const L=LINES[lineIdx];$("lineName").textContent=L.na
 $("stName").textContent=L.stations[G.stationIdx];
 $("stNext").textContent=G.stationIdx<L.stations.length-1?("次は "+L.stations[G.stationIdx+1]+" ／ 目的地 "+L.stations[L.stations.length-1]):"終点";
 stripe.material.color.set(L.color);signBoard.material.color.set(L.color);}
-function startGame(){G.started=true;G.stationIdx=boardingIdx;$("start").style.display="none";if(isTouch)$("touchBtns").style.display="flex";AC();trainNoise(false);
+function startGame(){G.started=true;G.stationIdx=boardingIdx;try{renderer.compile(scene,camera);}catch(e){}
+["btnStart","btnFortune","sel-line","sel-station"].forEach(id=>{const el=document.getElementById(id);if(el&&el.blur)el.blur();});
+$("start").style.display="none";if(isTouch)$("touchBtns").style.display="flex";AC();trainNoise(false);
 updateStationUI();G.phase=1;phaseT=14;
 setObjective("フェーズ① ホームの陣取り：黄色い輪（乗車口ポジション）に立て。降車客の流れを読み、ドア正面を確保せよ");
 announce(LINES[lineIdx].name+" "+LINES[lineIdx].stations[G.stationIdx]+"駅。まもなく電車が参ります。",5);
@@ -610,13 +619,15 @@ function updateNPCs(dt){
 /* ================= Player movement & bounds ================= */
 function updatePlayer(dt){const st=stats();
   let f=0,r=0;if(keys.KeyW)f+=1;if(keys.KeyS)f-=1;if(keys.KeyD)r+=1;if(keys.KeyA)r-=1;
-  if(joy.active){if(joy.dy<-0.35)f+=1;if(joy.dy>0.35)f-=1;if(joy.dx>0.35)r+=1;if(joy.dx<-0.35)r-=1;}
+  if(joy.active){const jf=Math.max(-1,Math.min(1,-joy.dy)),jr=Math.max(-1,Math.min(1,joy.dx));
+  if(Math.abs(jf)>0.12)f+=jf;if(Math.abs(jr)>0.12)r+=jr;}
+  f=Math.max(-1,Math.min(1,f));r=Math.max(-1,Math.min(1,r));
   if(G.seated){f=0;r=0;player.vx=0;player.vz=0;}
   const dash=(keys.ShiftLeft||keys.ShiftRight)?1.55:1;
   let sp=player.speedWalk*(0.75+st.leg*0.06)*dash*(G.boost>0?1.7:1)*(weatherInfo.rain&&!player.inside?0.85:1);
   const fx=-Math.sin(player.yaw),fz=-Math.cos(player.yaw),rx=Math.cos(player.yaw),rz=-Math.sin(player.yaw);
-  player.vx+=((fx*f+rx*r)*sp-player.vx)*Math.min(1,dt*10);
-  player.vz+=((fz*f+rz*r)*sp-player.vz)*Math.min(1,dt*10);
+  player.vx+=((fx*f+rx*r)*sp-player.vx)*Math.min(1,dt*14);
+  player.vz+=((fz*f+rz*r)*sp-player.vz)*Math.min(1,dt*14);
   player.x+=player.vx*dt;player.z+=player.vz*dt;
   /* bounds: platform vs train interior, crossing only at open doors */
   const atDoor=DOORX.some(dx=>Math.abs(player.x-dx)<0.85);
@@ -679,7 +690,7 @@ function updatePlayer(dt){const st=stats();
 })();
 /* ================= Main loop ================= */
 const clock=new THREE.Clock();
-function animate(){requestAnimationFrame(animate);const dt=Math.min(0.05,clock.getDelta());
+function animate(){requestAnimationFrame(animate);const rawDt=clock.getDelta();const dt=Math.min(0.1,rawDt);adaptQuality(rawDt);
 if(G.started&&!G.over){G.time+=dt;
 for(const k in CD)CD[k]=Math.max(0,CD[k]-dt);
 G.boost=Math.max(0,G.boost-dt);G.shield=Math.max(0,G.shield-dt);G.lockon=Math.max(0,G.lockon-dt);
