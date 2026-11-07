@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<!--
+  SEAT WARS ― 満員電車椅子取合戦 (単一ファイル版)
+  Version: 1.0.0
+  Created: 20261107
+  Three.js (CDN) によるブラウザ3D FPS。音楽は Internet Archive API から情景に合うクラシックをランダム再生。
+-->
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEAT WARS ― 満員電車椅子取合戦</title>
+<style>
+  html,body{margin:0;padding:0;overflow:hidden;background:#000;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#fff;}
+  #app{position:fixed;inset:0;}
+  canvas{display:block;}
+  /* ---- diegetic overlays (no gauges) ---- */
+  #vignette{position:fixed;inset:0;pointer-events:none;z-index:5;box-shadow:inset 0 0 0 0 rgba(180,0,0,0);transition:box-shadow .3s;}
+  #fadeblack{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:6;transition:opacity .25s;}
+  #eyelidT,#eyelidB{position:fixed;left:0;width:100%;height:0;background:#000;z-index:7;pointer-events:none;}
+  #eyelidT{top:0;} #eyelidB{bottom:0;}
+  #halo{position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;background:radial-gradient(circle at 50% 42%,rgba(255,244,200,.85),rgba(255,244,200,0) 55%);transition:opacity 1.2s;}
+  #hud{position:fixed;inset:0;pointer-events:none;z-index:10;}
+  #station{position:absolute;top:14px;left:50%;transform:translateX(-50%);text-align:center;text-shadow:0 2px 6px #000;}
+  #station .line{display:inline-block;padding:2px 12px;border-radius:10px;font-weight:bold;font-size:14px;}
+  #station .name{font-size:26px;font-weight:bold;letter-spacing:.2em;}
+  #station .next{font-size:13px;opacity:.85;}
+  #objective{position:absolute;bottom:110px;left:50%;transform:translateX(-50%);font-size:18px;text-align:center;text-shadow:0 2px 6px #000;white-space:pre-line;}
+  #announce{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-size:14px;color:#ffe9a8;text-align:center;text-shadow:0 2px 6px #000;white-space:pre-line;}
+  #prompt{position:absolute;top:56%;left:50%;transform:translate(-50%,0);font-size:22px;font-weight:bold;color:#fff;background:rgba(0,0,0,.55);padding:8px 20px;border-radius:8px;display:none;text-shadow:0 2px 4px #000;}
+  #skillbar{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:12.5px;opacity:.92;text-shadow:0 1px 4px #000;text-align:center;white-space:pre;}
+  #omikuji{position:absolute;top:14px;left:14px;font-size:13px;background:rgba(0,0,0,.45);padding:6px 10px;border-radius:8px;line-height:1.5;}
+  #weather{position:absolute;top:14px;right:14px;font-size:12.5px;background:rgba(0,0,0,.45);padding:6px 10px;border-radius:8px;text-align:right;line-height:1.5;}
+  #crosshair{position:absolute;top:50%;left:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:rgba(255,255,255,.75);}
+  /* ---- screens ---- */
+  .screen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1b2436 0%,#05070c 75%);text-align:center;padding:20px;box-sizing:border-box;overflow:auto;}
+  .screen h1{font-size:44px;margin:4px 0;letter-spacing:.12em;color:#ffd94d;text-shadow:0 0 24px rgba(255,180,0,.5);}
+  .screen h2{font-size:26px;margin:4px 0;color:#ffd94d;}
+  .screen p{max-width:760px;line-height:1.75;font-size:14.5px;color:#dfe6f2;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:8px 0;}
+  button{pointer-events:auto;cursor:pointer;background:#26334d;color:#fff;border:1px solid #5a6f96;border-radius:8px;padding:10px 18px;font-size:15px;}
+  button:hover{background:#35486b;} button.sel{background:#b8860b;border-color:#ffd94d;color:#fff;font-weight:bold;}
+  .small{font-size:12px;color:#9fb0c8;}
+  #gameover,#win{display:none;}
+  .fortune{font-size:30px;color:#ffef9e;font-weight:bold;}
+  kbd{background:#333;border:1px solid #777;border-bottom-width:3px;border-radius:4px;padding:0 6px;font-size:12px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="halo"></div><div id="vignette"></div><div id="fadeblack"></div>
+<div id="eyelidT"></div><div id="eyelidB"></div>
+<div id="hud">
+  <div id="omikuji"></div><div id="weather">天気取得中…</div>
+  <div id="station"><span class="line" id="lineName">―</span><div class="name" id="stName">―</div><div class="next" id="stNext"></div></div>
+  <div id="crosshair"></div>
+  <div id="objective"></div><div id="announce"></div><div id="prompt"></div>
+  <div id="skillbar"></div>
+</div>
+<div class="screen" id="start">
+  <div class="small">満員電車椅子取合戦</div>
+  <h1>SEAT WARS</h1>
+  <p>朝の首都圏。座席は、戦場だ。一人称視点でホームの陣取りから乗車ダッシュ、下車予測の心理戦、
+  そして着席防衛戦を戦い抜き、目的地まで生き延びろ。画面にゲージはない。
+  視界の揺れ・心音・赤い視界が、あなたの状態を物語る。</p>
+  <div id="shrineBox"><p>― 駅前神社 ― まずはおみくじを引く ―</p><div class="fortune" id="fortuneTxt">？</div>
+  <button id="btnFortune">おみくじを引く</button></div>
+  <p style="margin-bottom:2px">路線を選べ（実在の首都圏路線）</p>
+  <div class="row" id="lineBtns"></div>
+  <p style="margin-bottom:2px">通勤武術の型（育成パラメータ）</p>
+  <div class="row" id="buildBtns">
+    <button data-build="leg">脚力型（移動速度・ダッシュ強化）</button>
+    <button data-build="core">体幹型（接触・圧迫に強い）</button>
+    <button data-build="eye">慧眼型（下車予測・見破り強化）</button>
+  </div>
+  <button id="btnStart" style="font-size:19px;padding:13px 42px;background:#b8860b;border-color:#ffd94d;font-weight:bold;">出勤する（クリックで開始）</button>
+  <p class="small">操作: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移動 / マウス 視点 / <kbd>Shift</kbd> 競歩ダッシュ<br>
+  スキル: <kbd>Q</kbd> 流体すり抜け・紙一重 / <kbd>E</kbd> 残像フェイント・二段加速 / <kbd>F</kbd> 鞄結界・ボックスアウト / <kbd>R</kbd> 心眼・足首ロックオン<br>
+  着席中: 寄りかかりは <kbd>A</kbd>/<kbd>D</kbd> で肩すかしパリィ、眠気は <kbd>Space</kbd> 連打で覚醒。席を譲る時は <kbd>Y</kbd>。</p>
+  <p class="small">BGMは Internet Archive の公開音源APIから動的に取得します（失敗時はWebAudio生成音に切替）。天気は Open-Meteo API から実取得します。</p>
+</div>
+<div class="screen" id="gameover">
+  <h2 id="goTitle">貧血ブラックアウト</h2><p id="goText"></p>
+  <button onclick="location.reload()">もう一度出勤する</button>
+</div>
+<div class="screen" id="win">
+  <h2>🏆 到着 ― 出勤成功</h2><p id="winText"></p>
+  <button onclick="location.reload()">次の朝へ</button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<script>
+"use strict";
+/* ================= DATA: real Tokyo-area lines & stations ================= */
+const LINES=[
+ {name:"丸ノ内線",color:"#e60012",stations:["中野坂上","新宿三丁目","新宿御苑前","四谷三丁目","四ツ谷","赤坂見附","国会議事堂前","霞ケ関","銀座"]},
+ {name:"京浜東北線",color:"#00b2e5",stations:["大宮","さいたま新都心","与野","北浦和","浦和","南浦和","蕨","西川口","川口","赤羽"]},
+ {name:"東西線",color:"#009ad6",stations:["西船橋","原木中山","妙典","行徳","南行徳","浦安","葛西","西葛西","南砂町","東陽町"]},
+ {name:"埼京線",color:"#80c241",stations:["大崎","恵比寿","渋谷","新宿","池袋","板橋","十条","赤羽","北赤羽","浮間舟渡"]},
+ {name:"東海道線",color:"#f68b1e",stations:["東京","新橋","品川","川崎","横浜","戸塚","大船","藤沢","辻堂","茅ケ崎"]}
+];
+let lineIdx=0, buildType="leg";
+const STATS={leg:{leg:8,core:5,eye:5,label:"脚力型"},core:{leg:5,core:8,eye:5,label:"体幹型"},eye:{leg:5,core:5,eye:8,label:"慧眼型"}};
+/* ================= Omikuji (luck system) ================= */
+const FORTUNES=[
+ {n:"大吉",exitMul:1.35,irr:0.6,luck:3,msg:"今日の車両は穏やか。降車も多めだ。"},
+ {n:"中吉",exitMul:1.15,irr:0.85,luck:2,msg:"まずまずの一日になりそうだ。"},
+ {n:"小吉",exitMul:1.0,irr:1.0,luck:1,msg:"平常運転。実力勝負だ。"},
+ {n:"吉",exitMul:0.95,irr:1.05,luck:1,msg:"油断すると取り逃がす。"},
+ {n:"末吉",exitMul:0.85,irr:1.2,luck:0,msg:"席は渋い。予測精度が命綱だ。"},
+ {n:"凶",exitMul:0.7,irr:1.45,luck:-1,msg:"乗客の沸点は低い。接触は避けろ。"},
+ {n:"大凶",exitMul:0.55,irr:1.8,luck:-2,msg:"地獄のラッシュ。善行で奇跡を待て。"}
+];
+let fortune=null;
+/* ================= Game state ================= */
+const G={started:false,phase:0,over:false,won:false,time:0,stationIdx:0,doorsOpen:false,
+ hp:100,san:100,karma:0,sleep:0,seated:false,seatIdx:-1,standingTime:0,seatedTime:0,
+ gaveSeat:0,miracles:0,parries:0,feintsSeen:0,contactCd:0,boost:0,shield:0,lockon:0,
+ slotWin:false,dayScore:0,announceT:0,leanEvent:null,sleepEvent:0,elderEvent:null,miracleCd:0};
+const $=id=>document.getElementById(id);
+function announce(t,sec){$("announce").textContent=t;G.announceT=sec||4;}
+function setObjective(t){$("objective").textContent=t;}
+function showPrompt(t){const p=$("prompt");if(t){p.textContent=t;p.style.display="block";}else p.style.display="none";}
+/* ================= Free API: Open-Meteo weather (no key) ================= */
+let weatherInfo={label:"取得失敗（平常運行）",rain:false};
+fetch("https://api.open-meteo.com/v1/forecast?latitude=35.6812&longitude=139.7671&current=temperature_2m,weather_code,wind_speed_10m&timezone=Asia%2FTokyo")
+ .then(r=>r.json()).then(d=>{const c=d.current;const code=c.weather_code;
+  const lbl=code===0?"快晴":code<3?"晴れ/曇り":code<50?"曇り":code<70?"雨":code<80?"雪":"雷雨";
+  weatherInfo={label:"東京 "+lbl+" "+c.temperature_2m+"℃ 風"+c.wind_speed_10m+"km/h",rain:code>=50&&code<80};
+  $("weather").innerHTML="🌤 実天気（Open-Meteo）<br>"+weatherInfo.label+(weatherInfo.rain?"<br>雨：ホームが滑りやすい":"");})
+ .catch(()=>{$("weather").textContent="天気API未接続（平常運行）";});
+/* ================= BGM: Internet Archive dynamic loading + WebAudio fallback ================= */
+const bgmAudio=new Audio();bgmAudio.loop=true;bgmAudio.volume=0.5;let bgmMode="",synthTimer=null;
+const TRACKS={
+ dash:{q:"Rossini William Tell Overture finale",label:"ロッシーニ『ウィリアム・テル序曲』"},
+ tension:{q:"Verdi Requiem Dies Irae",label:"ヴェルディ『レクイエム』"},
+ victory:{q:"Debussy Clair de Lune piano",label:"ドビュッシー『月の光』"},
+ bossa:{q:"bossa nova jazz instrumental",label:"ボサノヴァ"},
+ calm:{q:"classical piano relaxing Chopin",label:"ショパン（車内BGM）"}};
+async function fetchArchiveTrack(q){
+  const s=await (await fetch("https://archive.org/advancedsearch.php?q="+encodeURIComponent(q+" AND mediatype:audio")+"&fl[]=identifier&rows=5&output=json")).json();
+  for(const doc of (s.response&&s.response.docs||[])){
+    const m=await (await fetch("https://archive.org/metadata/"+doc.identifier)).json();
+    const f=(m.files||[]).find(f=>/\.mp3$/i.test(f.name)&&(!f.size||+f.size>200000));
+    if(f)return "https://archive.org/download/"+doc.identifier+"/"+encodeURIComponent(f.name);
+  }return null;}
+function stopSynth(){if(synthTimer){clearInterval(synthTimer);synthTimer=null;}}
+function startSynth(kind){ /* generative fallback when the archive is unreachable */
+  stopSynth();const ctx=AC();if(!ctx)return;let step=0;
+  const scales={dash:[0,4,7,12,7,4],tension:[0,1,6,1],victory:[0,4,7,11,14,11,7,4],bossa:[0,4,7,11,9,7,4,2],calm:[0,4,7,4]};
+  const base={dash:523,tension:110,victory:262,bossa:196,calm:220}[kind]||262;
+  const iv={dash:120,tension:420,victory:340,bossa:300,calm:380}[kind]||300;
+  synthTimer=setInterval(()=>{if(G.over)return;const sc=scales[kind]||scales.calm;
+    const o=ctx.createOscillator(),g=ctx.createGain();o.type=kind==="tension"?"sawtooth":"sine";
+    o.frequency.value=base*Math.pow(2,sc[step%sc.length]/12);g.gain.value=0.0001;
+    g.gain.exponentialRampToValueAtTime(0.12,ctx.currentTime+0.03);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+iv/1000*0.95);
+    o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+iv/1000);step++;},iv);}
+async function playBGM(kind){
+  if(bgmMode===kind)return;bgmMode=kind;stopSynth();
+  try{const url=await fetchArchiveTrack(TRACKS[kind].q);
+    if(url){bgmAudio.src=url;await bgmAudio.play();announce("♪ "+TRACKS[kind].label,3);return;}}catch(e){}
+  try{bgmAudio.pause();}catch(e){}
+  startSynth(kind);announce("♪ "+TRACKS[kind].label+"（生成音）",3);}
+/* ================= WebAudio: heartbeat & train noise ================= */
+let ACtx=null;function AC(){if(!ACtx){try{ACtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  if(ACtx&&ACtx.state==="suspended")ACtx.resume();return ACtx;}
+let noiseGain=null;
+function trainNoise(on){const ctx=AC();if(!ctx)return;
+  if(on&&!noiseGain){const len=ctx.sampleRate*2,buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*0.5;
+    const src=ctx.createBufferSource();src.buffer=buf;src.loop=true;
+    const f=ctx.createBiquadFilter();f.type="lowpass";f.frequency.value=420;
+    noiseGain=ctx.createGain();noiseGain.gain.value=0.05;src.connect(f);f.connect(noiseGain);noiseGain.connect(ctx.destination);src.start();}
+  if(!on&&noiseGain){try{noiseGain.gain.linearRampToValueAtTime(0.0001,ctx.currentTime+0.6);}catch(e){}noiseGain=null;}}
+let heartT=0;
+function heartbeat(dt){ /* faster & louder as HP falls */
+  if(G.hp>55||G.over)return;heartT-=dt;if(heartT>0)return;
+  heartT=0.45+(G.hp/55)*0.75;const ctx=AC();if(!ctx)return;
+  [0,0.16].forEach(off=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=58;
+    g.gain.setValueAtTime(0.0001,ctx.currentTime+off);g.gain.exponentialRampToValueAtTime(0.5,ctx.currentTime+off+0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+off+0.14);o.connect(g);g.connect(ctx.destination);
+    o.start(ctx.currentTime+off);o.stop(ctx.currentTime+off+0.2);});}
+function blip(freq,dur,type,vol){const ctx=AC();if(!ctx)return;const o=ctx.createOscillator(),g=ctx.createGain();
+  o.type=type||"square";o.frequency.value=freq;g.gain.value=vol||0.08;o.connect(g);g.connect(ctx.destination);
+  o.start();g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+(dur||0.12));o.stop(ctx.currentTime+(dur||0.12));}
+/* ================= THREE setup ================= */
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x0d1420);scene.fog=new THREE.Fog(0x0d1420,30,90);
+const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,0.1,200);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+$("app").appendChild(renderer.domElement);
+addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+scene.add(new THREE.AmbientLight(0xffffff,0.55));
+const dl=new THREE.DirectionalLight(0xfff2d8,0.9);dl.position.set(6,14,8);scene.add(dl);
+dl.castShadow=true;dl.shadow.mapSize.set(2048,2048);
+dl.shadow.camera.left=-22;dl.shadow.camera.right=22;dl.shadow.camera.top=16;dl.shadow.camera.bottom=-10;dl.shadow.bias=-0.0004;
+const MAT=(c,r,m)=>new THREE.MeshStandardMaterial({color:c,roughness:r===undefined?0.85:r,metalness:m||0.02});
+function box(w,h,d,c,x,y,z,parent){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),MAT(c));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;(parent||scene).add(m);return m;}
+/* ---- platform ---- */
+box(60,0.3,7,0x8a8f98,0,-0.15,5.2);                      // platform floor
+box(60,0.06,0.5,0xf7d038,0,0.03,2.15);                   // yellow tactile line
+box(60,4,0.4,0x3c4658,0,2,9.2);                          // back wall
+for(let i=-4;i<=4;i++){box(0.35,3.4,0.35,0x9aa2ae,i*6,1.7,8.6);} // pillars
+box(60,0.4,8,0x2c3444,0,4.2,5.2);                        // roof
+const signBoard=box(7,1,0.15,0xffffff,0,3.1,8.9);        // station sign (color set per line)
+/* ---- train ---- */
+const train=new THREE.Group();scene.add(train);train.position.x=80;
+const CAR={len:30,wallZ:-1.35,doorZ:1.35};
+box(CAR.len,0.2,3,0x555b63,0,0.1,0,train);               // floor
+box(CAR.len,0.25,3,0x3a3f46,0,2.75,0,train);             // roof
+box(CAR.len,2.5,0.15,0xd8dde3,0,1.45,CAR.wallZ,train);   // back wall
+box(0.2,2.5,3,0xc9ced6,-CAR.len/2,1.45,0,train);box(0.2,2.5,3,0xc9ced6,CAR.len/2,1.45,0,train);
+const stripe=box(CAR.len,0.35,0.05,0xe60012,0,2.0,1.44,train); // line color stripe
+for(let x=-13.5;x<=13.5;x+=1.5){const w=box(1.1,0.8,0.06,0x9fd4e8,x,1.95,CAR.wallZ+0.09,train);w.material.emissive=new THREE.Color(0x223a44);}
+/* doors on platform side: openings between wall segments */
+const DOORX=[-10.5,-3.5,3.5,10.5],doors=[];
+(function(){let prev=-CAR.len/2;
+ for(const dx of DOORX){const w=dx-0.95-prev;if(w>0)box(w,2.5,0.15,0xd8dde3,prev+w/2,1.45,CAR.doorZ,train);prev=dx+0.95;}
+ const w=CAR.len/2-prev;if(w>0)box(w,2.5,0.15,0xd8dde3,prev+w/2,1.45,CAR.doorZ,train);
+ for(const dx of DOORX){const g=new THREE.Group();g.position.set(dx,0,CAR.doorZ);train.add(g);
+   const l=box(0.92,2.3,0.1,0xb9bfc9,-0.47,1.3,0,g),r=box(0.92,2.3,0.1,0xb9bfc9,0.47,1.3,0,g);
+   doors.push({g,l,r,open:0});}})();
+/* hanging straps */
+for(let x=-13;x<=13;x+=1.3){const t=new THREE.Mesh(new THREE.TorusGeometry(0.11,0.02,6,14),MAT(0xe8b13a));
+  t.position.set(x,2.15,0);train.add(t);box(0.04,0.35,0.04,0x888888,x,2.42,0,train);}
+/* seats: back row 14 (7-seat bench = idx 0..6), front row segments between doors */
+const seats=[];
+function addSeat(x,z,ry){const i=seats.length;
+  const m=box(0.62,0.12,0.55,0x2e7d5b,x,0.55,z,train);box(0.62,0.6,0.1,0x2e7d5b,x,0.9,z+(ry>0?0.26:-0.26),train);
+  seats.push({i,x,z,ry,takenBy:null,mesh:m});return i;}
+for(let i=0;i<14;i++)addSeat(-9.75+i*1.5,-1.02,0);
+[-13.5,-12.1,-8.4,-7,-5.6,-1.4,0,1.4,5.6,7,8.4,12.1,13.5].forEach(x=>addSeat(x,1.02,Math.PI));
+/* queue position markers on platform (phase 1) */
+const queueMarks=[];
+DOORX.forEach(dx=>{const m=new THREE.Mesh(new THREE.RingGeometry(0.42,0.6,24),new THREE.MeshBasicMaterial({color:0xffd94d,side:THREE.DoubleSide}));
+  m.rotation.x=-Math.PI/2;m.position.set(dx,0.02,2.9);scene.add(m);queueMarks.push(m);});
+/* ================= NPCs ================= */
+const npcs=[];let npcId=0;
+const NPC_TYPES=[
+ {k:"salaryman",label:"サラリーマン",suit:0x2b3550,skin:0xf2c49b,hair:0x1a1a1a},
+ {k:"ol",label:"OL",suit:0x6b4a5a,skin:0xf6cfae,hair:0x3a2418},
+ {k:"student",label:"学生",suit:0x24365e,skin:0xf2c49b,hair:0x111111},
+ {k:"elderly",label:"お年寄り",suit:0x7a7f6a,skin:0xeec39a,hair:0xdddddd},
+ {k:"pregnant",label:"妊婦",suit:0xb58a9a,skin:0xf6cfae,hair:0x2a1a12},
+ {k:"gaijin",label:"旅行客",suit:0x8a6d3b,skin:0xd9a066,hair:0x8a6d1a},
+ {k:"otaku",label:"大きな荷物の客",suit:0x445544,skin:0xf2c49b,hair:0x222222}];
+function makeIcon(){const c=document.createElement("canvas");c.width=c.height=128;const tex=new THREE.CanvasTexture(c);
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));s.scale.set(0.85,0.85,1);return{c,tex,s};}
+function setIcon(npc,emoji){const{ctx:c}= {ctx:npc.iconC.getContext("2d")};const g=npc.iconC.getContext("2d");
+  g.clearRect(0,0,128,128);if(emoji){g.font="84px serif";g.textAlign="center";g.textBaseline="middle";g.fillText(emoji,64,70);}
+  npc.iconTex.needsUpdate=true;}
+/* ===== Detailed segmented humanoid: Blender-style part construction =====
+   Head(face/hair variants) - neck - torso(suit/coat, tie, belly, skirt) -
+   jointed arms( shoulder/elbow/hand ) - jointed legs( hip/knee/shoe ) -
+   briefcase / tote / backpack / smartphone / cane, smooth-shaded PBR. */
+function stdMat(c,r,m){return new THREE.MeshStandardMaterial({color:c,roughness:r===undefined?0.8:r,metalness:m||0.03});}
+function part(geo,mat,x,y,z,parent){const ms=new THREE.Mesh(geo,mat);ms.position.set(x,y,z);ms.castShadow=true;ms.receiveShadow=true;parent.add(ms);return ms;}
+const HVARIANTS={
+ salaryman:{h:1.72,w:1.0,shirt:0xf2f2f2,tie:true,pants:0x2a2f3a,shoes:0x1c1410,hair:"short",bag:"brief"},
+ ol:{h:1.6,w:0.88,shirt:0xe8dfe8,skirt:true,pants:0x3a3444,shoes:0x33181f,hair:"long",bag:"tote"},
+ student:{h:1.65,w:0.92,shirt:0xffffff,pants:0x2c3a5e,shoes:0xeeeeee,hair:"cap",bag:"backpack"},
+ elderly:{h:1.58,w:0.95,shirt:0xcfc8b0,pants:0x5a5348,shoes:0x3a2e22,hair:"bald",bag:"tote",hunch:0.22,cane:true},
+ pregnant:{h:1.62,w:1.05,shirt:0xf3e2e2,pants:0x6a5a6a,shoes:0x442a33,hair:"bun",bag:"tote",belly:true},
+ gaijin:{h:1.85,w:1.12,shirt:0xd84f35,pants:0x4a5a6a,shoes:0xdddddd,hair:"short",bag:"backpack"},
+ otaku:{h:1.7,w:1.15,shirt:0x5a6e46,pants:0x333333,shoes:0x222222,hair:"bob",bag:"bigbag"}};
+function buildHumanoid(t){
+ const v=HVARIANTS[t.k]||HVARIANTS.salaryman;const g=new THREE.Group();
+ const skin=stdMat(t.skin,0.55),suit=stdMat(t.suit,0.75),shirt=stdMat(v.shirt,0.8),
+ hairM=stdMat(t.hair,0.95),pants=stdMat(v.pants,0.85),shoeM=stdMat(v.shoes,0.4,0.1);
+ const H=v.h,hipY=H*0.52;
+ function leg(side){const hip=new THREE.Group();hip.position.set(0.11*side*v.w,hipY,0);g.add(hip);
+  part(new THREE.CylinderGeometry(0.075*v.w,0.06*v.w,hipY*0.52,10),pants,0,-hipY*0.26,0,hip);
+  const knee=new THREE.Group();knee.position.y=-hipY*0.52;hip.add(knee);
+  part(new THREE.CylinderGeometry(0.055*v.w,0.045*v.w,hipY*0.48,10),pants,0,-hipY*0.24,0,knee);
+  part(new THREE.BoxGeometry(0.11,0.07,0.26),shoeM,0,-hipY*0.5+0.035,0.05,knee);return{hip,knee};}
+ const legL=leg(-1),legR=leg(1);
+ const torso=new THREE.Group();torso.position.y=hipY;g.add(torso);
+ const chest=part(new THREE.CylinderGeometry(0.155*v.w,0.185*v.w,H*0.34,14),suit,0,H*0.17,0,torso);chest.scale.z=0.72;
+ const sho=part(new THREE.SphereGeometry(0.165*v.w,14,10),suit,0,H*0.335,0,torso);sho.scale.set(1,0.5,0.72);
+ const shV=part(new THREE.CylinderGeometry(0.07,0.1,H*0.2,8),shirt,0,H*0.26,0.085,torso);shV.scale.z=0.5;
+ if(v.tie)part(new THREE.BoxGeometry(0.045,H*0.2,0.015),stdMat(0x8a1f2d,0.5),0,H*0.24,0.13,torso);
+ if(v.belly){const b=part(new THREE.SphereGeometry(0.16,14,12),suit,0,H*0.13,0.1,torso);b.scale.set(1,1.1,0.9);}
+ if(v.skirt)part(new THREE.CylinderGeometry(0.19*v.w,0.24*v.w,H*0.2,14),suit,0,0,0,torso);
+ part(new THREE.CylinderGeometry(0.05,0.055,0.09,10),skin,0,H*0.375,0,torso);
+ const headG=new THREE.Group();headG.position.y=H*0.415;torso.add(headG);
+ const head=part(new THREE.SphereGeometry(0.115,20,16),skin,0,0.05,0,headG);head.scale.set(0.92,1.08,0.98);
+ part(new THREE.SphereGeometry(0.028,8,8),skin,0,0.03,0.115,headG);
+ const eyeM=stdMat(0x14100c,0.3);
+ part(new THREE.SphereGeometry(0.013,8,8),eyeM,-0.042,0.075,0.1,headG);
+ part(new THREE.SphereGeometry(0.013,8,8),eyeM,0.042,0.075,0.1,headG);
+ function hairCap(sy){const hr=part(new THREE.SphereGeometry(0.12,16,12),hairM,0,0.085,-0.012,headG);hr.scale.set(0.95,sy||0.82,1);return hr;}
+ if(v.hair==="short")hairCap();
+ if(v.hair==="long"){hairCap();part(new THREE.BoxGeometry(0.2,0.34,0.07),hairM,0,-0.1,-0.085,headG);}
+ if(v.hair==="bob"){const hr=part(new THREE.SphereGeometry(0.125,16,12),hairM,0,0.07,-0.01,headG);hr.scale.set(0.98,0.95,1);}
+ if(v.hair==="bun"){hairCap();part(new THREE.SphereGeometry(0.05,10,8),hairM,0,0.17,-0.05,headG);}
+ if(v.hair==="bald")hairCap(0.6);
+ if(v.hair==="cap"){const cp=part(new THREE.SphereGeometry(0.125,16,10),stdMat(0x24365e,0.85),0,0.08,0,headG);cp.scale.set(1,0.7,1);
+  part(new THREE.BoxGeometry(0.16,0.02,0.12),stdMat(0x24365e,0.85),0,0.075,0.14,headG);}
+ function arm(side){const sh=new THREE.Group();sh.position.set(0.2*v.w*side,H*0.315,0);torso.add(sh);
+  part(new THREE.CylinderGeometry(0.055*v.w,0.048*v.w,H*0.17,10),suit,0,-H*0.085,0,sh);
+  const el=new THREE.Group();el.position.y=-H*0.17;sh.add(el);
+  part(new THREE.CylinderGeometry(0.045*v.w,0.04*v.w,H*0.16,10),suit,0,-H*0.08,0,el);
+  part(new THREE.SphereGeometry(0.042,10,8),skin,0,-H*0.175,0,el);
+  sh.rotation.z=side*0.1;el.rotation.x=-0.25;return{sh,el};}
+ const armL=arm(-1),armR=arm(1);
+ let bag=null;
+ if(v.bag==="brief"){bag=new THREE.Group();bag.position.set(0,-H*0.19,0.02);armR.el.add(bag);
+  part(new THREE.BoxGeometry(0.4,0.3,0.11),stdMat(0x3a2a1a,0.45,0.15),0,-0.22,0,bag);
+  part(new THREE.BoxGeometry(0.4,0.05,0.115),stdMat(0x54381f,0.4,0.2),0,-0.09,0,bag);
+  part(new THREE.TorusGeometry(0.07,0.012,6,14,Math.PI),stdMat(0x222222,0.4,0.3),0,-0.06,0,bag);
+  part(new THREE.BoxGeometry(0.34,0.012,0.005),stdMat(0xc9a227,0.3,0.7),0,-0.2,0.058,bag);}
+ if(v.bag==="tote"){bag=new THREE.Group();bag.position.set(0,-H*0.19,0.02);armL.el.add(bag);
+  part(new THREE.BoxGeometry(0.34,0.36,0.13),stdMat(0x7a5a3a,0.8),0,-0.24,0,bag);
+  part(new THREE.TorusGeometry(0.09,0.01,6,14,Math.PI),stdMat(0x5a4028,0.7),0,-0.05,0,bag);}
+ if(v.bag==="backpack"){bag=new THREE.Group();g.add(bag);
+  part(new THREE.BoxGeometry(0.36,0.46,0.2),stdMat(0x30455e,0.85),0,hipY+H*0.2,-0.24,bag);
+  part(new THREE.BoxGeometry(0.3,0.2,0.05),stdMat(0x24344a,0.85),0,hipY+H*0.12,-0.36,bag);}
+ if(v.bag==="bigbag"){bag=new THREE.Group();bag.position.set(0,-H*0.19,0.05);armR.el.add(bag);
+  part(new THREE.BoxGeometry(0.55,0.5,0.3),stdMat(0x222222,0.6),0,-0.3,0,bag);}
+ let phone=null;
+ if(Math.random()<0.6){phone=new THREE.Group();phone.position.set(0,-H*0.185,0.03);armL.el.add(phone);
+  part(new THREE.BoxGeometry(0.075,0.15,0.01),stdMat(0x0a0a0a,0.25,0.4),0,0,0,phone);
+  part(new THREE.PlaneGeometry(0.065,0.135),new THREE.MeshBasicMaterial({color:0xbfe3ff}),0,0,0.006,phone);}
+ if(v.cane){const cn=new THREE.Group();cn.position.set(0,-H*0.19,0.05);armR.el.add(cn);
+  part(new THREE.CylinderGeometry(0.013,0.013,0.8,8),stdMat(0x6a4a2a,0.5),0,-0.42,0,cn);}
+ if(v.hunch)torso.rotation.x=v.hunch;
+ return{g,torso,headG,legL,legR,armL,armR,bag,phone,H};}
+function poseSit(n){n.rig.legL.hip.rotation.x=-1.45;n.rig.legR.hip.rotation.x=-1.45;
+ n.rig.legL.knee.rotation.x=1.35;n.rig.legR.knee.rotation.x=1.35;
+ n.rig.torso.rotation.x=(n.type.k==="elderly"?0.22:0.03);}
+function poseStand(n){n.rig.legL.hip.rotation.x=0;n.rig.legR.hip.rotation.x=0;
+ n.rig.legL.knee.rotation.x=0;n.rig.legR.knee.rotation.x=0;
+ n.rig.torso.rotation.x=(n.type.k==="elderly"?0.22:0);}
+function spawnNPC(x,z,opts){opts=opts||{};const t=NPC_TYPES[opts.type!==undefined?opts.type:Math.floor(Math.random()*5)];
+ const g=new THREE.Group();g.position.set(x,0,z);
+ const rig=buildHumanoid(t);g.add(rig.g);scene.add(g);
+ const ic=makeIcon();ic.s.position.y=2.02;g.add(ic.s);
+ const npc={id:npcId++,type:t,group:g,rig,bag:rig.bag,body:rig.torso,x,z,tx:x,tz:z,speed:1.1+Math.random()*0.7,
+  state:opts.state||"stand",seat:-1,exitAt:99,feint:false,tellT:0,iconC:ic.c,iconTex:ic.tex,
+  irrit:Math.random(),lean:0,helped:false,rival:!!opts.rival,phrase:""};
+ npcs.push(npc);return npc;}
+function removeNPC(n){scene.remove(n.group);const i=npcs.indexOf(n);if(i>=0)npcs.splice(i,1);
+  if(n.seat>=0&&seats[n.seat].takenBy===n)seats[n.seat].takenBy=null;}
+function sitNPC(n,si){const s=seats[si];s.takenBy=n;n.seat=si;n.state="seated";
+n.group.position.set(s.x+train.position.x,-0.24,s.z);n.group.rotation.y=s.ry;poseSit(n);}
+function freeSeatOf(n){if(n.seat>=0){seats[n.seat].takenBy=null;n.seat=-1;}n.group.position.y=0;poseStand(n);}
+/* player */
+const player={x:0,z:5.2,yaw:0,pitch:0,vx:0,vz:0,inside:false,speedWalk:3.4};
+camera.position.set(player.x,1.62,player.z);
+/* pointer lock look */
+let locked=false;
+renderer.domElement.addEventListener("click",()=>{if(G.started&&!G.over)renderer.domElement.requestPointerLock();});
+document.addEventListener("pointerlockchange",()=>{locked=document.pointerLockElement===renderer.domElement;});
+addEventListener("mousemove",e=>{if(!locked)return;player.yaw-=e.movementX*0.0023;player.pitch-=e.movementY*0.0023;
+  player.pitch=Math.max(-1.1,Math.min(1.1,player.pitch));});
+const keys={};
+addEventListener("keydown",e=>{keys[e.code]=true;onKey(e.code);});
+addEventListener("keyup",e=>{keys[e.code]=false;});
+/* ================= Skills （通勤武術） ================= */
+const CD={q:0,e:0,f:0,r:0};const stats=()=>STATS[buildType];
+function skillReady(k){return CD[k]<=0;}
+function onKey(code){
+if(!G.started||G.over)return;const st=stats();
+if(code==="KeyQ"&&skillReady("q")){ /* 流体すり抜け・紙一重: pass through the door guardian */
+CD.q=8;G.boost=0.9;G.ghost=0.9;blip(880,0.15,"sine",0.12);
+announce("体を薄くし、仁王立ちの隙間をすり抜ける！",2.5);}
+if(code==="KeyE"&&skillReady("e")){ /* 残像フェイント・二段加速 */
+CD.e=7;const s=2.2+st.leg*0.25;player.vx+=-Math.sin(player.yaw)*s;player.vz+=-Math.cos(player.yaw)*s;
+G.boost=0.55;blip(660,0.12,"square",0.1);announce("フリーズした客を抜き去る！",2.5);}
+if(code==="KeyF"&&skillReady("f")){ /* 鞄結界・ボックスアウトの陣 */
+CD.f=9;G.shield=2.2+st.core*0.25;blip(440,0.2,"triangle",0.14);
+announce("横取りハイエナを物理的に阻む！",2.5);}
+if(code==="KeyR"&&skillReady("r")){ /* 心眼・足首ロックオン */
+CD.r=Math.max(4,12-st.eye);G.lockon=3+st.eye*0.5;blip(1200,0.18,"sine",0.1);
+announce("降車フェイントを見破る構え…",2.5);revealIntents();}
+if(code==="KeyY"&&G.elderEvent)giveSeat();
+if(code==="Space"&&G.seated){G.sleep=Math.max(0,G.sleep-14);blip(300,0.05,"square",0.05);}
+if(G.seated&&G.leanEvent){ /* 柳生の肩すかし (shoulder parry) */
+const dir=G.leanEvent.dir;
+if((code==="KeyA"&&dir<0)||(code==="KeyD"&&dir>0)){G.parries++;G.leanEvent.npc.lean=0;G.leanEvent=null;showPrompt("");
+G.san=Math.min(100,G.san+2);blip(980,0.15,"sine",0.13);announce("寄りかかりを華麗にパリィ！",2);}
+else if(code==="KeyA"||code==="KeyD"){hurtSAN(4,"逆側に避けた！ 頭がぶつかった…");G.leanEvent.npc.lean=0;G.leanEvent=null;showPrompt("");}}
+}
+function revealIntents(){ /* profiling: show true exit intent of seated NPCs near player */
+npcs.forEach(n=>{if(n.state==="seated"){const real=n.exitAt===G.stationIdx+1;
+setIcon(n,real?"🚪":(n.feint?"🎭":"💤"));setTimeout(()=>{if(n.state==="seated")setIcon(n,n.tellEmoji||"");},2600);}});}
+/* ================= Damage / karma ================= */
+function hurtSAN(v,why){const st=stats();v*=fortune?fortune.irr:1;v*= (1-st.core*0.03);G.san-=v;
+if(why)announce("💢 "+why+"（尊厳ダメージ）",2.5);blip(140,0.25,"sawtooth",0.12);
+if(G.san<=0)gameOver("メンタル崩壊","舌打ちと接触の連続に心が折れた。出勤は、敗北した。");}
+function contactCheck(dt){ /* bag/coat physical contact while standing */
+if(G.seated||G.ghost>0)return;G.contactCd-=dt;if(G.contactCd>0)return;
+for(const n of npcs){if(n.state==="gone")continue;const dx=n.group.position.x-player.x,dz=n.group.position.z-player.z;
+if(dx*dx+dz*dz<0.30){G.contactCd=1.1;
+if(G.shield>0){announce("鞄結界が接触を防いだ",1.2);return;}
+hurtSAN(2+Math.random()*3,"乗客と接触――「チッ」という舌打ちが聞こえた");
+player.vx+=dx*1.4;player.vz+=dz*1.4;return;}}}
+function gameOver(t,txt){if(G.over)return;G.over=true;trainNoise(false);try{bgmAudio.pause();}catch(e){}
+$("goTitle").textContent=t;$("goText").textContent=txt+"\n到達: "+LINES[lineIdx].stations[G.stationIdx]+" / 着席時間 "+Math.floor(G.seatedTime)+"秒 / パリィ "+G.parries+"回 / 席を譲った "+G.gaveSeat+"回";
+$("gameover").style.display="flex";document.exitPointerLock&&document.exitPointerLock();}
+function winGame(){if(G.over)return;G.over=true;G.won=true;trainNoise(false);
+const rank=G.seatedTime>150?"S":G.seatedTime>90?"A":G.seatedTime>40?"B":"C";
+$("winText").textContent=LINES[lineIdx].name+"で目的地に到着！ 通勤ランク 着席 "+Math.floor(G.seatedTime)+"秒 / 立ち "+Math.floor(G.standingTime)+"秒 / 人徳（隠し） "+Math.floor(G.karma)+" / 奇跡 "+G.miracles+"回 / パリィ "+G.parries+"回";
+$("win").style.display="flex";document.exitPointerLock&&document.exitPointerLock();}
+/* ================= Seat claiming / giving / miracles ================= */
+function nearestFreeSeat(maxD){let best=null,bd=maxD||2.2;
+for(const s of seats){if(s.takenBy)continue;const wx=s.x+train.position.x;
+const d=Math.hypot(wx-player.x,s.z-player.z);if(d<bd){bd=d;best=s;}}return best;}
+function trySit(){const s=nearestFreeSeat(1.4);if(!s)return false;
+s.takenBy="player";G.seated=true;G.seatIdx=s.i;player.x=s.x+train.position.x;player.z=s.z;
+onSeated();return true;}
+function onSeated(){ /* catharsis: noise dies, halo, Clair de Lune / bossa */
+trainNoise(false);$("halo").style.opacity=1;playBGM(Math.random()<0.5?"victory":"bossa");
+announce("――着席。車内の騒音がスッと消えた。至福の時が始まる。",4);
+setObjective("フェーズ④ 着席防衛戦：寄りかかりを A/D でパリィ、眠気は Space 連打。目的地 "+LINES[lineIdx].stations[LINES[lineIdx].stations.length-1]+" まで守り抜け");
+setTimeout(()=>{$("halo").style.opacity=0;},2600);}
+function standUp(){if(G.seatIdx>=0)seats[G.seatIdx].takenBy=null;G.seated=false;G.seatIdx=-1;G.sleep=0;
+player.z=0;trainNoise(true);playBGM("calm");}
+function giveSeat(){const ev=G.elderEvent;if(!ev)return;G.elderEvent=null;showPrompt("");
+const n=ev.npc;standUp();n.helped=true;G.karma+=10;G.gaveSeat++;
+announce("席を譲った。「ありがとう」と穏やかな声。人徳が蓄積した気がする…（カルマ+）",4);
+const si=nearestSeatNear(n);if(si>=0)sitNPC(n,si);playBGM("bossa");}
+function nearestSeatNear(n){let best=-1,bd=9;seats.forEach(s=>{if(!s.takenBy){const d=Math.abs(s.x+train.position.x-n.group.position.x);if(d<bd){bd=d;best=s.i;}}});return best;}
+function checkMiracle(){ /* karma miracle: someone you helped offers a seat when you are dying on your feet */
+if(G.seated||G.hp>30||G.miracleCd>0)return;G.miracleCd=20;
+if(G.karma>=10){const helper=npcs.find(n=>n.helped&&n.state==="seated")||npcs.find(n=>n.state==="seated"&&Math.random()<0.4);
+if(helper){const si=helper.seat;freeSeatOf(helper);helper.state="stand";helper.group.position.z=0;
+helper.group.position.x=seats[si].x+1;setIcon(helper,"🙏");G.miracles++;
+announce("以前助けた乗客が立ち上がった！「どうぞ、座ってください」",5);
+setTimeout(()=>{if(!seats[si].takenBy&&!G.seated){seats[si].takenBy=null;announce("奇跡の空席が目の前に…近づいて座れ！",3);}},300);}}}
+/* ================= Slot & Poker synergy ================= */
+const ACTIONS=["📱","📖","😴","🎧","🍙","💤"];
+function checkSlotAndPoker(){ /* 7-seat bench (idx 0..6): three matching actions = jackpot */
+const bench=seats.slice(0,7).map(s=>s.takenBy).filter(t=>t&&t!=="player");
+if(bench.length>=5&&!G.slotWin){const counts={};bench.forEach(n=>{const a=n.tellEmoji||"📱";counts[a]=(counts[a]||0)+1;});
+for(const a in counts)if(counts[a]>=3){G.slotWin=true;blip(1320,0.3,"square",0.15);
+announce("🎰 パチスロ演出！ 7人がけで『"+a+"』が3つ揃った――フィーバー！ 関係ない乗客まで釣られて立ち上がる！",5);
+bench.slice(0,2).forEach(n=>{if(n.state==="seated"){freeSeatOf(n);n.state="leaving";n.exitAt=G.stationIdx;}});
+setTimeout(()=>{G.slotWin=false;},15000);break;}}
+/* poker: three students side by side leave together at their school stop */
+for(let i=0;i<seats.length-2;i++){const a=seats[i].takenBy,b=seats[i+1].takenBy,c=seats[i+2].takenBy;
+if(a&&b&&c&&a!=="player"&&b!=="player"&&c!=="player"&&a.type.k==="student"&&b.type.k==="student"&&c.type.k==="student"){
+if(a.exitAt===G.stationIdx){[a,b,c].forEach(n=>{if(n.state==="seated"){freeSeatOf(n);n.state="leaving";}});
+announce("🃏 役成立同じ学校の3人が一斉に降車！ 席が3つ空いた！",5);}break;}}}
+/* ================= Flow: stations, phases ================= */
+let phaseT=0,interT=0,trainArrived=false,queueBonus=false;
+function updateStationUI(){const L=LINES[lineIdx];$("lineName").textContent=L.name;$("lineName").style.background=L.color;
+$("stName").textContent=L.stations[G.stationIdx];
+$("stNext").textContent=G.stationIdx<L.stations.length-1?("次は "+L.stations[G.stationIdx+1]+" ／ 目的地 "+L.stations[L.stations.length-1]):"終点";
+stripe.material.color.set(L.color);signBoard.material.color.set(L.color);}
+function startGame(){G.started=true;$("start").style.display="none";AC();trainNoise(false);
+updateStationUI();G.phase=1;phaseT=14;
+setObjective("フェーズ① ホームの陣取り：黄色い輪（乗車口ポジション）に立て。降車客の流れを読み、ドア正面を確保せよ");
+announce(LINES[lineIdx].name+" "+LINES[lineIdx].stations[0]+"駅。まもなく電車が参ります。",5);
+/* platform crowd: rivals queueing + a door guardian （仁王立ちマン) at one door */
+DOORX.forEach((dx,di)=>{for(let q=0;q<2;q++){const n=spawnNPC(dx+(Math.random()-0.5)*0.5,3.1+q*0.8,{rival:true});
+n.state="queue";n.tx=dx;n.tz=3.0+q*0.8;}});
+const guard=spawnNPC(DOORX[1],2.35,{});guard.state="guard";setIcon(guard,"🧍");
+for(let i=0;i<7;i++)spawnNPC(-14+Math.random()*28,4+Math.random()*2.5,{});
+renderer.domElement.requestPointerLock();}
+function arriveTrain(){trainArrived=true;announce("電車が到着します。黄色い線までお下がりください。",3);trainNoise(true);}
+function openDoors(){G.doorsOpen=true;G.phase=2;phaseT=14;
+  blip(1318,0.12,"sine",0.07);setTimeout(()=>blip(1568,0.16,"sine",0.07),150); /* door chime */
+queueBonus=queueMarks.some(m=>Math.hypot(m.position.x-player.x,m.position.z-player.z)<0.7);
+if(queueBonus){G.boost=1.6;announce("ドア正面を確保！ 初速ブースト！",3);}
+else announce("ドアが開いた！ 空席へ競歩ダッシュだ！",3);
+playBGM("dash");setObjective("フェーズ② 乗車ダッシュ：走っていないフリの競歩で空席へ。近づくと自動で座る。接触は尊厳を削る");
+/* pre-seat most seats with passengers already aboard; leave a few contested */
+const order=seats.map(s=>s.i).sort(()=>Math.random()-0.5);
+const leaveOpen=5+(fortune.luck>1?1:0);
+order.forEach((si,k)=>{if(k<seats.length-leaveOpen){const n=spawnNPC(seats[si].x,0,{});
+n.exitAt=1+Math.floor(Math.random()*(LINES[lineIdx].stations.length-1));sitNPC(n,si);
+if(Math.random()<0.25)assignPokerStudents();}});
+/* rivals dash for the open seats */
+npcs.filter(n=>n.state==="queue").forEach((n,i)=>{if(i<4)n.state="rush";
+  else setTimeout(()=>{if(n.state==="queue")n.state="rush";},2500+i*300);});
+setTimeout(spawnElderEvent,9000);}
+function assignPokerStudents(){ /* occasionally plant a student trio (poker hand) */
+for(let i=0;i<seats.length-2;i++){if(!seats[i].takenBy&&!seats[i+1].takenBy&&!seats[i+2].takenBy){
+const ex=2+Math.floor(Math.random()*3);for(let k=0;k<3;k++){const n=spawnNPC(seats[i+k].x,0,{type:2});
+n.exitAt=ex;sitNPC(n,i+k);}return;}}}
+function closeDoorsAndGo(){G.doorsOpen=false;G.stationIdx++;
+updateStationUI();trainNoise(true);
+announce("発車します。次は "+LINES[lineIdx].stations[G.stationIdx]+" です。",4);
+if(!G.seated){G.phase=3;playBGM("calm");
+setObjective("フェーズ③ 下車予測と心理戦：座っている客の予備動作（📱しまう/ファスナー/足首）を見極め、降りる人の前を陣取れ。Rで心眼ロックオン");}
+else G.phase=4;
+interT=16; /* running time to next station */
+npcs.slice().forEach(n=>{if(n.state==="leaving")removeNPC(n);});
+scheduleTells();}
+function arriveNextStation(){G.doorsOpen=true;trainNoise(true);
+  blip(1046,0.1,"sine",0.06);setTimeout(()=>blip(784,0.14,"sine",0.06),130); /* arrival chime */
+  if(G.stationIdx>=LINES[lineIdx].stations.length-1){ /* terminus = destination */
+    announce("終点 "+LINES[lineIdx].stations[G.stationIdx]+" です。お忘れ物のないようご注意ください。",5);
+    interT=999;G.endT=3;return;}
+announce(LINES[lineIdx].stations[G.stationIdx]+" に到着。降車する客を見逃すな。",4);
+/* seated NPCs whose exit station this is will stand during the stop */
+npcs.forEach(n=>{if(n.state==="seated"&&n.exitAt===G.stationIdx){n.state="standing-up";n.tellT=1+Math.random()*2;}});
+/* new boarding crowd rushes some free seats */
+const free=seats.filter(s=>!s.takenBy);
+for(let i=0;i<Math.min(free.length,3);i++){const n=spawnNPC(DOORX[i%4]+train.position.x,1.0,{rival:true});n.state="rush-in";}
+if(G.seated)maybeElderBoard();
+checkSlotAndPoker();interT=10;}
+function scheduleTells(){ /* profiling tells & feints before the next stop */
+npcs.forEach(n=>{if(n.state!=="seated")return;n.feint=false;n.tellEmoji="";
+const willExit=n.exitAt===G.stationIdx+1;
+if(willExit&&Math.random()<0.85){n.tellEmoji=["📱","🧳","👞"][Math.floor(Math.random()*3)];}
+else if(Math.random()<0.3){n.feint=true;n.tellEmoji=["📱","🧳"][Math.floor(Math.random()*2)];}
+if(n.tellEmoji)setTimeout(()=>{if(n.state==="seated")setIcon(n,n.tellEmoji==="📱"?"📲":n.tellEmoji==="🧳"?"🎒":"🦶");},6000+Math.random()*5000);
+if(n.feint)setTimeout(()=>{if(n.state==="seated"&&!G.seated){n.state="feint-stand";n.tellT=1.4;
+announce("近くの乗客が立ち上がりかけた…フェイントか？！",2.5);}},11000+Math.random()*3000);});}
+function spawnElderEvent(){ /* an elderly/pregnant passenger stands in front of a seated player */
+if(!G.seated||G.over)return;maybeElderBoard();}
+function maybeElderBoard(){if(G.elderEvent||!G.seated)return;
+const type=Math.random()<0.5?3:4;const px=player.x+(Math.random()<0.5?-0.4:0.4);
+const n=spawnNPC(px,0.1,{type});n.state="stand";n.group.position.set(px,0,player.z>0?-0.1:0.1);
+setIcon(n,type===3?"👵":"🤰");G.elderEvent={npc:n};
+showPrompt("Y： 席を譲る（人徳が上がる） ／ 無視もできる");
+setTimeout(()=>{if(G.elderEvent&&G.elderEvent.npc===n){G.elderEvent=null;showPrompt("");hurtSAN(3,"見て見ぬふりの視線が痛い…");}},9000);}
+/* ================= NPC behaviour ================= */
+function moveNPC(n,dt){const dx=n.tx-n.group.position.x,dz=n.tz-n.group.position.z;const d=Math.hypot(dx,dz);
+  if(d<0.08)return true;const sp=n.speed*(n.state==="rush"||n.state==="rush-in"?1.55:1);
+  n.group.position.x+=dx/d*sp*dt;n.group.position.z+=dz/d*sp*dt;
+  n.group.rotation.y=Math.atan2(dx,dz);return false;}
+function updateNPCs(dt){
+  for(const n of npcs.slice()){
+    const p=n.group.position;
+    if(n.state==="queue"||n.state==="stand"){moveNPC(n,dt);}
+    else if(n.state==="guard"){ /* 仁王立ちマン: blocks door 2 unless ghost skill */
+      if(player.inside===false&&Math.abs(player.x-DOORX[1])<0.8&&player.z<3&&player.z>1.6&&!(G.ghost>0)){
+        player.z=1.6;if(G.contactCd<=0){G.contactCd=1;hurtSAN(2,"ドア横の仁王立ちマンが微動だにしない… Qで『流体すり抜け』！");}}}
+    else if(n.state==="rush"||n.state==="rush-in"){ /* race to a free seat */
+      const s=seats.find(s=>!s.takenBy);
+      if(!s){n.state="stand";n.tx=p.x;n.tz=(n.id%2?0.55:-0.55);}
+      else{n.tx=s.x+train.position.x;n.tz=s.z;
+        if(Math.hypot(n.tx-p.x,n.tz-p.z)<0.45){
+          if(G.shield>0&&Math.hypot(player.x-n.tx,player.z-n.tz)<1.3){n.speed=0.4;setTimeout(()=>n.speed=1.3,900);}
+          else sitNPC(n,s.i);}
+        else moveNPC(n,dt);}}
+    else if(n.state==="standing-up"){n.tellT-=dt;setIcon(n,"🧍");
+      if(n.tellT<=0){freeSeatOf(n);n.state="leaving";setIcon(n,"");
+        announce("乗客が立ち上がった！ 席が空く――今だ！",3);
+        /* a rival hyena also smells the seat */
+        const hy=npcs.find(m=>m.state==="stand"&&Math.abs(m.group.position.z)<1.3);if(hy)hy.state="rush";
+        if(!G.seated)playBGM("tension");}}
+    else if(n.state==="feint-stand"){n.tellT-=dt;n.group.position.y=0.05;
+      if(n.tellT<=0){n.state="seated";n.group.position.y=-0.24;G.feintsSeen++;
+        announce("…座り直した。フェイントだった！（見破り経験+）",2.5);if(G.lockon>0){G.san=Math.min(100,G.san+3);}}}
+    else if(n.state==="leaving"){n.tx=DOORX[Math.floor(Math.random()*4)]+train.position.x;n.tz=1.3;
+      if(moveNPC(n,dt)){n.state="gone";removeNPC(n);}}
+    else if(n.state==="seated"){ /* seated defence: neighbours lean (phase 4) */
+      if(G.seated&&Math.abs(n.seat-G.seatIdx)===1&&seats[n.seat].z===seats[G.seatIdx].z){
+        n.leanCd=Math.max(0,(n.leanCd||0)-dt);
+        if(n.leanCd<=0)n.lean+=dt*(0.05+Math.random()*0.035);
+        if(n.lean>1&&!G.leanEvent){n.lean=0;n.leanCd=7+Math.random()*6;const dir=n.seat<G.seatIdx?-1:1;
+          G.leanEvent={npc:n,dir,t:2.2};setIcon(n,"😪");
+          showPrompt(dir<0?"← A で肩すかしパリィ！":"D → で肩すかしパリィ！");}
+        n.group.rotation.z=n.lean*0.12*(n.seat<G.seatIdx?-1:1)*-1;}
+      if(n.tellEmoji&&G.phase===3){ /* random idle actions feeding the slot machine */
+        if(Math.random()<dt*0.1)setIcon(n,ACTIONS[Math.floor(Math.random()*ACTIONS.length)]);}}
+  }}
+/* ================= Player movement & bounds ================= */
+function updatePlayer(dt){const st=stats();
+  let f=0,r=0;if(keys.KeyW)f+=1;if(keys.KeyS)f-=1;if(keys.KeyD)r+=1;if(keys.KeyA)r-=1;
+  if(G.seated){f=0;r=0;player.vx=0;player.vz=0;}
+  const dash=(keys.ShiftLeft||keys.ShiftRight)?1.55:1;
+  let sp=player.speedWalk*(0.75+st.leg*0.06)*dash*(G.boost>0?1.7:1)*(weatherInfo.rain&&!player.inside?0.85:1);
+  const fx=-Math.sin(player.yaw),fz=-Math.cos(player.yaw),rx=Math.cos(player.yaw),rz=-Math.sin(player.yaw);
+  player.vx+=((fx*f+rx*r)*sp-player.vx)*Math.min(1,dt*10);
+  player.vz+=((fz*f+rz*r)*sp-player.vz)*Math.min(1,dt*10);
+  player.x+=player.vx*dt;player.z+=player.vz*dt;
+  /* bounds: platform vs train interior, crossing only at open doors */
+  const atDoor=DOORX.some(dx=>Math.abs(player.x-dx)<0.85);
+  if(!player.inside){player.x=Math.max(-16,Math.min(16,player.x));player.z=Math.max(1.55,Math.min(7.6,player.z));
+    if(G.doorsOpen&&atDoor&&player.z<1.9){player.inside=true;player.z=1.2;}}
+  else{player.x=Math.max(-14.4,Math.min(14.4,player.x));player.z=Math.max(-1.15,Math.min(1.2,player.z));
+    if(G.doorsOpen&&atDoor&&keys.KeyS&&player.z>1.0){player.inside=false;player.z=2.2;}}
+  if(player.inside&&!G.seated){const s=nearestFreeSeat(0.85);if(s)trySit();}
+  /* camera: seated = fixed low, standing = sway grows with fatigue */
+  const sway=G.seated?0.004:(1-G.hp/100)*0.05+((keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD)?0.012:0.004);
+  const bobY=Math.sin(G.time*7)*sway,bobR=Math.sin(G.time*5.3)*sway*0.6;
+  if(G.seated){const s=seats[G.seatIdx];camera.position.set(s.x+train.position.x,1.18,s.z);}
+  else camera.position.set(player.x,1.62+bobY,player.z);
+  camera.rotation.order="YXZ";camera.rotation.y=player.yaw;camera.rotation.x=player.pitch;camera.rotation.z=bobR;}
+/* ================= Detailed train fittings (Blender-style modelling) ================= */
+(function addTrainDetails(){
+ /* per-seat cushion: rounded pad + back pad + stitch piping + divider seams */
+ const cushionM=stdMat(0x2e7d5b,0.95),cushionD=stdMat(0x256b4e,0.95),pipeM=stdMat(0xd8cf9a,0.7);
+ seats.forEach((s,idx)=>{
+  const pad=part(new THREE.BoxGeometry(0.58,0.09,0.5),idx%2?cushionM:cushionD,s.x,0.62,s.z,train);
+  const back=part(new THREE.BoxGeometry(0.58,0.55,0.09),idx%2?cushionD:cushionM,s.x,0.95,s.z+(s.ry>0?0.24:-0.24),train);
+  part(new THREE.BoxGeometry(0.58,0.02,0.02),pipeM,s.x,0.67,s.z+(s.ry>0?-0.24:0.24),train); /* stitch line */
+  part(new THREE.BoxGeometry(0.02,0.5,0.02),pipeM,s.x,0.95,s.z+(s.ry>0?0.19:-0.19),train);
+  if(idx<3){pad.material=stdMat(0xd2691e,0.9);back.material=stdMat(0xd2691e,0.9);} /* priority seats: orange */
+ });
+ /* priority-seat sign */
+ (function(){const c=document.createElement("canvas");c.width=256;c.height=128;const g=c.getContext("2d");
+  g.fillStyle="#fff3d6";g.fillRect(0,0,256,128);g.fillStyle="#d2691e";g.font="bold 52px sans-serif";g.textAlign="center";
+  g.fillText("優先席",128,58);g.fillStyle="#333";g.font="24px sans-serif";g.fillText("PRIORITY SEAT",128,98);
+  const t=new THREE.CanvasTexture(c);const p=new THREE.Mesh(new THREE.PlaneGeometry(1.1,0.55),
+   new THREE.MeshBasicMaterial({map:t}));p.position.set(-8.2,1.9,-1.26);train.add(p);})();
+ /* advertisement panels with generated canvas art */
+ const ADS=[["#e74c3c","新発売！","缶コーヒー微糖"],["#2980b9","行こう、","海のある休日へ"],["#27ae60","資格取得","通勤時間で学ぶ"],["#8e44ad","映画公開","来週金曜ロードショー"]];
+ ADS.forEach((a,i)=>{const c=document.createElement("canvas");c.width=256;c.height=128;const g=c.getContext("2d");
+  g.fillStyle=a[0];g.fillRect(0,0,256,128);g.fillStyle="#ffffff";g.font="bold 30px sans-serif";g.textAlign="center";
+  g.fillText(a[1],128,52);g.font="bold 24px sans-serif";g.fillText(a[2],128,88);
+  g.strokeStyle="#dddddd";g.lineWidth=6;g.strokeRect(3,3,250,122);
+  const t=new THREE.CanvasTexture(c);const p=new THREE.Mesh(new THREE.PlaneGeometry(1.5,0.75),
+   new THREE.MeshStandardMaterial({map:t,roughness:0.4}));
+  p.position.set(-11+i*7,2.05,-1.26);train.add(p);
+  part(new THREE.BoxGeometry(1.56,0.81,0.03),stdMat(0xb9bfc9,0.35,0.6),-11+i*7,2.05,-1.29,train);});
+ /* door windows (glass) + rubber seals + frames */
+ const glassM=new THREE.MeshStandardMaterial({color:0xa8d4e6,roughness:0.08,metalness:0.1,transparent:true,opacity:0.75});
+ doors.forEach(d=>{[d.l,d.r].forEach(leaf=>{
+   const gl=new THREE.Mesh(new THREE.PlaneGeometry(0.55,0.8),glassM);gl.position.set(0,0.25,0.06);leaf.add(gl);
+   part(new THREE.BoxGeometry(0.62,0.87,0.02),stdMat(0x333a42,0.5,0.4),0,0.25,0.045,leaf).material=stdMat(0x333a42,0.5,0.4);
+   gl.position.z=0.062;});});
+ /* window frames on the back wall */
+ for(let x=-13.5;x<=13.5;x+=1.5){
+  part(new THREE.BoxGeometry(1.2,0.06,0.04),stdMat(0x9aa2ae,0.35,0.6),x,2.38,-1.24,train);
+  part(new THREE.BoxGeometry(1.2,0.06,0.04),stdMat(0x9aa2ae,0.35,0.6),x,1.52,-1.24,train);
+  part(new THREE.BoxGeometry(0.06,0.9,0.04),stdMat(0x9aa2ae,0.35,0.6),x-0.58,1.95,-1.24,train);
+  part(new THREE.BoxGeometry(0.06,0.9,0.04),stdMat(0x9aa2ae,0.35,0.6),x+0.58,1.95,-1.24,train);}
+ /* floor: dark aisle carpet stripe + door thresholds */
+ part(new THREE.BoxGeometry(CAR.len,0.02,0.9),stdMat(0x3c4652,0.95),0,0.21,0,train);
+ DOORX.forEach(dx=>part(new THREE.BoxGeometry(1.9,0.03,0.5),stdMat(0xc9a227,0.4,0.5),dx,0.21,1.15,train));
+ /* luggage rack above seats */
+ part(new THREE.BoxGeometry(CAR.len*0.96,0.04,0.42),stdMat(0xb9bfc9,0.35,0.6),0,2.32,-1.05,train);
+ for(let x=-13;x<=13;x+=2)part(new THREE.BoxGeometry(0.05,0.18,0.4),stdMat(0x9aa2ae,0.4,0.6),x,2.2,-1.05,train);
+})();
+/* ================= Main loop ================= */
+const clock=new THREE.Clock();
+function animate(){requestAnimationFrame(animate);const dt=Math.min(0.05,clock.getDelta());
+if(G.started&&!G.over){G.time+=dt;
+for(const k in CD)CD[k]=Math.max(0,CD[k]-dt);
+G.boost=Math.max(0,G.boost-dt);G.shield=Math.max(0,G.shield-dt);G.lockon=Math.max(0,G.lockon-dt);
+G.ghost=Math.max(0,(G.ghost||0)-dt);G.miracleCd=Math.max(0,G.miracleCd-dt);
+if(G.announceT>0){G.announceT-=dt;if(G.announceT<=0)$("announce").textContent="";}
+/* --- phase flow --- */
+if(G.phase===1){phaseT-=dt;train.position.x=Math.max(0,80*(phaseT/14)-0);
+if(phaseT<6&&!trainArrived)arriveTrain();
+if(phaseT<=0){train.position.x=0;openDoors();}}
+else if(G.phase===2){phaseT-=dt;
+if(phaseT<=0){if(!player.inside){gameOver("乗り遅れ","ドアが閉まった。ホームに取り残された朝は、遅刻確定である。");}
+else closeDoorsAndGo();}}
+else if(G.phase>=3){if(G.endT>0){G.endT-=dt;
+      if(G.endT<=0&&!G.over){if(G.seated&&G.sleep>=85)gameOver("乗り過ごし","目的地で寝落ち――目覚めたら知らない駅だった。");else winGame();}}
+      interT-=dt;
+if(!G.doorsOpen&&interT<=0)arriveNextStation();
+else if(G.doorsOpen&&interT<=0)closeDoorsAndGo();}
+/* doors animation */
+doors.forEach(d=>{const tgt=G.doorsOpen?1:0;d.open+=(tgt-d.open)*Math.min(1,dt*4);
+d.l.position.x=-0.47-d.open*0.85;d.r.position.x=0.47+d.open*0.85;});
+queueMarks.forEach((m,i)=>{m.material.color.setHex(Math.sin(G.time*3+i)>0?0xffd94d:0x776611);});
+if(!G.doorsOpen&&G.phase>=3)train.position.y=Math.sin(G.time*30)*0.008;else train.position.y=0;
+/* --- resources --- */
+if(!G.seated){G.hp-=dt*(G.phase===1?0.4:1.6);G.standingTime+=dt;G.sleep=Math.max(0,G.sleep-dt*3);}
+else{G.hp=Math.min(100,G.hp+dt*6);G.san=Math.min(100,G.san+dt*0.8);G.seatedTime+=dt;G.sleep+=dt*2.1;
+if(G.sleep>=100)gameOver("乗り過ごし","深い眠りに落ちた。目覚めた先は、知らない終着駅だった。");}
+if(G.hp<=0)gameOver("貧血ブラックアウト","視界が暗転し、膝から崩れ落ちた。立ったままでは、朝は越えられない。");
+if(G.leanEvent){G.leanEvent.t-=dt;if(G.leanEvent.t<=0){const n=G.leanEvent.npc;G.leanEvent=null;showPrompt("");
+n.lean=0;n.leanCd=8;n.group.rotation.z=0;setIcon(n,"");hurtSAN(6,"隣の頭が肩に激突――ヘッドバットを食らった！");G.hp-=4;}}
+updatePlayer(dt);updateNPCs(dt);contactCheck(dt);checkMiracle();heartbeat(dt);
+/* --- diegetic effects (no gauges) --- */
+const san=G.san;$("vignette").style.boxShadow="inset 0 0 "+(40+(100-san)*1.6)+"px "+((100-san)*0.55)+"px rgba(190,0,0,"+Math.max(0,(60-san)/130)+")";
+$("fadeblack").style.opacity=G.hp<30?((30-G.hp)/30)*(0.55+0.3*Math.sin(G.time*4)):0;
+const lid=G.seated?G.sleep*0.42:0;$("eyelidT").style.height=lid+"%";$("eyelidB").style.height=lid+"%";
+if(G.seated&&G.sleep>55)showPrompt("眠い… Space 連打で目を覚ませ！");
+else if(!G.leanEvent&&!G.elderEvent)showPrompt("");
+$("skillbar").textContent=
+"通勤武術 ["+stats().label+" 脚力"+stats().leg+" 体幹"+stats().core+" 慧眼"+stats().eye+"] "+
+"Q 流体すり抜け"+(CD.q>0?"("+CD.q.toFixed(0)+")":"")+" | E 二段加速"+(CD.e>0?"("+CD.e.toFixed(0)+")":"")+
+" | F 鞄結界"+(CD.f>0?"("+CD.f.toFixed(0)+")":"")+(G.shield>0?"展開中":"")+
+" | R 心眼"+(CD.r>0?"("+CD.r.toFixed(0)+")":"")+" 人徳: ？？？（隠し） 奇跡 "+G.miracles+"回";
+}
+renderer.render(scene,camera);}
+animate();
+/* ================= Start screen wiring ================= */
+LINES.forEach((L,i)=>{const b=document.createElement("button");b.textContent=L.name;b.style.borderColor=L.color;
+if(i===0)b.classList.add("sel");b.onclick=()=>{lineIdx=i;document.querySelectorAll("#lineBtns button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");};
+$("lineBtns").appendChild(b);});
+document.querySelectorAll("#buildBtns button").forEach(b=>{if(b.dataset.build==="leg")b.classList.add("sel");
+b.onclick=()=>{buildType=b.dataset.build;document.querySelectorAll("#buildBtns button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");};});
+$("btnFortune").onclick=()=>{fortune=FORTUNES[Math.floor(Math.random()*FORTUNES.length)];
+$("fortuneTxt").textContent="";announce("",0);
+$("btnFortune").textContent="引き直し不可（一日一回）";$("btnFortune").disabled=true;
+$("omikuji").innerHTML="⛩ おみくじ<br>"+fortune.msg;};
+$("btnStart").onclick=()=>{if(!fortune){fortune=FORTUNES[2];$("fortuneTxt").textContent="";
+$("omikuji").innerHTML="⛩ おみくじ<br>"+fortune.msg;}
+startGame();};
+</script>
+</body>
+</html>
