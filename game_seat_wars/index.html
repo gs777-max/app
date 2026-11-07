@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <!--
   SEAT WARS ― 満員電車椅子取合戦 (単一ファイル版)
-  Version: 1.2.0
+  Version: 1.3.1
   Created: 20261107
   Three.js (CDN) によるブラウザ3D FPS。音楽は Internet Archive API から情景に合うクラシックをランダム再生。
   v1.1.0 (20261107): 路線・乗車駅セレクト、十字キー/Enter操作、スマホのタッチ操作（ジョイスティック/視点ドラッグ/ボタン）を復活。
   v1.1.1 (20261107): 操作性改善 — 解像度の自動調整 (適応品質)、影マップ縮小、dt上限緩和で低FPS時の時間減速を解消、移動速度と応答性向上、ジョイスティックをアナログ化、開始時のシェーダ事前コンパイルとボタン blur。
   v1.2.0 (20261107): 操作体系を刷新 — Windows は十字キー/Enter/マウスのみに統一 (文字キー廃止)。スキルはホイールで選択し Enter/左クリックで発動、状況に応じた決定アクション (譲席・覚醒) も同じキーに集約。スマホはスティック可視化と大きな決定ボタンを追加し、スキルはボタン直接発動に。
+  v1.2.1 (20261107): HUD を全面的にコンパクト化 (駅表示・目的・プロンプト・スキルバーを小型化し中央の視界を拡大)、縦画面ではFOVを広げ、視点操作にスムージングを追加。タッチボタン群を小型化して下部に寄せた。
+  v1.3.0 (20261107): ビジュアル全面刷新 (コンテンツ・ロジック・文言は不変) — ガラス質のミニマルUI、真鍮+バーミリオンのアクセント、タイトルのタイポグラフィ、光と霧の調整。
+  v1.3.1 (20261107): タッチボタンの配置と大きさを人間工学で再設計 — 使用頻度と反応速度で優先順位付けし、最下段に [避ける|決定|避ける]、中段にスキル4つ (等幅・高さ48px)、上段に状況ボタン (起きる/席を譲る) を配置。全行を等幅グリッドに統一し、主要ボタンのタップ領域を 48px 以上に拡大した上でクラスター全体は小型化した。
 -->
 <html lang="ja">
 <head>
@@ -14,7 +17,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SEAT WARS ― 満員電車椅子取合戦</title>
 <style>
-  html,body{margin:0;padding:0;overflow:hidden;background:#000;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#fff;}
+  :root{--ink:rgba(12,15,20,.68);--ink2:rgba(20,25,34,.72);--line:rgba(255,255,255,.13);--paper:#f4f1ea;--sub:rgba(244,241,234,.62);--accent:#ff4b2c;--brass:#e6c887;}
+  html,body{margin:0;padding:0;overflow:hidden;background:#07090d;font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic UI","Yu Gothic",sans-serif;color:var(--paper);-webkit-font-smoothing:antialiased;}
   #app{position:fixed;inset:0;}
   canvas{display:block;}
   /* ---- diegetic overlays (no gauges) ---- */
@@ -24,30 +28,53 @@
   #eyelidT{top:0;} #eyelidB{bottom:0;}
   #halo{position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;background:radial-gradient(circle at 50% 42%,rgba(255,244,200,.85),rgba(255,244,200,0) 55%);transition:opacity 1.2s;}
   #hud{position:fixed;inset:0;pointer-events:none;z-index:10;}
-  #station{position:absolute;top:14px;left:50%;transform:translateX(-50%);text-align:center;text-shadow:0 2px 6px #000;}
-  #station .line{display:inline-block;padding:2px 12px;border-radius:10px;font-weight:bold;font-size:14px;}
-  #station .name{font-size:26px;font-weight:bold;letter-spacing:.2em;}
-  #station .next{font-size:13px;opacity:.85;}
-  #objective{position:absolute;bottom:110px;left:50%;transform:translateX(-50%);font-size:18px;text-align:center;text-shadow:0 2px 6px #000;white-space:pre-line;}
-  #announce{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-size:14px;color:#ffe9a8;text-align:center;text-shadow:0 2px 6px #000;white-space:pre-line;}
-  #prompt{position:absolute;top:56%;left:50%;transform:translate(-50%,0);font-size:22px;font-weight:bold;color:#fff;background:rgba(0,0,0,.55);padding:8px 20px;border-radius:8px;display:none;text-shadow:0 2px 4px #000;}
-  #skillbar{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:12.5px;opacity:.92;text-shadow:0 1px 4px #000;text-align:center;white-space:pre;}
-  #omikuji{position:absolute;top:14px;left:14px;font-size:13px;background:rgba(0,0,0,.45);padding:6px 10px;border-radius:8px;line-height:1.5;}
-  #weather{position:absolute;top:14px;right:14px;font-size:12.5px;background:rgba(0,0,0,.45);padding:6px 10px;border-radius:8px;text-align:right;line-height:1.5;}
-  #crosshair{position:absolute;top:50%;left:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:rgba(255,255,255,.75);}
+  #station{position:absolute;top:8px;left:50%;transform:translateX(-50%);text-align:center;max-width:46vw;background:var(--ink);border:1px solid var(--line);border-radius:16px;padding:7px 18px 8px;backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);box-shadow:0 10px 30px rgba(0,0,0,.35);}
+  #station .line{display:inline-block;padding:1px 9px;border-radius:999px;font-weight:700;font-size:11px;letter-spacing:.08em;}
+  #station .name{font-size:21px;font-weight:700;letter-spacing:.18em;margin-top:2px;}
+  #station .next{font-size:11.5px;color:var(--sub);margin-top:1px;}
+  #objective{position:absolute;top:98px;left:50%;transform:translateX(-50%);font-size:14.5px;font-weight:500;letter-spacing:.04em;text-align:center;text-shadow:0 1px 10px rgba(0,0,0,.85),0 0 3px rgba(0,0,0,.9);white-space:pre-line;max-width:92vw;}
+  #announce{position:absolute;bottom:64px;left:50%;transform:translateX(-50%);font-size:13px;color:#f7cf9b;text-align:center;text-shadow:0 1px 8px rgba(0,0,0,.85);white-space:pre-line;max-width:88vw;}
+  #prompt{position:absolute;top:36%;left:50%;transform:translate(-50%,0);font-size:19px;font-weight:700;letter-spacing:.05em;color:var(--paper);background:var(--ink);border:1px solid var(--line);padding:8px 20px;border-radius:999px;display:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(0,0,0,.4);text-shadow:0 1px 3px rgba(0,0,0,.6);}
+  #skillbar{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:11.5px;letter-spacing:.03em;color:var(--paper);background:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 16px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);text-align:center;white-space:normal;line-height:1.55;width:auto;max-width:96vw;}
+  #omikuji{position:absolute;top:8px;left:8px;font-size:11px;color:var(--paper);background:var(--ink);border:1px solid var(--line);padding:5px 9px;border-radius:12px;line-height:1.45;max-width:30vw;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+  #weather{position:absolute;top:8px;right:8px;font-size:11px;color:var(--paper);background:var(--ink);border:1px solid var(--line);padding:5px 9px;border-radius:12px;text-align:right;line-height:1.45;max-width:30vw;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+  #crosshair{position:absolute;top:50%;left:50%;width:7px;height:7px;margin:-3.5px;border-radius:50%;background:transparent;border:1.5px solid rgba(244,241,234,.9);box-shadow:0 0 6px rgba(0,0,0,.55);}
+  @media (max-width:640px){
+    #station{top:6px;max-width:44vw;padding:5px 10px 6px;}
+    #station .name{font-size:16px;}
+    #station .next{font-size:10px;}
+    #objective{top:130px;font-size:12.5px;}
+    #prompt{top:33%;font-size:16px;padding:6px 14px;}
+    #announce{font-size:12px;bottom:262px;}
+    #omikuji{font-size:9.5px;max-width:22vw;padding:4px 6px;}
+    #weather{font-size:9.5px;max-width:22vw;padding:4px 6px;}
+    #skillbar{font-size:10.5px;bottom:6px;}
+    .screen h1{font-size:34px;}
+  }
   /* ---- screens ---- */
-  .screen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1b2436 0%,#05070c 75%);text-align:center;padding:20px;box-sizing:border-box;overflow:auto;}
-  .screen h1{font-size:44px;margin:4px 0;letter-spacing:.12em;color:#ffd94d;text-shadow:0 0 24px rgba(255,180,0,.5);}
-  .screen h2{font-size:26px;margin:4px 0;color:#ffd94d;}
-  .screen p{max-width:760px;line-height:1.75;font-size:14.5px;color:#dfe6f2;}
+  .screen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(60% 42% at 50% 16%,rgba(255,75,44,.10),rgba(255,75,44,0) 70%),radial-gradient(120% 90% at 50% 0%,#18202e 0%,#0a0d13 55%,#06080c 100%);text-align:center;padding:20px;box-sizing:border-box;overflow:auto;}
+  .screen h1{font-family:"Avenir Next","Helvetica Neue",Arial,sans-serif;font-size:52px;margin:6px 0 2px;font-weight:700;letter-spacing:.34em;text-indent:.34em;color:var(--paper);}
+  .screen h1::after{content:"";display:block;width:72px;height:2px;background:var(--accent);margin:16px auto 4px;border-radius:2px;}
+  .screen h2{font-size:24px;margin:4px 0;font-weight:700;letter-spacing:.14em;color:var(--paper);}
+  .screen p{max-width:760px;line-height:1.8;font-size:14.5px;color:var(--sub);}
+  #start>div.small{color:var(--brass);letter-spacing:.42em;text-indent:.42em;font-size:11px;font-weight:600;}
+  .screen label{letter-spacing:.1em;color:rgba(244,241,234,.72);}
   .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:8px 0;}
-  button{pointer-events:auto;cursor:pointer;background:#26334d;color:#fff;border:1px solid #5a6f96;border-radius:8px;padding:10px 18px;font-size:15px;}
-  #touchBtns button{padding:13px 14px;font-size:16px;min-width:62px;}
-  button:hover{background:#35486b;} button.sel{background:#b8860b;border-color:#ffd94d;color:#fff;font-weight:bold;}
-  .small{font-size:12px;color:#9fb0c8;}
+  button{pointer-events:auto;cursor:pointer;background:var(--ink2);color:var(--paper);border:1px solid var(--line);border-radius:999px;padding:10px 20px;font-size:14.5px;letter-spacing:.05em;font-family:inherit;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:background .18s,border-color .18s,transform .1s;}
+  button:hover{background:rgba(42,50,66,.88);border-color:rgba(255,255,255,.3);}
+  button:active{transform:scale(.97);}
+  button.sel{background:rgba(255,75,44,.16);border-color:var(--accent);color:#ffb4a3;font-weight:700;}
+  #btnFortune{border-color:rgba(230,200,135,.55);color:var(--brass);}
+  #touchBtns button{padding:10px 6px;font-size:14.5px;min-height:48px;border-radius:14px;}
+  #touchBtns #tbWake,#touchBtns #tbYield{min-height:42px;font-size:13px;opacity:.94;}
+  #touchBtns #tbL,#touchBtns #tbR{min-height:56px;font-size:13.5px;padding:10px 2px;}
+  #touchBtns #tbQ,#touchBtns #tbE,#touchBtns #tbF,#touchBtns #tbR2{font-size:13.5px;padding:10px 2px;white-space:nowrap;}
+  #touchBtns #tbAction{min-height:56px;}
+  .small{font-size:12px;color:var(--sub);}
   #gameover,#win{display:none;}
-  .fortune{font-size:30px;color:#ffef9e;font-weight:bold;}
-  kbd{background:#333;border:1px solid #777;border-bottom-width:3px;border-radius:4px;padding:0 6px;font-size:12px;}
+  .fortune{font-size:30px;color:var(--brass);font-weight:700;letter-spacing:.2em;}
+  kbd{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-bottom-width:2px;border-radius:5px;padding:0 6px;font-size:11.5px;color:var(--paper);}
+  select{font-family:inherit;}
 </style>
 </head>
 <body>
@@ -60,14 +87,13 @@
   <div id="crosshair"></div>
   <div id="objective"></div><div id="announce"></div><div id="prompt"></div>
   <div id="skillbar"></div>
-  <div id="touchBtns" style="display:none;position:fixed;right:10px;bottom:70px;z-index:30;flex-direction:column;gap:9px">
-    <button id="tbAction" style="background:#b3541e;border-color:#e8a06a;font-weight:bold;font-size:19px;padding:16px 20px">決定</button>
-    <div style="display:flex;gap:9px"><button id="tbL">◀ 避ける</button><button id="tbR">避ける ▶</button></div>
-    <div style="display:flex;gap:9px"><button id="tbWake">起きる</button><button id="tbYield">席を譲る</button></div>
-    <div style="display:flex;gap:9px"><button id="tbQ">すり抜け</button><button id="tbE">加速</button><button id="tbF">結界</button><button id="tbR2">心眼</button></div>
+  <div id="touchBtns" style="display:none;position:fixed;right:10px;bottom:54px;z-index:30;flex-direction:column;gap:8px;width:min(302px,74vw)">
+    <div style="display:flex;gap:8px"><button id="tbWake" style="flex:1">起きる</button><button id="tbYield" style="flex:1">席を譲る</button></div>
+    <div style="display:flex;gap:8px"><button id="tbQ" style="flex:1">すり抜け</button><button id="tbE" style="flex:1">加速</button><button id="tbF" style="flex:1">結界</button><button id="tbR2" style="flex:1">心眼</button></div>
+    <div style="display:flex;gap:8px"><button id="tbL" style="width:74px">◀ 避ける</button><button id="tbAction" style="flex:1;background:linear-gradient(180deg,#ff5a36,#e83a1e);border:1px solid rgba(255,255,255,.25);color:#fff;font-weight:700;font-size:17px;padding:12px 8px;border-radius:14px;box-shadow:0 8px 20px rgba(232,58,30,.35)">決定</button><button id="tbR" style="width:74px">避ける ▶</button></div>
   </div>
-  <div id="joyBase" style="display:none;position:fixed;width:112px;height:112px;border:2px solid rgba(255,255,255,.55);border-radius:50%;z-index:24;pointer-events:none;transform:translate(-50%,-50%);background:rgba(255,255,255,.07)"></div>
-  <div id="joyKnob" style="display:none;position:fixed;width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.5);z-index:25;pointer-events:none;transform:translate(-50%,-50%)"></div>
+  <div id="joyBase" style="display:none;position:fixed;width:112px;height:112px;border:1.5px solid rgba(244,241,234,.45);border-radius:50%;z-index:24;pointer-events:none;transform:translate(-50%,-50%);background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 7px rgba(255,255,255,.03)"></div>
+  <div id="joyKnob" style="display:none;position:fixed;width:50px;height:50px;border-radius:50%;background:rgba(244,241,234,.92);z-index:25;pointer-events:none;transform:translate(-50%,-50%);box-shadow:0 2px 12px rgba(0,0,0,.4)"></div>
 </div>
 <div class="screen" id="start">
   <div class="small">満員電車椅子取合戦</div>
@@ -79,9 +105,9 @@
   <button id="btnFortune">おみくじを引く</button></div>
   <div class="row" style="gap:16px;justify-content:center;flex-wrap:wrap">
     <label style="display:flex;flex-direction:column;gap:4px;font-size:13px;text-align:left">路線を選ぶ
-      <select id="sel-line" style="font-size:16px;padding:9px 12px;border-radius:8px;background:#101722;color:#fff;border:1px solid #5a6f96;min-width:210px"></select></label>
+      <select id="sel-line" style="font-size:15px;padding:10px 12px;border-radius:10px;background:rgba(13,16,22,.88);color:#f4f1ea;border:1px solid rgba(255,255,255,.18);min-width:210px"></select></label>
     <label style="display:flex;flex-direction:column;gap:4px;font-size:13px;text-align:left">乗車駅を選ぶ
-      <select id="sel-station" style="font-size:16px;padding:9px 12px;border-radius:8px;background:#101722;color:#fff;border:1px solid #5a6f96;min-width:150px"></select></label>
+      <select id="sel-station" style="font-size:15px;padding:10px 12px;border-radius:10px;background:rgba(13,16,22,.88);color:#f4f1ea;border:1px solid rgba(255,255,255,.18);min-width:150px"></select></label>
   </div>
   <p style="margin-bottom:2px">通勤武術の型（育成パラメータ）</p>
   <div class="row" id="buildBtns">
@@ -89,7 +115,7 @@
     <button data-build="core">体幹型（接触・圧迫に強い）</button>
     <button data-build="eye">慧眼型（下車予測・見破り強化）</button>
   </div>
-  <button id="btnStart" style="font-size:19px;padding:13px 42px;background:#b8860b;border-color:#ffd94d;font-weight:bold;">出勤する（クリックで開始）</button>
+  <button id="btnStart" style="font-size:17px;padding:14px 44px;background:linear-gradient(180deg,#ff5a36,#e83a1e);border:1px solid rgba(255,255,255,.25);color:#fff;font-weight:700;letter-spacing:.12em;border-radius:999px;box-shadow:0 12px 28px rgba(232,58,30,.35);">出勤する（クリックで開始）</button>
   <p class="small">【Windows】移動: <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / 視点: マウス / スキル選択: マウスホイール / 決定・スキル発動: <kbd>Enter</kbd> または左クリック<br>
   スキル: 流体すり抜け・紙一重 / 残像フェイント・二段加速 / 鞄結界・ボックスアウト / 心眼・足首ロックオン（ホイールで選んで Enter）<br>
   着席中: 寄りかかりは <kbd>←</kbd>/<kbd>→</kbd> で肩すかしパリィ、眠気は <kbd>Enter</kbd> 連打で覚醒。お年寄りには決定キーで席を譲ります。着席は座席に近づくと自動です。<br>
@@ -200,14 +226,16 @@ function blip(freq,dur,type,vol){const ctx=AC();if(!ctx)return;const o=ctx.creat
   o.type=type||"square";o.frequency.value=freq;g.gain.value=vol||0.08;o.connect(g);g.connect(ctx.destination);
   o.start();g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+(dur||0.12));o.stop(ctx.currentTime+(dur||0.12));}
 /* ================= THREE setup ================= */
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x0d1420);scene.fog=new THREE.Fog(0x0d1420,30,90);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x0a0d12);scene.fog=new THREE.Fog(0x0a0d12,34,95);
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,0.1,200);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
 $("app").appendChild(renderer.domElement);
-addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
-scene.add(new THREE.AmbientLight(0xffffff,0.55));
+function fitFov(){camera.aspect=innerWidth/innerHeight;camera.fov=camera.aspect<0.8?82:(camera.aspect<1.2?76:70);camera.updateProjectionMatrix();}
+addEventListener("resize",()=>{fitFov();renderer.setSize(innerWidth,innerHeight);});
+fitFov();
+scene.add(new THREE.AmbientLight(0xfff1dd,0.5));scene.add(new THREE.HemisphereLight(0xcfe4ff,0x33291f,0.35));
 const dl=new THREE.DirectionalLight(0xfff2d8,0.9);dl.position.set(6,14,8);scene.add(dl);
 dl.castShadow=true;dl.shadow.mapSize.set(1024,1024);
 dl.shadow.camera.left=-22;dl.shadow.camera.right=22;dl.shadow.camera.top=16;dl.shadow.camera.bottom=-10;dl.shadow.bias=-0.0004;
@@ -368,16 +396,16 @@ function sitNPC(n,si){const s=seats[si];s.takenBy=n;n.seat=si;n.state="seated";
 n.group.position.set(s.x+train.position.x,-0.24,s.z);n.group.rotation.y=s.ry;poseSit(n);}
 function freeSeatOf(n){if(n.seat>=0){seats[n.seat].takenBy=null;n.seat=-1;}n.group.position.y=0;poseStand(n);}
 /* player */
-const player={x:0,z:5.2,yaw:0,pitch:0,vx:0,vz:0,inside:false,speedWalk:3.8};
+const player={x:0,z:5.2,yaw:0,pitch:0,tYaw:0,tPitch:0,vx:0,vz:0,inside:false,speedWalk:3.8};
 camera.position.set(player.x,1.62,player.z);
 /* pointer lock look */
 let locked=false;
 renderer.domElement.addEventListener("click",()=>{if(G.started&&!G.over)renderer.domElement.requestPointerLock();});
 document.addEventListener("pointerlockchange",()=>{locked=document.pointerLockElement===renderer.domElement;});
-addEventListener("mousemove",e=>{if(locked){player.yaw-=e.movementX*0.0023;player.pitch-=e.movementY*0.0023;
-  player.pitch=Math.max(-1.1,Math.min(1.1,player.pitch));}
-  else if(_mdrag){player.yaw-=(e.clientX-_mdrag.x)*0.005;player.pitch-=(e.clientY-_mdrag.y)*0.005;
-  player.pitch=Math.max(-1.1,Math.min(1.1,player.pitch));_mdrag.x=e.clientX;_mdrag.y=e.clientY;}});
+addEventListener("mousemove",e=>{if(locked){player.tYaw-=e.movementX*0.0023;player.tPitch-=e.movementY*0.0023;
+  player.tPitch=Math.max(-1.1,Math.min(1.1,player.tPitch));}
+  else if(_mdrag){player.tYaw-=(e.clientX-_mdrag.x)*0.005;player.tPitch-=(e.clientY-_mdrag.y)*0.005;
+  player.tPitch=Math.max(-1.1,Math.min(1.1,player.tPitch));_mdrag.x=e.clientX;_mdrag.y=e.clientY;}});
 let _mdrag=null;
 addEventListener("mousedown",e=>{if(!G.started||G.over||e.button!==0)return;
   if(!locked){try{renderer.domElement.requestPointerLock();}catch(err){}_mdrag={x:e.clientX,y:e.clientY};}
@@ -415,8 +443,8 @@ renderer.domElement.addEventListener("touchmove",e=>{
     if(t.identifier===joy.id){joy.dx=(t.clientX-joy.ox)/42;joy.dy=(t.clientY-joy.oy)/42;
       const kx=joy.ox+Math.max(-44,Math.min(44,t.clientX-joy.ox)),ky=joy.oy+Math.max(-44,Math.min(44,t.clientY-joy.oy));
       const jk=$("joyKnob");jk.style.left=kx+"px";jk.style.top=ky+"px";}
-    if(t.identifier===lookT.id){player.yaw-=(t.clientX-lookT.lx)*0.005;player.pitch-=(t.clientY-lookT.ly)*0.005;
-      player.pitch=Math.max(-1.1,Math.min(1.1,player.pitch));lookT.lx=t.clientX;lookT.ly=t.clientY;}
+    if(t.identifier===lookT.id){player.tYaw-=(t.clientX-lookT.lx)*0.006;player.tPitch-=(t.clientY-lookT.ly)*0.006;
+      player.tPitch=Math.max(-1.1,Math.min(1.1,player.tPitch));lookT.lx=t.clientX;lookT.ly=t.clientY;}
   }
   if(G.started)e.preventDefault();
 },{passive:false});
@@ -638,9 +666,10 @@ function updateNPCs(dt){
   }}
 /* ================= Player movement & bounds ================= */
 function updatePlayer(dt){const st=stats();
+  const _lk=Math.min(1,dt*20);player.yaw+=(player.tYaw-player.yaw)*_lk;player.pitch+=(player.tPitch-player.pitch)*_lk;
   let f=0,r=0;if(keys.ArrowUp)f+=1;if(keys.ArrowDown)f-=1;if(keys.ArrowRight)r+=1;if(keys.ArrowLeft)r-=1;
   if(joy.active){const jf=Math.max(-1,Math.min(1,-joy.dy)),jr=Math.max(-1,Math.min(1,joy.dx));
-  if(Math.abs(jf)>0.12)f+=jf;if(Math.abs(jr)>0.12)r+=jr;}
+  if(Math.abs(jf)>0.08)f+=jf;if(Math.abs(jr)>0.08)r+=jr;}
   f=Math.max(-1,Math.min(1,f));r=Math.max(-1,Math.min(1,r));
   if(G.seated){f=0;r=0;player.vx=0;player.vz=0;}
   const dash=1;
@@ -747,11 +776,11 @@ $("fadeblack").style.opacity=G.hp<30?((30-G.hp)/30)*(0.55+0.3*Math.sin(G.time*4)
 const lid=G.seated?G.sleep*0.42:0;$("eyelidT").style.height=lid+"%";$("eyelidB").style.height=lid+"%";
 if(G.seated&&G.sleep>55)showPrompt("眠い… Enter（決定）連打で目を覚ませ！");
 else if(!G.leanEvent&&!G.elderEvent)showPrompt("");
-const SKILLNAMES=["流体すり抜け","二段加速","鞄結界","心眼"];const SKILLCDS=[CD.q,CD.e,CD.f,CD.r];
-$("skillbar").textContent=
-"通勤武術 ["+stats().label+" 脚力"+stats().leg+" 体幹"+stats().core+" 慧眼"+stats().eye+"] "+
-SKILLNAMES.map((n,i)=>{const cd=SKILLCDS[i]>0?"("+SKILLCDS[i].toFixed(0)+")":"";const sh=(i===2&&G.shield>0)?"展開中":"";
-return (i===selSkill?"【"+n+cd+sh+"】":n+cd+sh);}).join(" | ")+
+const SKILLNAMES=["流体すり抜け","二段加速","鞄結界","心眼"];const SKILLSHORT=["すり抜け","加速","結界","心眼"];const SKILLCDS=[CD.q,CD.e,CD.f,CD.r];
+const _chips=(innerWidth<640?SKILLSHORT:SKILLNAMES).map((n,i)=>{const cd=SKILLCDS[i]>0?"("+SKILLCDS[i].toFixed(0)+")":"";const sh=(i===2&&G.shield>0)?"展開中":"";
+return (i===selSkill?"【"+n+cd+sh+"】":n+cd+sh);}).join(" | ");
+$("skillbar").textContent= innerWidth<640 ? _chips+" 〈決定:発動〉" :
+"通勤武術 ["+stats().label+" 脚力"+stats().leg+" 体幹"+stats().core+" 慧眼"+stats().eye+"] "+_chips+
 " 人徳: ？？？（隠し） 奇跡 "+G.miracles+"回 〈ホイール:選択 / Enter・クリック:決定〉";
 }
 renderer.render(scene,camera);}
