@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <!--
   SEAT WARS ― 満員電車椅子取合戦 (単一ファイル版)
-  Version: 1.0.0
+  Version: 1.1.0
   Created: 20261107
   Three.js (CDN) によるブラウザ3D FPS。音楽は Internet Archive API から情景に合うクラシックをランダム再生。
+  v1.1.0 (20261107): 路線・乗車駅セレクト、十字キー/Enter操作、スマホのタッチ操作（ジョイスティック/視点ドラッグ/ボタン）を復活。
 -->
 <html lang="ja">
 <head>
@@ -56,6 +57,11 @@
   <div id="crosshair"></div>
   <div id="objective"></div><div id="announce"></div><div id="prompt"></div>
   <div id="skillbar"></div>
+  <div id="touchBtns" style="display:none;position:fixed;right:10px;bottom:70px;z-index:30;flex-direction:column;gap:8px">
+    <div style="display:flex;gap:8px"><button id="tbL">◀ 避ける</button><button id="tbR">避ける ▶</button></div>
+    <div style="display:flex;gap:8px"><button id="tbWake">起きる</button><button id="tbYield">席を譲る</button></div>
+    <div style="display:flex;gap:8px"><button id="tbQ">すり抜け</button><button id="tbE">加速</button><button id="tbF">結界</button><button id="tbR2">心眼</button></div>
+  </div>
 </div>
 <div class="screen" id="start">
   <div class="small">満員電車椅子取合戦</div>
@@ -65,8 +71,12 @@
   視界の揺れ・心音・赤い視界が、あなたの状態を物語る。</p>
   <div id="shrineBox"><p>― 駅前神社 ― まずはおみくじを引く ―</p><div class="fortune" id="fortuneTxt">？</div>
   <button id="btnFortune">おみくじを引く</button></div>
-  <p style="margin-bottom:2px">路線を選べ（実在の首都圏路線）</p>
-  <div class="row" id="lineBtns"></div>
+  <div class="row" style="gap:16px;justify-content:center;flex-wrap:wrap">
+    <label style="display:flex;flex-direction:column;gap:4px;font-size:13px;text-align:left">路線を選ぶ
+      <select id="sel-line" style="font-size:16px;padding:9px 12px;border-radius:8px;background:#101722;color:#fff;border:1px solid #5a6f96;min-width:210px"></select></label>
+    <label style="display:flex;flex-direction:column;gap:4px;font-size:13px;text-align:left">乗車駅を選ぶ
+      <select id="sel-station" style="font-size:16px;padding:9px 12px;border-radius:8px;background:#101722;color:#fff;border:1px solid #5a6f96;min-width:150px"></select></label>
+  </div>
   <p style="margin-bottom:2px">通勤武術の型（育成パラメータ）</p>
   <div class="row" id="buildBtns">
     <button data-build="leg">脚力型（移動速度・ダッシュ強化）</button>
@@ -76,7 +86,7 @@
   <button id="btnStart" style="font-size:19px;padding:13px 42px;background:#b8860b;border-color:#ffd94d;font-weight:bold;">出勤する（クリックで開始）</button>
   <p class="small">操作: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移動 / マウス 視点 / <kbd>Shift</kbd> 競歩ダッシュ<br>
   スキル: <kbd>Q</kbd> 流体すり抜け・紙一重 / <kbd>E</kbd> 残像フェイント・二段加速 / <kbd>F</kbd> 鞄結界・ボックスアウト / <kbd>R</kbd> 心眼・足首ロックオン<br>
-  着席中: 寄りかかりは <kbd>A</kbd>/<kbd>D</kbd> で肩すかしパリィ、眠気は <kbd>Space</kbd> 連打で覚醒。席を譲る時は <kbd>Y</kbd>。</p>
+  着席中: 寄りかかりは <kbd>A</kbd>/<kbd>D</kbd>（または <kbd>←</kbd>/<kbd>→</kbd>）で肩すかしパリィ、眠気は <kbd>Space</kbd> 連打で覚醒。席を譲る時は <kbd>Y</kbd>。移動は <kbd>WASD</kbd> / 十字キー、決定は <kbd>Enter</kbd>。スマホは左側スティック＋右側ドラッグ＋ボタンで操作できます。</p>
   <p class="small">BGMは Internet Archive の公開音源APIから動的に取得します（失敗時はWebAudio生成音に切替）。天気は Open-Meteo API から実取得します。</p>
 </div>
 <div class="screen" id="gameover">
@@ -98,7 +108,7 @@ const LINES=[
  {name:"埼京線",color:"#80c241",stations:["大崎","恵比寿","渋谷","新宿","池袋","板橋","十条","赤羽","北赤羽","浮間舟渡"]},
  {name:"東海道線",color:"#f68b1e",stations:["東京","新橋","品川","川崎","横浜","戸塚","大船","藤沢","辻堂","茅ケ崎"]}
 ];
-let lineIdx=0, buildType="leg";
+let lineIdx=0, buildType="leg", boardingIdx=0;
 const STATS={leg:{leg:8,core:5,eye:5,label:"脚力型"},core:{leg:5,core:8,eye:5,label:"体幹型"},eye:{leg:5,core:5,eye:8,label:"慧眼型"}};
 /* ================= Omikuji (luck system) ================= */
 const FORTUNES=[
@@ -354,8 +364,46 @@ document.addEventListener("pointerlockchange",()=>{locked=document.pointerLockEl
 addEventListener("mousemove",e=>{if(!locked)return;player.yaw-=e.movementX*0.0023;player.pitch-=e.movementY*0.0023;
   player.pitch=Math.max(-1.1,Math.min(1.1,player.pitch));});
 const keys={};
-addEventListener("keydown",e=>{keys[e.code]=true;onKey(e.code);});
-addEventListener("keyup",e=>{keys[e.code]=false;});
+const ARROW_MAP={ArrowUp:"KeyW",ArrowDown:"KeyS",ArrowLeft:"KeyA",ArrowRight:"KeyD"};
+function handleEnter(){
+  const st=$("start");
+  if(st&&st.style.display!=="none"){ if(!fortune){$("btnFortune").click();}else{$("btnStart").click();} return; }
+  if(G.over){location.reload();}
+}
+addEventListener("keydown",e=>{
+  if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].includes(e.code))e.preventDefault();
+  const mapped=ARROW_MAP[e.code]||e.code;
+  keys[e.code]=true;keys[mapped]=true;
+  if(e.code==="Enter"){handleEnter();return;}
+  onKey(mapped);});
+addEventListener("keyup",e=>{keys[e.code]=false;const m=ARROW_MAP[e.code];if(m)keys[m]=false;});
+/* ================= Touch controls （スマホ) ================= */
+const isTouch=("ontouchstart"in window)||navigator.maxTouchPoints>0;
+const joy={id:null,ox:0,oy:0,dx:0,dy:0,active:false};
+const lookT={id:null,lx:0,ly:0};
+renderer.domElement.style.touchAction="none";
+renderer.domElement.addEventListener("touchstart",e=>{
+  for(const t of e.changedTouches){
+    if(t.clientX<innerWidth*0.45&&joy.id===null){joy.id=t.identifier;joy.ox=t.clientX;joy.oy=t.clientY;joy.dx=0;joy.dy=0;joy.active=true;}
+    else if(lookT.id===null){lookT.id=t.identifier;lookT.lx=t.clientX;lookT.ly=t.clientY;}
+  }
+  if(G.started)e.preventDefault();
+},{passive:false});
+renderer.domElement.addEventListener("touchmove",e=>{
+  for(const t of e.changedTouches){
+    if(t.identifier===joy.id){joy.dx=(t.clientX-joy.ox)/42;joy.dy=(t.clientY-joy.oy)/42;}
+    if(t.identifier===lookT.id){player.yaw-=(t.clientX-lookT.lx)*0.005;player.pitch-=(t.clientY-lookT.ly)*0.005;
+      player.pitch=Math.max(-1.1,Math.min(1.1,player.pitch));lookT.lx=t.clientX;lookT.ly=t.clientY;}
+  }
+  if(G.started)e.preventDefault();
+},{passive:false});
+const _endTouch=e=>{for(const t of e.changedTouches){if(t.identifier===joy.id){joy.id=null;joy.active=false;joy.dx=0;joy.dy=0;}if(t.identifier===lookT.id)lookT.id=null;}};
+renderer.domElement.addEventListener("touchend",_endTouch);
+renderer.domElement.addEventListener("touchcancel",_endTouch);
+function bindTap(id,code){const el=$(id);if(!el)return;const h=e=>{e.preventDefault();onKey(code);};
+  el.addEventListener("touchstart",h,{passive:false});el.addEventListener("click",h);}
+bindTap("tbL","KeyA");bindTap("tbR","KeyD");bindTap("tbWake","Space");bindTap("tbYield","KeyY");
+bindTap("tbQ","KeyQ");bindTap("tbE","KeyE");bindTap("tbF","KeyF");bindTap("tbR2","KeyR");
 /* ================= Skills （通勤武術） ================= */
 const CD={q:0,e:0,f:0,r:0};const stats=()=>STATS[buildType];
 function skillReady(k){return CD[k]<=0;}
@@ -448,10 +496,10 @@ function updateStationUI(){const L=LINES[lineIdx];$("lineName").textContent=L.na
 $("stName").textContent=L.stations[G.stationIdx];
 $("stNext").textContent=G.stationIdx<L.stations.length-1?("次は "+L.stations[G.stationIdx+1]+" ／ 目的地 "+L.stations[L.stations.length-1]):"終点";
 stripe.material.color.set(L.color);signBoard.material.color.set(L.color);}
-function startGame(){G.started=true;$("start").style.display="none";AC();trainNoise(false);
+function startGame(){G.started=true;G.stationIdx=boardingIdx;$("start").style.display="none";if(isTouch)$("touchBtns").style.display="flex";AC();trainNoise(false);
 updateStationUI();G.phase=1;phaseT=14;
 setObjective("フェーズ① ホームの陣取り：黄色い輪（乗車口ポジション）に立て。降車客の流れを読み、ドア正面を確保せよ");
-announce(LINES[lineIdx].name+" "+LINES[lineIdx].stations[0]+"駅。まもなく電車が参ります。",5);
+announce(LINES[lineIdx].name+" "+LINES[lineIdx].stations[G.stationIdx]+"駅。まもなく電車が参ります。",5);
 /* platform crowd: rivals queueing + a door guardian （仁王立ちマン) at one door */
 DOORX.forEach((dx,di)=>{for(let q=0;q<2;q++){const n=spawnNPC(dx+(Math.random()-0.5)*0.5,3.1+q*0.8,{rival:true});
 n.state="queue";n.tx=dx;n.tz=3.0+q*0.8;}});
@@ -469,7 +517,7 @@ playBGM("dash");setObjective("フェーズ② 乗車ダッシュ：走ってい�
 const order=seats.map(s=>s.i).sort(()=>Math.random()-0.5);
 const leaveOpen=5+(fortune.luck>1?1:0);
 order.forEach((si,k)=>{if(k<seats.length-leaveOpen){const n=spawnNPC(seats[si].x,0,{});
-n.exitAt=1+Math.floor(Math.random()*(LINES[lineIdx].stations.length-1));sitNPC(n,si);
+n.exitAt=Math.min(LINES[lineIdx].stations.length-1,G.stationIdx+1+Math.floor(Math.random()*Math.max(1,LINES[lineIdx].stations.length-1-G.stationIdx)));sitNPC(n,si);
 if(Math.random()<0.25)assignPokerStudents();}});
 /* rivals dash for the open seats */
 npcs.filter(n=>n.state==="queue").forEach((n,i)=>{if(i<4)n.state="rush";
@@ -477,7 +525,7 @@ npcs.filter(n=>n.state==="queue").forEach((n,i)=>{if(i<4)n.state="rush";
 setTimeout(spawnElderEvent,9000);}
 function assignPokerStudents(){ /* occasionally plant a student trio (poker hand) */
 for(let i=0;i<seats.length-2;i++){if(!seats[i].takenBy&&!seats[i+1].takenBy&&!seats[i+2].takenBy){
-const ex=2+Math.floor(Math.random()*3);for(let k=0;k<3;k++){const n=spawnNPC(seats[i+k].x,0,{type:2});
+const ex=Math.min(LINES[lineIdx].stations.length-1,G.stationIdx+2+Math.floor(Math.random()*3));for(let k=0;k<3;k++){const n=spawnNPC(seats[i+k].x,0,{type:2});
 n.exitAt=ex;sitNPC(n,i+k);}return;}}}
 function closeDoorsAndGo(){G.doorsOpen=false;G.stationIdx++;
 updateStationUI();trainNoise(true);
@@ -562,6 +610,7 @@ function updateNPCs(dt){
 /* ================= Player movement & bounds ================= */
 function updatePlayer(dt){const st=stats();
   let f=0,r=0;if(keys.KeyW)f+=1;if(keys.KeyS)f-=1;if(keys.KeyD)r+=1;if(keys.KeyA)r-=1;
+  if(joy.active){if(joy.dy<-0.35)f+=1;if(joy.dy>0.35)f-=1;if(joy.dx>0.35)r+=1;if(joy.dx<-0.35)r-=1;}
   if(G.seated){f=0;r=0;player.vx=0;player.vz=0;}
   const dash=(keys.ShiftLeft||keys.ShiftRight)?1.55:1;
   let sp=player.speedWalk*(0.75+st.leg*0.06)*dash*(G.boost>0?1.7:1)*(weatherInfo.rain&&!player.inside?0.85:1);
@@ -676,9 +725,14 @@ $("skillbar").textContent=
 renderer.render(scene,camera);}
 animate();
 /* ================= Start screen wiring ================= */
-LINES.forEach((L,i)=>{const b=document.createElement("button");b.textContent=L.name;b.style.borderColor=L.color;
-if(i===0)b.classList.add("sel");b.onclick=()=>{lineIdx=i;document.querySelectorAll("#lineBtns button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");};
-$("lineBtns").appendChild(b);});
+const selLine=$("sel-line"),selStation=$("sel-station");
+LINES.forEach((L,i)=>{const o=document.createElement("option");o.value=i;o.textContent=L.name;selLine.appendChild(o);});
+function fillStations(){const L=LINES[lineIdx];selStation.innerHTML="";
+  L.stations.slice(0,L.stations.length-1).forEach((st,i)=>{const o=document.createElement("option");o.value=i;o.textContent=st;selStation.appendChild(o);});
+  boardingIdx=0;selStation.value="0";}
+selLine.addEventListener("change",()=>{lineIdx=+selLine.value;fillStations();});
+selStation.addEventListener("change",()=>{boardingIdx=+selStation.value;});
+fillStations();
 document.querySelectorAll("#buildBtns button").forEach(b=>{if(b.dataset.build==="leg")b.classList.add("sel");
 b.onclick=()=>{buildType=b.dataset.build;document.querySelectorAll("#buildBtns button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");};});
 $("btnFortune").onclick=()=>{fortune=FORTUNES[Math.floor(Math.random()*FORTUNES.length)];
