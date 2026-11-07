@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <!--
   SEAT WARS ― 満員電車椅子取合戦 (単一ファイル版)
-  Version: 1.1.1
+  Version: 1.2.0
   Created: 20261107
   Three.js (CDN) によるブラウザ3D FPS。音楽は Internet Archive API から情景に合うクラシックをランダム再生。
   v1.1.0 (20261107): 路線・乗車駅セレクト、十字キー/Enter操作、スマホのタッチ操作（ジョイスティック/視点ドラッグ/ボタン）を復活。
   v1.1.1 (20261107): 操作性改善 — 解像度の自動調整 (適応品質)、影マップ縮小、dt上限緩和で低FPS時の時間減速を解消、移動速度と応答性向上、ジョイスティックをアナログ化、開始時のシェーダ事前コンパイルとボタン blur。
+  v1.2.0 (20261107): 操作体系を刷新 — Windows は十字キー/Enter/マウスのみに統一 (文字キー廃止)。スキルはホイールで選択し Enter/左クリックで発動、状況に応じた決定アクション (譲席・覚醒) も同じキーに集約。スマホはスティック可視化と大きな決定ボタンを追加し、スキルはボタン直接発動に。
 -->
 <html lang="ja">
 <head>
@@ -41,6 +42,7 @@
   .screen p{max-width:760px;line-height:1.75;font-size:14.5px;color:#dfe6f2;}
   .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:8px 0;}
   button{pointer-events:auto;cursor:pointer;background:#26334d;color:#fff;border:1px solid #5a6f96;border-radius:8px;padding:10px 18px;font-size:15px;}
+  #touchBtns button{padding:13px 14px;font-size:16px;min-width:62px;}
   button:hover{background:#35486b;} button.sel{background:#b8860b;border-color:#ffd94d;color:#fff;font-weight:bold;}
   .small{font-size:12px;color:#9fb0c8;}
   #gameover,#win{display:none;}
@@ -58,11 +60,14 @@
   <div id="crosshair"></div>
   <div id="objective"></div><div id="announce"></div><div id="prompt"></div>
   <div id="skillbar"></div>
-  <div id="touchBtns" style="display:none;position:fixed;right:10px;bottom:70px;z-index:30;flex-direction:column;gap:8px">
-    <div style="display:flex;gap:8px"><button id="tbL">◀ 避ける</button><button id="tbR">避ける ▶</button></div>
-    <div style="display:flex;gap:8px"><button id="tbWake">起きる</button><button id="tbYield">席を譲る</button></div>
-    <div style="display:flex;gap:8px"><button id="tbQ">すり抜け</button><button id="tbE">加速</button><button id="tbF">結界</button><button id="tbR2">心眼</button></div>
+  <div id="touchBtns" style="display:none;position:fixed;right:10px;bottom:70px;z-index:30;flex-direction:column;gap:9px">
+    <button id="tbAction" style="background:#b3541e;border-color:#e8a06a;font-weight:bold;font-size:19px;padding:16px 20px">決定</button>
+    <div style="display:flex;gap:9px"><button id="tbL">◀ 避ける</button><button id="tbR">避ける ▶</button></div>
+    <div style="display:flex;gap:9px"><button id="tbWake">起きる</button><button id="tbYield">席を譲る</button></div>
+    <div style="display:flex;gap:9px"><button id="tbQ">すり抜け</button><button id="tbE">加速</button><button id="tbF">結界</button><button id="tbR2">心眼</button></div>
   </div>
+  <div id="joyBase" style="display:none;position:fixed;width:112px;height:112px;border:2px solid rgba(255,255,255,.55);border-radius:50%;z-index:24;pointer-events:none;transform:translate(-50%,-50%);background:rgba(255,255,255,.07)"></div>
+  <div id="joyKnob" style="display:none;position:fixed;width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.5);z-index:25;pointer-events:none;transform:translate(-50%,-50%)"></div>
 </div>
 <div class="screen" id="start">
   <div class="small">満員電車椅子取合戦</div>
@@ -85,9 +90,10 @@
     <button data-build="eye">慧眼型（下車予測・見破り強化）</button>
   </div>
   <button id="btnStart" style="font-size:19px;padding:13px 42px;background:#b8860b;border-color:#ffd94d;font-weight:bold;">出勤する（クリックで開始）</button>
-  <p class="small">操作: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移動 / マウス 視点 / <kbd>Shift</kbd> 競歩ダッシュ<br>
-  スキル: <kbd>Q</kbd> 流体すり抜け・紙一重 / <kbd>E</kbd> 残像フェイント・二段加速 / <kbd>F</kbd> 鞄結界・ボックスアウト / <kbd>R</kbd> 心眼・足首ロックオン<br>
-  着席中: 寄りかかりは <kbd>A</kbd>/<kbd>D</kbd>（または <kbd>←</kbd>/<kbd>→</kbd>）で肩すかしパリィ、眠気は <kbd>Space</kbd> 連打で覚醒。席を譲る時は <kbd>Y</kbd>。移動は <kbd>WASD</kbd> / 十字キー、決定は <kbd>Enter</kbd>。スマホは左側スティック＋右側ドラッグ＋ボタンで操作できます。</p>
+  <p class="small">【Windows】移動: <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / 視点: マウス / スキル選択: マウスホイール / 決定・スキル発動: <kbd>Enter</kbd> または左クリック<br>
+  スキル: 流体すり抜け・紙一重 / 残像フェイント・二段加速 / 鞄結界・ボックスアウト / 心眼・足首ロックオン（ホイールで選んで Enter）<br>
+  着席中: 寄りかかりは <kbd>←</kbd>/<kbd>→</kbd> で肩すかしパリィ、眠気は <kbd>Enter</kbd> 連打で覚醒。お年寄りには決定キーで席を譲ります。着席は座席に近づくと自動です。<br>
+  【スマホ】左側スティックで移動 / 右側ドラッグで視点 / 画面のボタン（決定・スキル・避ける）で操作します。</p>
   <p class="small">BGMは Internet Archive の公開音源APIから動的に取得します（失敗時はWebAudio生成音に切替）。天気は Open-Meteo API から実取得します。</p>
 </div>
 <div class="screen" id="gameover">
@@ -368,10 +374,17 @@ camera.position.set(player.x,1.62,player.z);
 let locked=false;
 renderer.domElement.addEventListener("click",()=>{if(G.started&&!G.over)renderer.domElement.requestPointerLock();});
 document.addEventListener("pointerlockchange",()=>{locked=document.pointerLockElement===renderer.domElement;});
-addEventListener("mousemove",e=>{if(!locked)return;player.yaw-=e.movementX*0.0023;player.pitch-=e.movementY*0.0023;
-  player.pitch=Math.max(-1.1,Math.min(1.1,player.pitch));});
+addEventListener("mousemove",e=>{if(locked){player.yaw-=e.movementX*0.0023;player.pitch-=e.movementY*0.0023;
+  player.pitch=Math.max(-1.1,Math.min(1.1,player.pitch));}
+  else if(_mdrag){player.yaw-=(e.clientX-_mdrag.x)*0.005;player.pitch-=(e.clientY-_mdrag.y)*0.005;
+  player.pitch=Math.max(-1.1,Math.min(1.1,player.pitch));_mdrag.x=e.clientX;_mdrag.y=e.clientY;}});
+let _mdrag=null;
+addEventListener("mousedown",e=>{if(!G.started||G.over||e.button!==0)return;
+  if(!locked){try{renderer.domElement.requestPointerLock();}catch(err){}_mdrag={x:e.clientX,y:e.clientY};}
+  else doAction();});
+addEventListener("mouseup",()=>{_mdrag=null;});
+addEventListener("wheel",e=>{if(!G.started||G.over)return;selSkill=(selSkill+(e.deltaY>0?1:3))%4;},{passive:true});
 const keys={};
-const ARROW_MAP={ArrowUp:"KeyW",ArrowDown:"KeyS",ArrowLeft:"KeyA",ArrowRight:"KeyD"};
 function handleEnter(){
   const st=$("start");
   if(st&&st.style.display!=="none"){ if(!fortune){$("btnFortune").click();}else{$("btnStart").click();} return; }
@@ -379,11 +392,10 @@ function handleEnter(){
 }
 addEventListener("keydown",e=>{
   if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].includes(e.code))e.preventDefault();
-  const mapped=ARROW_MAP[e.code]||e.code;
-  keys[e.code]=true;keys[mapped]=true;
-  if(e.code==="Enter"){handleEnter();return;}
-  onKey(mapped);});
-addEventListener("keyup",e=>{keys[e.code]=false;const m=ARROW_MAP[e.code];if(m)keys[m]=false;});
+  keys[e.code]=true;
+  if(e.code==="Enter"){if(G.started&&!G.over)doAction();else handleEnter();return;}
+  if(e.code==="ArrowLeft"||e.code==="ArrowRight")onKey(e.code);});
+addEventListener("keyup",e=>{keys[e.code]=false;});
 /* ================= Touch controls （スマホ) ================= */
 const isTouch=("ontouchstart"in window)||navigator.maxTouchPoints>0;
 const joy={id:null,ox:0,oy:0,dx:0,dy:0,active:false};
@@ -391,51 +403,59 @@ const lookT={id:null,lx:0,ly:0};
 renderer.domElement.style.touchAction="none";
 renderer.domElement.addEventListener("touchstart",e=>{
   for(const t of e.changedTouches){
-    if(t.clientX<innerWidth*0.45&&joy.id===null){joy.id=t.identifier;joy.ox=t.clientX;joy.oy=t.clientY;joy.dx=0;joy.dy=0;joy.active=true;}
+    if(t.clientX<innerWidth*0.45&&joy.id===null){joy.id=t.identifier;joy.ox=t.clientX;joy.oy=t.clientY;joy.dx=0;joy.dy=0;joy.active=true;
+      const jb=$("joyBase"),jk=$("joyKnob");jb.style.display="block";jk.style.display="block";
+      jb.style.left=t.clientX+"px";jb.style.top=t.clientY+"px";jk.style.left=t.clientX+"px";jk.style.top=t.clientY+"px";}
     else if(lookT.id===null){lookT.id=t.identifier;lookT.lx=t.clientX;lookT.ly=t.clientY;}
   }
   if(G.started)e.preventDefault();
 },{passive:false});
 renderer.domElement.addEventListener("touchmove",e=>{
   for(const t of e.changedTouches){
-    if(t.identifier===joy.id){joy.dx=(t.clientX-joy.ox)/42;joy.dy=(t.clientY-joy.oy)/42;}
+    if(t.identifier===joy.id){joy.dx=(t.clientX-joy.ox)/42;joy.dy=(t.clientY-joy.oy)/42;
+      const kx=joy.ox+Math.max(-44,Math.min(44,t.clientX-joy.ox)),ky=joy.oy+Math.max(-44,Math.min(44,t.clientY-joy.oy));
+      const jk=$("joyKnob");jk.style.left=kx+"px";jk.style.top=ky+"px";}
     if(t.identifier===lookT.id){player.yaw-=(t.clientX-lookT.lx)*0.005;player.pitch-=(t.clientY-lookT.ly)*0.005;
       player.pitch=Math.max(-1.1,Math.min(1.1,player.pitch));lookT.lx=t.clientX;lookT.ly=t.clientY;}
   }
   if(G.started)e.preventDefault();
 },{passive:false});
-const _endTouch=e=>{for(const t of e.changedTouches){if(t.identifier===joy.id){joy.id=null;joy.active=false;joy.dx=0;joy.dy=0;}if(t.identifier===lookT.id)lookT.id=null;}};
+const _endTouch=e=>{for(const t of e.changedTouches){if(t.identifier===joy.id){joy.id=null;joy.active=false;joy.dx=0;joy.dy=0;$("joyBase").style.display="none";$("joyKnob").style.display="none";}if(t.identifier===lookT.id)lookT.id=null;}};
 renderer.domElement.addEventListener("touchend",_endTouch);
 renderer.domElement.addEventListener("touchcancel",_endTouch);
-function bindTap(id,code){const el=$(id);if(!el)return;const h=e=>{e.preventDefault();onKey(code);};
-  el.addEventListener("touchstart",h,{passive:false});el.addEventListener("click",h);}
-bindTap("tbL","KeyA");bindTap("tbR","KeyD");bindTap("tbWake","Space");bindTap("tbYield","KeyY");
-bindTap("tbQ","KeyQ");bindTap("tbE","KeyE");bindTap("tbF","KeyF");bindTap("tbR2","KeyR");
+function bindTap(id,fn){const el=$(id);if(!el)return;let lt=0;
+  el.addEventListener("touchstart",e=>{e.preventDefault();lt=Date.now();fn();},{passive:false});
+  el.addEventListener("click",()=>{if(Date.now()-lt<600)return;fn();});}
+bindTap("tbL",()=>doParry(-1));bindTap("tbR",()=>doParry(1));bindTap("tbWake",()=>wakeTap());
+bindTap("tbYield",()=>{if(G.elderEvent)giveSeat();});bindTap("tbAction",()=>doAction());
+bindTap("tbQ",()=>useSkill(0));bindTap("tbE",()=>useSkill(1));bindTap("tbF",()=>useSkill(2));bindTap("tbR2",()=>useSkill(3));
 /* ================= Skills （通勤武術） ================= */
 const CD={q:0,e:0,f:0,r:0};const stats=()=>STATS[buildType];
 function skillReady(k){return CD[k]<=0;}
-function onKey(code){
-if(!G.started||G.over)return;const st=stats();
-if(code==="KeyQ"&&skillReady("q")){ /* 流体すり抜け・紙一重: pass through the door guardian */
+let selSkill=0;
+function useSkill(i){if(!G.started||G.over)return;const st=stats();
+if(i===0&&skillReady("q")){ /* 流体すり抜け・紙一重 */
 CD.q=8;G.boost=0.9;G.ghost=0.9;blip(880,0.15,"sine",0.12);
 announce("体を薄くし、仁王立ちの隙間をすり抜ける！",2.5);}
-if(code==="KeyE"&&skillReady("e")){ /* 残像フェイント・二段加速 */
+if(i===1&&skillReady("e")){ /* 残像フェイント・二段加速 */
 CD.e=7;const s=2.2+st.leg*0.25;player.vx+=-Math.sin(player.yaw)*s;player.vz+=-Math.cos(player.yaw)*s;
 G.boost=0.55;blip(660,0.12,"square",0.1);announce("フリーズした客を抜き去る！",2.5);}
-if(code==="KeyF"&&skillReady("f")){ /* 鞄結界・ボックスアウトの陣 */
+if(i===2&&skillReady("f")){ /* 鞄結界・ボックスアウトの陣 */
 CD.f=9;G.shield=2.2+st.core*0.25;blip(440,0.2,"triangle",0.14);
 announce("横取りハイエナを物理的に阻む！",2.5);}
-if(code==="KeyR"&&skillReady("r")){ /* 心眼・足首ロックオン */
+if(i===3&&skillReady("r")){ /* 心眼・足首ロックオン */
 CD.r=Math.max(4,12-st.eye);G.lockon=3+st.eye*0.5;blip(1200,0.18,"sine",0.1);
-announce("降車フェイントを見破る構え…",2.5);revealIntents();}
-if(code==="KeyY"&&G.elderEvent)giveSeat();
-if(code==="Space"&&G.seated){G.sleep=Math.max(0,G.sleep-14);blip(300,0.05,"square",0.05);}
-if(G.seated&&G.leanEvent){ /* 柳生の肩すかし (shoulder parry) */
-const dir=G.leanEvent.dir;
-if((code==="KeyA"&&dir<0)||(code==="KeyD"&&dir>0)){G.parries++;G.leanEvent.npc.lean=0;G.leanEvent=null;showPrompt("");
+announce("降車フェイントを見破る構え…",2.5);revealIntents();}}
+function wakeTap(){if(G.seated){G.sleep=Math.max(0,G.sleep-14);blip(300,0.05,"square",0.05);}}
+function doParry(sign){if(!(G.seated&&G.leanEvent))return;const dir=G.leanEvent.dir;
+if((sign<0&&dir<0)||(sign>0&&dir>0)){G.parries++;G.leanEvent.npc.lean=0;G.leanEvent=null;showPrompt("");
 G.san=Math.min(100,G.san+2);blip(980,0.15,"sine",0.13);announce("寄りかかりを華麗にパリィ！",2);}
-else if(code==="KeyA"||code==="KeyD"){hurtSAN(4,"逆側に避けた！ 頭がぶつかった…");G.leanEvent.npc.lean=0;G.leanEvent=null;showPrompt("");}}
-}
+else{hurtSAN(4,"逆側に避けた！ 頭がぶつかった…");G.leanEvent.npc.lean=0;G.leanEvent=null;showPrompt("");}}
+function doAction(){if(!G.started||G.over)return;
+if(G.elderEvent){giveSeat();return;}
+if(G.seated&&G.sleep>=40){wakeTap();return;}
+useSkill(selSkill);}
+function onKey(code){if(code==="ArrowLeft")doParry(-1);else if(code==="ArrowRight")doParry(1);else if(code==="Enter")doAction();}
 function revealIntents(){ /* profiling: show true exit intent of seated NPCs near player */
 npcs.forEach(n=>{if(n.state==="seated"){const real=n.exitAt===G.stationIdx+1;
 setIcon(n,real?"🚪":(n.feint?"🎭":"💤"));setTimeout(()=>{if(n.state==="seated")setIcon(n,n.tellEmoji||"");},2600);}});}
@@ -467,7 +487,7 @@ onSeated();return true;}
 function onSeated(){ /* catharsis: noise dies, halo, Clair de Lune / bossa */
 trainNoise(false);$("halo").style.opacity=1;playBGM(Math.random()<0.5?"victory":"bossa");
 announce("――着席。車内の騒音がスッと消えた。至福の時が始まる。",4);
-setObjective("フェーズ④ 着席防衛戦：寄りかかりを A/D でパリィ、眠気は Space 連打。目的地 "+LINES[lineIdx].stations[LINES[lineIdx].stations.length-1]+" まで守り抜け");
+setObjective("フェーズ④ 着席防衛戦：寄りかかりを ←/→ でパリィ、眠気は Enter（決定）連打。目的地 "+LINES[lineIdx].stations[LINES[lineIdx].stations.length-1]+" まで守り抜け");
 setTimeout(()=>{$("halo").style.opacity=0;},2600);}
 function standUp(){if(G.seatIdx>=0)seats[G.seatIdx].takenBy=null;G.seated=false;G.seatIdx=-1;G.sleep=0;
 player.z=0;trainNoise(true);playBGM("calm");}
@@ -618,12 +638,12 @@ function updateNPCs(dt){
   }}
 /* ================= Player movement & bounds ================= */
 function updatePlayer(dt){const st=stats();
-  let f=0,r=0;if(keys.KeyW)f+=1;if(keys.KeyS)f-=1;if(keys.KeyD)r+=1;if(keys.KeyA)r-=1;
+  let f=0,r=0;if(keys.ArrowUp)f+=1;if(keys.ArrowDown)f-=1;if(keys.ArrowRight)r+=1;if(keys.ArrowLeft)r-=1;
   if(joy.active){const jf=Math.max(-1,Math.min(1,-joy.dy)),jr=Math.max(-1,Math.min(1,joy.dx));
   if(Math.abs(jf)>0.12)f+=jf;if(Math.abs(jr)>0.12)r+=jr;}
   f=Math.max(-1,Math.min(1,f));r=Math.max(-1,Math.min(1,r));
   if(G.seated){f=0;r=0;player.vx=0;player.vz=0;}
-  const dash=(keys.ShiftLeft||keys.ShiftRight)?1.55:1;
+  const dash=1;
   let sp=player.speedWalk*(0.75+st.leg*0.06)*dash*(G.boost>0?1.7:1)*(weatherInfo.rain&&!player.inside?0.85:1);
   const fx=-Math.sin(player.yaw),fz=-Math.cos(player.yaw),rx=Math.cos(player.yaw),rz=-Math.sin(player.yaw);
   player.vx+=((fx*f+rx*r)*sp-player.vx)*Math.min(1,dt*14);
@@ -637,7 +657,7 @@ function updatePlayer(dt){const st=stats();
     if(G.doorsOpen&&atDoor&&keys.KeyS&&player.z>1.0){player.inside=false;player.z=2.2;}}
   if(player.inside&&!G.seated){const s=nearestFreeSeat(0.85);if(s)trySit();}
   /* camera: seated = fixed low, standing = sway grows with fatigue */
-  const sway=G.seated?0.004:(1-G.hp/100)*0.05+((keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD)?0.012:0.004);
+  const sway=G.seated?0.004:(1-G.hp/100)*0.05+((keys.ArrowUp||keys.ArrowDown||keys.ArrowLeft||keys.ArrowRight||joy.active)?0.012:0.004);
   const bobY=Math.sin(G.time*7)*sway,bobR=Math.sin(G.time*5.3)*sway*0.6;
   if(G.seated){const s=seats[G.seatIdx];camera.position.set(s.x+train.position.x,1.18,s.z);}
   else camera.position.set(player.x,1.62+bobY,player.z);
@@ -725,13 +745,14 @@ updatePlayer(dt);updateNPCs(dt);contactCheck(dt);checkMiracle();heartbeat(dt);
 const san=G.san;$("vignette").style.boxShadow="inset 0 0 "+(40+(100-san)*1.6)+"px "+((100-san)*0.55)+"px rgba(190,0,0,"+Math.max(0,(60-san)/130)+")";
 $("fadeblack").style.opacity=G.hp<30?((30-G.hp)/30)*(0.55+0.3*Math.sin(G.time*4)):0;
 const lid=G.seated?G.sleep*0.42:0;$("eyelidT").style.height=lid+"%";$("eyelidB").style.height=lid+"%";
-if(G.seated&&G.sleep>55)showPrompt("眠い… Space 連打で目を覚ませ！");
+if(G.seated&&G.sleep>55)showPrompt("眠い… Enter（決定）連打で目を覚ませ！");
 else if(!G.leanEvent&&!G.elderEvent)showPrompt("");
+const SKILLNAMES=["流体すり抜け","二段加速","鞄結界","心眼"];const SKILLCDS=[CD.q,CD.e,CD.f,CD.r];
 $("skillbar").textContent=
 "通勤武術 ["+stats().label+" 脚力"+stats().leg+" 体幹"+stats().core+" 慧眼"+stats().eye+"] "+
-"Q 流体すり抜け"+(CD.q>0?"("+CD.q.toFixed(0)+")":"")+" | E 二段加速"+(CD.e>0?"("+CD.e.toFixed(0)+")":"")+
-" | F 鞄結界"+(CD.f>0?"("+CD.f.toFixed(0)+")":"")+(G.shield>0?"展開中":"")+
-" | R 心眼"+(CD.r>0?"("+CD.r.toFixed(0)+")":"")+" 人徳: ？？？（隠し） 奇跡 "+G.miracles+"回";
+SKILLNAMES.map((n,i)=>{const cd=SKILLCDS[i]>0?"("+SKILLCDS[i].toFixed(0)+")":"";const sh=(i===2&&G.shield>0)?"展開中":"";
+return (i===selSkill?"【"+n+cd+sh+"】":n+cd+sh);}).join(" | ")+
+" 人徳: ？？？（隠し） 奇跡 "+G.miracles+"回 〈ホイール:選択 / Enter・クリック:決定〉";
 }
 renderer.render(scene,camera);}
 animate();
