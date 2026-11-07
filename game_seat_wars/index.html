@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   SEAT WARS ― 満員電車椅子取合戦 (単一ファイル版)
-  Version: 1.3.1
+  Version: 1.3.2
   Created: 20261107
   Three.js (CDN) によるブラウザ3D FPS。音楽は Internet Archive API から情景に合うクラシックをランダム再生。
   v1.1.0 (20261107): 路線・乗車駅セレクト、十字キー/Enter操作、スマホのタッチ操作（ジョイスティック/視点ドラッグ/ボタン）を復活。
@@ -10,6 +10,7 @@
   v1.2.1 (20261107): HUD を全面的にコンパクト化 (駅表示・目的・プロンプト・スキルバーを小型化し中央の視界を拡大)、縦画面ではFOVを広げ、視点操作にスムージングを追加。タッチボタン群を小型化して下部に寄せた。
   v1.3.0 (20261107): ビジュアル全面刷新 (コンテンツ・ロジック・文言は不変) — ガラス質のミニマルUI、真鍮+バーミリオンのアクセント、タイトルのタイポグラフィ、光と霧の調整。
   v1.3.1 (20261107): タッチボタンの配置と大きさを人間工学で再設計 — 使用頻度と反応速度で優先順位付けし、最下段に [避ける|決定|避ける]、中段にスキル4つ (等幅・高さ48px)、上段に状況ボタン (起きる/席を譲る) を配置。全行を等幅グリッドに統一し、主要ボタンのタップ領域を 48px 以上に拡大した上でクラスター全体は小型化した。
+  v1.3.2 (20261107): Windows でも画面ボタンをマウスクリックで操作可能に — ボタンパネルを Windows でも常時表示し、ボタン上の mousedown がポインターロック/ドラッグ視点に奪われないよう除外した (従来はクリックすると視点ロックが発動しボタンの動作が発火しなかった)。
 -->
 <html lang="ja">
 <head>
@@ -408,6 +409,7 @@ addEventListener("mousemove",e=>{if(locked){player.tYaw-=e.movementX*0.0023;play
   player.tPitch=Math.max(-1.1,Math.min(1.1,player.tPitch));_mdrag.x=e.clientX;_mdrag.y=e.clientY;}});
 let _mdrag=null;
 addEventListener("mousedown",e=>{if(!G.started||G.over||e.button!==0)return;
+  if(e.target&&e.target.closest&&e.target.closest("button,#touchBtns"))return;
   if(!locked){try{renderer.domElement.requestPointerLock();}catch(err){}_mdrag={x:e.clientX,y:e.clientY};}
   else doAction();});
 addEventListener("mouseup",()=>{_mdrag=null;});
@@ -553,7 +555,7 @@ $("stNext").textContent=G.stationIdx<L.stations.length-1?("次は "+L.stations[G
 stripe.material.color.set(L.color);signBoard.material.color.set(L.color);}
 function startGame(){G.started=true;G.stationIdx=boardingIdx;try{renderer.compile(scene,camera);}catch(e){}
 ["btnStart","btnFortune","sel-line","sel-station"].forEach(id=>{const el=document.getElementById(id);if(el&&el.blur)el.blur();});
-$("start").style.display="none";if(isTouch)$("touchBtns").style.display="flex";AC();trainNoise(false);
+$("start").style.display="none";$("touchBtns").style.display="flex";AC();trainNoise(false);
 updateStationUI();G.phase=1;phaseT=14;
 setObjective("フェーズ① ホームの陣取り：黄色い輪（乗車口ポジション）に立て。降車客の流れを読み、ドア正面を確保せよ");
 announce(LINES[lineIdx].name+" "+LINES[lineIdx].stations[G.stationIdx]+"駅。まもなく電車が参ります。",5);
