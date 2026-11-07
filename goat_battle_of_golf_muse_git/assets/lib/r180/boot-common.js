@@ -2,6 +2,11 @@
    factory, then injects the classic game script (assets/game-*.js) unchanged in
    global semantics. Renderer params are exact copies of the original r128
    construction arguments in world.html / golf.html. */
+/* v4.9: アセット版数トークン。firebase の assets 30日キャッシュに対し、版上げ時は
+   この値と HTML 側の ?v= を差し替えることで全アセットを確実に入れ替える（単一の変更点）。 */
+const ASSET_V = '4.9';
+window.__GOAT_AV__ = ASSET_V;
+
 import * as THREE_NS from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
@@ -11,7 +16,7 @@ THREE_NS.ColorManagement.enabled = false;
 
 function inject(src) {
   const s = document.createElement('script');
-  s.src = src;
+  s.src = src + (src.indexOf('?') === -1 ? '?v=' : '&v=') + ASSET_V;
   s.onload = function () {
     // The game script was injected after parsing; if lifecycle events already
     // fired, re-dispatch so game listeners registered late are not lost.
