@@ -460,6 +460,22 @@
     .hud-strip #wind-fresh { font-size: 10px !important; }
     .hud-strip-sub { flex-wrap: wrap; row-gap: 3px; padding: 3px 8px; pointer-events: auto; }
     .hud-strip-sub .safety-banner-left, .hud-strip-sub .safety-banner-right { flex-wrap: wrap; row-gap: 3px; }
+    /* ★ 案2: 情報帯の折りたたみ (1行ミニマム表示) */
+    .hud-mini { display: none; align-items: center; gap: 12px; background: rgba(15, 24, 43, 0.92); border: 1px solid rgba(255,255,255,0.10); border-radius: 10px; padding: 4px 6px 4px 10px; pointer-events: auto; }
+    .hud-strip.collapsed .hud-strip-main, .hud-strip.collapsed .hud-strip-sub { display: none !important; }
+    .hud-strip.collapsed .hud-mini { display: flex; }
+    .hm-item { display: flex; align-items: baseline; gap: 4px; white-space: nowrap; }
+    .hm-label { font-size: 10px; font-weight: 700; color: #94a3b8; }
+    .hm-val { font-size: 19px; font-weight: 800; color: #fff; line-height: 1.15; }
+    .hm-val.cyan { color: #38bdf8; }
+    .hm-val.green { color: #4ade80; }
+    .hm-val.amber { color: #fbbf24; }
+    .hm-dots { display: flex; flex-direction: column; gap: 5px; margin-left: auto; }
+    .hm-dot { width: 9px; height: 9px; border-radius: 50%; background: #64748b; display: block; }
+    .hm-dot.on { background: #22c55e; }
+    .hm-dot.kv.on { background: #38bdf8; }
+    .hm-expand { flex-shrink: 0; min-width: 54px; height: 42px; border-radius: 10px; border: none; background: #2563eb; color: #fff; font-size: 20px; font-weight: 800; cursor: pointer; }
+    .hud-collapse-btn { flex-shrink: 0; white-space: nowrap; border: 1px solid rgba(148, 163, 184, 0.55); background: rgba(30, 41, 59, 0.65); color: #cbd5e1; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; cursor: pointer; min-height: 24px; }
     /* 下部ツールグリッド (デフォルト全表示 / 隠せる) */
     #tool-grid-wrap { pointer-events: auto; display: flex; flex-direction: column; gap: 5px; }
     #tool-grid-toggle {
@@ -1485,7 +1501,16 @@
       <span style="color:var(--text-sub);">標高: <strong id="user-elev-val" style="color:#fff;">--</strong>m</span>
       <span style="color:var(--text-muted);">|</span>
       <span style="color:var(--text-sub);">前回: <strong id="hud-last-shot-dist" style="color:#38bdf8;">-- y</strong></span>
+      <button type="button" class="hud-collapse-btn" onclick="setHudCollapsed(true)" title="情報帯を1行に折りたたむ">△ たたむ</button>
     </div>
+  </div>
+  <div class="hud-mini" id="hud-mini">
+    <span class="hm-item"><span class="hm-label">ピン</span><span class="hm-val cyan" id="hm-pin">--y</span></span>
+    <span class="hm-item"><span class="hm-label">PL</span><span class="hm-val green" id="hm-pl">--y</span></span>
+    <span class="hm-item"><span class="hm-label">風</span><span class="hm-val amber"><span id="hm-wind-arrow" style="display:inline-block;">⬆</span><span id="hm-wind">--m</span></span></span>
+    <span class="hm-item"><span class="hm-label">次IP</span><span class="hm-val" id="hm-ip">--y</span></span>
+    <span class="hm-dots"><span class="hm-dot" id="hm-dot-gps" title="GPS状態 (緑=追従中)"></span><span class="hm-dot kv" id="hm-dot-kv" title="KV同期状態 (青=同期済)"></span></span>
+    <button type="button" class="hm-expand" onclick="setHudCollapsed(false)" title="情報帯を広げる">▽</button>
   </div>
     </div><!-- /.hud-strip -->
 
@@ -4258,6 +4283,30 @@
     /* ==========================================================
        14. リアルタイムHUD更新 & PlaysLike ＆ 弾道シミュレーション
     ========================================================== */
+    /* ★ 案2: 情報帯の折りたたみ (1行ミニマム表示) */
+    function setHudCollapsed(v) {
+      const strip = document.querySelector('.hud-strip');
+      if (!strip) return;
+      strip.classList.toggle('collapsed', !!v);
+      try { localStorage.setItem('smart_hud_collapsed', v ? '1' : '0'); } catch (e) {}
+      syncHudMini();
+      setTimeout(() => { try { if (typeof map !== 'undefined' && map) map.invalidateSize({ animate: false, pan: false }); } catch (e) {} }, 60);
+    }
+    function syncHudMini() {
+      const txt = id => { const e = document.getElementById(id); return e ? (e.textContent || '') : ''; };
+      const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+      set('hm-pin', txt('hud-raw-dist').replace(/\s+/g, '') || '--y');
+      set('hm-pl', txt('hud-playslike-dist').replace(/\s+/g, '') || '--y');
+      set('hm-wind', txt('wind-spd-val') || '--m');
+      const wa = document.getElementById('wind-arrow'), hwa = document.getElementById('hm-wind-arrow');
+      if (wa && hwa) { hwa.textContent = wa.textContent; hwa.style.transform = wa.style.transform || ''; }
+      const ipm = txt('hud-target-ip-info').match(/(\d+)\s*y/);
+      set('hm-ip', ipm ? ipm[1] + 'y' : '--y');
+      const gd = document.getElementById('hm-dot-gps');
+      if (gd) gd.classList.toggle('on', typeof isGpsTracking !== 'undefined' && !!isGpsTracking);
+      const kd = document.getElementById('hm-dot-kv');
+      if (kd) kd.classList.toggle('on', /同期済|保存済/.test(txt('hud-db-sync-badge')));
+    }
     async function updateHUDAndSimulation() {
       if (!userCoord || !currentPinCoord) return;
       const rawDist = calcDistanceYards(userCoord, currentPinCoord);
@@ -4413,6 +4462,7 @@
         shootBearing = calcBearing(userCoord, currentIpCoords[0]);
       }
       renderShotSimulation(shootBearing, headwind, crosswind);
+      syncHudMini();
 
       if (isHeadingUp) applyHeadingUpRotation();
     }
@@ -9258,6 +9308,7 @@
       let open = true;
       try { open = localStorage.getItem('smart_toolgrid_open') !== '0'; } catch (e) {}
       applyToolGridState(open);
+      try { if (localStorage.getItem('smart_hud_collapsed') === '1') setHudCollapsed(true); } catch (e) {}
     });
 
     function closeLayerModal() { document.getElementById('layer-modal').style.display = 'none'; }
