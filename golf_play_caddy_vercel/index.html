@@ -3478,10 +3478,13 @@
           if (!Array.isArray(line) || line.length < 2) return;
           L.polyline(line, { color: '#111111', weight: 5.5, opacity: 0.5, interactive: false }).addTo(boundaryLayerGroup);
           L.polyline(line, { color: '#ffffff', weight: 3, opacity: 0.95, interactive: false }).addTo(boundaryLayerGroup);
-          const lp = line[Math.floor(line.length * 0.25)];
-          if (Array.isArray(lp)) {
-            L.marker(lp, { interactive: false, icon: L.divIcon({ className: '', html: '<div class="ob-label">OB</div>', iconSize: [24, 14], iconAnchor: [12, 7] }) }).addTo(boundaryLayerGroup);
-          }
+          const labelFracs = line.length >= 24 ? [0.25, 0.75] : [0.25];
+          labelFracs.forEach(f => {
+            const lp = line[Math.floor(line.length * f)];
+            if (Array.isArray(lp)) {
+              L.marker(lp, { interactive: false, icon: L.divIcon({ className: '', html: '<div class="ob-label">OB</div>', iconSize: [24, 14], iconAnchor: [12, 7] }) }).addTo(boundaryLayerGroup);
+            }
+          });
         });
         (b.penalty || []).forEach(poly => {
           if (!Array.isArray(poly) || poly.length < 3) return;
@@ -3750,13 +3753,46 @@
     }
 
     // STEP 3: ティー選択肢レンダリング
+    // ★ 登録済みコースではティー選択に実総距離 (コースレート表) を表示する
+    let wizardRatingsCache = {};
+    function ensureWizardRatings() {
+      const cid = wizardTempCourse && wizardTempCourse.id;
+      if (!cid || wizardRatingsCache[cid]) return;
+      wizardRatingsCache[cid] = 'loading';
+      vkvGetCloudData(cid).then(data => {
+        wizardRatingsCache[cid] = (data && data.ratings) ? data.ratings : null;
+        const p3 = document.getElementById('wizard-panel-3');
+        if (p3 && p3.classList.contains('active')) renderTeeOptions();
+      }).catch(() => { wizardRatingsCache[cid] = null; });
+    }
+    function wizardRatingRow() {
+      const cid = wizardTempCourse && wizardTempCourse.id;
+      const ratings = cid ? wizardRatingsCache[cid] : null;
+      if (!ratings || typeof ratings !== 'object') return null;
+      const subName = ((wizardTempSubCourse && wizardTempSubCourse.name) || '').replace(/コース/g, '').replace(/➔/g, '→').replace(/\s/g, '');
+      const keys = Object.keys(ratings).filter(k => k.startsWith(subName + '|'));
+      if (!keys.length) return null;
+      const aKey = keys.find(k => k.includes('A')) || keys[0];
+      return ratings[aKey];
+    }
+
     function renderTeeOptions() {
       const container = document.getElementById('tee-options-container');
       if (!container) return;
       container.innerHTML = '';
+      ensureWizardRatings();
+      const ratingRow = wizardRatingRow();
+      const TEE_RATING_KEY = { black: 'Black', blue: 'Blue', white: 'White', gold: 'Green', red: 'Red' };
 
       Object.values(TEE_DEFINITIONS).forEach(t => {
         const isSelected = (wizardTempTeeType === t.id);
+        let teeName = t.name;
+        let teeDesc = t.desc;
+        const r = ratingRow && ratingRow[TEE_RATING_KEY[t.id]];
+        if (r && r.yards) {
+          teeDesc = `総距離 ${Number(r.yards).toLocaleString()}y (コースレート ${r.rating} / スロープ ${r.slope})`;
+          if (t.id === 'gold' && TEE_RATING_KEY[t.id] === 'Green') teeName = 'グリーン / フロントティー';
+        }
         const card = document.createElement('div');
         card.className = `tee-option-card tee-${t.id} ${isSelected ? 'selected' : ''}`;
         card.innerHTML = `
@@ -3765,8 +3801,8 @@
               ${t.id.charAt(0).toUpperCase()}
             </div>
             <div>
-              <div style="font-weight:800; font-size:12.5px; color:#fff;">${t.name}</div>
-              <div style="font-size:10px; color:var(--text-sub);">${t.desc}</div>
+              <div style="font-weight:800; font-size:12.5px; color:#fff;">${teeName}</div>
+              <div style="font-size:10px; color:var(--text-sub);">${teeDesc}</div>
             </div>
           </div>
           <div style="font-family:'Outfit'; font-weight:800; font-size:12px; color:${isSelected ? 'var(--accent-green)' : 'var(--text-muted)'};">

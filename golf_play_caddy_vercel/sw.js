@@ -1,7 +1,7 @@
 // SmartCaddie Pro Service Worker
 // 目的: アプリ本体と地図タイルをキャッシュし、山間部など電波の弱い現場でも地図が真っ白にならないようにする。
 // データ系API (コース同期・気象・Overpass) は絶対にキャッシュしない (古いデータを掴ませない)。
-const CACHE_VERSION = 'smartcaddie-v4';
+const CACHE_VERSION = 'smartcaddie-v5';
 const TILE_CACHE = 'smartcaddie-tiles-v1';
 const TILE_MAX = 1500; // タイルキャッシュの上限 (古いものから捨てる) ※事前ダウンロード分を保持できるよう拡張
 
