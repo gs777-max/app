@@ -2155,7 +2155,7 @@
         name: "取手桜が丘ゴルフクラブ",
         yomi: "とりでさくらがおかごるふくらぶ",
         pref: "茨城県",
-        lat: 35.9023, lon: 140.1221,
+        lat: 35.8953920, lon: 140.1240428,
         par: 72,
         desc: "利根川の雄大な借景を望む林間・リバーサイドコース",
         subCourses: [
@@ -2231,10 +2231,10 @@
       },
       {
         id: "narashino",
-        name: "アコーディア・ゴルフ 習志野カントリークラブ",
+        name: "習志野カントリークラブ",
         yomi: "ならしのかんとりーくらぶ",
         pref: "千葉県",
-        lat: 35.7963, lon: 140.1342,
+        lat: 35.813766, lon: 140.148511,
         par: 72,
         desc: "PGAツアーZOZO CHAMPIONSHIP開催コース",
         subCourses: [
@@ -6578,6 +6578,17 @@
         cloudPulledCourses.add(courseId);
         if (cloudData && cloudData.combos && typeof cloudData.combos === 'object') lastCloudCombosByCourse[courseId] = cloudData.combos;
         decision = decideVercelKvSync(courseId, cloudData, !!opts.force);
+
+        // ★ 組合せ別コースで、選択中ローテーションの節がまだ端末に無く
+        //   プレースホルダのままの場合、同期判定が none でもその節を適用する
+        //   (同一セッションでローテーションを切り替えると、クラウド側に新しい
+        //   更新が無い限り永遠にプレースホルダ表示になる問題への対処)
+        if (decision === 'none' && cloudData && cloudData.combos && typeof cloudData.combos === 'object'
+            && currentCourse && currentCourse.id === courseId && Array.isArray(holeList)
+            && holeList.some(h => h.placeholder)) {
+          const comboEntry = cloudData.combos[currentComboKey()];
+          if (comboEntry && Array.isArray(comboEntry.holes)) decision = 'apply';
+        }
 
         if (decision === 'apply') {
           // ★ 未送信のローカル変更がある場合は、先にキー単位マージしてから適用する。
