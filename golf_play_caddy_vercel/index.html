@@ -875,6 +875,11 @@
       cursor: grab;
       touch-action: none;
     }
+    .ob-label {
+      font-size: 10px; font-weight: 900; color: #fff; letter-spacing: .08em;
+      text-align: center; text-shadow: 0 0 3px #000, 0 0 3px #000, 0 1px 2px #000;
+      pointer-events: none;
+    }
     .ip-pin-label {
       position: absolute;
       bottom: 34px;
@@ -3458,9 +3463,45 @@
       return res;
     }
 
+    let boundaryLayerGroup = null;
+    // コース付属データ (手動登録データセット) の境界線を描画する。
+    // OB=白線+OBラベル (承認済みパターンA標準)、レッドペナルティ=赤破線+淡赤塗り、
+    // バンカー=砂色円、池=水色円。OSMにホールデータが無いコースでも表示できるようにするための描画。
+    function renderHoleBoundaries(hole) {
+      try {
+        if (!window.L || !map) return;
+        if (!boundaryLayerGroup) boundaryLayerGroup = L.layerGroup().addTo(map);
+        boundaryLayerGroup.clearLayers();
+        const b = hole && hole.boundaries;
+        if (!b) return;
+        (b.ob || []).forEach(line => {
+          if (!Array.isArray(line) || line.length < 2) return;
+          L.polyline(line, { color: '#111111', weight: 5.5, opacity: 0.5, interactive: false }).addTo(boundaryLayerGroup);
+          L.polyline(line, { color: '#ffffff', weight: 3, opacity: 0.95, interactive: false }).addTo(boundaryLayerGroup);
+          const lp = line[Math.floor(line.length * 0.25)];
+          if (Array.isArray(lp)) {
+            L.marker(lp, { interactive: false, icon: L.divIcon({ className: '', html: '<div class="ob-label">OB</div>', iconSize: [24, 14], iconAnchor: [12, 7] }) }).addTo(boundaryLayerGroup);
+          }
+        });
+        (b.penalty || []).forEach(poly => {
+          if (!Array.isArray(poly) || poly.length < 3) return;
+          L.polygon(poly, { color: '#e11d48', weight: 2, dashArray: '6 4', fillColor: '#e11d48', fillOpacity: 0.16, interactive: false }).addTo(boundaryLayerGroup);
+        });
+        (b.hazards || []).forEach(hz => {
+          if (!hz || !Array.isArray(hz.at)) return;
+          if (hz.type === 'pond') {
+            L.circle(hz.at, { radius: 12, color: '#0369a1', weight: 1.5, fillColor: '#38bdf8', fillOpacity: 0.55, interactive: false }).addTo(boundaryLayerGroup);
+          } else {
+            L.circle(hz.at, { radius: 7, color: '#92400e', weight: 1.2, fillColor: '#e9cf8f', fillOpacity: 0.85, interactive: false }).addTo(boundaryLayerGroup);
+          }
+        });
+      } catch (e) { /* 境界線描画の失敗で本機能を止めない */ }
+    }
+
     function calculateAndRenderIpRoute() {
       const hole = holeList[currentHoleIndex];
       if (!hole) return;
+      renderHoleBoundaries(hole);
       if (hole.placeholder) { currentIpCoords = []; return; } // 仮座標では線を引かない
 
       const savedIps = loadSavedIpCoords(currentCourse.id, hole.h, currentTeeType, currentGreenSide);
@@ -6361,6 +6402,7 @@
             if (cHole.calibTees && typeof cHole.calibTees === 'object') target.calibTees = { ...cHole.calibTees };
             if (cHole.calibPins && typeof cHole.calibPins === 'object') target.calibPins = { ...cHole.calibPins };
             if (cHole.savedIps && typeof cHole.savedIps === 'object') target.savedIps = { ...cHole.savedIps };
+            if (cHole.boundaries && typeof cHole.boundaries === 'object') target.boundaries = cHole.boundaries;
             if (Array.isArray(cHole.routePts) && cHole.routePts.length >= 2) target.routePts = cHole.routePts.map(p => [...p]);
             if (cHole.routeSource) target.routeSource = cHole.routeSource;
             if (typeof cHole.placeholder === 'boolean') target.placeholder = cHole.placeholder;
