@@ -434,6 +434,59 @@
       max-width: 90px;
     }
 
+
+    /* ★ H1レイアウト (2026-11-08): 矢印左端集約 / 横棒2段HUD / 下部ツールグリッド */
+    .top-nav-inner { justify-content: flex-start; }
+    .brand-chip { max-width: 80%; }
+    .hole-bar { overflow-x: visible; }
+    .hole-nav-group { display: flex; gap: 5px; }
+    .hole-nav-btn {
+      min-width: 50px; min-height: 44px; font-size: 17px; padding: 8px 10px;
+      background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.5);
+      border-radius: 9px; justify-content: center;
+    }
+    .hole-bar .hole-info-center { flex-shrink: 1; min-width: 0; }
+    .hole-spec-text { overflow: hidden; text-overflow: ellipsis; }
+    .hud-strip { display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
+    .hud-strip-main { gap: 4px; }
+    .hud-strip .hud-card { padding: 3px 5px; border-radius: 9px; }
+    .hud-strip .hud-label { font-size: 10px; }
+    .hud-strip .hud-value { font-size: 15px; }
+    .hud-strip .hud-value.large { font-size: 27px; }
+    body.font-large .hud-strip .hud-value.large { font-size: 31px; }
+    body.font-xlarge .hud-strip .hud-value.large { font-size: 35px; }
+    .hud-strip .hud-sub { font-size: 10px; }
+    .hud-strip #hud-recommended-club { font-size: 11.5px !important; }
+    .hud-strip #wind-fresh { font-size: 10px !important; }
+    .hud-strip-sub { flex-wrap: wrap; row-gap: 3px; padding: 3px 8px; pointer-events: auto; }
+    .hud-strip-sub .safety-banner-left, .hud-strip-sub .safety-banner-right { flex-wrap: wrap; row-gap: 3px; }
+    /* 下部ツールグリッド (デフォルト全表示 / 隠せる) */
+    #tool-grid-wrap { pointer-events: auto; display: flex; flex-direction: column; gap: 5px; }
+    #tool-grid-toggle {
+      align-self: center; background: var(--bg-panel); border: 1px solid var(--border-subtle);
+      color: var(--text-main); font-size: 10.5px; font-weight: 800; padding: 4px 18px;
+      border-radius: 999px; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    }
+    #tool-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; }
+    /* ツール表示中は右側FABと各パネルをドックの上へ逃がす */
+    .floating-fab-group { transition: bottom 0.25s ease; }
+    body.tools-open .floating-fab-group { bottom: calc(var(--safe-bottom) + 208px); }
+    body.tools-open #green-contour-panel { bottom: calc(var(--safe-bottom) + 218px); }
+    body.tools-open #replay-panel, body.tools-open #plan-panel, body.tools-open #study-panel { bottom: calc(var(--safe-bottom) + 212px) !important; }
+    body.tools-open #btn-undo-shot { bottom: calc(var(--safe-bottom) + 276px) !important; }
+    #tool-grid.closed { display: none; }
+    .tool-btn { width: 100%; height: 48px; flex-direction: column; gap: 1px; border-radius: 10px; }
+    .tool-label { font-size: 9px; font-weight: 700; line-height: 1.1; color: var(--text-sub); }
+    .tool-cell {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+      background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 10px;
+      height: 48px; padding: 2px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    }
+    .tool-cell .hole-quick-select { max-width: 100%; font-size: 10px; padding: 2px; }
+    body.sunlight-mode #tool-grid-toggle, body.sunlight-mode .tool-cell {
+      background: #ffffff; border-color: #cbd5e1; color: #0f172a;
+    }
+
     /* リアルタイムHUD情報バー */
     .hud-metrics-grid {
       position: static;
@@ -1361,27 +1414,11 @@
         </div>
       </div>
 
-      <div class="top-controls">
-        <button class="icon-btn" id="btn-voice-guide" onclick="speakVoiceCaddieGuide()" title="🗣️ ボイスキャディ音声案内">🗣️</button>
-        <button class="icon-btn" id="btn-gps-toggle" onclick="toggleGpsTracking()" title="📍 GPSリアルタイム測位追従">📍</button>
-        <button class="icon-btn" id="btn-compass-icon" onclick="toggleHeadingUpMode()" title="🧭 ヘディングアップ / ノースアップ切替">🧭</button>
-        <button class="icon-btn" id="btn-overview" onclick="toggleCourseOverview()" title="🗺️ コース全景 (ノースアップで全体表示)">🗺️</button>
-        <button class="icon-btn" id="btn-plan-plot" onclick="togglePlanMode()" title="🎯 予習プロット (仮想ショットで攻め方を設計)">🎯</button>
-        <button class="icon-btn" id="btn-study-mode" onclick="toggleStudyMode()" title="📚 予習モード (ハザード距離・着弾ゾーン・過去の自分と攻略設計)">📚</button>
-        <button class="icon-btn" id="btn-sunlight-mode" onclick="toggleSunlightMode()" title="☀️ サンライト屋外高視認性モード">☀️</button>
-        <button class="icon-btn" id="btn-font-size" onclick="cycleFontSize()" title="🔤 文字サイズ切替 (標準→大→特大)">🔤</button>
-        <button class="icon-btn" id="btn-pro-plan" onclick="openPaywall()" title="💎 Proプラン (予習モード・オフライン保存・軌跡リプレイ)">💎</button>
-        <button class="icon-btn" id="btn-vercel-sync" onclick="openCloudSyncModal()" title="☁️ Vercel KV クラウド永続同期" style="position:relative;">☁️</button>
-        <button class="icon-btn" id="btn-touch-lock" onclick="toggleTouchLock()" title="🔒 ポケット誤タッチロック">🔒</button>
-        <button class="icon-btn" id="btn-layer-menu" onclick="toggleLayerMenu()" title="地図レイヤー切替">🗺️</button>
-        <button class="icon-btn" id="btn-radar-toggle" onclick="toggleRainRadar()" title="雨雲レーダー">🌧️</button>
-        <button class="icon-btn" id="btn-floating-measure" onclick="toggleDirectWidthMeasurement()" title="コース幅計測">📏</button>
-      </div>
     </div>
 
     <!-- ホールセレクターバー ＆ 使用ティーバッジ ＆ 2グリーン(L/R) -->
     <div class="hole-bar">
-      <button class="hole-nav-btn" onclick="prevHole()">◀ 前H</button>
+      <div class="hole-nav-group"><button class="hole-nav-btn" onclick="prevHole()" title="前のホール">◀</button><button class="hole-nav-btn" onclick="nextHole()" title="次のホール">▶</button></div>
       <div class="hole-info-center">
         <span class="hole-badge-current" id="hud-current-hole-num">1H</span>
         <span class="hole-spec-text" id="hud-current-hole-par">Par 4 / 365y</span>
@@ -1398,17 +1435,11 @@
         <button class="green-side-btn" id="btn-green-r" onclick="selectGreenSide('R')">⚪ R</button>
       </div>
 
-      <!-- IP初期化 -->
-      <button class="btn-ip-reset" onclick="resetCurrentHoleIpRoute()" title="中間点(IP)推奨ルートを初期化">🔄 IP初期化</button>
-
-      <select class="hole-quick-select" id="hole-quick-select" onchange="onHoleSelectChange(this.value)">
-        <!-- 1H〜18H JS生成 -->
-      </select>
-      <button class="hole-nav-btn" onclick="nextHole()">次H ▶</button>
     </div>
   
     <!-- リアルタイムHUD情報バー -->
-    <div class="hud-metrics-grid">
+    <div class="hud-strip">
+    <div class="hud-metrics-grid hud-strip-main">
     <div class="hud-card highlight">
       <div class="hud-label">🎯 ピン実距離</div>
       <div class="hud-value large" id="hud-raw-dist">-- y</div>
@@ -1435,6 +1466,23 @@
       </div>
     </div>
   </div>
+  <div class="safety-banner hud-strip-sub">
+    <div class="safety-banner-left">
+      <div class="green-three-pts-badge" id="green-three-pts-display" title="打席進入角に沿った手前・中央・奥の3点ヤード">
+        ⛳ F: <span id="g3-front">--</span> | C: <span id="g3-center">--</span> | B: <span id="g3-back">--</span>y
+      </div>
+      <span id="hud-gps-badge" class="gps-badge-chip" onclick="toggleGpsTracking()" title="タップでGPS追従ON/OFF">📍 GPS: 手動</span>
+      <span id="hud-db-sync-badge" class="gps-badge-chip" onclick="triggerManualVercelSync()" title="タップでVercel KVと即時再同期" style="cursor:pointer; background:rgba(56,189,248,0.2); color:#38bdf8;">☁️ KV同期済</span>
+      <button type="button" id="btn-db-import" class="db-import-btn" onclick="importFromVercelKvManual()" title="他端末で設定した情報をVercel KVから取込">📥 取込</button>
+      <span id="sunset-countdown-display" class="sunset-tag">🌅 日没計算中...</span>
+    </div>
+    <div class="safety-banner-right">
+      <span style="color:var(--text-sub);">標高: <strong id="user-elev-val" style="color:#fff;">--</strong>m</span>
+      <span style="color:var(--text-muted);">|</span>
+      <span style="color:var(--text-sub);">前回: <strong id="hud-last-shot-dist" style="color:#38bdf8;">-- y</strong></span>
+    </div>
+  </div>
+    </div><!-- /.hud-strip -->
 
     <!-- グリーン3点距離 ＆ 安全管理・日没・Vercel KV同期バナー -->
     <!-- ★ ショット計測バナー (従来はHTML要素自体が無く、計測中表示が一切出なかった) -->
@@ -1516,22 +1564,6 @@
     </div>
   </div>
 
-  <div class="safety-banner">
-    <div class="safety-banner-left">
-      <div class="green-three-pts-badge" id="green-three-pts-display" title="打席進入角に沿った手前・中央・奥の3点ヤード">
-        ⛳ F: <span id="g3-front">--</span> | C: <span id="g3-center">--</span> | B: <span id="g3-back">--</span>y
-      </div>
-      <span id="hud-gps-badge" class="gps-badge-chip" onclick="toggleGpsTracking()" title="タップでGPS追従ON/OFF">📍 GPS: 手動</span>
-      <span id="hud-db-sync-badge" class="gps-badge-chip" onclick="triggerManualVercelSync()" title="タップでVercel KVと即時再同期" style="cursor:pointer; background:rgba(56,189,248,0.2); color:#38bdf8;">☁️ KV同期済</span>
-      <button type="button" id="btn-db-import" class="db-import-btn" onclick="importFromVercelKvManual()" title="他端末で設定した情報をVercel KVから取込">📥 取込</button>
-      <span id="sunset-countdown-display" class="sunset-tag">🌅 日没計算中...</span>
-    </div>
-    <div class="safety-banner-right">
-      <span style="color:var(--text-sub);">標高: <strong id="user-elev-val" style="color:#fff;">--</strong>m</span>
-      <span style="color:var(--text-muted);">|</span>
-      <span style="color:var(--text-sub);">前回: <strong id="hud-last-shot-dist" style="color:#38bdf8;">-- y</strong></span>
-    </div>
-  </div>
 
     <!-- 計測中アクティブバナー -->
     <div id="measure-active-banner">
@@ -1574,6 +1606,27 @@
 
   <!-- 下部ボトムコントロールバー -->
   <footer class="bottom-dock">
+    <div id="tool-grid-wrap">
+      <button id="tool-grid-toggle" onclick="toggleToolGrid()">▼ ツール（隠す）</button>
+      <div id="tool-grid">
+        <button class="icon-btn tool-btn" id="btn-voice-guide" onclick="speakVoiceCaddieGuide()" title="🗣️ ボイスキャディ音声案内">🗣️<span class="tool-label">音声</span></button>
+        <button class="icon-btn tool-btn" id="btn-gps-toggle" onclick="toggleGpsTracking()" title="📍 GPSリアルタイム測位追従">📍<span class="tool-label">GPS</span></button>
+        <button class="icon-btn tool-btn" id="btn-compass-icon" onclick="toggleHeadingUpMode()" title="🧭 ヘディングアップ / ノースアップ切替">🧭<span class="tool-label">方角</span></button>
+        <button class="icon-btn tool-btn" id="btn-overview" onclick="toggleCourseOverview()" title="🗺️ コース全景 (ノースアップで全体表示)">🗺️<span class="tool-label">全景</span></button>
+        <button class="icon-btn tool-btn" id="btn-plan-plot" onclick="togglePlanMode()" title="🎯 予習プロット (仮想ショットで攻め方を設計)">🎯<span class="tool-label">予習</span></button>
+        <button class="icon-btn tool-btn" id="btn-study-mode" onclick="toggleStudyMode()" title="📚 予習モード (ハザード距離・着弾ゾーン・過去の自分と攻略設計)">📚<span class="tool-label">学習</span></button>
+        <button class="icon-btn tool-btn" id="btn-sunlight-mode" onclick="toggleSunlightMode()" title="☀️ サンライト屋外高視認性モード">☀️<span class="tool-label">屋外</span></button>
+        <button class="icon-btn tool-btn" id="btn-font-size" onclick="cycleFontSize()" title="🔤 文字サイズ切替 (標準→大→特大)">🔤<span class="tool-label">文字</span></button>
+        <button class="icon-btn tool-btn" id="btn-pro-plan" onclick="openPaywall()" title="💎 Proプラン (予習モード・オフライン保存・軌跡リプレイ)">💎<span class="tool-label">Pro</span></button>
+        <button class="icon-btn tool-btn" id="btn-vercel-sync" onclick="openCloudSyncModal()" title="☁️ Vercel KV クラウド永続同期" style="position:relative;">☁️<span class="tool-label">同期</span></button>
+        <button class="icon-btn tool-btn" id="btn-touch-lock" onclick="toggleTouchLock()" title="🔒 ポケット誤タッチロック">🔒<span class="tool-label">ロック</span></button>
+        <button class="icon-btn tool-btn" id="btn-layer-menu" onclick="toggleLayerMenu()" title="地図レイヤー切替">🗺️<span class="tool-label">レイヤー</span></button>
+        <button class="icon-btn tool-btn" id="btn-radar-toggle" onclick="toggleRainRadar()" title="雨雲レーダー">🌧️<span class="tool-label">雨雲</span></button>
+        <button class="icon-btn tool-btn" id="btn-floating-measure" onclick="toggleDirectWidthMeasurement()" title="コース幅計測">📏<span class="tool-label">計測</span></button>
+        <button class="icon-btn tool-btn" onclick="resetCurrentHoleIpRoute()" title="中間点(IP)推奨ルートを初期化">🔄<span class="tool-label">IP初期化</span></button>
+        <div class="tool-cell"><select class="hole-quick-select" id="hole-quick-select" onchange="onHoleSelectChange(this.value)"><!-- 1H〜18H JS生成 --></select><span class="tool-label">ホール</span></div>
+      </div>
+    </div>
     <div class="bottom-dock-inner">
       <button class="dock-btn" onclick="openClubModal()">
         <span class="dock-icon">🏌️</span>
@@ -6941,7 +6994,7 @@
       const wr = wrap.getBoundingClientRect();
       const W = wr.width, H = wr.height;
       let top = 0, bottom = H, left = 16, right = W - 16;
-      ['.top-nav', '.hud-metrics-grid', '.safety-banner'].forEach(sel => {
+      ['.top-nav', '.hud-strip'].forEach(sel => {
         const el = document.querySelector(sel);
         if (isElVisible(el)) {
           const r = el.getBoundingClientRect();
@@ -9066,6 +9119,34 @@
     }
 
     function toggleLayerMenu() { document.getElementById('layer-modal').style.display = 'flex'; }
+    /* ★ ツールグリッド開閉 (デフォルト全表示 / 状態を保存) */
+    function applyToolGridState(open) {
+      const grid = document.getElementById('tool-grid');
+      const btn = document.getElementById('tool-grid-toggle');
+      if (!grid || !btn) return;
+      grid.classList.toggle('closed', !open);
+      document.body.classList.toggle('tools-open', open);
+      btn.textContent = open ? '▼ ツール（隠す）' : '▲ ツール（表示）';
+    }
+    function toggleToolGrid() {
+      const grid = document.getElementById('tool-grid');
+      if (!grid) return;
+      const open = grid.classList.contains('closed');
+      applyToolGridState(open);
+      try { localStorage.setItem('smart_toolgrid_open', open ? '1' : '0'); } catch (e) {}
+      setTimeout(() => {
+        try {
+          if (typeof map !== 'undefined' && map) map.invalidateSize();
+          if (typeof focusCurrentHole === 'function') focusCurrentHole({ animate: true });
+        } catch (e) {}
+      }, 90);
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      let open = true;
+      try { open = localStorage.getItem('smart_toolgrid_open') !== '0'; } catch (e) {}
+      applyToolGridState(open);
+    });
+
     function closeLayerModal() { document.getElementById('layer-modal').style.display = 'none'; }
     function openClubModal() { document.getElementById('club-modal').style.display = 'flex'; renderClubEditor(); }
     function closeClubModal() { document.getElementById('club-modal').style.display = 'none'; }
