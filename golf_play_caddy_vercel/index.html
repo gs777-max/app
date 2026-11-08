@@ -6519,18 +6519,22 @@
         }
 
         // ★ 4.5 ラウンド共通設定の完全同期 (ティー色・グリーン面・サブコースの一致保証)
-        if (cloudData.currentTeeType && cloudData.currentTeeType !== currentTeeType && TEE_DEFINITIONS[cloudData.currentTeeType]) {
+        // ★ ただし組合せ別レコード (combos) では、保存済みUI状態はローテーションと対応しないため
+        //    復元しない (ウィザードで選んだ現在のラウンド設定を優先する。復元すると
+        //    holeList とサブコースが食い違い、別ローテーションの節へ誤って保存される)
+        const restoreUiState = !cloudData.combos;
+        if (restoreUiState && cloudData.currentTeeType && cloudData.currentTeeType !== currentTeeType && TEE_DEFINITIONS[cloudData.currentTeeType]) {
           currentTeeType = cloudData.currentTeeType;
           updateHeaderTeeBadge();
         }
-        if (cloudData.currentGreenSide && (cloudData.currentGreenSide === 'L' || cloudData.currentGreenSide === 'R') && cloudData.currentGreenSide !== currentGreenSide) {
+        if (restoreUiState && cloudData.currentGreenSide && (cloudData.currentGreenSide === 'L' || cloudData.currentGreenSide === 'R') && cloudData.currentGreenSide !== currentGreenSide) {
           currentGreenSide = cloudData.currentGreenSide;
           const btnL = document.getElementById('btn-green-l');
           const btnR = document.getElementById('btn-green-r');
           if (btnL) btnL.classList.toggle('active', currentGreenSide === 'L');
           if (btnR) btnR.classList.toggle('active', currentGreenSide === 'R');
         }
-        if (cloudData.currentSubCourseId && currentSubCourse && currentCourse && Array.isArray(currentCourse.subCourses)) {
+        if (restoreUiState && cloudData.currentSubCourseId && currentSubCourse && currentCourse && Array.isArray(currentCourse.subCourses)) {
           const matchedSub = currentCourse.subCourses.find(s => s.id === cloudData.currentSubCourseId);
           if (matchedSub && matchedSub.id !== currentSubCourse.id) {
             currentSubCourse = matchedSub;
