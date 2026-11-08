@@ -2163,7 +2163,7 @@
         name: "太平台カントリー倶楽部",
         yomi: "たいへいだいかんとりーくらぶ",
         pref: "栃木県",
-        lat: 36.3768, lon: 139.7312,
+        lat: 36.3732, lon: 139.6774,
         par: 72,
         desc: "自然の地形を活かした戦略的な丘陵27ホールコース",
         subCourses: [
@@ -6209,10 +6209,10 @@
     //   push  : この端末で新規変更があり、かつ他端末の未受信更新がない場合に限り送信
     //   none  : 同期済み・差分なし
     function decideVercelKvSync(courseId, cloudData, force) {
-      if (force) return 'apply';
       if (!cloudData || !cloudData.updatedAt) {
         return hasUnsyncedLocalChanges(courseId) ? 'push' : 'none';
       }
+      if (force) return 'apply';
 
       const cloudTime = vkvToMs(cloudData.updatedAt);
       const lastSync = vkvToMs(getCourseCloudSyncTime(courseId));
