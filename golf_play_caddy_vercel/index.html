@@ -6384,6 +6384,13 @@
       }
     }
 
+    // ★ 組合せ別ホールデータ (例: 27ホールコースの 中→東 / 東→西 / 西→中)
+    //    クラウドレコードの combos[組合せ名].holes を、現在のサブコースに一致する節だけ適用する。
+    let lastCloudCombosByCourse = {};
+    function currentComboKey() {
+      return ((currentSubCourse && currentSubCourse.name) || '').replace(/コース/g, '').replace(/➔/g, '→').replace(/\s/g, '');
+    }
+
     // ★ Vercel KV のデータを端末へ確実に適用 (スマートマージ & 個別キー生成)
     function applyCloudDataToDevice(courseId, cloudData) {
       if (!cloudData) return;
@@ -6422,8 +6429,12 @@
         });
 
         // 2. holes に埋め込まれた座標を holeList および localStorage 個別キーへ完全同期
-        if (Array.isArray(cloudData.holes) && Array.isArray(holeList) && currentCourse && currentCourse.id === courseId) {
-          cloudData.holes.forEach(cHole => {
+        // ★ 組合せ別データ (27ホールコース等) があれば、現在の組合せの節を優先する
+        if (cloudData.combos && typeof cloudData.combos === 'object') lastCloudCombosByCourse[courseId] = cloudData.combos;
+        const comboEntry = (cloudData.combos && currentCourse && currentCourse.id === courseId) ? cloudData.combos[currentComboKey()] : null;
+        const holesToApply = (comboEntry && Array.isArray(comboEntry.holes)) ? comboEntry.holes : cloudData.holes;
+        if (Array.isArray(holesToApply) && Array.isArray(holeList) && currentCourse && currentCourse.id === courseId) {
+          holesToApply.forEach(cHole => {
             if (!cHole || typeof cHole.h === 'undefined') return;
             const target = holeList.find(h => h.h === cHole.h);
             if (!target) return;
@@ -6561,6 +6572,7 @@
       try {
         const cloudData = await vkvGetCloudData(courseId);
         cloudPulledCourses.add(courseId);
+        if (cloudData && cloudData.combos && typeof cloudData.combos === 'object') lastCloudCombosByCourse[courseId] = cloudData.combos;
         decision = decideVercelKvSync(courseId, cloudData, !!opts.force);
 
         if (decision === 'apply') {
@@ -6669,7 +6681,15 @@
           lastUpdatedBy: getDeviceId()
         };
         // ★ holes は「そのコースを表示中」のときだけ送る (別コースのキーへ現在コースのホールを書き込む事故の防止)
-        if (currentCourse && currentCourse.id === courseId) payload.holes = holeList;
+        if (currentCourse && currentCourse.id === courseId) {
+          const cachedCombos = lastCloudCombosByCourse[courseId];
+          if (cachedCombos) {
+            // ★ 組合せ別レコードでは現在の組合せの節だけを更新し、holes 本体 (主組合せ) は送らず保持させる
+            payload.combos = { ...cachedCombos, [currentComboKey()]: { holes: holeList } };
+          } else {
+            payload.holes = holeList;
+          }
+        }
         // ★ 個人データ (スコア/クラブ設定/ショット履歴) はコース共有レコードに混ぜない。
         //   これらは端末ローカル専用とし、共有対象は座標系データのみとする (他人の端末への混入防止)
 
