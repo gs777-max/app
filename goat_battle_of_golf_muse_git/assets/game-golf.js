@@ -21,7 +21,7 @@ window.__goatDiagLoopOk = function(slot){ try{ var D = window.__GOAT_DIAG__; if(
   var TL = new THREE.TextureLoader();
   /* v4.9: アセット版数（boot 層の __GOAT_AV__ と連動）。テクスチャ/GLB の URL に付与し、
      30日キャッシュ下でも版上げで確実に差し替わるようにする */
-  var AVQ = '?v=' + (window.__GOAT_AV__ || '4.11');
+  var AVQ = '?v=' + (window.__GOAT_AV__ || '4.12');
   var __WARM = /[?&]warmup=1/.test(location.search); /* v4.5: 先読み時はテクスチャを読み込まない */
   function loadTex(name, srgb, rx, ry){
     if(__WARM) return null;
@@ -2874,6 +2874,17 @@ class GolfGame{
           this.scene.add(fc2);
         }
 
+        // ★ 線刷新フェーズ1: 直角ドッグレッグ (8番/17番) にも OB白ライン帯を追加 (通常ホールと同じ戸田基準: 白・幅0.3・opacity 0.9・y=0.05・FW端 +4.8)
+        // leg1 (縦区間) 両側 / leg2 (横区間) 両側 / leg2 左端キャップ (描画のみ・OB判定は不変更)
+        const obMatDL = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.9});
+        const obBandDL = (w, l, x, z) => {
+          const m = new THREE.Mesh(new THREE.PlaneGeometry(w, l), obMatDL);
+          m.rotation.x = -Math.PI/2; m.position.set(x, 0.05, z); this.scene.add(m);
+        };
+        for(const sd of [-1, 1]) obBandDL(0.3, leg1Length*0.97, sd*(leg1W/2 + 4.8), -leg1Length/2);
+        for(const sd of [-1, 1]) obBandDL(leg2W*0.97, 0.3, -leg2W/2 + 10, cornerZ + sd*(leg2Depth/2 + 4.8));
+        obBandDL(0.3, leg2Depth, -leg2W + 10 - 4.8, cornerZ);
+
         // ③ コーナー内側（X: -8 〜 -55, Z: -60 〜 -190）を塞ぐ密集した高い防風林
         // ティーからグリーンへの直接ショットを完全にブロック！
         for(let z = -70; z >= -195; z -= 14){
@@ -3283,34 +3294,71 @@ class GolfGame{
       this.scene.add(ob);
     }
 
-    // 白線（OBライン境界）
+    // 白線（OBライン境界）— ★線刷新フェーズ1 (全コース展開): 戸田基準仕様 (白・幅0.3・opacity 0.9) に統一。
+    // 従来は固定 y=0.018 の平らな1枚板 (幅0.22・opacity 0.85) で、ドッグレッグではフェアウェイ中心線が
+    // 曲がるのに直線のままだった。中心線オフセット (±(TW/2+2.1) = 直線ホールでは従来と同位置) に沿って
+    // 約6単位ごとに分割したリボンに変更 (描画のみ・OB判定データは不変更)。
+    // 高さは max(getGY, 0)+0.06: 線の位置 (|x|=52付近) の描画地面は平坦なセミラフ面 (y≈-0.015) で、
+    // getGY (物理高度) が負の区間では帯がその面の下に潜ってしまうため、平坦面レベルを下限にする。
+    // getGY が正の区間 (ドッグレッグの広幅地形メッシュ上など) では地形高度に沿う。
+    const obOff=TW/2+2.1;
+    const clOB=(this._centerline&&this._centerline.length>1)?this._centerline:[{x:0,z:0},{x:0,z:-TH*0.97}];
+    const obSamples=[]; // {x,z,px,pz} 中心線の弧長サンプル (法線は区間ごと一定・コーナーは区間境界で両法線を取る)
+    for(let si=0;si<clOB.length-1;si++){
+      const a=clOB[si],b=clOB[si+1];
+      const vx=b.x-a.x,vz=b.z-a.z,sl=Math.hypot(vx,vz)||1;
+      const npx=vz/sl,npz=-vx/sl;
+      const steps=Math.max(2,Math.ceil(sl/6));
+      for(let k=(si===0?0:1);k<=steps;k++){
+        const t=k/steps;
+        obSamples.push({x:a.x+vx*t,z:a.z+vz*t,px:npx,pz:npz});
+      }
+    }
+    const obLineMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.9,side:THREE.DoubleSide});
     for(const sd of[-1,1]){
-      const wl=new THREE.Mesh(new THREE.PlaneGeometry(0.22,TH*0.99),
-        new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.85}));
-      wl.rotation.x=-Math.PI/2;wl.position.set(sd*(TW/2+2.1),0.018,-TH/2);
-      this.scene.add(wl);
+      const pos=[],idx=[];
+      for(let i=0;i<obSamples.length;i++){
+        const s=obSamples[i];
+        const cxp=s.x+s.px*sd*obOff,czp=s.z+s.pz*sd*obOff;
+        const hx=s.px*0.15,hz=s.pz*0.15; // 半幅0.15 → 幅0.3 (戸田基準)
+        const x1=cxp-hx,z1=czp-hz,x2=cxp+hx,z2=czp+hz;
+        pos.push(x1,Math.max(this.getGY(x1,z1),0)+0.06,z1, x2,Math.max(this.getGY(x2,z2),0)+0.06,z2);
+        if(i<obSamples.length-1){const a2=i*2;idx.push(a2,a2+1,a2+2, a2+1,a2+3,a2+2);}
+      }
+      const obGeo=new THREE.BufferGeometry();
+      obGeo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+      obGeo.setIndex(idx);obGeo.computeVertexNormals();
+      this.scene.add(new THREE.Mesh(obGeo,obLineMat));
     }
 
-    // 白杭（14m間隔・立体的）
-    const stk=14,ns2=Math.ceil(TH/stk)+1;
-    for(let s=0;s<ns2;s++){
-      const sz=-(s+0.4)*stk;
-      for(const sx of[-TW/2-2.1,TW/2+2.1]){
+    // 白杭（14m間隔・立体的）— ★線刷新フェーズ1: 白帯と同じ中心線オフセット列に置き、各杭を白帯と同じ高さ基準で接地
+    // (従来は直線配置・固定 y。描画のみ)
+    const stkMatB=new THREE.MeshBasicMaterial({color:0xf9f9f5});
+    const stkMatT=new THREE.MeshBasicMaterial({color:0xffffff});
+    const stkMatS=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.18});
+    const stakePts=[];let stkAcc=0,stkPrev=obSamples[0]||{x:0,z:0,px:1,pz:0};
+    if(obSamples.length)stakePts.push(obSamples[0]);
+    for(let i=1;i<obSamples.length;i++){
+      const s=obSamples[i];
+      stkAcc+=Math.hypot(s.x-stkPrev.x,s.z-stkPrev.z);stkPrev=s;
+      if(stkAcc>=14){stakePts.push(s);stkAcc=0;}
+    }
+    for(const sp of stakePts){
+      for(const sd of[-1,1]){
+        const sx=sp.x+sp.px*sd*obOff,sz=sp.z+sp.pz*sd*obOff;
+        const gy=Math.max(this.getGY(sx,sz),0);
         // 杭本体
         const sb=new THREE.Mesh(
-          new THREE.CylinderGeometry(0.09,0.11,1.38,7),
-          new THREE.MeshBasicMaterial({color:0xf9f9f5}));
-        sb.position.set(sx,0.69,sz);this.scene.add(sb);
+          new THREE.CylinderGeometry(0.09,0.11,1.38,7),stkMatB);
+        sb.position.set(sx,gy+0.69,sz);this.scene.add(sb);
         // 杭頭（丸）
         const st=new THREE.Mesh(
-          new THREE.SphereGeometry(0.14,7,5),
-          new THREE.MeshBasicMaterial({color:0xffffff}));
-        st.position.set(sx,1.44,sz);this.scene.add(st);
+          new THREE.SphereGeometry(0.14,7,5),stkMatT);
+        st.position.set(sx,gy+1.44,sz);this.scene.add(st);
         // 接地影
         const ss=new THREE.Mesh(
-          new THREE.CircleGeometry(0.14,8),
-          new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.18}));
-        ss.rotation.x=-Math.PI/2;ss.position.set(sx,0.004,sz);this.scene.add(ss);
+          new THREE.CircleGeometry(0.14,8),stkMatS);
+        ss.rotation.x=-Math.PI/2;ss.position.set(sx,gy+0.02,sz);this.scene.add(ss);
       }
     }
 
@@ -4723,9 +4771,9 @@ put('earL', J.head, true); put('earR', J.head, true); put('nose', J.head, true);
     this.rainParticles=new THREE.Points(geo,new THREE.PointsMaterial({color:0x88aacc,size:0.28,transparent:true,opacity:0.55}));this.scene.add(this.rainParticles);
   }
   _buildAimViz(){
-    // ---- 方向ライン（破線） ----
+    // ---- 方向ライン（破線）※前方(-Z)へ: 従来は+Z延長でボール後方に引かれていた（ガイドリボンと同種の向き修正） ----
     const pts=[];
-    for(let i=0;i<20;i++){const s=i*3,e=s+2;pts.push(new THREE.Vector3(0,0.25,s),new THREE.Vector3(0,0.25,e));}
+    for(let i=0;i<20;i++){const s=i*3,e=s+2;pts.push(new THREE.Vector3(0,0.25,-s),new THREE.Vector3(0,0.25,-e));}
     this.aimLineMesh=new THREE.LineSegments(
       new THREE.BufferGeometry().setFromPoints(pts),
       new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.80})
@@ -4764,7 +4812,7 @@ put('earL', J.head, true); put('earR', J.head, true); put('nose', J.head, true);
       const mk=(w,color,op)=>{
         const geo=new THREE.PlaneGeometry(w,len);
         geo.rotateX(Math.PI/2); // 丈方向(+Y)を +Z へ倒す
-        geo.translate(0,0,len/2);
+        geo.translate(0,0,-len/2); // 前方(-Z)へ伸ばす: rotation.y=-rad でエイム/ピン方向を向く（従来ラインは+Z延長で逆向きだった）
         const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color,transparent:true,opacity:op,side:THREE.DoubleSide,depthWrite:false}));
         m.renderOrder=5;
         grp.add(m);
@@ -5516,18 +5564,35 @@ put('earL', J.head, true); put('earR', J.head, true); put('nose', J.head, true);
         const x0 = Math.max(1, cx + wb.minX * sX), x1 = Math.min(W - 1, cx + wb.maxX * sX);
         const y0 = Math.max(1, teeY + wb.minZ * sZ), y1 = Math.min(H - 1, teeY + wb.maxZ * sZ);
         if (x1 - x0 < 2 || y1 - y0 < 2) continue;
+        // 有機的な池の形にするため矩形でなく内接楕円で描く（アコーディア図の池表現）
+        const wcx = (x0 + x1) / 2, wcy = (y0 + y1) / 2, wrx = (x1 - x0) / 2, wry = (y1 - y0) / 2;
         ctx.fillStyle = "#2f7fe0";
-        rrPath(x0, y0, x1 - x0, y1 - y0, 3);
+        ctx.beginPath();
+        ctx.ellipse(wcx, wcy, wrx, wry, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = "#e23b3b";
         ctx.lineWidth = 1.4;
         ctx.setLineDash([2.5, 2.5]);
-        rrPath(x0 - 1.5, y0 - 1.5, (x1 - x0) + 3, (y1 - y0) + 3, 4);
+        ctx.beginPath();
+        ctx.ellipse(wcx, wcy, wrx + 1.5, wry + 1.5, 0, 0, Math.PI * 2);
         ctx.stroke();
         ctx.setLineDash([]);
       }
 
-      // バンカー（白抜き+細い土縁）
+      // グリーン（黄緑+細縁+エプロン）
+      ctx.fillStyle = "#a8d95a";
+      ctx.beginPath();
+      ctx.arc(pinMX, pinMY, 9.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#c2e650";
+      ctx.beginPath();
+      ctx.arc(pinMX, pinMY, 7.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#77b01e";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // バンカー（白抜き+細い土縁）※グリーンの後に描く: グリーン脇のバンカーがエプロンに隠れないように
       const bzs = (this._bunkerZones && this._bunkerZones.length) ? this._bunkerZones : ((typeof window !== "undefined" && window._bunkerZones) ? window._bunkerZones : []);
       const seenBz = new Set();
       for (const bz of bzs) {
@@ -5544,19 +5609,6 @@ put('earL', J.head, true); put('earR', J.head, true); put('nose', J.head, true);
         ctx.lineWidth = 0.8;
         ctx.stroke();
       }
-
-      // グリーン（黄緑+細縁+エプロン）
-      ctx.fillStyle = "#a8d95a";
-      ctx.beginPath();
-      ctx.arc(pinMX, pinMY, 9.4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#c2e650";
-      ctx.beginPath();
-      ctx.arc(pinMX, pinMY, 7.6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#77b01e";
-      ctx.lineWidth = 1;
-      ctx.stroke();
 
       // ピンフラッグ（白ポール+赤旗）
       ctx.strokeStyle = "rgba(0,0,0,0.28)";

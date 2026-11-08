@@ -20,7 +20,7 @@
   (function(){
     var TL = new THREE.TextureLoader();
     /* v4.9: アセット版数（boot 層の __GOAT_AV__ と連動）。テクスチャ/GLB の URL に付与する */
-    var AVQ = '?v=' + (window.__GOAT_AV__ || '4.11');
+    var AVQ = '?v=' + (window.__GOAT_AV__ || '4.12');
     function loadTex(name, srgb, rx, ry){
     var t = TL.load('assets/textures/' + name + '.png' + AVQ, function(){
       window.HQW._ready[name] = 1;
@@ -3143,49 +3143,138 @@ scene.remove(m.mesh);
     }
 
     function renderMinimap() {
+      /* アコーディア式エリアマップ（線刷新フェーズ1・ワールド側）:
+         座標・スケール計算（cx, cy, sc）とマーカー位置は従来と完全同一（タップ瞬移の前提）。
+         変えるのは描画スタイルのみで、対戦側ミニマップの作法に統一する:
+         紙面=淡黄緑の放射グラデーション＋斜め刈り目 / 中央広場=フェアウェイ鮮緑＋フリンジ＋落影 /
+         池=飽和青フラット＋赤点線PA / バンカー=純白＋土色の細縁 / 外周=OB白実線 /
+         マーカー=白ハロー＋細縁のフラット注釈（凡例の紫・緑・黄・赤は維持） */
       var W = miniCv.width, H = miniCv.height, cx = W / 2, cy = H / 2, sc = (W * 0.46) / WORLD_R;
       miniCtx.clearRect(0, 0, W, H);
-      miniCtx.fillStyle = "rgba(10, 26, 18, 0.92)";
-      miniCtx.beginPath(); miniCtx.arc(cx, cy, W * 0.48, 0, Math.PI * 2); miniCtx.fill();
-      miniCtx.strokeStyle = "rgba(255,216,117,0.4)"; miniCtx.lineWidth = 1.5; miniCtx.stroke();
+      miniCtx.lineJoin = "round"; miniCtx.lineCap = "round";
 
-      /* 池・バンカー */
-      PONDS.forEach(function (pd) {
-        miniCtx.fillStyle = "rgba(38, 145, 210, 0.75)";
-        miniCtx.beginPath(); miniCtx.arc(cx + pd.x * sc, cy + pd.z * sc, pd.r * sc, 0, Math.PI * 2); miniCtx.fill();
-      });
-      BUNKERS.forEach(function (bk) {
-        miniCtx.fillStyle = "rgba(235, 212, 158, 0.72)";
-        miniCtx.beginPath(); miniCtx.arc(cx + bk.x * sc, cy + bk.z * sc, bk.r * sc, 0, Math.PI * 2); miniCtx.fill();
-      });
-
-      /* 施設・祠・決戦の門 */
-      LANDMARKS.forEach(function (lm) {
-        miniCtx.fillStyle = lm.isGate ? (isDuelGateOpen() ? "#ff4d5a" : "#7c5295") : "#ffd875";
+      /* 紙面（ラフ=淡黄緑）: 円盤にクリップして描く */
+      miniCtx.save();
+      miniCtx.beginPath(); miniCtx.arc(cx, cy, W * 0.48, 0, Math.PI * 2); miniCtx.clip();
+      var bgGrad = miniCtx.createRadialGradient(cx, H * 0.42, 6, cx, cy, W * 0.78);
+      bgGrad.addColorStop(0, "#dff29e");
+      bgGrad.addColorStop(0.65, "#c4e06a");
+      bgGrad.addColorStop(1, "#a9cc4e");
+      miniCtx.fillStyle = bgGrad;
+      miniCtx.fillRect(0, 0, W, H);
+      /* ラフの斜め刈り目（ごく淡い2トーン。作法では刈り目はフェアウェイの表現のため紙面側は弱く） */
+      for (var rs = -H, rk = 0; rs < W + H; rs += 11, rk++) {
+        miniCtx.strokeStyle = (rk % 2 === 0) ? "rgba(255,255,255,0.06)" : "rgba(70,110,20,0.045)";
+        miniCtx.lineWidth = 5.5;
         miniCtx.beginPath();
-        miniCtx.arc(cx + lm.x * sc, cy + lm.z * sc, lm.isGate ? 4.5 : 3.2, 0, Math.PI * 2);
-        miniCtx.fill();
+        miniCtx.moveTo(rs, 0);
+        miniCtx.lineTo(rs + H * 0.55, H);
+        miniCtx.stroke();
+      }
+
+      /* 中央広場=フェアウェイ（落影→フリンジ→鮮緑＋刈り目）。半径16は地形の平坦中央部（terrainY）に対応 */
+      var plazaR = 16 * sc;
+      miniCtx.fillStyle = "rgba(70,100,25,0.25)";
+      miniCtx.beginPath(); miniCtx.arc(cx + 1.2, cy + 1.8, plazaR + 2.5, 0, Math.PI * 2); miniCtx.fill();
+      miniCtx.fillStyle = "#93cf55";
+      miniCtx.beginPath(); miniCtx.arc(cx, cy, plazaR + 2.5, 0, Math.PI * 2); miniCtx.fill();
+      miniCtx.fillStyle = "#57b52b";
+      miniCtx.beginPath(); miniCtx.arc(cx, cy, plazaR, 0, Math.PI * 2); miniCtx.fill();
+      miniCtx.save();
+      miniCtx.beginPath(); miniCtx.arc(cx, cy, plazaR, 0, Math.PI * 2); miniCtx.clip();
+      for (var fs = cx - plazaR * 2, fk = 0; fs < cx + plazaR * 2; fs += 7, fk++) {
+        miniCtx.strokeStyle = (fk % 2 === 0) ? "rgba(255,255,255,0.13)" : "rgba(18,92,12,0.13)";
+        miniCtx.lineWidth = 3.5;
+        miniCtx.beginPath();
+        miniCtx.moveTo(fs, cy - plazaR - 2);
+        miniCtx.lineTo(fs + (plazaR + 2) * 1.1, cy + plazaR + 2);
+        miniCtx.stroke();
+      }
+      miniCtx.restore();
+
+      /* 池（飽和青フラット＋赤点線PA） */
+      PONDS.forEach(function (pd) {
+        var pdx = cx + pd.x * sc, pdy = cy + pd.z * sc, pdr = pd.r * sc;
+        miniCtx.fillStyle = "#2f7fe0";
+        miniCtx.beginPath(); miniCtx.arc(pdx, pdy, pdr, 0, Math.PI * 2); miniCtx.fill();
+        miniCtx.strokeStyle = "#e23b3b"; miniCtx.lineWidth = 1.4;
+        miniCtx.setLineDash([2.5, 2.5]);
+        miniCtx.beginPath(); miniCtx.arc(pdx, pdy, pdr + 1.5, 0, Math.PI * 2); miniCtx.stroke();
+        miniCtx.setLineDash([]);
+      });
+      /* バンカー（純白＋土色の細縁） */
+      BUNKERS.forEach(function (bk) {
+        miniCtx.fillStyle = "#ffffff";
+        miniCtx.beginPath(); miniCtx.arc(cx + bk.x * sc, cy + bk.z * sc, bk.r * sc, 0, Math.PI * 2); miniCtx.fill();
+        miniCtx.strokeStyle = "rgba(196,158,102,0.95)"; miniCtx.lineWidth = 1.0; miniCtx.stroke();
+      });
+
+      /* 外周=OB白実線（ワールド境界 WORLD_R） */
+      miniCtx.strokeStyle = "rgba(255,255,255,0.95)"; miniCtx.lineWidth = 2;
+      miniCtx.beginPath(); miniCtx.arc(cx, cy, WORLD_R * sc, 0, Math.PI * 2); miniCtx.stroke();
+      miniCtx.restore();
+
+      /* 円盤の縁（白フチ＋細い濃緑） */
+      miniCtx.strokeStyle = "#ffffff"; miniCtx.lineWidth = 2;
+      miniCtx.beginPath(); miniCtx.arc(cx, cy, W * 0.48 - 1, 0, Math.PI * 2); miniCtx.stroke();
+      miniCtx.strokeStyle = "rgba(23,83,15,0.55)"; miniCtx.lineWidth = 1;
+      miniCtx.beginPath(); miniCtx.arc(cx, cy, W * 0.48 - 0.5, 0, Math.PI * 2); miniCtx.stroke();
+
+      /* 方位注釈（北＝決戦の門の方角） */
+      miniCtx.font = "bold 9px 'Noto Sans JP', sans-serif";
+      miniCtx.textAlign = "center";
+      miniCtx.fillStyle = "#17530f";
+      miniCtx.fillText("N", cx, cy - W * 0.48 + 11);
+
+      /* 注釈マーカー用ヘルパー（白ハロー＋細い濃縁で、明るい紙面でも判別できるように） */
+      function haloDot(x, y, r, fill, edge) {
+        miniCtx.fillStyle = "#ffffff";
+        miniCtx.beginPath(); miniCtx.arc(x, y, r + 1.7, 0, Math.PI * 2); miniCtx.fill();
+        miniCtx.fillStyle = fill;
+        miniCtx.beginPath(); miniCtx.arc(x, y, r, 0, Math.PI * 2); miniCtx.fill();
+        miniCtx.strokeStyle = edge; miniCtx.lineWidth = 0.9; miniCtx.stroke();
+      }
+
+      /* 施設・祠・決戦の門（門は菱形で区別。開=赤／閉=紫・施設=金は従来どおり） */
+      LANDMARKS.forEach(function (lm) {
+        var lx = cx + lm.x * sc, ly = cy + lm.z * sc;
+        if (lm.isGate) {
+          var gr = 5.2, gc = isDuelGateOpen() ? "#ff4d5a" : "#7c5295";
+          miniCtx.fillStyle = "#ffffff";
+          miniCtx.beginPath();
+          miniCtx.moveTo(lx, ly - gr - 1.8); miniCtx.lineTo(lx + gr + 1.8, ly); miniCtx.lineTo(lx, ly + gr + 1.8); miniCtx.lineTo(lx - gr - 1.8, ly);
+          miniCtx.closePath(); miniCtx.fill();
+          miniCtx.fillStyle = gc;
+          miniCtx.beginPath();
+          miniCtx.moveTo(lx, ly - gr); miniCtx.lineTo(lx + gr, ly); miniCtx.lineTo(lx, ly + gr); miniCtx.lineTo(lx - gr, ly);
+          miniCtx.closePath(); miniCtx.fill();
+          miniCtx.strokeStyle = "rgba(60,10,20,0.55)"; miniCtx.lineWidth = 0.9; miniCtx.stroke();
+        } else {
+          haloDot(lx, ly, 3.2, "#ffd875", "rgba(120,82,0,0.65)");
+        }
       });
 
       /* 残影（未浄化：紫、浄化済：緑） */
       MOBS.forEach(function (m) {
-        miniCtx.fillStyle = m.purified ? "#44e587" : "#c56cf0";
-        miniCtx.beginPath();
-        miniCtx.arc(cx + m.x * sc, cy + m.z * sc, m.purified ? 3.0 : 3.8, 0, Math.PI * 2);
-        miniCtx.fill();
+        if (m.purified) haloDot(cx + m.x * sc, cy + m.z * sc, 3.0, "#44e587", "rgba(10,90,40,0.7)");
+        else haloDot(cx + m.x * sc, cy + m.z * sc, 3.8, "#c56cf0", "rgba(74,20,110,0.7)");
       });
 
       /* 主人公と視線コーン */
       var px = cx + player.x * sc, pz = cy + player.z * sc;
-      miniCtx.fillStyle = "rgba(255, 255, 255, 0.22)";
+      miniCtx.fillStyle = "rgba(255, 255, 255, 0.5)";
       miniCtx.beginPath();
       miniCtx.moveTo(px, pz);
       miniCtx.arc(px, pz, 13, Math.PI * 0.5 - player.rotY - 0.42, Math.PI * 0.5 - player.rotY + 0.42);
       miniCtx.closePath();
       miniCtx.fill();
+      miniCtx.strokeStyle = "rgba(23,83,15,0.5)"; miniCtx.lineWidth = 1; miniCtx.stroke();
 
       miniCtx.fillStyle = "#ffffff";
       miniCtx.beginPath(); miniCtx.arc(px, pz, 4.0, 0, Math.PI * 2); miniCtx.fill();
+      miniCtx.strokeStyle = "#17530f"; miniCtx.lineWidth = 1.6; miniCtx.stroke();
+      miniCtx.fillStyle = "#17530f";
+      miniCtx.beginPath(); miniCtx.arc(px, pz, 1.5, 0, Math.PI * 2); miniCtx.fill();
     }
 
     /* メインゲームループ */

@@ -5,19 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>BATTLE OF GOLF - GOAT | 3D Golf Battle v4.11 | WebGL版</title>
+<title>BATTLE OF GOLF - GOAT | 3D Golf Battle v4.12 | WebGL版</title>
 
 <script type="importmap">
 {"imports":{
- "three": "./assets/lib/r180/three.module.js?v=4.11",
- "three/webgpu": "./assets/lib/r180/three.webgpu.js?v=4.11",
- "three/tsl": "./assets/lib/r180/three.tsl.js?v=4.11",
+ "three": "./assets/lib/r180/three.module.js?v=4.12",
+ "three/webgpu": "./assets/lib/r180/three.webgpu.js?v=4.12",
+ "three/tsl": "./assets/lib/r180/three.tsl.js?v=4.12",
  "three/addons/": "./assets/lib/r180/addons/",
- "three/addons/loaders/GLTFLoader.js": "./assets/lib/r180/addons/loaders/GLTFLoader.js?v=4.11",
- "three/addons/libs/meshopt_decoder.module.js": "./assets/lib/r180/addons/libs/meshopt_decoder.module.js?v=4.11"
+ "three/addons/loaders/GLTFLoader.js": "./assets/lib/r180/addons/loaders/GLTFLoader.js?v=4.12",
+ "three/addons/libs/meshopt_decoder.module.js": "./assets/lib/r180/addons/libs/meshopt_decoder.module.js?v=4.12"
 }}
 </script>
-<script type="module" src="assets/lib/r180/bootstrap-golf.js?v=4.11"></script>
+<script type="module" src="assets/lib/r180/bootstrap-golf.js?v=4.12"></script>
 </head>
 <body>
 
@@ -1864,6 +1864,49 @@ html,body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidd
   body:has(#shootBtn.putt-mode) #puttTargetPinMarker { top: 0; bottom: 0; }
 }
 
+</style>
+
+<style>
+/* ===== v4.12 本番反映: 続編5 パターンC「操作クラスタ縦拡張型」v3 (スマホ・情報バーが出ない対戦のみ) =====
+   SHOTボタンとサブボタンに高さ指定が効かなかった原因は、両要素の transition:all が
+   ゲーム側の毎フレーム更新で高さ遷移を再開し続けていたこと (診断10で確定)。
+   transition:none + flex:none を併記して即時反映させる。:active の縮小演出は
+   アニメーションなしで即時に出る形になる (見た目の差はごく小さい)。
+   考え方は v2 と同じ: 操作バー自体を 74→143px に縦拡張し、予約席69pxを
+   操作部品そのもので埋める。バー上端は現行と同じ位置に保ち、コース可視
+   (操作バーより上) は減らさない。 */
+@media (max-width: 640px) {
+  body:not(.goat-duel) #shotUI {
+    bottom: 0 !important;
+    height: 143px !important;
+    padding: 10px 12px !important;
+  }
+  body:not(.goat-duel) #centerControls #shootBtn:not(.putt-mode) {
+    height: 64px !important;
+    flex: none !important;
+    transition: none !important;
+    font-size: 1.05rem !important;
+    border-radius: 20px !important;
+  }
+  body:not(.goat-duel) #powerRow {
+    height: 28px !important;
+    flex-shrink: 0 !important;
+  }
+  body:not(.goat-duel) #rightControls .compact-sub-btn {
+    width: 56px !important;
+    height: 36px !important;
+    flex: none !important;
+    transition: none !important;
+    font-size: 0.6rem !important;
+    padding: 3px 4px !important;
+  }
+  body:not(.goat-duel) #leftControls .compact-club-box { padding: 6px 4px !important; }
+  body:not(.goat-duel) #leftControls button { min-height: 40px !important; }
+  /* パット時: 大きくなったバーに合わせて「ラインを確認」ヒントを上へ逃がす */
+  body:not(.goat-duel):has(#shootBtn.putt-mode) #puttLineHint {
+    bottom: calc(var(--sui-h, 74px) + 148px) !important;
+  }
+}
 </style>
 </body>
 </html>
