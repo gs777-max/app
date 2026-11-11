@@ -29,6 +29,7 @@ nav{margin-left:auto; display:flex; gap:4px}
 nav a{color:#e9e4d2; text-decoration:none; font-size:13px; font-weight:700; padding:10px 12px; border-radius:6px}
 nav a:hover{background:rgba(255,255,255,.12)}
 @media(max-width:640px){ nav a{padding:10px 7px; font-size:12px} .brand{font-size:16px} }
+@media(max-width:640px){ .head-in{flex-wrap:wrap; gap:6px} nav{width:100%; margin-left:0; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch} nav a{display:inline-block; white-space:nowrap} form.panel{top:118px} }
 /* hero */
 .hero{background:var(--pine); color:#f5f1e3; position:relative; overflow:hidden}
 .hero::after{content:""; position:absolute; inset:0; opacity:.16; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='300' viewBox='0 0 720 300'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='1.4'%3E%3Cpath d='M-20 250 C150 190 260 280 420 220 S660 150 760 190'/%3E%3Cpath d='M-20 215 C150 155 270 245 430 185 S665 115 760 155'/%3E%3Cpath d='M-20 180 C160 120 285 210 445 150 S670 80 760 120'/%3E%3Cpath d='M-20 145 C170 85 300 175 460 115 S675 45 760 85'/%3E%3Ccircle cx='560' cy='92' r='26'/%3E%3Ccircle cx='560' cy='92' r='12'/%3E%3C/g%3E%3C/svg%3E"); background-size:cover; background-position:center}
@@ -129,8 +130,12 @@ th,td{border:1px solid var(--line); padding:9px 10px; text-align:left}
 th{background:var(--cream); font-size:12px; letter-spacing:.06em}
 .section{margin-top:26px}
 .section h2{font-size:20px; margin:0 0 10px}
-.sticky-bar{position:fixed; left:0; right:0; bottom:0; z-index:60; background:rgba(255,253,246,.97); border-top:1.5px solid var(--line); padding:10px 14px calc(10px + env(safe-area-inset-bottom)); display:none; gap:10px; transform:translateY(110%); transition:transform .25s ease}
-.sticky-bar.show{transform:none}
+.sticky-bar{position:fixed; left:0; right:0; bottom:0; z-index:60; background:rgba(255,253,246,.97); border-top:1.5px solid var(--line); padding:10px 14px calc(10px + env(safe-area-inset-bottom)); display:none; gap:10px}
+.btn-dirty{background:var(--gold) !important; color:var(--pine2) !important; border-color:var(--gold-d) !important}
+.cond-chips-head{font-weight:900; font-size:13.5px; margin:2px 0 8px}
+.cond-chips{display:flex; flex-wrap:wrap; gap:6px}
+.cond-chip{display:inline-block; font-size:12px; font-weight:700; border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:4px 10px}
+.cond-chip.changed{background:var(--gold); border-color:var(--gold-d); color:var(--pine2); font-weight:900}
 .sticky-bar .btn{flex:1}
 @media(max-width:920px){ .sticky-bar{display:flex} footer{padding-bottom:140px} }
 footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); font-size:12px}
@@ -378,9 +383,11 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
         <span class="small">変更すると即座に並び替わります</span>
       </div>
       <div class="summary-bar" id="summary-bar"><span>条件を入れて「この条件で探す」を押してください</span></div>
-      <div class="demo-note"><b>表示について：</b> 結果は条件にマッチする順（<b>割安順 → 車の移動時間が短い順 → コース総距離が長い順 → 難易度が高い順</b>）に並べ、<b>上位5件まで</b>を表示します。同一サイトのプランは1コースあたり最大3件まで表示し、残りは「その他 N件あり」と表示します。該当プランが5件を超える場合は、対象コースとプラン名をすべて挙げた「全件リスト」を下に表示します（料金・空きが未検証のものは「要確認」）。下記のプランは表示ルール確認用のデモデータです。実際の料金・空きは各予約サイトで最終確認してください。</div>
+      <div class="panel" style="padding:12px 14px; margin-bottom:14px" id="cond-chips"><span class="small">検索すると、ここに検索した条件が表示されます（再検索時は、前回から変えた条件が色付きで分かります）</span></div>
+      <div class="demo-note"><b>表示について：</b> 結果は条件にマッチする順（<b>割安順 → 車の移動時間が短い順 → コース総距離が長い順 → 難易度が高い順</b>）に並べ、<b>上位5件まで</b>を表示します。同一サイトのプランは1コースあたり最大3件まで表示し、残りは「その他 N件あり」と表示します。該当プランが5件を超える場合は、対象コースとプラン名をすべて挙げた「全件リスト」を下に表示します（料金・空きが未検証のものは「要確認」）。「予約へ」は各コース専用の予約ページ（通常予約はその月のカレンダー、一人予約は一人予約の検索結果）へ直接移動します。下記のプランは表示ルール確認用のデモデータです。実際の料金・空きは各予約サイトで最終確認してください。</div>
       <div id="result-list"></div>
       <div id="full-list"></div>
+      <div id="toda-note"></div>
     </section>
 
     <section class="section" id="watch" aria-label="特別監視コース">
@@ -444,7 +451,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
 </footer>
 
 <div class="sticky-bar">
-  <button type="button" class="btn btn-main" style="margin:0" onclick="document.getElementById('btn-search').click()">この条件で探す</button>
+  <button type="button" class="btn btn-main" style="margin:0" id="btn-search-sticky" onclick="document.getElementById('btn-search').click()">この条件で探す</button>
   <a class="btn btn-sub" href="#results">結果を見る</a>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -469,9 +476,9 @@ const COURSES = [
    {site:"楽天GORA", plan:"平日セルフ 2B保証", start:"8:20", price:10800, lunch:"込み", guarantee:"2B保証", slots:2, url:"https://booking.gora.golf.rakuten.co.jp/"},
    {site:"コース公式", plan:"公式セルフ 2B保証", start:"8:40", price:10300, lunch:"込み", guarantee:"2B保証", slots:3, url:"https://booking.gora.golf.rakuten.co.jp/"} ]},
  {name:"皆川城カントリークラブ", area:"栃木・栃木市", pref:"栃木", drive:80, yard:6650, rating:71.9, par:72, holes:18, features:["乗用カート","ナビ付きカート"], plans:[
-   {site:"コース公式", plan:"午後スルー 一人予約", start:"12:30", price:8990, tags:["スループレー","午後スルー"], lunch:"なし", guarantee:"一人予約", slots:1, holes:"9plus", url:"https://booking.pacificgolf.co.jp/"},
+   {site:"コース公式", plan:"午後スルー 一人予約", start:"12:30", price:8990, tags:["スループレー","午後スルー"], lunch:"なし", guarantee:"一人予約", slots:1, holes:"9plus", url:"https://reserve.accordiagolf.com/"},
    {site:"楽天GORA", plan:"セルフ 昼食付", start:"8:05", price:9490, tags:["withGolf"], lunch:"込み", guarantee:"3B保証", slots:5, url:"https://booking.gora.golf.rakuten.co.jp/"},
-   {site:"PGM公式", plan:"セルフ 昼食付", start:"8:12", price:9290, lunch:"込み", guarantee:"3B保証", slots:5, url:"https://booking.pacificgolf.co.jp/"} ]},
+   {site:"アコーディア公式", plan:"セルフ 昼食付", start:"8:12", price:9290, lunch:"込み", guarantee:"3B保証", slots:5, url:"https://reserve.accordiagolf.com/"} ]},
  {name:"アジア取手カントリー倶楽部", area:"茨城・取手市", pref:"茨城", drive:55, yard:6402, rating:70.8, par:72, holes:18, features:["乗用カート","クラブバス送迎","駅が近い"], plans:[
    {site:"楽天GORA", plan:"セルフ 2サム保証", start:"7:40", price:9800, lunch:"込み", guarantee:"2B保証", slots:6, url:"https://booking.gora.golf.rakuten.co.jp/"} ]},
  {name:"戸田パブリックゴルフコース", area:"埼玉・戸田市", pref:"埼玉", drive:35, yard:5960, rating:69.4, par:72, holes:18, features:["クラブバス送迎","駅が近い","IC近く"], plans:[
@@ -488,12 +495,40 @@ const COURSES = [
  {name:"TBC太陽クラブ", area:"栃木・小山市", pref:"栃木", drive:80, yard:1505, rating:0, par:29, holes:9, short:true, features:[], plans:[
    {site:"楽天GORA", plan:"18H表示プラン", start:"8:00", price:6000, lunch:"込み", guarantee:"", slots:5, url:"https://booking.gora.golf.rakuten.co.jp/"} ]}
 ];
+const COURSE_IDS={
+ "大平台カントリー倶楽部":{gora:"90017", accordia:"009"},
+ "かすみがうらゴルフクラブ":{gora:"80027", accordiaSlug:"ibaraki/kasumigaura", gdo:"311303"},
+ "ヘリテイジゴルフコース":{gora:"110080"},
+ "皆川城カントリークラブ":{gora:"90118", accordiaSlug:"tochigi/minagawajo", gdo:"326201", jalan:"00518"},
+ "アジア取手カントリー倶楽部":{gora:"80004"},
+ "戸田パブリックゴルフコース":{gora:"1248", golferweb:"5089"},
+ "石岡ゴルフ倶楽部":{gora:"80007", pgm:"167"},
+ "取手桜が丘ゴルフクラブ":{gora:"80103", accordia:"141", gdo:"315305"},
+ "習志野カントリークラブ":{accordia:"012", gdo:"354102"}
+};
+const PGM_CCNAME={"167":"ＰＧＭ石岡ゴルフクラブ"};
+function pgmSoloUrl(ccId){ const n=PGM_CCNAME[ccId]; return n? `https://booking.pacificgolf.co.jp/?/p/supersearch.index/dates/1/max/50000/lesson/1/ccname/${encodeURIComponent(n)}/extraDay/60/flag_single_booking/1/` : null; }
+function bookingUrl(course, p, cond){
+ const ids=COURSE_IDS[course.name]||{};
+ const solo=p.guarantee==="一人予約";
+ const gora=()=> ids.gora? (solo? `https://search.gora.golf.rakuten.co.jp/?menu=srch_solo&act=disp&c_id=${ids.gora}&order=play_day#search_result` : `https://search.gora.golf.rakuten.co.jp/cal/disp/c_id/${ids.gora}`) : null;
+ const pgm=()=>{ if(!ids.pgm) return null; if(solo){ const u=pgmSoloUrl(ids.pgm); if(u) return u; } return `https://booking.pacificgolf.co.jp/?p=guide.coursecalendar&cc_id=${ids.pgm}`; };
+ const acc=()=>{ if(ids.accordia) return solo? `https://reserve.accordiagolf.com/search/solo/?/sort/20/gname/${encodeURIComponent(course.name)}/gid/${ids.accordia}/exflpl/1` : `https://reserve.accordiagolf.com/settingCourseAndTime/?gid=${ids.accordia}`; if(ids.accordiaSlug) return `https://reserve.accordiagolf.com/golfCourse/${ids.accordiaSlug}/`; return null; };
+ let u=null;
+ if(p.site==="楽天GORA") u=gora();
+ else if(p.site==="GDO") u=ids.gdo? `https://reserve.golfdigest.co.jp/golf-course/${ids.gdo}/calendar/` : null;
+ else if(p.site==="じゃらんゴルフ") u=ids.jalan? `https://golf-jalan.net/gc${ids.jalan}/` : null;
+ else if(p.site==="PGM公式") u=pgm();
+ else if(p.site==="アコーディア公式") u=acc();
+ else if(p.site==="コース公式"){ if(ids.golferweb) u=`https://www.golferweb.jp/login_wing.php?g_no=${ids.golferweb}`; else u=pgm()||acc()||gora(); }
+ return u||p.url;
+}
 const SITE_SEARCH = {
  "楽天GORA":"https://search.gora.golf.rakuten.co.jp/",
  "PGM公式":"https://www.pacificgolf.co.jp/index.asp",
  "アコーディア公式":"https://reserve.accordiagolf.com/",
  "GDO":"https://reserve.golfdigest.co.jp/",
- "じゃらんゴルフ":"https://golf.jalan.net/",
+ "じゃらんゴルフ":"https://golf-jalan.net/",
  "バリューゴルフ":"https://www.valuegolf.co.jp/",
  "コース公式":""
 };
@@ -567,7 +602,8 @@ function loadForm(){
   if(d.excludeTags) document.querySelectorAll("#f-d-exclude .chip").forEach(c=>c.setAttribute("aria-pressed", d.excludeTags.includes(c.dataset.x)));
  }catch(e){ /* ignore */ }
 }
-["change","input"].forEach(ev=>document.querySelector("form.panel").addEventListener(ev, saveForm));
+["change","input"].forEach(ev=>document.querySelector("form.panel").addEventListener(ev, ()=>{ saveForm(); refreshDirty(); }));
+document.querySelector("form.panel").addEventListener("click", ()=>setTimeout(()=>{ saveForm(); refreshDirty(); },60));
 
 /* ---- weather & sunset (Open-Meteo, 登録不要・無料) ---- */
 async function loadWeather(){
@@ -663,7 +699,7 @@ function holesOk(p, cond){ const ph=p.holes||"18"; if(cond.holes==="18") return 
 const SITE_ABBR={"楽天GORA":"楽天","PGM公式":"PGM","アコーディア公式":"アコーディア","GDO":"GDO","じゃらんゴルフ":"じゃらん","バリューゴルフ":"バリュー","コース公式":"公式"};
 function siteAbbr(site){ return SITE_ABBR[site]||site; }
 function fmtDateStr(v){ if(!v) return ""; const parts=v.split("-").map(Number); if(parts.length!==3||!parts[0]) return v; const wd="日月火水木金土"[new Date(parts[0],parts[1]-1,parts[2]).getDay()]; return `${parts[0]}/${String(parts[1]).padStart(2,"0")}/${String(parts[2]).padStart(2,"0")}（${wd}）`; }
-function planHTML(p, isBest, minOfficial, nearMode){
+function planHTML(p, isBest, minOfficial, nearMode, course, cond){
  const dateBadge=`<span class="date-badge">${fmtDateStr($("f-date").value)}</span>`;
  const siteBadge=`<span class="badge-site">${siteAbbr(p.site)}</span>`;
  const missBadges=(nearMode && p._miss && p._miss.length)? `<div class="plan-tags" style="margin-top:3px">${p._miss.map(m=>`<span class="miss-badge">${m}</span>`).join("")}</div>` : "";
@@ -677,7 +713,7 @@ function planHTML(p, isBest, minOfficial, nearMode){
   <div class="plan-main"><div class="plan-name">${dateBadge} ${siteBadge} ${p.plan} ${isBest?'<span class="badge badge-best">このサイト最安</span>':""}${official?'<span class="badge badge-official">公式が最安</span>':""}${warn}</div>
   <div class="plan-tags">${tags.map(t=>`<span>${t}</span>`).join("")}</div>${missBadges}</div>
   <div class="plan-price"><span class="yen">${yen(p.price)}</span><br><span class="per">1人・総額</span></div>
-  <a class="book-btn" href="${p.url}" target="_blank" rel="noopener">予約へ</a></div>`;
+  <a class="book-btn" href="${course?bookingUrl(course,p,cond):p.url}" title="${siteAbbr(p.site)}・${course?course.name:""}の予約ページへ" target="_blank" rel="noopener">予約へ</a></div>`;
 }
 function courseHTML(c, cond, matched, nearMode){
  const bySite={};
@@ -690,8 +726,8 @@ function courseHTML(c, cond, matched, nearMode){
  Object.keys(bySite).sort().forEach(site=>{
    const arr=bySite[site]; const show=arr.slice(0,PLAN_LIMIT); const rest=arr.length-show.length;
    const uid="x"+Math.random().toString(36).slice(2,9);
-   siteBlocks+=`<div class="site-block"><div class="site-name" title="${site}">${siteAbbr(site)}</div>${show.map((p,i)=>planHTML(p,i===0,minOfficial,nearMode)).join("")}`;
-   if(rest>0) siteBlocks+=`<div class="extra" id="${uid}" style="display:none">${arr.slice(PLAN_LIMIT).map(p=>planHTML(p,false,minOfficial,nearMode)).join("")}</div><button type="button" class="more-btn" onclick="toggleExtra('${uid}',this)" data-rest="${rest}">その他 ${rest}件あり（タップで表示）</button>`;
+   siteBlocks+=`<div class="site-block"><div class="site-name" title="${site}">${siteAbbr(site)}</div>${show.map((p,i)=>planHTML(p,i===0,minOfficial,nearMode,c,cond)).join("")}`;
+   if(rest>0) siteBlocks+=`<div class="extra" id="${uid}" style="display:none">${arr.slice(PLAN_LIMIT).map(p=>planHTML(p,false,minOfficial,nearMode,c,cond)).join("")}</div><button type="button" class="more-btn" onclick="toggleExtra('${uid}',this)" data-rest="${rest}">その他 ${rest}件あり（タップで表示）</button>`;
    siteBlocks+="</div>";
  });
  return `<article class="course${c.watch?' watch':''}${nearMode?' near':''}">
@@ -710,6 +746,43 @@ function renderCompare(){
  const box=$("compare-box"); if(!compareSet.size){ box.innerHTML='<p class="empty">まだ比較対象が選ばれていません</p>'; return; }
  const rows=allCourses().filter(c=>compareSet.has(c.name));
  box.innerHTML=`<table><tr><th>コース</th><th>最安（1人）</th><th>車</th><th>総距離</th><th>難易度</th></tr>${rows.map(c=>`<tr><td><b>${c.name}</b><br><span class="small">${c.area}</span></td><td>${yen(Math.min(...c.plans.map(p=>p.price)))}</td><td>約${c.drive}分</td><td>${c.yard.toLocaleString()}Y</td><td>${c.rating||"—"}</td></tr>`).join("")}</table>`;
+}
+
+/* ---- search-condition chips (再検索で変えた条件が分かる表示) ---- */
+let lastChips=null, searchCount=0;
+function condChips(cond){
+ const chips=[];
+ chips.push(["日付", fmtDateStr(cond.date)||"未指定"]);
+ chips.push(["人数", cond.players+"名"]);
+ chips.push(["予算", (cond.budget>=999999?"制限なし":"〜"+yen(cond.budget))+(cond.budgetMin>0?"（下限 "+yen(cond.budgetMin)+"）":"")]);
+ chips.push(["出発", $("f-from").value||"東浦和駅"]);
+ chips.push(["車", cond.drive>=999?"制限なし":"〜"+cond.drive+"分"]);
+ chips.push(["エリア", cond.areas.length?cond.areas.join("・"):"全エリア"]);
+ chips.push(["ホール", cond.holes==="18"?"18Hのみ":cond.holes==="18plus"?"18H / 9H+α":"指定なし"]);
+ chips.push(["昼食", cond.lunch==="incl"?"込み必須":cond.lunch==="subsidy"?"補助あり":"指定なし"]);
+ chips.push(["保証", cond.guarantee.length?cond.guarantee.join("・"):"指定なし"]);
+ chips.push(["時間帯", cond.hours.length?cond.hours.map(h=>h<=6?"〜6時台":h>=11?"11時台〜":h+"時台").join("・"):"指定なし"]);
+ chips.push(["種別", cond.type==="solo"?"1人予約":cond.type==="withgolf"?"withGolf":"通常予約"]);
+ if(cond.detailTags.length) chips.push(["詳細条件", cond.detailTags.length+"件"]);
+ if(cond.excludeTags.length) chips.push(["除外条件", cond.excludeTags.join("・")]);
+ if(cond.courseName) chips.push(["コース名", cond.courseName]);
+ if(cond.hideFull) chips.push(["満員", "除外する"]);
+ return chips;
+}
+function renderCondChips(cond){
+ searchCount++;
+ const chips=condChips(cond);
+ const prev=lastChips? new Map(lastChips): null;
+ const now=new Date(); const hhmm=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+ $("cond-chips").innerHTML=`<div class="cond-chips-head">${searchCount>1?`再検索の条件（${searchCount}回目・${hhmm}）`:`検索条件（${hhmm}）`}${prev?` <span class="small">色付きのチップは前回から変えた条件です</span>`:""}</div><div class="cond-chips">${chips.map(([k,v])=>{ const ch=prev&&prev.get(k)!==v; return `<span class="cond-chip${ch?" changed":""}">${k}：${v}${ch?"（変更）":""}</span>`; }).join("")}</div>`;
+ lastChips=chips;
+}
+/* ---- dirty tracking: 条件を変えたら検索ボタンが知らせる ---- */
+let lastFormJSON="";
+function currentFormJSON(){ try{ return localStorage.getItem("ff_form")||""; }catch(e){ return ""; } }
+function refreshDirty(){
+ const dirty=!!lastFormJSON && currentFormJSON()!==lastFormJSON;
+ ["btn-search","btn-search-sticky"].forEach(id=>{ const b=$(id); if(!b) return; b.textContent=dirty?"条件が変わりました・再検索する":"この条件で探す"; b.classList.toggle("btn-dirty", dirty); });
 }
 
 /* ---- main search ---- */
@@ -766,8 +839,25 @@ async function runSearch(scroll=true){
  } else { $("full-list").innerHTML=""; }
  const cheapest= total? Math.min(...matchedCourses.map(m=>m.minPrice)) : null;
  $("summary-bar").innerHTML=`<span>プレー日 <b>${cond.date?fmtDateStr(cond.date):"未指定"}</b></span><span>人数 <b>${cond.players}名</b></span><span>予算 <b>${cond.budget>=999999?"制限なし":"〜"+yen(cond.budget)}</b></span>${cheapest?`<span>最安 <b>${yen(cheapest)}</b></span>`:""}<span>${wx}</span>`;
+ renderCondChips(cond); renderTodaNote(cond, matchedCourses, nearCourses);
  renderWatch(cond); renderCompare(); renderSiteLinks(cond);
+ lastFormJSON=currentFormJSON(); refreshDirty();
  if(scroll) $("results").scrollIntoView({behavior:"smooth"});
+}
+function renderTodaNote(cond, matchedCourses, nearCourses){
+ const toda=allCourses().find(c=>c.name==="戸田パブリックゴルフコース");
+ let html="";
+ if(toda){
+  const shownNow=matchedCourses.some(m=>m.c.name===toda.name)||nearCourses.some(m=>m.c.name===toda.name);
+  const inScope=!cond.courseName||toda.name.includes(cond.courseName)||cond.courseName.includes("戸田");
+  const areaOk=!cond.areas.length||cond.areas.includes(toda.pref);
+  const notExcluded=!cond.exclude.some(x=>toda.name.includes(x));
+  const siteOk=cond.sites.includes("楽天GORA")||cond.sites.includes("コース公式");
+  if(!shownNow&&inScope&&areaOk&&notExcluded&&siteOk){
+   html=`<div class="panel" style="padding:14px 16px; margin-bottom:14px"><b>戸田パブリックゴルフコース：該当0件</b><br><span class="small">${fmtDateStr(cond.date)} の条件に合う戸田パブリックのプランはありませんでした（アプリ内データでの判定です。実際の空きは <a href="https://www.golferweb.jp/login_wing.php?g_no=5089" target="_blank" rel="noopener">golferweb の戸田パブリック専用ページ</a> で、通常予約・一人予約ともご確認ください）。</span></div>`;
+  }
+ }
+ $("toda-note").innerHTML=html;
 }
 function renderWatch(cond){
  const rows=[];
@@ -806,9 +896,7 @@ $("btn-add").addEventListener("click",()=>{
 ["f-watch-price","f-watch-list","f-date"].forEach(id=>$(id).addEventListener("change",()=>runSearch(false)));
 $("f-sort").addEventListener("change",()=>{ saveForm(); runSearch(false); });
 
-/* ---- sticky bar: スクロール後にだけ出す（初期表示で入力欄に重ならないように） ---- */
-const stickyBar=document.querySelector(".sticky-bar");
-addEventListener("scroll",()=>{ stickyBar.classList.toggle("show", scrollY>260); },{passive:true});
+/* ---- sticky bar: モバイルでは常時表示（②改善： パネル内スクロールでも押せるように） ---- */
 
 /* ---- init ---- */
 loadForm(); genAIText && ($("ai-text").value="");
