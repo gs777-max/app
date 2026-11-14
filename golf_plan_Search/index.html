@@ -11,7 +11,7 @@
 :root{
   --pine:#0d3b2e; --pine2:#0a2e23; --fairway:#17604a; --cream:#f7f4ec; --paper:#fffdf6;
   --ink:#17251f; --sub:#5c6a63; --gold:#c8a24a; --gold-d:#a8842f; --line:#ddd6c4;
-  --red:#b3402a; --radius:10px;
+  --red:#a03520; --radius:10px;
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth; scroll-padding-top:84px; scroll-padding-bottom:110px}
@@ -31,10 +31,10 @@ nav a:hover{background:rgba(255,255,255,.12)}
 @media(max-width:640px){ nav a{padding:10px 7px; font-size:12px} .brand{font-size:16px} }
 @media(max-width:640px){ .head-in{flex-wrap:wrap; gap:6px} nav{width:100%; margin-left:0; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch} nav a{display:inline-block; white-space:nowrap} form.panel{top:118px} }
 /* hero */
-.hero{background:var(--pine); color:#f5f1e3; position:relative; overflow:hidden}
+.hero{background:var(--pine); background:radial-gradient(120% 95% at 50% 0%, #15503d 0%, var(--pine) 58%, var(--pine2) 100%); color:#f5f1e3; position:relative; overflow:hidden; border-bottom:1px solid rgba(200,162,74,.55)}
 .hero::after{content:""; position:absolute; inset:0; opacity:.16; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='300' viewBox='0 0 720 300'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='1.4'%3E%3Cpath d='M-20 250 C150 190 260 280 420 220 S660 150 760 190'/%3E%3Cpath d='M-20 215 C150 155 270 245 430 185 S665 115 760 155'/%3E%3Cpath d='M-20 180 C160 120 285 210 445 150 S670 80 760 120'/%3E%3Cpath d='M-20 145 C170 85 300 175 460 115 S675 45 760 85'/%3E%3Ccircle cx='560' cy='92' r='26'/%3E%3Ccircle cx='560' cy='92' r='12'/%3E%3C/g%3E%3C/svg%3E"); background-size:cover; background-position:center}
 .hero-in{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:34px 16px 30px}
-.hero h1{font-size:clamp(26px,5vw,42px); margin:0 0 8px; font-weight:800; letter-spacing:.04em}
+.hero h1{font-size:clamp(26px,5vw,42px); margin:0 0 8px; font-weight:800; letter-spacing:.04em; text-shadow:0 2px 14px rgba(0,0,0,.30)}
 .hero p{margin:0; color:#d9d2ba; font-size:14px; max-width:640px}
 .hero .meta{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
 .hero .meta span{border:1px solid rgba(255,255,255,.4); padding:4px 10px; border-radius:999px; font-size:12px}
@@ -61,7 +61,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fairway); outline:3px
 .chips{display:flex; flex-wrap:wrap; gap:8px}
 .chip{border:1.5px solid #c9c2ab; background:#fff; border-radius:999px; padding:9px 14px; min-height:44px; font-size:13.5px; font-weight:700; color:var(--ink)}
 .chip[aria-pressed=true]{background:var(--pine); border-color:var(--pine); color:#fff}
-.chip.gold[aria-pressed=true]{background:var(--gold-d); border-color:var(--gold-d)}
+.chip.gold[aria-pressed=true]{background:var(--gold-d); border-color:var(--gold-d); color:#231a02}
 .seg{display:flex; border:1.5px solid #c9c2ab; border-radius:8px; overflow:hidden}
 .seg button{flex:1; min-height:48px; border:none; background:#fff; font-weight:700; font-size:13.5px; padding:6px 4px}
 .seg button[aria-pressed=true]{background:var(--pine); color:#fff}
@@ -83,7 +83,8 @@ summary{cursor:pointer; font-weight:900; font-size:13px; letter-spacing:.12em; c
 .summary-bar{background:var(--pine); color:#f0ebd8; border-radius:var(--radius); padding:12px 16px; display:flex; flex-wrap:wrap; gap:8px 22px; font-size:13.5px; margin:10px 0 16px}
 .summary-bar b{color:#fff; font-size:16px}
 .demo-note{background:#fdf6dd; border:1px solid var(--gold); border-radius:8px; padding:10px 14px; font-size:12.5px; margin-bottom:16px}
-.course{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:18px; overflow:hidden}
+.course{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:18px; overflow:hidden; box-shadow:0 1px 2px rgba(13,59,46,.07), 0 10px 28px rgba(13,59,46,.08); transition:transform .18s ease, box-shadow .18s ease}
+@media (hover:hover){ .course:hover{transform:translateY(-2px); box-shadow:0 2px 4px rgba(13,59,46,.08), 0 16px 34px rgba(13,59,46,.13)} }
 .course-head{padding:14px 16px 10px; border-bottom:2px solid var(--pine); display:flex; flex-wrap:wrap; gap:6px 14px; align-items:baseline}
 .course-head h3{margin:0; font-size:19px}
 .course-head .area{color:var(--sub); font-size:13px}
@@ -134,7 +135,7 @@ th,td{border:1px solid var(--line); padding:9px 10px; text-align:left}
 th{background:var(--cream); font-size:12px; letter-spacing:.06em}
 .section{margin-top:26px}
 .section h2{font-size:20px; margin:0 0 10px}
-.sticky-bar{position:fixed; left:0; right:0; bottom:0; z-index:60; background:rgba(255,253,246,.97); border-top:1.5px solid var(--line); padding:10px 14px calc(10px + env(safe-area-inset-bottom)); display:none; gap:10px}
+.sticky-bar{position:fixed; left:0; right:0; bottom:0; z-index:60; background:rgba(255,253,246,.97); border-top:1.5px solid var(--line); box-shadow:0 -6px 18px rgba(13,59,46,.14); padding:10px 14px calc(10px + env(safe-area-inset-bottom)); display:none; gap:10px}
 .btn-dirty{background:var(--gold) !important; color:var(--pine2) !important; border-color:var(--gold-d) !important}
 .cond-chips-head{font-weight:900; font-size:13.5px; margin:2px 0 8px}
 .cond-chips{display:flex; flex-wrap:wrap; gap:6px}
@@ -144,9 +145,18 @@ th{background:var(--cream); font-size:12px; letter-spacing:.06em}
 @media(max-width:920px){ .sticky-bar{display:flex; padding:8px 14px calc(8px + env(safe-area-inset-bottom))} .sticky-bar .btn{min-height:48px} footer{padding-bottom:150px} html{scroll-padding-bottom:150px} form.panel{scroll-padding-bottom:150px} form.panel :is(input,select,textarea,button,a){scroll-margin-bottom:150px} main :is(input,select,textarea,button,a){scroll-margin-bottom:150px} }
 footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); font-size:12px}
 .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:86px; background:var(--pine2); color:#fff; padding:12px 20px; border-radius:8px; font-weight:700; z-index:99; display:none; max-width:92vw; text-align:center}
+/* skip link: キーボード利用者が検索結果へ直接移動できるようにする（通常は非表示、フォーカス時のみ表示） */
+.skip-link{position:absolute; left:16px; top:-70px; z-index:100; background:var(--pine2); color:#f7f2df; padding:12px 18px; border-radius:8px; font-weight:900; font-size:14px; text-decoration:none; border:2px solid var(--gold); transition:top .15s ease}
+.skip-link:focus{top:10px; color:#fff}
+/* 押下・切替の質感：色と位置の変化をなめらかにする */
+.chip,.seg button,.preset,.book-btn,.btn,.more-btn{transition:background-color .15s ease, color .15s ease, border-color .15s ease, transform .15s ease}
+.btn:active,.chip:active,.preset:active,.book-btn:active{transform:translateY(1px)}
+/* 動きを減らす設定の利用者にはアニメーション・遷移を出さない */
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *,*::before,*::after{transition:none !important; animation:none !important} }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#results">検索結果へスキップ</a>
 <header>
   <div class="head-in">
     <div class="brand">FAIRWAY FINDER<small>ゴルフ場マルチ検索</small></div>
@@ -166,7 +176,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
 
 <div class="wrap">
   <!-- ============ SEARCH FORM ============ -->
-  <form class="panel" id="search" onsubmit="return false" aria-label="検索条件">
+  <form class="panel" id="search" onsubmit="runSearch(true);return false" aria-label="検索条件">
     <h2>検索条件</h2>
     <p class="form-note">基本条件だけでも探せます。詳しい条件は「もっと条件を詳しく設定する」から開けます。入力はこの端末に自動保存されます。</p>
 
@@ -179,7 +189,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
     <fieldset>
       <legend>基本条件</legend>
       <label class="lbl">予約タイプ</label>
-      <div class="seg" id="f-type">
+      <div class="seg" id="f-type" role="group" aria-label="予約タイプ">
         <button type="button" data-type="normal" aria-pressed="true">通常予約</button>
         <button type="button" data-type="solo" aria-pressed="false">1人予約</button>
         <button type="button" data-type="withgolf" aria-pressed="false">withGolf</button>
@@ -208,7 +218,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
       <label class="lbl" for="f-drive">車での所要時間（上限）</label>
       <select id="f-drive"><option value="60">60分以内</option><option value="75">75分以内</option><option value="90" selected>90分以内</option><option value="120">120分以内</option><option value="9999">制限なし</option></select>
       <label class="lbl">エリア（複数選択可）</label>
-      <div class="chips" id="f-areas">
+      <div class="chips" id="f-areas" role="group" aria-label="エリア（複数選択可）">
         <button type="button" class="chip" data-area="埼玉" aria-pressed="true">埼玉</button>
         <button type="button" class="chip" data-area="千葉" aria-pressed="true">千葉</button>
         <button type="button" class="chip" data-area="栃木" aria-pressed="true">栃木</button>
@@ -218,14 +228,14 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
         <button type="button" class="chip" data-area="東京" aria-pressed="false">東京</button>
       </div>
       <label class="lbl">ホール数</label>
-      <div class="seg" id="f-holes">
+      <div class="seg" id="f-holes" role="group" aria-label="ホール数">
         <button type="button" data-holes="18" aria-pressed="false">18Hのみ</button>
         <button type="button" data-holes="18plus" aria-pressed="true">18H / 9H+α</button>
         <button type="button" data-holes="all" aria-pressed="false">すべて</button>
       </div>
       <p class="small">9Hのみのプランは原則候補外。「9H+α」は午後スルーなど9Hを超えて回れるプランです。</p>
       <label class="lbl">保証・予約形態（複数選択可）</label>
-      <div class="chips" id="f-guarantee">
+      <div class="chips" id="f-guarantee" role="group" aria-label="保証・予約形態（複数選択可）">
         <button type="button" class="chip" data-g="2B保証" aria-pressed="false">2B保証</button>
         <button type="button" class="chip" data-g="3B保証" aria-pressed="false">3B保証</button>
         <button type="button" class="chip" data-g="一人予約" aria-pressed="false">一人予約可</button>
@@ -233,13 +243,13 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
       </div>
       <p class="small">「割増なし」と「保証」は別物です。保証は組の成立、割増なしは追加料金なしを指します。</p>
       <label class="lbl">昼食</label>
-      <div class="seg" id="f-lunch">
+      <div class="seg" id="f-lunch" role="group" aria-label="昼食">
         <button type="button" data-lunch="any" aria-pressed="true">不問</button>
         <button type="button" data-lunch="incl" aria-pressed="false">昼食込み必須</button>
         <button type="button" data-lunch="subsidy" aria-pressed="false">補助付でも可</button>
       </div>
       <label class="lbl">スタート時間（複数選択可）</label>
-      <div class="chips" id="f-hours">
+      <div class="chips" id="f-hours" role="group" aria-label="スタート時間（複数選択可）">
         <button type="button" class="chip" data-h="6" aria-pressed="false">〜6時台</button>
         <button type="button" class="chip" data-h="7" aria-pressed="false">7時台</button>
         <button type="button" class="chip" data-h="8" aria-pressed="false">8時台</button>
@@ -257,7 +267,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
       <p class="small">使う頻度が低い条件はここにまとめています。各サイトで重複していた項目（昼食付・2サム保証・乗用カート等）は1つに統一済みです。選択なしの場合、その項目は全条件検索になります。</p>
 
       <label class="lbl">カート・プレー形式</label>
-      <div class="chips" id="f-d-cart">
+      <div class="chips" id="f-d-cart" role="group" aria-label="カート・プレー形式">
         <button type="button" class="chip" data-t="セルフ" aria-pressed="false">セルフ</button>
         <button type="button" class="chip" data-t="キャディ付き" aria-pressed="false">キャディ付き</button>
         <button type="button" class="chip" data-t="乗用カート" aria-pressed="false">乗用カート</button>
@@ -269,7 +279,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
       </div>
 
       <label class="lbl">ラウンド・プレースタイル</label>
-      <div class="chips" id="f-d-style">
+      <div class="chips" id="f-d-style" role="group" aria-label="ラウンド・プレースタイル">
         <button type="button" class="chip" data-t="スループレー" aria-pressed="false">スループレー</button>
         <button type="button" class="chip" data-t="午前スルー" aria-pressed="false">午前スループレー</button>
         <button type="button" class="chip" data-t="午後スルー" aria-pressed="false">午後スループレー</button>
@@ -288,7 +298,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
       <select id="f-frames"><option value="1">指定なし</option><option value="2">2枠以上</option><option value="3">3枠以上</option><option value="4">4枠以上</option><option value="5">5枠以上</option><option value="6">6枠以上</option><option value="8">8枠以上</option></select>
 
       <label class="lbl">特典・優待</label>
-      <div class="chips" id="f-d-benefit">
+      <div class="chips" id="f-d-benefit" role="group" aria-label="特典・優待">
         <button type="button" class="chip" data-t="早割" aria-pressed="false">早割・早得</button>
         <button type="button" class="chip" data-t="得トク" aria-pressed="false">得トク1000（翌月予約）</button>
         <button type="button" class="chip" data-t="グリーンフィ無料" aria-pressed="false">予約者グリーンフィ無料</button>
@@ -300,14 +310,14 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
       </div>
 
       <label class="lbl">向けプラン</label>
-      <div class="chips" id="f-d-for">
+      <div class="chips" id="f-d-for" role="group" aria-label="向けプラン">
         <button type="button" class="chip" data-t="シニア向け" aria-pressed="false">シニア向け</button>
         <button type="button" class="chip" data-t="レディース向け" aria-pressed="false">レディース向け</button>
         <button type="button" class="chip" data-t="ジュニア向け" aria-pressed="false">ジュニア向け</button>
       </div>
 
       <label class="lbl">施設・サービス</label>
-      <div class="chips" id="f-d-facility">
+      <div class="chips" id="f-d-facility" role="group" aria-label="施設・サービス">
         <button type="button" class="chip" data-t="練習場あり" aria-pressed="false">練習場あり</button>
         <button type="button" class="chip" data-t="温泉・大浴場" aria-pressed="false">温泉あり</button>
         <button type="button" class="chip" data-t="宿泊施設あり" aria-pressed="false">宿泊施設あり</button>
@@ -316,14 +326,14 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
       </div>
 
       <label class="lbl">立地</label>
-      <div class="chips" id="f-d-access">
+      <div class="chips" id="f-d-access" role="group" aria-label="立地">
         <button type="button" class="chip" data-t="IC近く" aria-pressed="false">IC近く</button>
         <button type="button" class="chip" data-t="駅が近い" aria-pressed="false">駅が近い</button>
         <button type="button" class="chip" data-t="クラブバス送迎" aria-pressed="false">クラブバス送迎あり</button>
       </div>
 
       <label class="lbl">1人予約・開催の絞込み</label>
-      <div class="chips" id="f-d-solo">
+      <div class="chips" id="f-d-solo" role="group" aria-label="1人予約・開催の絞込み">
         <button type="button" class="chip" data-t="開催見込み" aria-pressed="false">開催見込み</button>
         <button type="button" class="chip" data-t="予約者あり" aria-pressed="false">既に予約者がいるプランのみ</button>
         <button type="button" class="chip" data-t="同伴者不可" aria-pressed="false">同伴者不可プランのみ</button>
@@ -331,7 +341,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
       </div>
 
       <label class="lbl">除外条件</label>
-      <div class="chips" id="f-d-exclude">
+      <div class="chips" id="f-d-exclude" role="group" aria-label="除外条件">
         <button type="button" class="chip" data-x="9Hプレー" aria-pressed="false">9Hプレーを除く</button>
         <button type="button" class="chip" data-x="レッスン付" aria-pressed="false">レッスンを除く</button>
         <button type="button" class="chip" data-x="スループレー" aria-pressed="false">スループレーを除く</button>
@@ -347,7 +357,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
 
     <fieldset>
       <legend>検索サイト</legend>
-      <div class="chips" id="f-sites" style="margin-top:10px">
+      <div class="chips" id="f-sites" role="group" aria-label="検索サイト" style="margin-top:10px">
         <button type="button" class="chip gold" data-site="楽天GORA" aria-pressed="true">楽天GORA</button>
         <button type="button" class="chip gold" data-site="PGM公式" aria-pressed="true">PGM公式</button>
         <button type="button" class="chip gold" data-site="アコーディア公式" aria-pressed="true">アコーディア公式</button>
@@ -360,7 +370,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
       <div id="site-links" class="small" style="margin-top:6px"></div>
     </fieldset>
 
-    <button type="button" class="btn btn-main" id="btn-search">この条件で探す</button>
+    <button type="submit" class="btn btn-main" id="btn-search">この条件で探す</button>
     <div class="row" style="margin-top:10px">
       <button type="button" class="btn btn-sub" id="btn-save">条件を保存</button>
       <button type="button" class="btn btn-sub" id="btn-reset">リセット</button>
@@ -373,7 +383,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
     <section id="results" aria-label="検索結果">
       <div class="results-head">
         <h2>検索結果</h2>
-        <span class="small" id="result-count"></span>
+        <span class="small" id="result-count" aria-live="polite"></span>
       </div>
       <div class="panel" style="padding:10px 14px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px">
         <label for="f-sort" style="font-weight:900; font-size:13px">並び替え（表示フィルタ）</label>
@@ -434,7 +444,8 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
       <p class="small">各サイトで実際に確認したプランをここから追加すると、そのコースのカードに「あなたが追加」として料金付きで表示されます。料金付きで表示されるのは、あなたが確認して追加したプランだけです。追加分はこの端末に保存されます。</p>
       <div class="panel" style="padding:14px 16px">
         <div class="row">
-          <input type="text" id="m-course" placeholder="コース名" aria-label="コース名">
+          <input type="text" id="m-course" placeholder="コース名" aria-label="コース名" list="course-names">
+          <datalist id="course-names"><option value="大平台カントリー倶楽部"></option><option value="かすみがうらゴルフクラブ"></option><option value="ヘリテイジゴルフコース"></option><option value="皆川城カントリークラブ"></option><option value="アジア取手カントリー倶楽部"></option><option value="戸田パブリックゴルフコース"></option><option value="石岡ゴルフ倶楽部"></option><option value="取手桜が丘ゴルフクラブ"></option><option value="習志野カントリークラブ"></option><option value="TBC太陽クラブ"></option></datalist>
           <select id="m-site" aria-label="サイト"><option>楽天GORA</option><option>PGM公式</option><option>アコーディア公式</option><option>GDO</option><option>じゃらんゴルフ</option><option>バリューゴルフ</option><option>コース公式</option></select>
         </div>
         <div class="row" style="margin-top:10px">
@@ -465,14 +476,18 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
    根本対応（2026-11-11）：料金・プラン名・スタート時刻・空き枠は予約サイトごとに変動するため、
    実在を確認できないものは内蔵データとして保持も表示もしない。例外は VERIFIED_PRICES：
    予約サイトで実地確認した日付・プランだけを、確認時点の情報として総額表示する。
-   以前の見本プランデータ（土曜に実在しない料金が出た原因）は全コース分を削除した。 */
+   以前の見本プランデータ（土曜に実在しない料金が出た原因）は全コース分を削除した。
+   ヤーデージ訂正（2026-11-13、ユーザー承認）：ヘリテイジ 6,880→5,000Y（朝日ゴルフ公式：9H 2,500Y×2。6,000Yルールでは対象外）／
+   皆川城 6,650→青 6,686Y（基準値。白 6,210Yも併記。7,008Yはアコーディア公式レイアウト表で支持されず）／
+   戸田パブリック 5,960→6,237Y（GORAで再確認。6,000Y超で対象内）。大平台・アジア取手・取手桜が丘はティー／ルート基準未決定のため据え置き。
+   価格再確認（2026-11-14）：全29組み合わせを再確認。かすみがうら 12/12 の3サイトを各−¥1,000訂正（GORA 18990／アコーディア 16990／じゃらん 17990）、石岡 PGM 25990→25900、スタート例の軽微なズレ3件も訂正。checked は再確認日 2026-11-14。 */
 const COURSES = [
  {name:"大平台カントリー倶楽部", area:"栃木・栃木市", pref:"栃木", drive:75, yard:7018, rating:73.6, par:72, holes:18, features:["乗用カート","ナビ付きカート","練習場あり"]},
  {name:"かすみがうらゴルフクラブ", area:"茨城・行方市", pref:"茨城", drive:60, yard:6754, rating:72.8, par:72, holes:18, features:["乗用カート","ナビ付きカート"]},
- {name:"ヘリテイジゴルフコース", area:"埼玉・熊谷市", pref:"埼玉", drive:70, yard:6880, rating:72.1, par:72, holes:18, features:["乗用カート","練習場あり","温泉・大浴場","宿泊施設あり"]},
- {name:"皆川城カントリークラブ", area:"栃木・栃木市", pref:"栃木", drive:80, yard:6650, rating:71.9, par:72, holes:18, features:["乗用カート","ナビ付きカート"]},
+ {name:"ヘリテイジゴルフコース", area:"埼玉・熊谷市", pref:"埼玉", drive:70, yard:5000, rating:72.1, par:72, holes:18, features:["乗用カート","練習場あり","温泉・大浴場","宿泊施設あり"]},
+ {name:"皆川城カントリークラブ", area:"栃木・栃木市", pref:"栃木", drive:80, yard:6686, yardNote:"青 6,686Y／白 6,210Y", rating:71.9, par:72, holes:18, features:["乗用カート","ナビ付きカート"]},
  {name:"アジア取手カントリー倶楽部", area:"茨城・取手市", pref:"茨城", drive:55, yard:6402, rating:70.8, par:72, holes:18, features:["乗用カート","クラブバス送迎","駅が近い"]},
- {name:"戸田パブリックゴルフコース", area:"埼玉・戸田市", pref:"埼玉", drive:35, yard:5960, rating:69.4, par:72, holes:18, features:["クラブバス送迎","駅が近い","IC近く"]},
+ {name:"戸田パブリックゴルフコース", area:"埼玉・戸田市", pref:"埼玉", drive:35, yard:6237, rating:69.4, par:72, holes:18, features:["クラブバス送迎","駅が近い","IC近く"]},
  {name:"石岡ゴルフ倶楽部", area:"茨城・小美玉市", pref:"茨城", drive:85, yard:7063, rating:74.2, par:72, holes:18, watch:true, features:["乗用カート","練習場あり"]},
  {name:"取手桜が丘ゴルフクラブ", area:"茨城・取手市", pref:"茨城", drive:65, yard:6721, rating:72.4, par:72, holes:18, watch:true, features:["乗用カート","ナビ付きカート"]},
  {name:"習志野カントリークラブ", area:"千葉・印西市", pref:"千葉", drive:70, yard:7045, rating:73.9, par:72, holes:36, watch:true, features:["乗用カート","練習場あり"]},
@@ -495,16 +510,16 @@ const COURSE_LINKS = {
 function courseLink(course, site){ const L=COURSE_LINKS[course.name]||{}; return L[site]||null; }
 
 const VERIFIED_PRICES={
- checked:"2026-11-11",
+ checked:"2026-11-14",
  dates:{
  "2026-12-12":{
-  "大平台カントリー倶楽部":{"アコーディア公式":{plan:"【得トク1000】 ●3B割増なし／超早時間限定／昼食補助付",price:14990,starts:"7:00〜7:15"},"楽天GORA":{plan:"[SALE]★超早時間枠★3B割増なし★昼食補助付",price:15990,starts:"7:00〜7:15"},"じゃらんゴルフ":{plan:"●3B割増なし／超早時間限定／昼食補助付",price:15990,starts:"7:00〜7:15"},"GDO":{plan:"＜狙い目＞ ●3B割増なし／超早時間限定／昼食補助付",price:15990,starts:"7:00〜7:15"}},
-  "かすみがうらゴルフクラブ":{"アコーディア公式":{plan:"【得トク1000】 早め限定／昼食補助付■組売プラン",price:17990,starts:"6:46〜7:09"},"楽天GORA":{plan:"[イマスグ]土日祝/早め限定/昼食補助付◎3B割増無",price:19990,starts:"6:46〜7:14"},"じゃらんゴルフ":{plan:"早め限定/昼食補助付■組売プラン！！",price:18990,starts:"6:46〜7:00"}},
+  "大平台カントリー倶楽部":{"アコーディア公式":{plan:"【得トク1000】 ●3B割増なし／超早時間限定／昼食補助付",price:14990,starts:"7:00〜7:07"},"楽天GORA":{plan:"[SALE]★超早時間枠★3B割増なし★昼食補助付",price:15990,starts:"7:00〜7:15"},"じゃらんゴルフ":{plan:"●3B割増なし／超早時間限定／昼食補助付",price:15990,starts:"7:00〜7:15"},"GDO":{plan:"＜狙い目＞ ●3B割増なし／超早時間限定／昼食補助付",price:15990,starts:"7:00〜7:15"}},
+  "かすみがうらゴルフクラブ":{"アコーディア公式":{plan:"【得トク1000】 早め限定／昼食補助付■組売プラン",price:16990,starts:"6:46〜7:21"},"楽天GORA":{plan:"[イマスグ]土日祝/早め限定/昼食補助付◎3B割増無",price:18990,starts:"6:46〜7:21"},"じゃらんゴルフ":{plan:"早め限定/昼食補助付■組売プラン！！",price:17990,starts:"6:46〜7:00"}},
   "ヘリテイジゴルフコース":{"楽天GORA":{none:"18Hプランの空きなし（9Hプランのみ空きあり）"}},
   "皆川城カントリークラブ":{"アコーディア公式":{plan:"【得トク1000】リニューアル！枠限定・昼食補助付・3B割増なし",price:17990,starts:"7:00〜10:07"},"楽天GORA":{plan:"[イマスグ]リニューアル・枠限定・昼食補助付・3B無",price:18990,starts:"7:00〜7:22"},"じゃらんゴルフ":{plan:"リニューアル！枠限定・昼食補助付・3B割増なし",price:18990,starts:"7:00〜10:00"},"GDO":{plan:"＜狙い目＞ リニューアル！枠限定・昼食補助付・3B割増なし",price:18990,starts:"7:00〜10:07"}},
   "アジア取手カントリー倶楽部":{"楽天GORA":{none:"予約可能なプランなし"}},
   "戸田パブリックゴルフコース":{"楽天GORA":{none:"予約可能なプランなし"}},
-  "石岡ゴルフ倶楽部":{"楽天GORA":{plan:"[イマスグ]土日祝/セルフ/昼食別/公開枠限定*",price:26900,starts:"7:22"},"PGM公式":{plan:"【直前HOT】土日祝ナビ付カートセルフ（昼食別）3サム保証/早めスタート限定*",price:25990,starts:"7:22"}},
+  "石岡ゴルフ倶楽部":{"楽天GORA":{plan:"[イマスグ]土日祝/セルフ/昼食別/公開枠限定*",price:26900,starts:"7:22"},"PGM公式":{plan:"【直前HOT】土日祝ナビ付カートセルフ（昼食別）3サム保証/早めスタート限定*",price:25900,starts:"7:22"}},
   "取手桜が丘ゴルフクラブ":{"アコーディア公式":{plan:"【得トク1000】【RENEW】早朝スルー★昼食補助付【備考必読】",price:20990,starts:"6:45〜7:00"},"楽天GORA":{plan:"[今コレ]【RENEW】【土日祝】早朝スルー★昼食補助付",price:21990,starts:"6:45〜7:00"},"じゃらんゴルフ":{plan:"【RENEW】早朝スルー ★昼食補助付【備考必読】",price:21990,starts:"6:45〜7:07"},"GDO":{plan:"＜狙い目＞ 【RENEW】早朝スルー ★昼食補助付【備考必読】",price:21990,starts:"6:45〜7:00"}},
   "習志野カントリークラブ":{"アコーディア公式":{none:"18Hプランの空きなし（薄暮ハーフのみ表示）"}}
  },
@@ -513,10 +528,10 @@ const VERIFIED_PRICES={
   "かすみがうらゴルフクラブ":{"楽天GORA":{plan:"[イマスグ]平日/早め限定/昼食補助付◎3B割増無",price:6990,starts:"7:00〜7:21"}},
   "ヘリテイジゴルフコース":{"楽天GORA":{plan:"平日★安くまわりたい方★18H手引き 天然温泉付",price:5700,starts:"8:08〜10:08"}},
   "皆川城カントリークラブ":{"楽天GORA":{plan:"[イマスグ]リニューアル★枠限定★昼食補助付★3B無",price:5990,starts:"6:52〜7:07"}},
-  "アジア取手カントリー倶楽部":{"楽天GORA":{plan:"平日ナビ付新カート/2サム割増無",price:7300,starts:"7:10〜8:34"}},
+  "アジア取手カントリー倶楽部":{"楽天GORA":{plan:"平日ナビ付新カート/2サム割増無",price:7300,starts:"7:10〜8:20"}},
   "戸田パブリックゴルフコース":{"楽天GORA":{plan:"【平日】カップ麺付き！９ホール×２回りプレー",price:7500,starts:"7:56〜8:28"}},
   "石岡ゴルフ倶楽部":{"楽天GORA":{plan:"[イマスグ]平日セルフ/4サム優待/備考確認*",price:11400,starts:"7:00〜7:15"}},
-  "取手桜が丘ゴルフクラブ":{"楽天GORA":{plan:"[今コレ]【RENEW】平日◆早め◆セルフ・昼食補助付◆",price:8990,starts:"7:15〜7:37"}}
+  "取手桜が丘ゴルフクラブ":{"楽天GORA":{plan:"[今コレ]【RENEW】平日◆早め◆セルフ・昼食補助付◆",price:8990,starts:"7:22〜7:30"}}
  }
 }};
 function verifiedPriceHTML(c, cond){
@@ -569,7 +584,7 @@ const PRESETS={
 };
 document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
  const p=PRESETS[b.dataset.preset]; if(!p) return;
- const d=new Date(); d.setDate(d.getDate()+p.dateOffset); $("f-date").value=d.toISOString().slice(0,10);
+ $("f-date").value=addDaysStr(p.dateOffset);
  $("f-players").value=String(p.players); $("f-budget").value=String(p.budget); $("f-drive").value=String(p.drive);
  document.querySelectorAll("#f-areas .chip").forEach(c=>c.setAttribute("aria-pressed", p.areas.includes(c.dataset.area)));
  document.querySelectorAll("#f-holes button").forEach(x=>x.setAttribute("aria-pressed", x.dataset.holes===p.holes));
@@ -591,7 +606,7 @@ function saveForm(){
  localStorage.setItem("ff_form", JSON.stringify(data));
 }
 function loadForm(){
- try{ const d=JSON.parse(localStorage.getItem("ff_form")||"null"); if(!d) { const t=new Date(); t.setDate(t.getDate()+5); $("f-date").value=t.toISOString().slice(0,10); return; }
+ try{ const d=JSON.parse(localStorage.getItem("ff_form")||"null"); if(!d) { $("f-date").value=addDaysStr(5); return; }
   if(d.date) $("f-date").value=d.date; if(d.players) $("f-players").value=d.players; if(d.budget) $("f-budget").value=d.budget;
   if(d.from) $("f-from").value=d.from; if(d.drive) $("f-drive").value=d.drive;
   if(d.areas) document.querySelectorAll("#f-areas .chip").forEach(c=>c.setAttribute("aria-pressed", d.areas.includes(c.dataset.area)));
@@ -616,7 +631,7 @@ document.querySelector("form.panel").addEventListener("click", ()=>setTimeout(()
 /* ---- weather & sunset (Open-Meteo, 登録不要・無料) ---- */
 async function loadWeather(){
  const areas=pressed("f-areas","area"); const ll=AREA_LL[areas[0]]||AREA_LL["埼玉"];
- const date=$("f-date").value||new Date().toISOString().slice(0,10);
+ const date=$("f-date").value||todayStr();
  const cacheKey=date+"|"+(areas[0]||"");
  if(wxCache[cacheKey]){ sunsetMin=wxCache[cacheKey].sunsetMin; return wxCache[cacheKey].text; }
  try{
@@ -643,7 +658,10 @@ function getConditions(){
   watchPrice:+$("f-watch-price").value, watchList:$("f-watch-list").value.split(/\n/).map(s=>s.trim()).filter(Boolean) };
 }
 const HOLIDAYS=new Set(["2026-01-01","2026-01-12","2026-02-11","2026-02-23","2026-03-20","2026-04-29","2026-05-03","2026-05-04","2026-05-05","2026-05-06","2026-07-20","2026-08-11","2026-09-21","2026-09-22","2026-09-23","2026-10-12","2026-11-03","2026-11-23","2027-01-01","2027-01-11","2027-02-11","2027-02-23","2027-03-20","2027-04-29","2027-05-03","2027-05-04","2027-05-05","2027-07-19","2027-08-11","2027-09-20","2027-09-23","2027-10-11","2027-11-03","2027-11-23"]);
-function todayStr(){ const t=new Date(); return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0"); }
+function todayStr(){ return localDateStr(new Date()); }
+/* 日付は必ずローカル時刻で作る。toISOString() はUTCのため、日本時間の午前0〜9時だと前日になる（v3.5で修正） */
+function localDateStr(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function addDaysStr(n){ const d=new Date(); d.setDate(d.getDate()+n); return localDateStr(d); }
 function dayType(dateStr){ if(!dateStr) return "wd"; const pt=dateStr.split("-").map(Number); if(pt.length!==3) return "wd"; const dow=new Date(pt[0],pt[1]-1,pt[2]).getDay(); return (dow===0||dow===6||HOLIDAYS.has(dateStr))? "we":"wd"; }
 function allCourses(){
  const base=COURSES.map(c=>({...c, userPlans:[]}));
@@ -699,7 +717,7 @@ function courseHTML(c, cond){
  const dateBadge=cond.date?`<span class="date-badge">${fmtDateStr(cond.date)}</span>`:"";
  let html=`<article class="course${c.watch?' watch':''}">
   <div class="course-head"><h3>${c.name}</h3><span class="area">${c.area}</span><span class="dist">${$("f-from").value||"出発地点"}から車 約${c.drive}分</span></div>
-  <div class="course-specs"><span class="spec">${c.holes}H ・ パー${c.par}</span><span class="spec">総距離 ${c.yard.toLocaleString()}Y</span>${c.rating?`<span class="spec">コースレート ${c.rating}（難易度）</span>`:""}${c.features.map(f=>`<span class="spec">${f}</span>`).join("")}</div>`;
+  <div class="course-specs"><span class="spec">${c.holes}H ・ パー${c.par}</span><span class="spec">総距離 ${c.yardNote||c.yard.toLocaleString()+"Y"}</span>${c.rating?`<span class="spec">コースレート ${c.rating}（難易度）</span>`:""}${c.features.map(f=>`<span class="spec">${f}</span>`).join("")}</div>`;
  if(c.userPlans && c.userPlans.length){
    html+=`<div class="site-block"><div class="site-name">あなたが追加したプラン（各サイトで確認済みのものだけを追加してください）</div>${c.userPlans.map(p=>userPlanHTML(p,c)).join("")}</div>`;
  }
@@ -723,7 +741,7 @@ function toggleCompare(name, on){ if(on){ if(compareSet.size>=4){ toast("比較�
 function renderCompare(){
  const box=$("compare-box"); if(!compareSet.size){ box.innerHTML='<p class="empty">まだ比較対象が選ばれていません</p>'; return; }
  const rows=allCourses().filter(c=>compareSet.has(c.name));
- box.innerHTML=`<table><tr><th>コース</th><th>車</th><th>総距離</th><th>難易度</th><th>特徴</th></tr>${rows.map(c=>`<tr><td><b>${c.name}</b><br><span class="small">${c.area}</span></td><td>約${c.drive}分</td><td>${c.yard.toLocaleString()}Y</td><td>${c.rating||"—"}</td><td>${(c.features||[]).join("・")||"—"}</td></tr>`).join("")}</table><p class="small" style="margin:8px 0 4px">料金は各コースのカード（実地確認済みの日付のみ総額を表示）と予約サイトで確認してください。</p>`;
+ box.innerHTML=`<table><tr><th>コース</th><th>車</th><th>総距離</th><th>難易度</th><th>特徴</th></tr>${rows.map(c=>`<tr><td><b>${c.name}</b><br><span class="small">${c.area}</span></td><td>約${c.drive}分</td><td>${c.yardNote||c.yard.toLocaleString()+"Y"}</td><td>${c.rating||"—"}</td><td>${(c.features||[]).join("・")||"—"}</td></tr>`).join("")}</table><p class="small" style="margin:8px 0 4px">料金は各コースのカード（実地確認済みの日付のみ総額を表示）と予約サイトで確認してください。</p>`;
 }
 
 /* ---- search-condition chips (再検索で変えた条件が分かる表示) ---- */
@@ -766,7 +784,9 @@ function refreshDirty(){
 /* ---- main search（コース基本情報で探し、料金・空きは各サイトへ誘導する） ---- */
 async function runSearch(scroll=true){
  const cond=getConditions(); saveForm();
- const wx=await loadWeather();
+ /* 天気は結果の描画を待たせない（v3.5：以前は fetch 完了まで結果が出なかった）。キャッシュがあれば即表示、なければ取得後に差し替える */
+ const wxKey=cond.date+"|"+(cond.areas[0]||"");
+ const wx=wxCache[wxKey]?wxCache[wxKey].text:"天気・日没を取得中…";
  const isPast=!!cond.date && cond.date<todayStr();
  const matched=isPast? [] : allCourses().filter(c=>courseMatches(c,cond));
  const byDefault=(a,b)=> a.drive-b.drive || b.yard-a.yard || (b.rating||0)-(a.rating||0);
@@ -784,11 +804,12 @@ async function runSearch(scroll=true){
  }
  $("result-count").textContent= isPast? "過去の日付のため結果は表示されません" : (total? `条件に合うコース 全${total}件を表示（実地確認済みの日付は総額を表示、空きは各サイトで確認）` : "検索結果が0件");
  $("full-list").innerHTML="";
- $("summary-bar").innerHTML=`<span>プレー日 <b>${cond.date?fmtDateStr(cond.date):"未指定"}</b></span>${(()=>{ if(!cond.date) return ""; const pt=cond.date.split("-").map(Number); const diff=Math.round((new Date(pt[0],pt[1]-1,pt[2])-new Date())/86400000); return diff>92? ' <span class="badge badge-warn">3ヶ月以上先（予約受付前の可能性）</span>':""; })()}<span>区分 <b>${dayType(cond.date)==="we"?"土日祝":"平日"}</b></span><span>人数 <b>${cond.players}名</b></span><span>予算（確認条件） <b>${cond.budget>=999999?"制限なし":"〜"+yen(cond.budget)}</b></span><span>料金 <b>実地確認済みの日付は総額を表示</b></span><span>${wx}</span>`;
+ $("summary-bar").innerHTML=`<span>プレー日 <b>${cond.date?fmtDateStr(cond.date):"未指定"}</b></span>${(()=>{ if(!cond.date) return ""; const pt=cond.date.split("-").map(Number); const diff=Math.round((new Date(pt[0],pt[1]-1,pt[2])-new Date())/86400000); return diff>92? ' <span class="badge badge-warn">3ヶ月以上先（予約受付前の可能性）</span>':""; })()}<span>区分 <b>${dayType(cond.date)==="we"?"土日祝":"平日"}</b></span><span>人数 <b>${cond.players}名</b></span><span>予算（確認条件） <b>${cond.budget>=999999?"制限なし":"〜"+yen(cond.budget)}</b></span><span>料金 <b>実地確認済みの日付は総額を表示</b></span><span id="wx-line">${wx}</span>`;
  renderCondChips(cond); renderTodaNote(cond, matched);
  renderWatch(cond); renderCompare(); renderSiteLinks(cond);
  lastFormJSON=currentFormJSON(); refreshDirty();
  if(scroll) $("results").scrollIntoView({behavior:"smooth"});
+ loadWeather().then(t=>{ const cur=getConditions(); if(cur.date!==cond.date||(cur.areas[0]||"")!==(cond.areas[0]||"")) return; const el=document.getElementById("wx-line"); if(el) el.textContent=t; });
 }
 function renderTodaNote(cond, matched){
  if(cond.date && cond.date<todayStr()){ $("toda-note").innerHTML=""; return; }
@@ -830,7 +851,7 @@ $("btn-ai-gen").addEventListener("click",()=>{ $("ai-text").value=genAIText(); t
 $("btn-ai-copy").addEventListener("click",async()=>{ if(!$("ai-text").value) $("ai-text").value=genAIText(); try{ await navigator.clipboard.writeText($("ai-text").value); toast("コピーしました"); }catch(e){ $("ai-text").select(); document.execCommand("copy"); toast("コピーしました"); } });
 
 /* ---- misc buttons ---- */
-$("btn-search").addEventListener("click",()=>runSearch(true));
+/* 検索ボタンは type="submit"（フォームの onsubmit が検索を実行）。以前は type="button"＋click リスナーで、テキスト欄での Enter が実ブラウザで送信されなかった（v3.5 検証で発覚）。固定バーのボタンは btn-search.click() で送信する。 */
 $("btn-save").addEventListener("click",()=>{ saveForm(); $("saved-note").textContent="保存しました（"+new Date().toLocaleTimeString("ja-JP")+"）。次回開いたときに復元されます。"; toast("条件を保存しました"); });
 $("btn-reset").addEventListener("click",()=>{ localStorage.removeItem("ff_form"); location.reload(); });
 $("btn-add").addEventListener("click",()=>{
