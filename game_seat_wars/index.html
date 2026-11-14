@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   SEAT WARS ― 満員電車椅子取合戦 (単一ファイル版)
-  Version: 1.4.0
+  Version: 1.4.1
   Created: 20261107
   Three.js (CDN) によるブラウザ3D FPS。音楽は Internet Archive API から情景に合うクラシックをランダム再生。
   v1.1.0 (20261107): 路線・乗車駅セレクト、十字キー/Enter操作、スマホのタッチ操作（ジョイスティック/視点ドラッグ/ボタン）を復活。
@@ -12,6 +12,7 @@
   v1.3.1 (20261107): タッチボタンの配置と大きさを人間工学で再設計 — 使用頻度と反応速度で優先順位付けし、最下段に [避ける|決定|避ける]、中段にスキル4つ (等幅・高さ48px)、上段に状況ボタン (起きる/席を譲る) を配置。全行を等幅グリッドに統一し、主要ボタンのタップ領域を 48px 以上に拡大した上でクラスター全体は小型化した。
   v1.3.2 (20261107): Windows でも画面ボタンをマウスクリックで操作可能に — ボタンパネルを Windows でも常時表示し、ボタン上の mousedown がポインターロック/ドラッグ視点に奪われないよう除外した (従来はクリックすると視点ロックが発動しボタンの動作が発火しなかった)。
   v1.4.0 (20261108): 没入感と操作性の品質向上ラウンド1 — 歩行カメラボブ (速度連動)、車両の揺れとレール継ぎ目の衝撃 (フェーズ3/4走行中)、加速時のFOVキック、窓の外を流れるトンネル/駅の光景 (実開口+スクロール世界)、走行音の合成 (レール騒音+48Hz低音、揺れ連動) と発車チャイム、乗客の呼吸と接触時のよろめき、開始画面にマウス感度設定 (localStorage保存)。ゲームバランス・収録データ・BGM選曲ロジックは不変。
+  v1.4.1 (20261114): 日次品質改善ラウンド1 — デッドキー指示の修正（譲席・パリィのプロンプトを十字キー/決定に統一、降車はドアへ向かって歩く操作に）、感度スライダーのキーボード矢印キー操作を修正、スキルボタンのフォーカス外し、開始の二重起動ガード、クールダウン表示に「秒」、毎フレームDOM書き込みのキャッシュ、駅名標の実名表示と車内・ホームの天井照明、屋根の影を外して車内・ホームを明るく。ゲームバランス・収録データ・BGM選曲ロジックは不変。
 -->
 <html lang="ja">
 <head>
@@ -87,7 +88,7 @@
   <div id="omikuji"></div><div id="weather">天気取得中…</div>
   <div id="station"><span class="line" id="lineName">―</span><div class="name" id="stName">―</div><div class="next" id="stNext"></div></div>
   <div id="crosshair"></div>
-  <div id="objective"></div><div id="announce"></div><div id="prompt"></div>
+  <div id="objective" aria-live="polite"></div><div id="announce" aria-live="polite"></div><div id="prompt" aria-live="polite"></div>
   <div id="skillbar"></div>
   <div id="touchBtns" style="display:none;position:fixed;right:10px;bottom:54px;z-index:30;flex-direction:column;gap:8px;width:min(302px,74vw)">
     <div style="display:flex;gap:8px"><button id="tbWake" style="flex:1">起きる</button><button id="tbYield" style="flex:1">席を譲る</button></div>
@@ -100,6 +101,7 @@
 <div class="screen" id="start">
   <div class="small">満員電車椅子取合戦</div>
   <h1>SEAT WARS</h1>
+  <div class="small" id="verLabel" style="letter-spacing:.34em;text-indent:.34em">ver 1.4.1</div>
   <p>朝の首都圏。座席は、戦場だ。一人称視点でホームの陣取りから乗車ダッシュ、下車予測の心理戦、
   そして着席防衛戦を戦い抜き、目的地まで生き延びろ。画面にゲージはない。
   視界の揺れ・心音・赤い視界が、あなたの状態を物語る。</p>
@@ -123,7 +125,7 @@
   <button id="btnStart" style="font-size:17px;padding:14px 44px;background:linear-gradient(180deg,#ff5a36,#e83a1e);border:1px solid rgba(255,255,255,.25);color:#fff;font-weight:700;letter-spacing:.12em;border-radius:999px;box-shadow:0 12px 28px rgba(232,58,30,.35);">出勤する（クリックで開始）</button>
   <p class="small">【Windows】移動: <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / 視点: マウス / スキル選択: マウスホイール / 決定・スキル発動: <kbd>Enter</kbd> または左クリック<br>
   スキル: 流体すり抜け・紙一重 / 残像フェイント・二段加速 / 鞄結界・ボックスアウト / 心眼・足首ロックオン（ホイールで選んで Enter）<br>
-  着席中: 寄りかかりは <kbd>←</kbd>/<kbd>→</kbd> で肩すかしパリィ、眠気は <kbd>Enter</kbd> 連打で覚醒。お年寄りには決定キーで席を譲ります。着席は座席に近づくと自動です。<br>
+  着席中: 寄りかかりは <kbd>←</kbd>/<kbd>→</kbd> で肩すかしパリィ、眠気は <kbd>Enter</kbd> 連打で覚醒。お年寄りには決定キーで席を譲ります。着席は座席に近づくと自動です。降車は、ドアが開いている時にドアへ向かって歩く（<kbd>↑</kbd>）とできます。<br>
   【スマホ】左側スティックで移動 / 右側ドラッグで視点 / 画面のボタン（決定・スキル・避ける）で操作します。</p>
   <p class="small">BGMは Internet Archive の公開音源APIから動的に取得します（失敗時はWebAudio生成音に切替）。天気は Open-Meteo API から実取得します。</p>
 </div>
@@ -272,13 +274,33 @@ box(60,0.3,7,0x8a8f98,0,-0.15,5.2);                      // platform floor
 box(60,0.06,0.5,0xf7d038,0,0.03,2.15);                   // yellow tactile line
 box(60,4,0.4,0x3c4658,0,2,9.2);                          // back wall
 for(let i=-4;i<=4;i++){box(0.35,3.4,0.35,0x9aa2ae,i*6,1.7,8.6);} // pillars
-box(60,0.4,8,0x2c3444,0,4.2,5.2);                        // roof
+box(60,0.4,8,0x2c3444,0,4.2,5.2).castShadow=false;         // roof (no shadow: lets daylight onto the platform)
+const signCanvas=document.createElement("canvas");signCanvas.width=512;signCanvas.height=80;
+const signTex=new THREE.CanvasTexture(signCanvas);
+function drawSign(){const g=signCanvas.getContext("2d");const L=LINES[lineIdx];
+ g.fillStyle="#ffffff";g.fillRect(0,0,512,80);
+ g.fillStyle=L.color;g.fillRect(0,0,512,26);
+ g.fillStyle="#ffffff";g.font="bold 17px sans-serif";g.textAlign="left";g.fillText(L.name,10,19);
+ g.fillStyle="#111111";g.font="bold 34px sans-serif";g.textAlign="center";
+ g.fillText(L.stations[G.stationIdx],256,58);
+ g.font="15px sans-serif";g.textAlign="right";g.fillStyle="#555555";
+ g.fillText(G.stationIdx<L.stations.length-1?("次は "+L.stations[G.stationIdx+1]):"終点",502,58);
+ signTex.needsUpdate=true;}
 const signBoard=box(7,1,0.15,0xffffff,0,3.1,8.9);        // station sign (color set per line)
+const signFace=new THREE.Mesh(new THREE.PlaneGeometry(6.9,0.96),new THREE.MeshBasicMaterial({map:signTex}));
+signFace.position.set(0,3.1,8.80);signFace.rotation.y=Math.PI;scene.add(signFace);drawSign();
+/* v1.4.1 platform ceiling light panels (emissive look, no extra lights) */
+const _ceilM=new THREE.MeshBasicMaterial({color:0xfff3d0});
+[-18,0,18].forEach(x=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(4,0.8),_ceilM);
+ p.rotation.x=Math.PI/2;p.position.set(x,3.97,5.2);scene.add(p);});
 /* ---- train ---- */
 const train=new THREE.Group();scene.add(train);train.position.x=80;
 const CAR={len:30,wallZ:-1.35,doorZ:1.35};
 box(CAR.len,0.2,3,0x555b63,0,0.1,0,train);               // floor
-box(CAR.len,0.25,3,0x3a3f46,0,2.75,0,train);             // roof
+const trainRoof=box(CAR.len,0.25,3,0x3a3f46,0,2.75,0,train);trainRoof.castShadow=false; // roof (no shadow: lets light into the car)
+/* v1.4.1 train ceiling light panels (emissive look, no extra lights) */
+[-11,-3.7,3.7,11].forEach(x=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(2.4,0.55),new THREE.MeshBasicMaterial({color:0xfff3d0}));
+ p.rotation.x=Math.PI/2;p.position.set(x,2.61,0);train.add(p);});
 /* back wall with real window openings (v1.4.0): window band y1.55–2.35 is open */
 box(CAR.len,1.35,0.15,0xd8dde3,0,0.875,CAR.wallZ,train);              // below windows
 box(CAR.len,0.35,0.15,0xd8dde3,0,2.525,CAR.wallZ,train);              // above windows
@@ -482,6 +504,8 @@ function handleEnter(){
   if(G.over){location.reload();}
 }
 addEventListener("keydown",e=>{
+  const _tg=e.target;
+  if(_tg&&(_tg.tagName==="INPUT"||_tg.tagName==="SELECT"||_tg.tagName==="TEXTAREA"))return; /* フォーム操作中はブラウザ標準のキー操作を妨げない（感度スライダーの矢印キー等） */
   if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].includes(e.code))e.preventDefault();
   keys[e.code]=true;
   if(e.code==="Enter"){if(G.started&&!G.over)doAction();else handleEnter();return;}
@@ -515,8 +539,8 @@ const _endTouch=e=>{for(const t of e.changedTouches){if(t.identifier===joy.id){j
 renderer.domElement.addEventListener("touchend",_endTouch);
 renderer.domElement.addEventListener("touchcancel",_endTouch);
 function bindTap(id,fn){const el=$(id);if(!el)return;let lt=0;
-  el.addEventListener("touchstart",e=>{e.preventDefault();lt=Date.now();fn();},{passive:false});
-  el.addEventListener("click",()=>{if(Date.now()-lt<600)return;fn();});}
+  el.addEventListener("touchstart",e=>{e.preventDefault();lt=Date.now();fn();if(el.blur)el.blur();},{passive:false});
+  el.addEventListener("click",()=>{if(Date.now()-lt<600)return;fn();if(el.blur)el.blur();});}
 bindTap("tbL",()=>doParry(-1));bindTap("tbR",()=>doParry(1));bindTap("tbWake",()=>wakeTap());
 bindTap("tbYield",()=>{if(G.elderEvent)giveSeat();});bindTap("tbAction",()=>doAction());
 bindTap("tbQ",()=>useSkill(0));bindTap("tbE",()=>useSkill(1));bindTap("tbF",()=>useSkill(2));bindTap("tbR2",()=>useSkill(3));
@@ -614,8 +638,8 @@ let phaseT=0,interT=0,trainArrived=false,queueBonus=false;
 function updateStationUI(){const L=LINES[lineIdx];$("lineName").textContent=L.name;$("lineName").style.background=L.color;
 $("stName").textContent=L.stations[G.stationIdx];
 $("stNext").textContent=G.stationIdx<L.stations.length-1?("次は "+L.stations[G.stationIdx+1]+" ／ 目的地 "+L.stations[L.stations.length-1]):"終点";
-stripe.material.color.set(L.color);signBoard.material.color.set(L.color);}
-function startGame(){G.started=true;G.stationIdx=boardingIdx;try{renderer.compile(scene,camera);}catch(e){}
+stripe.material.color.set(L.color);signBoard.material.color.set(L.color);drawSign();}
+function startGame(){if(G.started)return;G.started=true;G.stationIdx=boardingIdx;try{renderer.compile(scene,camera);}catch(e){}
 ["btnStart","btnFortune","sel-line","sel-station"].forEach(id=>{const el=document.getElementById(id);if(el&&el.blur)el.blur();});
 $("start").style.display="none";$("touchBtns").style.display="flex";AC();trainNoise(false);
 updateStationUI();G.phase=1;phaseT=14;
@@ -684,7 +708,7 @@ function maybeElderBoard(){if(G.elderEvent||!G.seated)return;
 const type=Math.random()<0.5?3:4;const px=player.x+(Math.random()<0.5?-0.4:0.4);
 const n=spawnNPC(px,0.1,{type});n.state="stand";n.group.position.set(px,0,player.z>0?-0.1:0.1);
 setIcon(n,type===3?"👵":"🤰");G.elderEvent={npc:n};
-showPrompt("Y： 席を譲る（人徳が上がる） ／ 無視もできる");
+showPrompt("決定で席を譲る（人徳が上がる） ／ 無視もできる");
 setTimeout(()=>{if(G.elderEvent&&G.elderEvent.npc===n){G.elderEvent=null;showPrompt("");hurtSAN(3,"見て見ぬふりの視線が痛い…");}},9000);}
 /* ================= NPC behaviour ================= */
 function moveNPC(n,dt){const dx=n.tx-n.group.position.x,dz=n.tz-n.group.position.z;const d=Math.hypot(dx,dz);
@@ -729,7 +753,7 @@ function updateNPCs(dt){
         if(n.leanCd<=0)n.lean+=dt*(0.05+Math.random()*0.035);
         if(n.lean>1&&!G.leanEvent){n.lean=0;n.leanCd=7+Math.random()*6;const dir=n.seat<G.seatIdx?-1:1;
           G.leanEvent={npc:n,dir,t:2.2};setIcon(n,"😪");
-          showPrompt(dir<0?"← A で肩すかしパリィ！":"D → で肩すかしパリィ！");}
+          showPrompt(dir<0?"← で肩すかしパリィ！":"→ で肩すかしパリィ！");}
         n.group.rotation.z=n.lean*0.12*(n.seat<G.seatIdx?-1:1)*-1;}
       if(n.tellEmoji&&G.phase===3){ /* random idle actions feeding the slot machine */
         if(Math.random()<dt*0.1)setIcon(n,ACTIONS[Math.floor(Math.random()*ACTIONS.length)]);}}
@@ -753,7 +777,7 @@ function updatePlayer(dt){const st=stats();
   if(!player.inside){player.x=Math.max(-16,Math.min(16,player.x));player.z=Math.max(1.55,Math.min(7.6,player.z));
     if(G.doorsOpen&&atDoor&&player.z<1.9){player.inside=true;player.z=1.2;}}
   else{player.x=Math.max(-14.4,Math.min(14.4,player.x));player.z=Math.max(-1.15,Math.min(1.2,player.z));
-    if(G.doorsOpen&&atDoor&&keys.KeyS&&player.z>1.0){player.inside=false;player.z=2.2;}}
+    if(G.doorsOpen&&atDoor&&f>0.5&&Math.cos(player.yaw)<-0.7&&player.z>1.0){player.inside=false;player.z=2.2;}}
   if(player.inside&&!G.seated){const s=nearestFreeSeat(0.85);if(s)trySit();}
   /* camera: seated = fixed low, standing = sway grows with fatigue */
   const sway=G.seated?0.004:(1-G.hp/100)*0.05+((keys.ArrowUp||keys.ArrowDown||keys.ArrowLeft||keys.ArrowRight||joy.active)?0.012:0.004);
@@ -830,6 +854,7 @@ function updatePlayer(dt){const st=stats();
 })();
 /* ================= Main loop ================= */
 const clock=new THREE.Clock();
+const _dom={vig:"",fo:-1,lid:-1,sb:""}; /* v1.4.1: per-frame DOM-write cache */
 function animate(){requestAnimationFrame(animate);const rawDt=clock.getDelta();const dt=Math.min(0.1,rawDt);adaptQuality(rawDt);
 if(G.started&&!G.over){G.time+=dt;
 for(const k in CD)CD[k]=Math.max(0,CD[k]-dt);
@@ -863,17 +888,24 @@ n.lean=0;n.leanCd=8;n.group.rotation.z=0;setIcon(n,"");hurtSAN(6,"隣の頭が�
 updatePlayer(dt);updateNPCs(dt);contactCheck(dt);checkMiracle();heartbeat(dt);
 updateWorld(dt);if(rumbleMaster)rumbleMaster.gain.value=0.055*(1+joltLevel*1.8);
 /* --- diegetic effects (no gauges) --- */
-const san=G.san;$("vignette").style.boxShadow="inset 0 0 "+(40+(100-san)*1.6)+"px "+((100-san)*0.55)+"px rgba(190,0,0,"+Math.max(0,(60-san)/130)+")";
-$("fadeblack").style.opacity=G.hp<30?((30-G.hp)/30)*(0.55+0.3*Math.sin(G.time*4)):0;
-const lid=G.seated?G.sleep*0.42:0;$("eyelidT").style.height=lid+"%";$("eyelidB").style.height=lid+"%";
+/* v1.4.1 perf: cache per-frame DOM writes; only touch the DOM when the rounded value actually changes */
+const san=G.san;
+const _vig="inset 0 0 "+Math.round(40+(100-san)*1.6)+"px "+((100-san)*0.55).toFixed(1)+"px rgba(190,0,0,"+Math.max(0,(60-san)/130).toFixed(2)+")";
+if(_vig!==_dom.vig){_dom.vig=_vig;$("vignette").style.boxShadow=_vig;}
+const _fo=G.hp<30?((30-G.hp)/30)*(0.55+0.3*Math.sin(G.time*4)):0;
+const _foR=Math.round(_fo*50)/50;
+if(_foR!==_dom.fo){_dom.fo=_foR;$("fadeblack").style.opacity=_foR;}
+const lid=G.seated?G.sleep*0.42:0;const _lidR=Math.round(lid*2)/2;
+if(_lidR!==_dom.lid){_dom.lid=_lidR;$("eyelidT").style.height=_lidR+"%";$("eyelidB").style.height=_lidR+"%";}
 if(G.seated&&G.sleep>55)showPrompt("眠い… Enter（決定）連打で目を覚ませ！");
 else if(!G.leanEvent&&!G.elderEvent)showPrompt("");
 const SKILLNAMES=["流体すり抜け","二段加速","鞄結界","心眼"];const SKILLSHORT=["すり抜け","加速","結界","心眼"];const SKILLCDS=[CD.q,CD.e,CD.f,CD.r];
-const _chips=(innerWidth<640?SKILLSHORT:SKILLNAMES).map((n,i)=>{const cd=SKILLCDS[i]>0?"("+SKILLCDS[i].toFixed(0)+")":"";const sh=(i===2&&G.shield>0)?"展開中":"";
+const _chips=(innerWidth<640?SKILLSHORT:SKILLNAMES).map((n,i)=>{const cd=SKILLCDS[i]>0?"("+SKILLCDS[i].toFixed(0)+"秒)":"";const sh=(i===2&&G.shield>0)?"展開中":"";
 return (i===selSkill?"【"+n+cd+sh+"】":n+cd+sh);}).join(" | ");
-$("skillbar").textContent= innerWidth<640 ? _chips+" 〈決定:発動〉" :
+const _sb= innerWidth<640 ? _chips+" 〈決定:発動〉" :
 "通勤武術 ["+stats().label+" 脚力"+stats().leg+" 体幹"+stats().core+" 慧眼"+stats().eye+"] "+_chips+
 " 人徳: ？？？（隠し） 奇跡 "+G.miracles+"回 〈ホイール:選択 / Enter・クリック:決定〉";
+if(_sb!==_dom.sb){_dom.sb=_sb;$("skillbar").textContent=_sb;}
 }
 renderer.render(scene,camera);}
 animate();
