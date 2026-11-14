@@ -1439,7 +1439,7 @@
 
     <!-- ホールセレクターバー ＆ 使用ティーバッジ ＆ 2グリーン(L/R) -->
     <div class="hole-bar">
-      <div class="hole-nav-group"><button class="hole-nav-btn" onclick="prevHole()" title="前のホール">◀</button><button class="hole-nav-btn" onclick="nextHole()" title="次のホール">▶</button></div>
+      <div class="hole-nav-group"><button class="hole-nav-btn" onclick="prevHole()" title="前のホール" aria-label="前のホール">◀</button><button class="hole-nav-btn" onclick="nextHole()" title="次のホール" aria-label="次のホール">▶</button></div>
       <div class="hole-info-center">
         <span class="hole-badge-current" id="hud-current-hole-num">1H</span>
         <span class="hole-spec-text" id="hud-current-hole-par">Par 4 / 365y</span>
@@ -1510,7 +1510,7 @@
     <span class="hm-item"><span class="hm-label">風</span><span class="hm-val amber"><span id="hm-wind-arrow" style="display:inline-block;">⬆</span><span id="hm-wind">--m</span></span></span>
     <span class="hm-item"><span class="hm-label">次IP</span><span class="hm-val" id="hm-ip">--y</span></span>
     <span class="hm-dots"><span class="hm-dot" id="hm-dot-gps" title="GPS状態 (緑=追従中)"></span><span class="hm-dot kv" id="hm-dot-kv" title="KV同期状態 (青=同期済)"></span></span>
-    <button type="button" class="hm-expand" onclick="setHudCollapsed(false)" title="情報帯を広げる">▽</button>
+    <button type="button" class="hm-expand" onclick="setHudCollapsed(false)" title="情報帯を広げる" aria-label="情報帯を広げる">▽</button>
   </div>
     </div><!-- /.hud-strip -->
 
@@ -1629,9 +1629,9 @@
       <span>🗑️</span>
       <span>幅消去 (<strong id="direct-clear-count">0</strong>)</span>
     </div>
-    <button class="fab-btn" id="btn-shot-history" onclick="openShotHistoryModal()" title="📋 各打席ショット履歴・飛距離">📋</button>
-    <button class="fab-btn" onclick="focusCurrentHole({animate:true})" title="現在ホールに再ズーム">🎯</button>
-    <button class="fab-btn" id="btn-calib" onclick="startHoleCalibration()" title="📐 航空写真で2タップ(ティー→ピン)登録">📐</button>
+    <button class="fab-btn" id="btn-shot-history" onclick="openShotHistoryModal()" title="📋 各打席ショット履歴・飛距離" aria-label="各打席ショット履歴・飛距離">📋</button>
+    <button class="fab-btn" onclick="focusCurrentHole({animate:true})" title="現在ホールに再ズーム" aria-label="現在ホールに再ズーム">🎯</button>
+    <button class="fab-btn" id="btn-calib" onclick="startHoleCalibration()" title="📐 航空写真で2タップ(ティー→ピン)登録" aria-label="航空写真で2タップ登録（ティーからピン）">📐</button>
   </div>
 
   <!-- 下部ボトムコントロールバー -->
@@ -2067,13 +2067,13 @@
           </div>
           <div style="display:flex; align-items:center; gap:6px; margin-top:6px; flex-wrap:wrap;">
             <span style="font-size:12px; width:44px;">スコア</span>
-            <button class="btn-sub" style="width:44px; height:44px; font-size:18px;" onclick="quickAdjustScore('score', -1)">−</button>
+            <button class="btn-sub" style="width:44px; height:44px; font-size:18px;" onclick="quickAdjustScore('score', -1)" aria-label="スコアを1減らす">−</button>
             <span id="quick-score-val" style="min-width:38px; text-align:center; font-size:19px; font-weight:900;">–</span>
-            <button class="btn-sub" style="width:44px; height:44px; font-size:18px;" onclick="quickAdjustScore('score', 1)">＋</button>
+            <button class="btn-sub" style="width:44px; height:44px; font-size:18px;" onclick="quickAdjustScore('score', 1)" aria-label="スコアを1増やす">＋</button>
             <span style="font-size:12px; width:44px; margin-left:6px;">パット</span>
-            <button class="btn-sub" style="width:44px; height:44px; font-size:18px;" onclick="quickAdjustScore('putt', -1)">−</button>
+            <button class="btn-sub" style="width:44px; height:44px; font-size:18px;" onclick="quickAdjustScore('putt', -1)" aria-label="パット数を1減らす">−</button>
             <span id="quick-putt-val" style="min-width:38px; text-align:center; font-size:19px; font-weight:900;">–</span>
-            <button class="btn-sub" style="width:44px; height:44px; font-size:18px;" onclick="quickAdjustScore('putt', 1)">＋</button>
+            <button class="btn-sub" style="width:44px; height:44px; font-size:18px;" onclick="quickAdjustScore('putt', 1)" aria-label="パット数を1増やす">＋</button>
           </div>
           <div style="display:flex; gap:8px; margin-top:8px;">
             <button class="btn-sub" id="quick-fw-btn" style="flex:1; padding:10px;" onclick="quickToggleScore('fw')">FWキープ</button>
