@@ -1452,8 +1452,8 @@
 
       <!-- 2グリーン（L/R）切替 -->
       <div class="green-side-toggle" title="2グリーン切替 (L: メイン / R: サブ)">
-        <button class="green-side-btn active" id="btn-green-l" onclick="selectGreenSide('L')">🟢 L</button>
-        <button class="green-side-btn" id="btn-green-r" onclick="selectGreenSide('R')">⚪ R</button>
+        <button class="green-side-btn active" id="btn-green-l" onclick="selectGreenSide('L')" aria-label="左グリーン（メイン）に切り替える">🟢 L</button>
+        <button class="green-side-btn" id="btn-green-r" onclick="selectGreenSide('R')" aria-label="右グリーン（サブ）に切り替える">⚪ R</button>
       </div>
 
     </div>
@@ -4348,8 +4348,28 @@
       const kd = document.getElementById('hm-dot-kv');
       if (kd) kd.classList.toggle('on', /同期済|保存済/.test(txt('hud-db-sync-badge')));
     }
+    // ★ 仮座標ホールでは計算値を出さない (嘘の数値防止): ピン距離・PLAYSLIKE・IP距離を
+    //   中立の待機表示にする。風などコース単位の実測値はここでは触らない。
+    function setHudDistanceWaiting() {
+      const set = (id, v) => { const e = document.getElementById(id); if (e) e.innerText = v; };
+      set('hud-raw-dist', '—');
+      set('g3-front', '—'); set('g3-center', '—'); set('g3-back', '—');
+      set('hud-playslike-dist', '—');
+      set('hud-playslike-detail', '');
+      set('hud-target-ip-info', '—');
+      set('hud-recommended-club', '推奨: —');
+      set('hud-elev-diff', '—');
+      set('hud-elev-yards', '');
+      set('user-elev-val', '—');
+      if (typeof syncHudMini === 'function') syncHudMini();
+    }
+
     async function updateHUDAndSimulation() {
       if (!userCoord || !currentPinCoord) return;
+      // ★ 仮座標ホール (KV適用前など) では計算値を描かない: 旧コースの残像や
+      //   コース中心→実ピンの誤距離が一瞬でも出るのを防ぐ
+      const _hole = (typeof holeList !== 'undefined' && Array.isArray(holeList)) ? holeList[currentHoleIndex] : null;
+      if (_hole && _hole.placeholder) { setHudDistanceWaiting(); return; }
       const rawDist = calcDistanceYards(userCoord, currentPinCoord);
       const rawEl = document.getElementById('hud-raw-dist');
       if (rawEl) rawEl.innerText = `${rawDist}y`;
@@ -6459,9 +6479,27 @@
         if (hole) {
           currentPinCoord = resolvePinCoordinate(hole, currentGreenSide);
           currentTeeCoord = resolveTeeCoordinate(hole, currentTeeType);
+          // ★ クラウド適用直後の初回描画で、打席位置を旧仮ティー(コース中心)のままにしない
+          //   (中心→実ピンの誤距離 978y 等が表示される問題の原因。applyHole と同一規則で、
+          //   仮座標だったホールに限って実ティーへ寄せる。GPS追従中は現在地を維持)
+          if (holeDataUnbound) {
+            if (!isGpsTracking || !lastKnownGpsCoord || !isValidCoord(lastKnownGpsCoord)) {
+              userCoord = [...currentTeeCoord];
+            } else {
+              userCoord = [...lastKnownGpsCoord];
+            }
+            holeDataUnbound = false;
+          }
           if (pinMarker) pinMarker.setLatLng(currentPinCoord);
           if (userMarker) userMarker.setLatLng(userCoord);
+          // ★ ホール表示(番号・Par/ヤード)もクラウド適用直後に更新する
+          //   (applyHole を待つと「位置データ未取得」のまま残るため)
+          const numEl = document.getElementById('hud-current-hole-num');
+          if (numEl) numEl.innerText = `${hole.h}H`;
+          const parEl = document.getElementById('hud-current-hole-par');
+          if (parEl) parEl.innerText = `Par ${hole.par} / ${calcDistanceYards(currentTeeCoord, currentPinCoord)}y`;
           updateIpRoute();
+          if (typeof updateGuideHoleInfo === 'function') updateGuideHoleInfo();
           drawYardArcs();
           updateHUDAndSimulation();
           if (typeof updateTeeMarkerVisual === 'function') updateTeeMarkerVisual();
@@ -7119,6 +7157,8 @@
           if (pinMarker && map.hasLayer(pinMarker)) map.removeLayer(pinMarker);
         } catch (e) {}
         holeDataUnbound = true;
+        // ★ 仮座標の間は計算値を出さない (旧コースの残像・中心→仮ピンの誤距離を出さない)
+        setHudDistanceWaiting();
         updateGuideHoleInfo();
         if (map && currentCourse) { try { map.setView([currentCourse.lat, currentCourse.lon], 15, { animate: false }); } catch (e) {} }
         if (!opts || !opts.silent) showCalibrationToast('📐 このホールは位置データ未取得です。実測の取得完了か、2タップ登録をお待ちください', 3200);
@@ -7667,7 +7707,17 @@
       try { geo = await fetchCourseGeo(course); } catch (e) { console.warn('[geo]', e); }
       if (token !== courseLoadToken || course.id !== currentCourse.id) return; // コース切替後の古い応答は破棄
       if (!geo) {
-        if (courseHoleSource === 'none') showCalibrationToast('📐 OSMデータ未取得: 航空写真で2タップ登録できます');
+        // ★ KV登録済みコースではOSM未取得の案内を出さない。KV取得がまだ完了して
+        //   いない可能性があるため、1.5秒後に再判定してから表示する
+        if (courseHoleSource === 'none' && !cloudPulledCourses.has(course.id)) {
+          const _cid = course.id;
+          setTimeout(() => {
+            if (!_cid || !currentCourse || _cid !== currentCourse.id) return;
+            if (courseHoleSource !== 'none' || cloudPulledCourses.has(_cid)) return;
+            if (Array.isArray(holeList) && holeList.some(h => !h.placeholder)) return;
+            showCalibrationToast('📐 OSMデータ未取得: 航空写真で2タップ登録できます');
+          }, 1500);
+        }
         return;
       }
       renderCourseVectorLayers(geo.polys);
@@ -7704,7 +7754,7 @@
           synchronizeAllHoleYards();
           populateHoleSelect();
           applyHole(Math.min(currentHoleIndex, holeList.length - 1), { initial: true });
-        } else if (courseHoleSource === 'none') {
+        } else if (courseHoleSource === 'none' && !cloudPulledCourses.has(course.id)) {
           showCalibrationToast('📐 このコースはOSMにホール実測が未登録です。📐で2タップ登録してください');
           const b = document.getElementById('btn-calib');
           if (b) { b.classList.add('active'); setTimeout(() => b.classList.remove('active'), 6000); }
@@ -7812,6 +7862,8 @@
       holeList.forEach((hole, idx) => {
         const opt = document.createElement('option');
         opt.value = idx;
+        // ★ 仮座標ホールでは計算ヤードを出さない
+        if (hole.placeholder) { opt.innerText = `${hole.h}H (位置データ未取得)`; select.appendChild(opt); return; }
         const pinCoord = resolvePinCoordinate(hole, currentGreenSide);
         const teeCoord = resolveTeeCoordinate(hole, currentTeeType);
         const dist = calcDistanceYards(teeCoord, pinCoord);
@@ -9303,6 +9355,15 @@
       const hole = holeList[currentHoleIndex];
       if (!hole) return;
       const titleEl = document.getElementById('guide-hole-title');
+      // ★ 仮座標ホールでは計算ヤードを出さない (仮ティー→仮ピンの153y等は嘘の数値)
+      if (hole.placeholder) {
+        if (titleEl) titleEl.innerText = `${hole.h}H (位置データ未取得)`;
+        const descElP = document.getElementById('guide-hole-desc');
+        if (descElP) descElP.innerText = hole.advice || "フェアウェイセンター狙いがセオリー。";
+        const caddieElP = document.getElementById('guide-caddie-advice');
+        if (caddieElP) caddieElP.innerText = `風の計算を念頭に、グリーン中央へ正確なキャリーで打つのが鉄則です。`;
+        return;
+      }
       const holeYard = calcDistanceYards(currentTeeCoord, currentPinCoord);
       if (titleEl) titleEl.innerText = `${hole.h}H (Par ${hole.par} / ${holeYard}y)`;
       const descEl = document.getElementById('guide-hole-desc');
