@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   SEAT WARS ― 満員電車椅子取合戦 (単一ファイル版)
-  Version: 1.4.1
+  Version: 1.4.2
   Created: 20261107
   Three.js (CDN) によるブラウザ3D FPS。音楽は Internet Archive API から情景に合うクラシックをランダム再生。
   v1.1.0 (20261107): 路線・乗車駅セレクト、十字キー/Enter操作、スマホのタッチ操作（ジョイスティック/視点ドラッグ/ボタン）を復活。
@@ -13,6 +13,7 @@
   v1.3.2 (20261107): Windows でも画面ボタンをマウスクリックで操作可能に — ボタンパネルを Windows でも常時表示し、ボタン上の mousedown がポインターロック/ドラッグ視点に奪われないよう除外した (従来はクリックすると視点ロックが発動しボタンの動作が発火しなかった)。
   v1.4.0 (20261108): 没入感と操作性の品質向上ラウンド1 — 歩行カメラボブ (速度連動)、車両の揺れとレール継ぎ目の衝撃 (フェーズ3/4走行中)、加速時のFOVキック、窓の外を流れるトンネル/駅の光景 (実開口+スクロール世界)、走行音の合成 (レール騒音+48Hz低音、揺れ連動) と発車チャイム、乗客の呼吸と接触時のよろめき、開始画面にマウス感度設定 (localStorage保存)。ゲームバランス・収録データ・BGM選曲ロジックは不変。
   v1.4.1 (20261114): 日次品質改善ラウンド1 — デッドキー指示の修正（譲席・パリィのプロンプトを十字キー/決定に統一、降車はドアへ向かって歩く操作に）、感度スライダーのキーボード矢印キー操作を修正、スキルボタンのフォーカス外し、開始の二重起動ガード、クールダウン表示に「秒」、毎フレームDOM書き込みのキャッシュ、駅名標の実名表示と車内・ホームの天井照明、屋根の影を外して車内・ホームを明るく。ゲームバランス・収録データ・BGM選曲ロジックは不変。
+  v1.4.2 (20261117): 日次品質改善ラウンド2 — フェーズ①ホームの見た目改善（駅名標の中央を隠していた柱を外して駅名が読めるように、ホーム床にタイル質感のキャンバステクスチャ、線路側にバラスト＋レール＋明るめのトンネル壁で真っ黒な虚空を解消）。操作・ゲームバランス・収録データ・BGM選曲ロジックは不変。
 -->
 <html lang="ja">
 <head>
@@ -101,7 +102,7 @@
 <div class="screen" id="start">
   <div class="small">満員電車椅子取合戦</div>
   <h1>SEAT WARS</h1>
-  <div class="small" id="verLabel" style="letter-spacing:.34em;text-indent:.34em">ver 1.4.1</div>
+  <div class="small" id="verLabel" style="letter-spacing:.34em;text-indent:.34em">ver 1.4.2</div>
   <p>朝の首都圏。座席は、戦場だ。一人称視点でホームの陣取りから乗車ダッシュ、下車予測の心理戦、
   そして着席防衛戦を戦い抜き、目的地まで生き延びろ。画面にゲージはない。
   視界の揺れ・心音・赤い視界が、あなたの状態を物語る。</p>
@@ -270,10 +271,26 @@ else if(fps>50&&_qLevel>0){_qLevel--;renderer.setPixelRatio(_qRatios[_qLevel]);}
 const MAT=(c,r,m)=>new THREE.MeshStandardMaterial({color:c,roughness:r===undefined?0.85:r,metalness:m||0.02});
 function box(w,h,d,c,x,y,z,parent){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),MAT(c));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;(parent||scene).add(m);return m;}
 /* ---- platform ---- */
-box(60,0.3,7,0x8a8f98,0,-0.15,5.2);                      // platform floor
+/* v1.4.2 platform floor tiles: canvas texture (warm light-grey 1m tiles, grout lines) */
+const _tileC=document.createElement("canvas");_tileC.width=_tileC.height=256;
+(function(){const g=_tileC.getContext("2d");g.fillStyle="#979da6";g.fillRect(0,0,256,256);
+ for(let ty=0;ty<4;ty++)for(let tx=0;tx<4;tx++){const v=148+Math.floor(Math.random()*16);
+  g.fillStyle="rgb("+v+","+(v+2)+","+(v+7)+")";g.fillRect(tx*64+2,ty*64+2,60,60);}
+ g.strokeStyle="rgba(58,62,70,0.6)";g.lineWidth=2;
+ for(let i=0;i<=4;i++){g.beginPath();g.moveTo(i*64,0);g.lineTo(i*64,256);g.stroke();
+  g.beginPath();g.moveTo(0,i*64);g.lineTo(256,i*64);g.stroke();}})();
+const _tileTex=new THREE.CanvasTexture(_tileC);_tileTex.wrapS=_tileTex.wrapT=THREE.RepeatWrapping;_tileTex.repeat.set(15,1.75);
+const _platFloor=new THREE.Mesh(new THREE.BoxGeometry(60,0.3,7),
+  new THREE.MeshStandardMaterial({map:_tileTex,roughness:0.9,metalness:0.02}));
+_platFloor.position.set(0,-0.15,5.2);_platFloor.castShadow=true;_platFloor.receiveShadow=true;scene.add(_platFloor);
 box(60,0.06,0.5,0xf7d038,0,0.03,2.15);                   // yellow tactile line
 box(60,4,0.4,0x3c4658,0,2,9.2);                          // back wall
-for(let i=-4;i<=4;i++){box(0.35,3.4,0.35,0x9aa2ae,i*6,1.7,8.6);} // pillars
+for(let i=-4;i<=4;i++){if(i===0)continue;box(0.35,3.4,0.35,0x9aa2ae,i*6,1.7,8.6);} // pillars (v1.4.2: no centre pillar — it hid the middle of the station sign)
+/* v1.4.2 track side: ballast + rails so phase 1 does not face a black void */
+box(60,0.12,5.4,0x23262c,0,-0.32,-1.2);                  // ballast bed
+const _railM=new THREE.MeshStandardMaterial({color:0x9aa0a8,roughness:0.35,metalness:0.7});
+[-1.0,-2.2].forEach(function(z){const r=new THREE.Mesh(new THREE.BoxGeometry(60,0.07,0.09),_railM);
+  r.position.set(0,-0.24,z);scene.add(r);});
 box(60,0.4,8,0x2c3444,0,4.2,5.2).castShadow=false;         // roof (no shadow: lets daylight onto the platform)
 const signCanvas=document.createElement("canvas");signCanvas.width=512;signCanvas.height=80;
 const signTex=new THREE.CanvasTexture(signCanvas);
@@ -342,7 +359,7 @@ const _wGeo=new THREE.BoxGeometry(1,1,1);
 const _wLightM=new THREE.MeshBasicMaterial({color:0xffd9a0});
 const _wCoolM=new THREE.MeshBasicMaterial({color:0xbfd9ff});
 const _wSlabM=new THREE.MeshBasicMaterial({color:0xdfe8f2});
-const _wWallM=new THREE.MeshBasicMaterial({color:0x141a24});
+const _wWallM=new THREE.MeshBasicMaterial({color:0x2c3440}); /* v1.4.2: lighter tunnel wall (was 0x141a24, read as pitch-black void from the platform) */
 const _wBase={light:_wLightM.color.clone(),cool:_wCoolM.color.clone(),slab:_wSlabM.color.clone(),wall:_wWallM.color.clone()};
 const _wItems=[];
 (function(){const back=new THREE.Mesh(new THREE.PlaneGeometry(190,9),_wWallM);back.position.set(0,2.2,-5.2);worldG.add(back);
