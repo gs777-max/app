@@ -6584,6 +6584,9 @@
             if (cHole.boundaries && typeof cHole.boundaries === 'object') target.boundaries = cHole.boundaries;
             if (Array.isArray(cHole.routePts) && cHole.routePts.length >= 2) target.routePts = cHole.routePts.map(p => [...p]);
             if (cHole.routeSource) target.routeSource = cHole.routeSource;
+            if (cHole.sub) target.sub = cHole.sub;
+            if (typeof cHole.no !== 'undefined') target.no = cHole.no;
+            if (typeof cHole.hdcp !== 'undefined') target.hdcp = cHole.hdcp;
             if (typeof cHole.placeholder === 'boolean') target.placeholder = cHole.placeholder;
 
             // ★ 重要: localStorage 個別キャリブレーションキーも同時に同期 (resolvePinCoordinate で即座に参照可能にする)
