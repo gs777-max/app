@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BATTLE OF GOLF - GOAT | WebGL版（v4.20）</title>
+<title>BATTLE OF GOLF - GOAT | WebGL版（v4.31）</title>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://archive.org">
 <link rel="dns-prefetch" href="https://fonts.googleapis.com">
@@ -25,8 +25,10 @@
   }
 })();
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Noto+Sans+JP:wght@300;400;600;800;900&family=Noto+Serif+JP:wght@500;700;900&display=swap">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Noto+Sans+JP:wght@300;400;600;800;900&family=Noto+Serif+JP:wght@500;700;900&display=swap');
   :root {
     --bg-deep: #05060c;
     --bg-panel: rgba(12, 15, 28, 0.86);
@@ -66,7 +68,7 @@
     #topbar { height: 44px; padding: 0 8px; gap: 6px; }
     .logo-mark { font-size: 13px; letter-spacing: 1px; }
     #status { display: none; }
-    .tbtn { padding: 5px 8px; font-size: 11px; }
+    .tbtn { padding: 11px 9px; font-size: 11px; }
     #stage { top: 44px; bottom: 52px; }
     #narr { height: 52px; min-height: 52px; max-height: 52px; padding: 4px 12px; gap: 10px; overflow: hidden; }
     .narr-badge { min-width: 78px; padding: 2px 6px; }
@@ -82,7 +84,7 @@
     #topbar { height: 38px; padding: 0 8px; gap: 5px; }
     .logo-mark { font-size: 12px; letter-spacing: 1px; }
     #status { display: none; }
-    .tbtn { padding: 4px 7px; font-size: 10.5px; }
+    .tbtn { padding: 8px 8px; font-size: 10.5px; }
     #stage { top: 38px; bottom: 36px; }
     #narr { height: 36px; min-height: 36px; max-height: 36px; padding: 2px 10px; gap: 8px; overflow: hidden; }
     .narr-badge { min-width: 70px; padding: 2px 5px; flex-direction: row; gap: 4px; }
@@ -114,9 +116,13 @@
   .tbtn {
     background: rgba(26, 31, 56, 0.85); color: var(--text);
     border: 1px solid rgba(130, 145, 195, 0.35); border-radius: 8px;
-    padding: 6px 11px; font-size: 12px; font-weight: 600; cursor: pointer;
+    padding: 12px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
     white-space: nowrap; transition: all 0.18s ease;
     display: inline-flex; align-items: center; gap: 5px;
+  }
+  /* v4.29 A-3: デスクトップのみトップバーのボタンを 44px 化する（#topbar 高さ 54px 固定のためレイアウト不変。モバイル 44px バー・短身 38px バー・ダイアログ内のボタンには適用しない）。 */
+  @media (min-width: 901px) and (min-height: 521px) {
+    #topbar .tbtn { min-height: 44px; box-sizing: border-box; }
   }
   .tbtn:hover:not(:disabled) {
     background: rgba(45, 53, 92, 0.95); border-color: var(--gold);
@@ -132,8 +138,10 @@
     background: linear-gradient(135deg, #7c1d2e 0%, #490d19 100%);
     border-color: #ff7588; color: #ffe6ea; font-weight: 800;
   }
-  .tbtn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  .tbtn:disabled { color: #9aa3c0; background: rgba(26,31,56,0.45); border-color: rgba(130,145,195,0.18); cursor: not-allowed; transform: none; }
 
+  /* v4.24: キーボード操作時のフォーカスを見やすくする（位置・サイズ不変） */
+  :focus-visible { outline: 2px solid #ffd875; outline-offset: 2px; box-shadow: 0 0 0 4px rgba(255,216,117,0.25); }
   /* ===== メイン3Dステージ（world.html / golf.html） ===== */
   #stage {
     position: fixed; top: 54px; bottom: 68px; left: 0; right: 0; z-index: 1;
@@ -170,7 +178,7 @@
   }
   .narr-badge.male { border-color: rgba(255,205,105,0.5); color: #ffd875; }
   .narr-badge.female { border-color: rgba(175,145,255,0.55); background: rgba(155,115,255,0.1); color: #decaff; }
-  .narr-role { font-size: 9px; letter-spacing: 2px; opacity: 0.8; text-transform: uppercase; }
+  .narr-role { font-size: 10.5px; letter-spacing: 2px; opacity: 1.0; text-transform: uppercase; } /* v4.29 A-2: 役割表示を読みやすくする（バッジは #narr 高さ 52px に収まるためレイアウト不変） */
   .narr-who { font-family: 'Noto Serif JP', serif; font-weight: 900; font-size: 12px; letter-spacing: 1.5px; margin-top: 1px; }
   .narr-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
   #narrText {
@@ -225,6 +233,16 @@
     border-color: var(--gold);
     background: linear-gradient(145deg, rgba(48,38,16,0.72) 0%, rgba(22,24,48,0.9) 100%);
     box-shadow: 0 0 28px rgba(255,205,85,0.28);
+    overflow: visible;
+  }
+  /* v4.24: 選んだモードを「✓ 選択中」バッジで明示する（.char-box.sel の前例と同じ方式。
+     絶対配置でカード上部にはみ出し、カードのサイズは変えない。はみ出し11pxはグリッド間隔16pxの範囲内） */
+  .mode-sel-badge {
+    position: absolute; top: -11px; right: 14px; z-index: 2;
+    padding: 2px 12px; border-radius: 999px; white-space: nowrap; pointer-events: none;
+    background: linear-gradient(135deg, #ffd875, #c98e1e); color: #241a05;
+    font-size: 11px; font-weight: 900; letter-spacing: 1px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.45);
   }
   .mode-card .mt { font-size: 17px; font-weight: 900; color: var(--gold-bright); display: flex; justify-content: space-between; }
   .mode-card .md { font-size: 12px; color: var(--text-sub); line-height: 1.7; margin-top: 7px; }
@@ -324,9 +342,10 @@
     border-radius: 0 0 11px 11px; background: #141a30; box-shadow: 0 14px 28px rgba(0,0,0,0.55); overflow: hidden;
   }
   .pdd-opt {
-    min-height: 47px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    min-height: 47px; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
     padding: 10px 14px; font-size: 15px; font-weight: 700; color: #e8ecf7; cursor: pointer;
-    border-top: 1px solid rgba(255,255,255,0.07);
+    background: transparent; border: none; border-top: 1px solid rgba(255,255,255,0.07);
+    font-family: inherit; text-align: left;
   }
   .pdd-opt.sel { color: var(--gold-bright); background: rgba(255,200,60,0.12); }
   .pdd-check { color: var(--gold-bright); flex: none; }
@@ -354,6 +373,10 @@
   }
   .modal-back.show { display: flex; animation: fadeIn 0.22s ease-out; }
   @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+  /* v4.24: 動きを減らす設定のとき演出アニメーションを静止表示にする（既定の見た目・挙動は不変） */
+  @media (prefers-reduced-motion: reduce) {
+    .modal-back.show, .char-box.tap-flash { animation: none !important; }
+  }
   .modal-win {
     width: 100%; max-width: 1020px; max-height: 88vh; display: flex; flex-direction: column;
     background: linear-gradient(170deg, rgba(18,22,44,0.96) 0%, rgba(9,11,24,0.98) 100%);
@@ -368,7 +391,7 @@
   .modal-title { font-family: 'Noto Serif JP', serif; font-size: 20px; font-weight: 900; color: var(--gold-bright); }
   .modal-close {
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
-    color: #fff; border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer;
+    color: #fff; border-radius: 8px; padding: 14px 16px; font-size: 13px; cursor: pointer;
   }
   .modal-close:hover { background: rgba(255,77,90,0.35); border-color: var(--crimson); }
   .modal-tabs {
@@ -376,7 +399,7 @@
     background: rgba(6,8,18,0.65); border-bottom: 1px solid rgba(255,255,255,0.08);
   }
   .mtab {
-    padding: 7px 15px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    padding: 14px 18px; border-radius: 999px; font-size: 12px; font-weight: 700;
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
     color: var(--text-sub); cursor: pointer; white-space: nowrap; transition: all 0.15s;
   }
@@ -446,7 +469,7 @@
     .logo-mark { font-size: 11px; letter-spacing: 0; }
     .area-pill { font-size: 10px; padding: 2px 7px; }
     .nav-group { gap: 5px; }
-    .tbtn { padding: 4px 7px; font-size: 10.5px; }
+    .tbtn { padding: 11px 9px; font-size: 10.5px; }
   }
 </style>
 <style>
@@ -457,7 +480,7 @@
   #narrText { font-size: 0.82rem !important; }
 }
 </style>
-<script src="assets/diag-overlay.js?v=4.20"></script>
+<script src="assets/diag-overlay.js?v=4.31"></script>
 </head>
 <body>
 
@@ -513,25 +536,33 @@
       一打の波動で残影を浄化し、伝説の王者たちと魂のラウンドを交わし、天岩戸の光を取り戻せ。
     </div>
     <div class="modes">
-      <div class="mode-card sel" id="modeNormal">
+      <div class="mode-card sel" id="modeNormal" tabindex="0">
+        <span class="mode-sel-badge">✓ 選択中</span>
         <div class="mt"><span>🏌️ 通常モード（王道神話本編）</span><span style="font-size:12px;color:var(--cyan)">STANDARD</span></div>
         <div class="md">設計書どおりの完全バランス。ボールと賞金を管理し、全11枠ギアと神器を集め、18本の運命の糸とマルチラスボス分岐を歩む没入の旅。</div>
         <div class="saveinfo" id="saveInfoNormal"></div>
       </div>
-      <div class="mode-card" id="modeGoat">
+      <div class="mode-card" id="modeGoat" tabindex="0">
         <div class="mt"><span>👑 GOATモード（神装完成・無敵）</span><span style="font-size:12px;color:var(--gold)">INVINCIBLE</span></div>
         <div class="md">開始からランク最高位「グランドスラマー」／パワー＆メンタル常時100%無敵／三種の神器＋オリンポス8神器の「神装完成」＆ボール無限。全エリア即時解放！</div>
         <div class="saveinfo" id="saveInfoGoat"></div>
       </div>
     </div>
+    <!-- v4.31: フリーラウンド（第3の入口。本編セーブの実力を引き継ぐ単独ラウンド） -->
+    <div class="mode-card free" id="modeFree" tabindex="0" style="margin-top:14px;border-color:rgba(92,225,230,.55)">
+      <div class="mt"><span>⛳ フリーラウンド（自由に回る）</span><span style="font-size:12px;color:var(--cyan)">FREE ROUND ・ NEW</span></div>
+      <div class="md">既存の8コースを 3H／9H／18H で自由にラウンド。本編セーブの主人公・ランク・装備中のギアを引き継いでプレイし、コースごとにベスト10を記録します（相手はいません）。</div>
+      <div class="saveinfo" id="saveInfoFree"></div>
+    </div>
     <div class="action-row">
       <button class="bigbtn" id="continueBtn" style="display:none">▶ 中断地点から再開（レジューム）</button>
       <button class="bigbtn" id="toCharBtn">✦ 新たな旅を始める</button>
+      <button class="bigbtn" id="toFreeBtn" style="background:linear-gradient(135deg,#0e7d8a,#07525e);border-color:var(--cyan);box-shadow:0 6px 24px rgba(60,200,215,.35)">⛳ フリーラウンドへ</button>
       <button class="bigbtn ngplus" id="ngPlusBtn" style="display:none">🌟 周回プレイ（New Game+）</button>
       <button class="bigbtn ghost" id="loadSlotBtn">📂 セーブスロット（5枠）</button>
     </div>
     <div style="margin-top:16px;font-size:11.5px;color:#7e88ab;">
-      Complete Master Edition v4.20【WebGL版・新エンジン】｜ 全5エリア＋天空の神域 ｜ 全11コース3D決戦 ｜ 全11枠ギア80種 ｜ 四神波動MAX ｜ 5モード高速移動搭載
+      Complete Master Edition v4.31【WebGL版・新エンジン】｜ 全5エリア＋天空の神域 ｜ 全11コース3D決戦 ｜ 全11枠ギア80種 ｜ 四神波動MAX ｜ 5モード高速移動搭載
     </div>
     <div id="engineChip" style="margin-top:8px;font-size:11.5px;color:#ffd875;font-weight:700;">描画: 確認中…（ワールドに入ると実際に描いている方式が表示されます）</div>
   </div>
@@ -576,6 +607,85 @@
     <div class="action-row">
       <button class="bigbtn ghost" id="backCharBtn">← 主人公を選び直す</button>
       <button class="bigbtn" id="departBtn">⛩ 京都・天孫降臨の地へ旅立つ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== v4.31: フリーラウンド設定オーバーレイ ===== -->
+<div class="overlay" id="freeScr" style="display:none">
+  <div class="hero-panel">
+    <div class="myth-eyebrow">FREE ROUND ｜ ROAM THE COURSES FREELY</div>
+    <div style="font-family:'Noto Serif JP',serif;font-size:26px;font-weight:900;color:var(--gold-bright);">⛳ フリーラウンド</div>
+    <div style="color:var(--cyan);margin-top:6px;font-size:13px;font-weight:700;">好きなコースを、好きなホール数で。本編の実力のまま、相手なしで回ります。</div>
+    <div id="freeResumeBanner" style="display:none;margin-top:14px;border:1.5px solid var(--gold);border-radius:12px;padding:10px 14px;background:rgba(255,200,60,.1);font-size:13px;line-height:1.7;text-align:left"></div>
+    <div style="text-align:left;margin-top:18px;">
+      <div style="font-size:14px;font-weight:900;color:var(--gold-bright);">STEP 1 ― ホール数を選ぶ</div>
+      <div class="free-chips" id="freeSegChips" style="margin-top:9px;"></div>
+      <div id="freeStartRow" style="display:none;margin-top:10px;">
+        <span style="font-size:12.5px;font-weight:900;color:var(--cyan);">開始ホール：</span>
+        <span class="free-chips" id="freeStartChips" style="display:inline-flex;vertical-align:middle"></span>
+        <span style="font-size:11.5px;color:var(--text-sub)">（選んだホールから連続3ホール）</span>
+      </div>
+    </div>
+    <div style="text-align:left;margin-top:20px;">
+      <div style="font-size:14px;font-weight:900;color:var(--gold-bright);">STEP 2 ― コースを選ぶ</div>
+      <div class="free-courses" id="freeCourseGrid" style="margin-top:9px;"></div>
+    </div>
+    <div style="text-align:left;margin-top:20px;">
+      <div style="font-size:14px;font-weight:900;color:var(--gold-bright);">STEP 3 ― あなたの実力（本編セーブから自動で読み込み）</div>
+      <div class="setting-card" style="margin-top:9px;">
+        <div id="freeStatusBox" style="font-size:13px;line-height:1.9;text-align:left"></div>
+        <div class="pdd-label" style="margin-top:11px;">難易度（このラウンドだけ変更できます）</div>
+        <div id="freeDiffPdd"></div>
+        <div class="pdd-label" style="margin-top:12px;">飛距離クラス（このラウンドだけ変更できます）</div>
+        <div id="freeDistPdd"></div>
+        <div style="font-size:11px;color:var(--text-sub);margin-top:10px;line-height:1.6;text-align:left;">※TP・賞金・本編の進行には影響しません。ボールは本編と共通で消費します。パワーはラウンド開始時に満タンです。</div>
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="bigbtn ghost" id="freeBackBtn">← タイトルに戻る</button>
+      <button class="bigbtn" id="freeBestBtn" style="background:linear-gradient(135deg,#0e7d8a,#07525e);border-color:var(--cyan);box-shadow:0 6px 24px rgba(60,200,215,.35)">🏆 ベスト10を見る</button>
+      <button class="bigbtn" id="freeStartBtn">⛳ ティーオフ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== v4.31: コース別ベスト10オーバーレイ ===== -->
+<div class="overlay" id="bestScr" style="display:none">
+  <div class="hero-panel">
+    <div class="myth-eyebrow">FREE ROUND ｜ BEST 10 RECORDS</div>
+    <div style="font-family:'Noto Serif JP',serif;font-size:26px;font-weight:900;color:var(--gold-bright);">🏆 コース別 ベスト10</div>
+    <div style="color:var(--text-sub);margin-top:6px;font-size:12.5px;line-height:1.8;">コースとホール数を選ぶと、その条件のベスト10が表示されます。記録は端末に自動保存され、画面やブラウザを閉じても残ります。</div>
+    <div style="text-align:left;margin-top:16px;">
+      <div style="font-size:12.5px;font-weight:900;color:var(--cyan);">コースを選ぶ</div>
+      <div class="free-chips" id="bestCourseChips" style="margin-top:8px;"></div>
+      <div style="font-size:12.5px;font-weight:900;color:var(--cyan);margin-top:14px;">ホール数を選ぶ</div>
+      <div class="free-chips" id="bestSegChips" style="margin-top:8px;"></div>
+      <div id="bestStartRow" style="display:none;margin-top:10px;">
+        <span style="font-size:12.5px;font-weight:900;color:var(--cyan);">開始ホール：</span>
+        <span class="free-chips" id="bestStartChips" style="display:inline-flex;vertical-align:middle"></span>
+      </div>
+    </div>
+    <div id="bestTableBox" style="margin-top:16px;overflow-x:auto"></div>
+    <div style="font-size:11.5px;color:var(--text-sub);line-height:1.8;margin-top:10px;">同スコアの場合は、パット数が少ない方を上位にします。それも同じなら日時の新しい方を上位にします。</div>
+    <div class="action-row">
+      <button class="bigbtn ghost" id="bestBackBtn">← 戻る</button>
+      <button class="bigbtn" id="bestPlayBtn" style="background:linear-gradient(135deg,#0e7d8a,#07525e);border-color:var(--cyan);box-shadow:0 6px 24px rgba(60,200,215,.35)">⛳ この条件でラウンドする</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== v4.31: フリーラウンド結果オーバーレイ ===== -->
+<div class="overlay" id="freeResultScr" style="display:none">
+  <div class="hero-panel">
+    <div class="myth-eyebrow">ROUND FINISHED ｜ FREE ROUND RESULT</div>
+    <div style="font-family:'Noto Serif JP',serif;font-size:26px;font-weight:900;color:var(--gold-bright);" id="freeResultTitle">🏆 ラウンド終了</div>
+    <div id="freeResultBody" style="margin-top:14px"></div>
+    <div class="action-row">
+      <button class="bigbtn ghost" id="frToTitleBtn">タイトルに戻る</button>
+      <button class="bigbtn" id="frBestBtn" style="background:linear-gradient(135deg,#0e7d8a,#07525e);border-color:var(--cyan);box-shadow:0 6px 24px rgba(60,200,215,.35)">🏆 ベスト10を見る</button>
+      <button class="bigbtn ghost" id="frChangeBtn">コース・ホール数を変える</button>
+      <button class="bigbtn" id="frRetryBtn">↻ 同じ条件でもう一度</button>
     </div>
   </div>
 </div>
@@ -1201,10 +1311,15 @@ var AREA_EVENTS = {
     });
   }
   var t = 0;
+  /* v4.29 P-7: タイトル画面の要素参照と背景グラデーションをキャッシュする（要素は静的なため初回に1回だけ取得。グラデーションは寸法が変わったときだけ作り直す。v4.28 A-3／C-1 と同型）。 */
+  var _titleScrEl = null, _charScrEl = null;
+  var _titleBgGrad = null, _titleBgW = 0, _titleBgH = 0;
   function draw(){
     requestAnimationFrame(draw);
-    var tScr = document.getElementById("titleScr");
-    var cScr = document.getElementById("charScr");
+    if (!_titleScrEl) _titleScrEl = document.getElementById("titleScr");
+    if (!_charScrEl) _charScrEl = document.getElementById("charScr");
+    var tScr = _titleScrEl;
+    var cScr = _charScrEl;
     var vis = (tScr && tScr.style.display !== "none") || (cScr && cScr.style.display !== "none");
     if(!vis){
       if(cv.style.display !== "none"){
@@ -1216,11 +1331,14 @@ var AREA_EVENTS = {
     if(cv.style.display === "none") cv.style.display = "block";
     t += 0.012;
     ctx.clearRect(0,0,W,H);
-    var g = ctx.createRadialGradient(W*0.5, H*0.24, 10, W*0.5, H*0.5, Math.max(W,H)*0.75);
-    g.addColorStop(0, "rgba(62, 48, 18, 0.36)");
-    g.addColorStop(0.45, "rgba(18, 22, 52, 0.24)");
-    g.addColorStop(1, "rgba(4, 5, 12, 0.92)");
-    ctx.fillStyle = g;
+    if (!_titleBgGrad || _titleBgW !== W || _titleBgH !== H) {
+      _titleBgGrad = ctx.createRadialGradient(W*0.5, H*0.24, 10, W*0.5, H*0.5, Math.max(W,H)*0.75);
+      _titleBgGrad.addColorStop(0, "rgba(62, 48, 18, 0.36)");
+      _titleBgGrad.addColorStop(0.45, "rgba(18, 22, 52, 0.24)");
+      _titleBgGrad.addColorStop(1, "rgba(4, 5, 12, 0.92)");
+      _titleBgW = W; _titleBgH = H;
+    }
+    ctx.fillStyle = _titleBgGrad;
     ctx.fillRect(0,0,W,H);
 
     /* 18本の運命の糸の絹のような光波 */
@@ -2245,18 +2363,32 @@ function startGolfBattle(customTarget){
 
 /* v4.5: 対戦起動ウォッチドッグ。golf からの hello が来ない（CDN失敗等）場合、
    1回だけ自動で読み直し、それでも駄目ならワールド（生存中）へ戻す。タイトルへは落とさない。 */
-function __v45Toast(msg){
+/* v4.24: 対戦起動の最終失敗時、トースト内に「もう一度試す」ボタンを付ける。
+   ボタンは onRetry（直前の対戦をもう一度起動する）を呼ぶ。自動消去はボタン付き10秒・ボタンなし4.2秒（v4.27 U-2）。 */
+function __v45Toast(msg, onRetry){
   var t = document.getElementById("v45Toast");
   if(!t){
     t = document.createElement("div");
     t.id = "v45Toast";
+    t.setAttribute("role", "status");
+    t.setAttribute("aria-live", "polite");
     t.style.cssText = "position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(10,12,26,.94);border:1px solid #c9a227;color:#ffe9a8;font-size:13.5px;padding:10px 18px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.5);display:none;max-width:92vw;text-align:center;";
     document.body.appendChild(t);
   }
-  t.textContent = msg;
+  t.textContent = "";
+  t.appendChild(document.createTextNode(msg));
+  if(typeof onRetry === "function"){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = "もう一度試す";
+    b.style.cssText = "margin-left:12px;padding:6px 14px;border-radius:8px;border:1px solid #c9a227;background:rgba(255,216,117,.16);color:#ffe9a8;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;";
+    b.onclick = function(){ clearTimeout(t._tm); t.style.display = "none"; onRetry(); };
+    t.appendChild(b);
+  }
   t.style.display = "block";
   clearTimeout(t._tm);
-  t._tm = setTimeout(function(){ t.style.display = "none"; }, 4200);
+  /* v4.27 U-2: 「もう一度試す」ボタン付きの失敗トーストは、気づく前に消えないよう10秒表示する（ボタンなしの途中経過トーストは従来の4.2秒のまま）。 */
+  t._tm = setTimeout(function(){ t.style.display = "none"; }, (typeof onRetry === "function") ? 10000 : 4200);
 }
 function __armBattleWatchdog(url){
   if(window.__bwTimer) clearTimeout(window.__bwTimer);
@@ -2278,7 +2410,9 @@ function __armBattleWatchdog(url){
       gf.src = url;
       window.__bwTimer = setTimeout(check, 15000);
     } else {
-      __v45Toast("対戦を開始できませんでした。ワールドに戻ります");
+      __v45Toast("対戦を開始できませんでした。ワールドに戻ります", function(){
+        if(window.__bwLastTgt) launchGolfIframe(window.__bwLastTgt, window.__bwLastChar || undefined);
+      });
       enterWorld(false);
     }
   };
@@ -2290,6 +2424,8 @@ function launchGolfIframe(tgt, overrideCharId){
   /* v4.5: 二重発火ガード（二度押し・ゲート到達とボタンの競合で重い golf 文書の読込がやり直されるのを防ぐ） */
   if(window.__launchLock && Date.now() - window.__launchLock < 2500) return;
   window.__launchLock = Date.now();
+  window.__bwLastTgt = tgt;
+  window.__bwLastChar = overrideCharId || null;
   var useCharId = overrideCharId || S.activeCharId;
   var ch = charById(useCharId);
   var gs = calcGearStats(S);
@@ -2384,6 +2520,39 @@ narrate(
 /* =========================================================================
    第6部：人間ドラマ・運命の岐路・裏切りと赦し・命の選択・エンディング分岐エンジン
    ========================================================================= */
+/* v4.24: モーダルを開いたらフォーカスをモーダル内の最初の要素へ移し、
+   Tab をモーダル内に閉じ込め、Escape で閉じる。見た目は変えない。 */
+(function(){
+  function focusables(modal){
+    return Array.prototype.filter.call(
+      modal.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"),
+      function(el){ return !el.disabled && el.getClientRects().length > 0; });
+  }
+  window.__goatFocusModal = function(modal){
+    if(!modal) return;
+    var f = focusables(modal);
+    if(f.length) f[0].focus();
+  };
+  document.addEventListener("keydown", function(e){
+    var modal = null;
+    if(document.getElementById("mainModal").classList.contains("show")) modal = document.getElementById("mainModal");
+    else if(document.getElementById("dramaModal").classList.contains("show")) modal = document.getElementById("dramaModal");
+    if(!modal) return;
+    if(e.key === "Escape"){
+      e.preventDefault();
+      if(modal.id === "mainModal") closeMainModal();
+      else { modal.classList.remove("show"); focusWorldFrame(); }
+      return;
+    }
+    if(e.key !== "Tab") return;
+    var f = focusables(modal);
+    if(!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  });
+})();
+
 function openDrama(tag, title, text, choices){
   var modal = document.getElementById("dramaModal");
   document.getElementById("dTag").textContent = tag || "DESTINY";
@@ -2404,6 +2573,7 @@ function openDrama(tag, title, text, choices){
     list.appendChild(btn);
   });
   modal.classList.add("show");
+  if(window.__goatFocusModal) window.__goatFocusModal(modal);
 }
 
 function applyEventFx(fx){
@@ -2610,6 +2780,14 @@ function handleGolfResult(res){
   var ctx = S.activeBattle;
   S.activeBattle = null;
   try { localStorage.removeItem("goat_active_battle_v2"); } catch(e){}
+
+  /* v4.31: フリーラウンドの結果は勝敗・報酬処理へ流さず、専用処理（ベスト10登録＋結果画面）へ。
+     本編へ戻すのはボール残数だけ（パワー・メンタル・TP・賞金は不変）。 */
+  if(res.outcome === "free" || (ctx && ctx.freeRound)){
+    if(S.mode !== "goat" && typeof res.ballsLeft === "number") S.balls = Math.max(0, Math.round(res.ballsLeft));
+    if(window.__freeHandleResult) __freeHandleResult(res, ctx);
+    return;
+  }
 
   if(S.mode !== "goat"){
     if(typeof res.powerLeft === "number") S.power = Math.max(5, Math.min(100, Math.round(res.powerLeft)));
@@ -2949,6 +3127,7 @@ function openMainModal(kind, initTab){
 
   modal.classList.add("show");
   renderModalBody();
+  if(window.__goatFocusModal) window.__goatFocusModal(modal);
 }
 
 function tierStars(tier){
@@ -3585,10 +3764,23 @@ function refreshTitleSaveBadges(){
   document.getElementById("ngPlusBtn").style.display = (META.clearedCount > 0) ? "inline-block" : "none";
 }
 
+/* v4.24: 選択中のモードカードに「✓ 選択中」バッジを付ける（.char-box.sel と同じ方式） */
+function syncModeSelBadge(){
+  Array.prototype.forEach.call(document.querySelectorAll(".mode-sel-badge"), function(b){ b.remove(); });
+  var sel = document.querySelector(".mode-card.sel");
+  if(sel){
+    var b = document.createElement("span");
+    b.className = "mode-sel-badge";
+    b.textContent = "✓ 選択中";
+    sel.appendChild(b);
+  }
+}
+
 function selectTitleMode(m){
   selectedMode = m;
   document.getElementById("modeNormal").classList.toggle("sel", m === "normal");
   document.getElementById("modeGoat").classList.toggle("sel", m === "goat");
+  syncModeSelBadge();
   SOUND.sfx("click");
   refreshTitleSaveBadges();
 }
@@ -3608,13 +3800,15 @@ function buildSettingDropdown(mount, items, selId, onPick){
   var head = document.createElement("button");
   head.type = "button";
   head.className = "pdd-head";
+  head.setAttribute("aria-expanded", "false");
   head.innerHTML = "<span class='pdd-val'></span><span class='pdd-chev'>▼</span>";
   head.querySelector(".pdd-val").textContent = selItem.name;
   var list = document.createElement("div");
   list.className = "pdd-list";
   list.style.display = "none";
   items.forEach(function(it){
-    var row = document.createElement("div");
+    var row = document.createElement("button");
+    row.type = "button";
     row.className = "pdd-opt" + (it.id === selId ? " sel" : "");
     var lab = document.createElement("span");
     lab.textContent = it.name;
@@ -3635,7 +3829,17 @@ function buildSettingDropdown(mount, items, selId, onPick){
       row.appendChild(ck2);
       head.querySelector(".pdd-val").textContent = it.name;
       list.style.display = "none"; head.classList.remove("open");
+      head.setAttribute("aria-expanded", "false");
+      head.focus();
       onPick(it.id);
+    });
+    /* v4.24: 矢印キーで選択肢を移動、Escape で閉じて頭ボタンへ戻る（Enter/Space は button の既定の click で選択される） */
+    row.addEventListener("keydown", function(e){
+      var opts = Array.prototype.slice.call(list.querySelectorAll(".pdd-opt"));
+      var i = opts.indexOf(row);
+      if(e.key === "ArrowDown"){ e.preventDefault(); var n = opts[(i + 1) % opts.length]; if(n) n.focus(); }
+      else if(e.key === "ArrowUp"){ e.preventDefault(); var p = opts[(i - 1 + opts.length) % opts.length]; if(p) p.focus(); }
+      else if(e.key === "Escape"){ e.preventDefault(); list.style.display = "none"; head.classList.remove("open"); head.setAttribute("aria-expanded", "false"); head.focus(); }
     });
     list.appendChild(row);
   });
@@ -3643,6 +3847,17 @@ function buildSettingDropdown(mount, items, selId, onPick){
     var willOpen = (list.style.display === "none");
     closeAllSettingDropdowns();
     if(willOpen){ list.style.display = "block"; head.classList.add("open"); }
+    head.setAttribute("aria-expanded", willOpen ? "true" : "false");
+  });
+  /* v4.24: ↓キーで開いて先頭の選択肢へフォーカス、Escape で閉じる（Enter/Space は button の既定の click で開閉される） */
+  head.addEventListener("keydown", function(e){
+    if(e.key === "ArrowDown"){
+      e.preventDefault();
+      if(list.style.display === "none"){ closeAllSettingDropdowns(); list.style.display = "block"; head.classList.add("open"); head.setAttribute("aria-expanded", "true"); }
+      var first = list.querySelector(".pdd-opt"); if(first) first.focus();
+    } else if(e.key === "Escape"){
+      list.style.display = "none"; head.classList.remove("open"); head.setAttribute("aria-expanded", "false");
+    }
   });
   wrap.appendChild(head);
   wrap.appendChild(list);
@@ -3652,8 +3867,12 @@ function buildSettingDropdown(mount, items, selId, onPick){
 
 function closeAllSettingDropdowns(){
   Array.prototype.forEach.call(document.querySelectorAll("#settingScr .pdd-list"), function(l){ l.style.display = "none"; });
-  Array.prototype.forEach.call(document.querySelectorAll("#settingScr .pdd-head"), function(h){ h.classList.remove("open"); });
+  Array.prototype.forEach.call(document.querySelectorAll("#settingScr .pdd-head"), function(h){ h.classList.remove("open"); h.setAttribute("aria-expanded", "false"); });
 }
+/* v4.24: Escape キーで開いている設定プルダウンを閉じる（フォーカスが頭ボタンにない場合も対応） */
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape") closeAllSettingDropdowns();
+});
 
 function updateSettingDesc(){
   var el = document.getElementById("settingDesc");
@@ -3706,6 +3925,7 @@ function renderCharSelection(){
   CHARS.forEach(function(c){
     var box = document.createElement("div");
     box.className = "char-box" + (c.id === selectedHeroId ? " sel" : "");
+    box.tabIndex = 0;
     box.innerHTML =
       "<div class='char-swatch' style='background:" + c.color + "'>" + renderCharPortraitSVG(c) + "</div>" +
       "<div class='char-nm'>" + c.id + "</div>" +
@@ -3725,6 +3945,10 @@ function renderCharSelection(){
       if(selBox){ selBox.classList.remove("tap-flash"); void selBox.offsetWidth; selBox.classList.add("tap-flash"); }
       narrate(c.desc, "female");
     };
+    /* v4.24: 主人公カードをキーボードでも選べるようにする（Enter/Space） */
+    box.addEventListener("keydown", function(e){
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); box.click(); }
+    });
     list.appendChild(box);
   });
   /* v4.18: 選択中の主人公を文字でも明示する（オーバーレイに覆われて語りバーが見えないため）。 */
@@ -3741,6 +3965,14 @@ function renderCharSelection(){
 /* UIボタン配線 */
 document.getElementById("modeNormal").onclick = function(){ selectTitleMode("normal"); };
 document.getElementById("modeGoat").onclick = function(){ selectTitleMode("goat"); };
+/* v4.24: モードカードをキーボードでも選べるようにする（Enter/Space） */
+["modeNormal", "modeGoat"].forEach(function(id){
+  var el = document.getElementById(id);
+  el.addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.key === " "){ e.preventDefault(); el.click(); }
+  });
+});
+syncModeSelBadge();
 
 document.getElementById("continueBtn").onclick = function(){
   SOUND.resume(); SOUND.sfx("fanfare");
@@ -4027,7 +4259,7 @@ refreshTitleSaveBadges();
 </script>
 
 <style>
-#narrFoldBtn { flex: 0 0 auto; align-self: center; padding: 3px 8px; border-radius: 999px; background: rgba(20,24,44,.9); border: 1px solid rgba(255,216,117,.5); color: #ffd875; font-size: 10px; cursor: pointer; }
+#narrFoldBtn { flex: 0 0 auto; align-self: center; padding: 11px 12px; border-radius: 999px; background: rgba(20,24,44,.9); border: 1px solid rgba(255,216,117,.5); color: #ffd875; font-size: 11px; cursor: pointer; }
 body.narr-folded #stage { bottom: 26px !important; }
 body.narr-folded #narr { height: 26px !important; min-height: 26px !important; max-height: 26px !important; padding: 2px 10px !important; overflow: hidden; }
 body.narr-folded #narrText, body.narr-folded #narrEn { display: none !important; }
@@ -4069,6 +4301,7 @@ document.addEventListener('DOMContentLoaded', function () {
 #transCurtain.show{opacity:1;pointer-events:all;}
 #transCurtain .cur-emblem{width:min(46vw,210px);height:auto;filter:drop-shadow(0 0 18px rgba(255,216,117,.35));}
 #transCurtain .cur-txt{position:absolute;bottom:12%;left:0;right:0;text-align:center;color:#ffd875;font-family:"Cinzel","Noto Serif JP",serif;letter-spacing:.42em;font-size:12px;opacity:.85;}
+#transCurtain .cur-load{position:absolute;bottom:7%;left:0;right:0;text-align:center;color:#e8ecf7;font-size:13px;letter-spacing:.18em;opacity:.9;}
 .char-swatch svg{width:100%;height:100%;display:block;}
 .icard-name svg{width:26px;height:26px;vertical-align:-7px;margin-right:2px;}
 </style>
@@ -4086,6 +4319,7 @@ document.addEventListener('DOMContentLoaded', function () {
   <path d="M14 188 Q100 172 186 188" stroke="#ffd875" stroke-width="2.2" fill="none" opacity="0.8"/>
 </svg>
 <div class="cur-txt">BATTLE OF GOLF — GOAT</div>
+<div class="cur-load">ワールドを読み込んでいます…</div>
 </div>
 <script>
 (function(){
@@ -4199,6 +4433,8 @@ function renderCharPortraitSVG(c){
     if(!t){
       t = document.createElement("div");
       t.id = "v41Toast";
+      t.setAttribute("role", "status");
+      t.setAttribute("aria-live", "polite");
       t.style.cssText = "position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(10,12,26,.94);border:1px solid #c9a227;color:#ffe9a8;font-size:13.5px;padding:10px 18px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.5);display:none;max-width:92vw;text-align:center;";
       document.body.appendChild(t);
     }
@@ -4296,16 +4532,429 @@ function renderCharPortraitSVG(c){
     if(b === 'webgl') return '描画: WebGL';
     return '描画: ' + b;
   }
-  setInterval(function(){
+  /* v4.24: 描画方式が確定したらポーリングを止める（1秒ごとの無限ポーリングをやめる）。
+     __engineChipPolls は検証用の読み取り回数カウンタ。 */
+  var chipTimer = setInterval(function(){
+    window.__engineChipPolls = (window.__engineChipPolls || 0) + 1;
     try {
       ['worldFrame','golfFrame'].forEach(function(id){
         var f = document.getElementById(id);
         var e = f && f.contentWindow && f.contentWindow.__GOAT_ENGINE__;
         if(e && e.backend){ var t = label(e.backend); if(t) last = t; }
       });
-      if(last) chip.textContent = last;
+      if(last){ chip.textContent = last; clearInterval(chipTimer); }
     } catch(err) {}
   }, 1000);
+})();
+</script>
+
+<style>
+/* v4.31: フリーラウンド用チップ／コースカード／表（新規要素のみ。既存レイアウトには触れない） */
+.free-chips{display:flex;gap:9px;flex-wrap:wrap}
+.free-chip{padding:9px 16px;border-radius:999px;border:1.5px solid rgba(110,125,175,.45);font-size:13px;font-weight:800;color:#dbe2f7;background:rgba(18,22,42,.88);cursor:pointer;font-family:inherit}
+.free-chip.sel{border-color:var(--gold);color:var(--gold-bright);background:rgba(255,200,60,.13)}
+.free-chip.csel{border-color:var(--cyan);color:#8ff7fb;background:rgba(92,225,230,.1)}
+.free-courses{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+.free-course{border:1.5px solid rgba(110,125,175,.4);border-radius:14px;padding:12px 14px;background:rgba(16,20,40,.88);cursor:pointer;text-align:left}
+.free-course.sel{border-color:var(--gold);background:rgba(255,200,60,.1);box-shadow:0 0 0 1px var(--gold) inset}
+.free-course .cn{font-weight:900;color:#fff;font-size:14.5px}
+.free-course .cd{font-size:11.5px;color:var(--text-sub);margin-top:4px;line-height:1.6}
+.free-course .cb{font-size:11px;color:var(--cyan);font-weight:800;margin-top:5px}
+table.free-tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+table.free-tbl th,table.free-tbl td{border:1px solid rgba(140,155,210,.3);padding:8px 6px;text-align:center}
+table.free-tbl th{background:rgba(255,200,60,.1);color:var(--gold-bright);font-weight:900;font-size:12.5px}
+table.free-tbl td{color:#dbe2f7;font-weight:700}
+table.free-tbl tr.me td{background:rgba(255,200,60,.16);color:#fff;font-weight:900}
+.free-rankin{margin-top:16px;border:2px solid var(--gold);border-radius:16px;padding:14px 18px;background:linear-gradient(150deg,rgba(58,44,14,.55),rgba(16,20,40,.9))}
+</style>
+<script>
+/* =========================================================================
+   v4.31: フリーラウンド（単独ラウンド）＋コース別ベスト10
+   - 本編セーブ（キー4種＋goat_active_battle_v2）の形式は不変更。ベスト10は新規キーに分離。
+   - 起動は launchGolfIframe と同型の専用経路。battleCtx への freeRound 追加のみで、
+     postMessage プロトコル "4.2" は不変更。
+   ========================================================================= */
+(function(){
+"use strict";
+var BEST_KEY = "goat_freeround_best_v1";
+var FREE_COURSES = [
+  { id:"toda",        name:"戸田パブリック",        flag:"🇯🇵", desc:"荒川河川敷 18H Par72", best:"ベスト 39" },
+  { id:"sasayama",    name:"宍戸ヒルズ西コース",    flag:"🇯🇵", desc:"日本オープン開催 Par72", best:"" },
+  { id:"ibaraki",     name:"PGM石岡GC",             flag:"🇯🇵", desc:"Par72", best:"" },
+  { id:"kazuha",      name:"花葉CC",                flag:"🇯🇵", desc:"Par71", best:"" },
+  { id:"augusta",     name:"Augusta National",      flag:"🇺🇸", desc:"マスターズ Par72", best:"" },
+  { id:"pebble",      name:"Pebble Beach",          flag:"🇺🇸", desc:"USオープン Par72", best:"" },
+  { id:"tpcsawgrass", name:"TPC Sawgrass",          flag:"🇺🇸", desc:"Players Championship Par72", best:"" },
+  { id:"standrews",   name:"St Andrews Old Course", flag:"🏴", desc:"ゴルフ発祥の地 Par72", best:"" }
+];
+var FREE = { course:"toda", seg:"9out", start:1, diff:"normal", dist:"dracon", lastCfg:null, returnTo:"free" };
+var BESTV = { course:"toda", seg:"9out", start:1 };
+
+function $(id){ return document.getElementById(id); }
+function courseById(id){ for(var i=0;i<FREE_COURSES.length;i++) if(FREE_COURSES[i].id===id) return FREE_COURSES[i]; return FREE_COURSES[0]; }
+function segLabel(seg, start){
+  if(seg === "18") return "18H";
+  if(seg === "9out") return "9H ― OUT（1〜9番）";
+  if(seg === "9in") return "9H ― IN（10〜18番）";
+  return "3H（" + start + "〜" + (start + 2) + "番）";
+}
+function recordKey(course, seg, start){ return course + "|" + (seg === "3" ? ("3@" + start) : seg); }
+function segCount(seg){ return seg === "18" ? 18 : (seg === "3" ? 3 : 9); }
+function segStartIdx(seg, start){ return seg === "9in" ? 9 : (seg === "3" ? (start - 1) : 0); }
+
+function loadBest(){
+  try { var raw = localStorage.getItem(BEST_KEY); if(raw){ var o = JSON.parse(raw); if(o && typeof o === "object") return o; } } catch(e){}
+  return {};
+}
+function saveBest(o){ try { localStorage.setItem(BEST_KEY, JSON.stringify(o)); } catch(e){} }
+function bestList(key){ var o = loadBest(); return Array.isArray(o[key]) ? o[key] : []; }
+function fmtDate(ts){
+  var d = new Date(ts); function p(n){ return (n < 10 ? "0" : "") + n; }
+  return d.getFullYear() + "/" + p(d.getMonth() + 1) + "/" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+function relStr(rel){ return rel === 0 ? "±0" : (rel > 0 ? "+" + rel : "" + rel); }
+
+/* ベスト10へ登録し、順位（0始まり、圏外は -1）と登録後のリストを返す */
+function registerBest(key, entry){
+  var o = loadBest();
+  var list = Array.isArray(o[key]) ? o[key] : [];
+  list.push(entry);
+  list.sort(function(a, b){
+    if(a.score !== b.score) return a.score - b.score;
+    if(a.putts !== b.putts) return a.putts - b.putts;
+    return b.ts - a.ts;
+  });
+  var rank = -1;
+  for(var i = 0; i < Math.min(10, list.length); i++){ if(list[i].ts === entry.ts && list[i].score === entry.score){ rank = i; break; } }
+  o[key] = list.slice(0, 10);
+  saveBest(o);
+  return { rank: rank, list: o[key] };
+}
+
+/* ---- タイトルカードの保存情報 ---- */
+function updateFreeCardInfo(){
+  var el = $("saveInfoFree"); if(!el) return;
+  var st = null;
+  try { var r = localStorage.getItem(resumeKey(selectedMode)); if(r) st = JSON.parse(r); } catch(e){}
+  if(!st){ try { var r2 = localStorage.getItem(resumeKey(selectedMode === "goat" ? "normal" : "goat")); if(r2) st = JSON.parse(r2); } catch(e){} }
+  if(st && st.playerName){
+    var rk = getRankObj(st.tp || 0);
+    el.textContent = "引き継ぎ中：" + st.playerName + " ／ ランク" + rk.lv + "「" + rk.title + "」 ／ " + (st.mode === "goat" ? "GOATセーブ" : "通常セーブ");
+  } else {
+    el.textContent = "本編のセーブが必要です（先に「新たな旅を始める」で主人公を選んでください）";
+  }
+}
+
+/* ---- フリーラウンド用にセーブを読み込む（現在の S があればそれを使う） ---- */
+function ensureStateForFree(){
+  if(S && S.playerName) return true;
+  var modes = [selectedMode, selectedMode === "goat" ? "normal" : "goat"];
+  for(var i = 0; i < modes.length; i++){
+    try {
+      var raw = localStorage.getItem(resumeKey(modes[i]));
+      if(raw){ var st = JSON.parse(raw); if(st && st.playerName){ S = st; return true; } }
+    } catch(e){}
+  }
+  return false;
+}
+
+/* ---- 設定画面 ---- */
+function chipRow(mount, items, selId, cls, onPick){
+  mount.innerHTML = "";
+  items.forEach(function(it){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "free-chip" + (it.id === selId ? (" " + cls) : "");
+    b.textContent = (it.id === selId ? "✓ " : "") + it.label;
+    b.onclick = function(){ onPick(it.id); };
+    mount.appendChild(b);
+  });
+}
+var SEG_ITEMS = [
+  { id:"3", label:"3H ― 手軽に" }, { id:"9out", label:"9H ― OUT（1〜9）" },
+  { id:"9in", label:"9H ― IN（10〜18）" }, { id:"18", label:"18H ― フルラウンド" }
+];
+var START_ITEMS = [1, 4, 7, 10, 13, 16].map(function(n){ return { id:"" + n, label:n + "番〜" }; });
+
+function renderFreeSetup(){
+  chipRow($("freeSegChips"), SEG_ITEMS, FREE.seg, "sel", function(id){ FREE.seg = id; renderFreeSetup(); });
+  $("freeStartRow").style.display = FREE.seg === "3" ? "block" : "none";
+  if(FREE.seg === "3"){
+    chipRow($("freeStartChips"), START_ITEMS, "" + FREE.start, "sel", function(id){ FREE.start = parseInt(id, 10); renderFreeSetup(); });
+  }
+  var grid = $("freeCourseGrid"); grid.innerHTML = "";
+  var all = loadBest();
+  FREE_COURSES.forEach(function(c){
+    var key = recordKey(c.id, FREE.seg, FREE.start);
+    var list = Array.isArray(all[key]) ? all[key] : [];
+    var d = document.createElement("div");
+    d.className = "free-course" + (FREE.course === c.id ? " sel" : "");
+    d.innerHTML = "<div class='cn'>" + (FREE.course === c.id ? "✓ " : "") + c.flag + " " + escHtml(c.name) + "</div>" +
+      "<div class='cd'>" + escHtml(c.desc) + "</div>" +
+      "<div class='cb'>" + (list.length ? ("🏆 ベスト " + list[0].score + "（" + relStr(list[0].rel) + "）") : "🏆 まだ記録なし") + "</div>";
+    d.onclick = function(){ FREE.course = c.id; renderFreeSetup(); };
+    grid.appendChild(d);
+  });
+  var rk = getRankObj(S.tp || 0);
+  var gearNames = [];
+  GEAR_SLOTS.forEach(function(sl){ var g = gearById(S.equipped[sl.key]); if(g) gearNames.push(sl.label + "：" + g.name); });
+  $("freeStatusBox").innerHTML =
+    "主人公：<b>" + escHtml(S.playerName) + "</b>（" + escHtml(S.activeCharId) + "）<br>" +
+    "ランク：<b>" + rk.lv + "「" + escHtml(rk.title) + "」</b>（" + (S.tp || 0) + " TP）<br>" +
+    "装備中ギア（11枠）：<span style='font-size:12px'>" + escHtml(gearNames.join(" ／ ")) + "</span><br>" +
+    "ボール在庫：" + (S.mode === "goat" ? "無限（GOAT）" : (S.balls + " 個（ラウンドで消費）")) + " ｜ パワー：満タンで開始";
+  buildSettingDropdown($("freeDiffPdd"), DIFFICULTIES, FREE.diff, function(id){ FREE.diff = id; });
+  buildSettingDropdown($("freeDistPdd"), DIST_CLASSES, FREE.dist, function(id){ FREE.dist = id; });
+  var c = courseById(FREE.course);
+  $("freeStartBtn").textContent = "⛳ この条件でティーオフ（" + segLabel(FREE.seg, FREE.start) + "・" + c.name + "）";
+  var banner = $("freeResumeBanner");
+  if(S.activeBattle && S.activeBattle.freeRound){
+    var fr = S.activeBattle.freeRound;
+    banner.style.display = "block";
+    banner.innerHTML = "⏸ 中断中のフリーラウンドがあります：" + escHtml(fr.courseName) + " " + escHtml(fr.segLabel) +
+      " <button type='button' id='freeResumeBtn' style='margin-left:10px;padding:6px 16px;border-radius:999px;border:1px solid var(--gold);background:rgba(255,200,60,.18);color:#ffe9a8;font-weight:800;cursor:pointer'>その一打から再開する</button>";
+    $("freeResumeBtn").onclick = function(){ closeFreeScr(); resumeFromLoadedState(); };
+  } else {
+    banner.style.display = "none";
+  }
+}
+
+function openFreeScr(){
+  if(!ensureStateForFree()){
+    openDrama("FREE ROUND", "まだ旅の記録がありません",
+      "フリーラウンドは本編セーブの実力（主人公・ランク・装備中のギア）を引き継いで遊ぶモードです。\n先に「新たな旅を始める」で主人公を選んで旅を始めてください（少し進めるだけでも大丈夫です）。",
+      [{ label:"✦ 主人公を選ぶ", fn:function(){ $("toCharBtn").click(); } },
+       { label:"タイトルに戻る", fn:function(){} }]);
+    return;
+  }
+  if(S.activeBattle && !S.activeBattle.freeRound){
+    openDrama("FREE ROUND", "本編の対戦が途中です",
+      "いま本編のゴルフ対戦が中断中のため、フリーラウンドは開始できません。\n先に対戦を終えてからお越しください（対戦の再開はタイトルの「中断地点から再開」から）。",
+      [{ label:"▶ 対戦を再開する", fn:function(){ resumeFromLoadedState(); } },
+       { label:"タイトルに戻る", fn:function(){} }]);
+    return;
+  }
+  FREE.diff = stateDifficulty(S);
+  FREE.dist = stateDistClass(S);
+  renderFreeSetup();
+  $("freeScr").style.display = "flex";
+}
+function closeFreeScr(){ $("freeScr").style.display = "none"; }
+
+/* ---- 起動（launchGolfIframe と同型。図鑑・バフ・報酬には触れない） ---- */
+function launchFreeRound(){
+  if(!S) return;
+  /* 中断中のフリーラウンドがある場合は上書きせず、その一打から再開する（破棄はゴルフ画面の中断ボタンでのみ） */
+  if(S.activeBattle && S.activeBattle.freeRound){ closeFreeScr(); closeBestScr(); $("freeResultScr").style.display = "none"; resumeFromLoadedState(); return; }
+  if(window.__launchLock && Date.now() - window.__launchLock < 2500) return;
+  window.__launchLock = Date.now();
+  window.__bwLastTgt = null;
+  var c = courseById(FREE.course);
+  var count = segCount(FREE.seg);
+  var startIdx = segStartIdx(FREE.seg, FREE.start);
+  var label = segLabel(FREE.seg, FREE.start);
+  var ch = charById(S.activeCharId);
+  var battleCtx = {
+    startedAt: Date.now(),
+    mode: S.mode,
+    difficulty: FREE.diff,
+    distClass: FREE.dist,
+    area: S.area,
+    areaName: AREAS[S.area].name,
+    playerName: S.playerName,
+    heroId: S.heroId,
+    activeChar: ch,
+    power: 100,
+    mental: 100,
+    balls: S.mode === "goat" ? 999 : S.balls,
+    rank: getRankObj(S.tp),
+    gearStats: calcGearStats(S),
+    equipped: S.equipped,
+    ballGear: gearById(S.equipped.ball),
+    buff: null,
+    opponent: { kind:"free", id:"free", name:"フリーラウンド", title:label, isBoss:false, isPrime:false, powTier:0, power:100, rematch:false },
+    course: c.id,
+    courseName: c.name,
+    holes: count,
+    weather: "sunny",
+    progress: null,
+    freeRound: { course:c.id, courseName:c.name, segment:FREE.seg, segLabel:label, startIdx:startIdx, count:count, recordKey:recordKey(c.id, FREE.seg, FREE.start) }
+  };
+  FREE.lastCfg = { course:FREE.course, seg:FREE.seg, start:FREE.start, diff:FREE.diff, dist:FREE.dist };
+  S.activeBattle = battleCtx;
+  try { localStorage.setItem("goat_active_battle_v2", JSON.stringify(battleCtx)); } catch(e){}
+  saveResume();
+  closeFreeScr();
+  closeBestScr();
+  $("freeResultScr").style.display = "none";
+  $("titleScr").style.display = "none";
+  $("ingameNav").style.display = "flex";
+  updateTopbar();
+  var wf = $("worldFrame"), gf = $("golfFrame");
+  if(wf && wf.contentWindow) wf.contentWindow.postMessage({ type:"goat:pause" }, "*");
+  wf.classList.remove("active");
+  gf.classList.add("active");
+  if(window.__curtainShow) __curtainShow();
+  gf.src = "golf.html?goat=1&course=" + encodeURIComponent(c.id) + "&holes=" + count + "&mode=" + encodeURIComponent(S.mode) + "&v=4.2";
+  window.__golfBooted = false;
+  window.__v49BattleLaunch = true;
+  __armBattleWatchdog(gf.src);
+  if(window.__curtainWatch) __curtainWatch(gf);
+  setTimeout(function(){ try { gf.focus(); if(gf.contentWindow) gf.contentWindow.focus(); } catch(e){} }, 80);
+  narrate("フリーラウンド。" + c.name + "、" + label + "。誰に勝つためでもない、自分の記録との静かな戦いが始まる。", "male");
+}
+
+/* ---- 結果処理（handleGolfResult から呼ばれる） ---- */
+window.__freeHandleResult = function(res, ctx){
+  var fr = (ctx && ctx.freeRound) || (res && res.freeRound) || {};
+  var scores = res.scores || [], putts = res.putts || [], pars = res.pars || [];
+  var birdies = 0;
+  for(var i = 0; i < scores.length; i++){ if(pars[i] && scores[i] < pars[i]) birdies++; }
+  var entry = {
+    score: res.totalStrokes, rel: res.relScore, putts: putts.reduce(function(a, b){ return a + (b || 0); }, 0),
+    hero: S.playerName, diff: (ctx && ctx.difficulty) || FREE.diff, dist: (ctx && ctx.distClass) || FREE.dist,
+    ts: Date.now()
+  };
+  var reg = registerBest(fr.recordKey || recordKey(fr.course, fr.segment, FREE.start), entry);
+  FREE.lastCfg = { course: fr.course, seg: fr.segment, start: fr.segment === "3" ? (fr.startIdx + 1) : 1, diff: entry.diff, dist: entry.dist };
+  var gf = $("golfFrame");
+  gf.classList.remove("active");
+  try { gf.src = "about:blank"; } catch(e){}
+  $("titleScr").style.display = "flex";
+  updateTopbar();
+  saveResume();
+  updateFreeCardInfo();
+  renderFreeResult(res, fr, entry, reg, birdies);
+  $("freeResultScr").style.display = "flex";
+  SOUND.sfx("fanfare");
+};
+
+function scoreName(sc, par){
+  var rel = sc - par;
+  if(rel <= -3) return "ｱﾙﾊﾞﾄﾛｽ"; if(rel === -2) return "ｲｰｸﾞﾙ"; if(rel === -1) return "ﾊﾞｰﾃﾞｨ";
+  if(rel === 0) return "ﾊﾟｰ"; if(rel === 1) return "ﾎﾞｷﾞｰ"; if(rel === 2) return "ﾀﾞﾌﾞﾙﾎﾞｷﾞｰ";
+  return "+" + rel;
+}
+function renderFreeResult(res, fr, entry, reg, birdies){
+  $("freeResultTitle").textContent = "🏆 ラウンド終了 ― " + (fr.courseName || "") + " " + (fr.segLabel || "");
+  var scores = res.scores || [], putts = res.putts || [], pars = res.pars || [];
+  var startNo = (fr.startIdx || 0) + 1;
+  var rows = "";
+  for(var i = 0; i < scores.length; i++){
+    rows += "<tr><td>" + (startNo + i) + "</td><td>" + pars[i] + "</td><td style='font-weight:900;color:#fff'>" + scores[i] + "</td><td>" + relStr(scores[i] - pars[i]) + "</td><td>" + (putts[i] || 0) + "</td><td>" + scoreName(scores[i], pars[i]) + "</td></tr>";
+  }
+  var rankHtml;
+  if(reg.rank >= 0){
+    var top = reg.list.slice(0, 5);
+    var trows = "";
+    top.forEach(function(e, i){
+      var me = e.ts === entry.ts;
+      trows += "<tr" + (me ? " class='me'" : "") + "><td>" + (i + 1) + "位" + (me ? " ★今回" : "") + "</td><td>" + e.score + "（" + relStr(e.rel) + "）</td><td>" + e.putts + "</td><td>" + escHtml(e.hero) + "</td><td>" + fmtDate(e.ts) + "</td></tr>";
+    });
+    rankHtml = "<div class='free-rankin'><div style='font-family:\"Noto Serif JP\",serif;font-size:20px;font-weight:900;color:var(--gold-bright)'>★ ベスト10入り！ このコース・" + escHtml(fr.segLabel || "") + " で 第" + (reg.rank + 1) + "位 にランクイン</div>" +
+      "<div style='font-size:12px;color:var(--text-sub);margin-top:5px'>記録は自動で保存されました（画面を閉じても残ります）。</div>" +
+      "<table class='free-tbl' style='margin-top:12px'><tr><th>順位</th><th>スコア</th><th>パット</th><th>主人公</th><th>日時</th></tr>" + trows + "</table></div>";
+  } else {
+    var tenth = reg.list.length >= 10 ? reg.list[9] : null;
+    rankHtml = "<div class='free-rankin' style='border-color:rgba(140,155,210,.5)'><div style='font-size:16px;font-weight:900;color:#dbe2f7'>今回はベスト10圏外でした" + (tenth ? "（10位は " + tenth.score + "打）" : "") + "</div>" +
+      "<div style='font-size:12px;color:var(--text-sub);margin-top:5px'>あと少しでランクインです。同じ条件でもう一度挑戦できます。</div></div>";
+  }
+  $("freeResultBody").innerHTML =
+    "<div style='display:flex;gap:14px;justify-content:center;flex-wrap:wrap'>" +
+    "<div style='border:1.5px solid rgba(255,216,117,.5);border-radius:16px;padding:12px 22px;background:rgba(255,200,60,.07);min-width:140px'><div style='font-size:11px;color:var(--cyan);font-weight:900'>TOTAL SCORE</div><div style='font-size:28px;font-weight:900;color:#fff'>" + res.totalStrokes + " <small style='font-size:13px;color:var(--text-sub)'>（" + relStr(res.relScore) + "）</small></div></div>" +
+    "<div style='border:1.5px solid rgba(255,216,117,.5);border-radius:16px;padding:12px 22px;background:rgba(255,200,60,.07);min-width:120px'><div style='font-size:11px;color:var(--cyan);font-weight:900'>PUTT</div><div style='font-size:28px;font-weight:900;color:#fff'>" + entry.putts + "</div></div>" +
+    "<div style='border:1.5px solid rgba(255,216,117,.5);border-radius:16px;padding:12px 22px;background:rgba(255,200,60,.07);min-width:120px'><div style='font-size:11px;color:var(--cyan);font-weight:900'>バーディ以上</div><div style='font-size:28px;font-weight:900;color:#fff'>" + birdies + "</div></div>" +
+    "</div>" +
+    "<table class='free-tbl' style='margin-top:16px'><tr><th>HOLE</th><th>PAR</th><th>スコア</th><th>±</th><th>パット</th><th>内容</th></tr>" + rows + "</table>" +
+    rankHtml;
+}
+
+/* ---- ベスト10画面 ---- */
+function renderBestScr(){
+  chipRow($("bestCourseChips"), FREE_COURSES.map(function(c){ return { id:c.id, label:c.flag + " " + c.name }; }), BESTV.course, "csel", function(id){ BESTV.course = id; renderBestScr(); });
+  chipRow($("bestSegChips"), SEG_ITEMS, BESTV.seg, "sel", function(id){ BESTV.seg = id; renderBestScr(); });
+  $("bestStartRow").style.display = BESTV.seg === "3" ? "block" : "none";
+  if(BESTV.seg === "3"){
+    chipRow($("bestStartChips"), START_ITEMS, "" + BESTV.start, "sel", function(id){ BESTV.start = parseInt(id, 10); renderBestScr(); });
+  }
+  var key = recordKey(BESTV.course, BESTV.seg, BESTV.start);
+  var list = bestList(key);
+  var box = $("bestTableBox");
+  if(!list.length){
+    box.innerHTML = "<div style='border:1.5px dashed rgba(140,155,210,.45);border-radius:14px;padding:26px;font-size:14px;color:var(--text-sub);line-height:1.9'>まだ記録がありません。<br>最初のラウンドで1位に登録されます。</div>";
+  } else {
+    var rows = "";
+    list.forEach(function(e, i){
+      rows += "<tr><td style='font-family:Cinzel,serif;font-weight:900;font-size:16px;color:#fff'>" + (i + 1) + "</td><td style='font-weight:900;color:#fff;font-size:16px'>" + e.score + "（" + relStr(e.rel) + "）</td><td>" + e.putts + "</td><td>" + escHtml(e.hero) + "</td><td>" + escHtml(diffDef(e.diff).name) + "／" + escHtml(distClassDef(e.dist).name) + "</td><td>" + fmtDate(e.ts) + "</td></tr>";
+    });
+    box.innerHTML = "<table class='free-tbl'><tr><th>順位</th><th>スコア</th><th>パット</th><th>主人公</th><th>難易度／飛距離</th><th>日時</th></tr>" + rows + "</table>";
+  }
+}
+function openBestScr(from){
+  FREE.returnTo = from || "free";
+  if(from === "free"){ BESTV.course = FREE.course; BESTV.seg = FREE.seg; BESTV.start = FREE.start; }
+  renderBestScr();
+  $("bestScr").style.display = "flex";
+}
+function closeBestScr(){ $("bestScr").style.display = "none"; }
+
+/* ---- 中断（ゴルフ側の「中断して保存」ボタンから） ---- */
+window.addEventListener("message", function(ev){
+  var d = ev.data;
+  if(!d || typeof d !== "object" || d.type !== "goat:freeAbort") return;
+  if(!S || !S.activeBattle || !S.activeBattle.freeRound) return;
+  if(S.mode !== "goat" && typeof d.ballsLeft === "number") S.balls = Math.max(0, Math.round(d.ballsLeft));
+  S.activeBattle = null;
+  try { localStorage.removeItem("goat_active_battle_v2"); } catch(e){}
+  var gf = $("golfFrame");
+  gf.classList.remove("active");
+  try { gf.src = "about:blank"; } catch(e){}
+  $("titleScr").style.display = "flex";
+  saveResume();
+  updateFreeCardInfo();
+  openFreeScr();
+  narrate("ラウンドを中断し、記録を保存した。続きはタイトルからいつでも再開できる。", "female");
+});
+
+/* ---- 配線 ---- */
+document.addEventListener("DOMContentLoaded", function(){
+  updateFreeCardInfo();
+  var mc = $("modeFree"); if(mc) mc.addEventListener("click", openFreeScr);
+  var fb = $("toFreeBtn"); if(fb) fb.addEventListener("click", openFreeScr);
+  var mn = $("modeNormal"); if(mn) mn.addEventListener("click", function(){ setTimeout(updateFreeCardInfo, 60); });
+  var mg = $("modeGoat"); if(mg) mg.addEventListener("click", function(){ setTimeout(updateFreeCardInfo, 60); });
+  $("freeBackBtn").addEventListener("click", closeFreeScr);
+  $("freeBestBtn").addEventListener("click", function(){ openBestScr("free"); });
+  $("freeStartBtn").addEventListener("click", launchFreeRound);
+  $("bestBackBtn").addEventListener("click", function(){
+    closeBestScr();
+    if(FREE.returnTo === "result") $("freeResultScr").style.display = "flex";
+  });
+  $("bestPlayBtn").addEventListener("click", function(){
+    if(!ensureStateForFree()){ closeBestScr(); openFreeScr(); return; }
+    if(S.activeBattle && !S.activeBattle.freeRound){ closeBestScr(); openFreeScr(); return; }
+    FREE.course = BESTV.course; FREE.seg = BESTV.seg; FREE.start = BESTV.start;
+    FREE.diff = stateDifficulty(S); FREE.dist = stateDistClass(S);
+    closeBestScr();
+    $("freeResultScr").style.display = "none";
+    launchFreeRound();
+  });
+  $("frToTitleBtn").addEventListener("click", function(){ $("freeResultScr").style.display = "none"; refreshTitleSaveBadges(); });
+  $("frBestBtn").addEventListener("click", function(){
+    $("freeResultScr").style.display = "none";
+    if(FREE.lastCfg){ BESTV.course = FREE.lastCfg.course; BESTV.seg = FREE.lastCfg.seg; BESTV.start = FREE.lastCfg.start || 1; }
+    openBestScr("result");
+  });
+  $("frChangeBtn").addEventListener("click", function(){ $("freeResultScr").style.display = "none"; openFreeScr(); });
+  $("frRetryBtn").addEventListener("click", function(){
+    if(!FREE.lastCfg) return;
+    FREE.course = FREE.lastCfg.course; FREE.seg = FREE.lastCfg.seg; FREE.start = FREE.lastCfg.start || 1;
+    FREE.diff = FREE.lastCfg.diff; FREE.dist = FREE.lastCfg.dist;
+    $("freeResultScr").style.display = "none";
+    launchFreeRound();
+  });
+});
+window.__freeUpdateCard = updateFreeCardInfo;
 })();
 </script>
 </body>
