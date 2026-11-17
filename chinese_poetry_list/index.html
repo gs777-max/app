@@ -115,6 +115,7 @@ mark{background:#f2d36b;color:#1c1b19;padding:0 1px}
 <button class="btn" id="vt">縦書き/横書き</button><select id="eraf" aria-label="時代"><option value="">全時代</option><option value="唐">唐</option><option value="宋">宋</option></select><select id="formf" aria-label="詩体"><option value="">全詩体</option><option>絶句</option><option>律詩</option><option>詞</option><option>その他</option></select><button class="btn" id="rnd">ランダムで一首</button><button class="btn" id="rs">リセット</button><button class="btn" id="favf">★お気に入りのみ</button><button class="btn" id="comf">解説付きのみ</button><button class="btn" id="dexb">用語図鑑</button>
 <span id="dexp" style="font-size:.85rem;color:#6b6458"></span><div class="prog"><i id="dexbar"></i></div>
 </div>
+<div class="bar" id="layerbar"><button class="btn on" id="layermain">正規コレクション（解説付き）</button><button class="btn" id="layershiryo">資料編（原文のみ）</button><span id="layernote" style="font-size:.85rem;color:#6b6458">書き下し・現代語訳・解説のある首だけを表示しています</span></div>
 <div class="bar">飛花令の候補：<span id="hkc"></span></div>
 <div id="stat" style="color:#6b6458;font-size:.85rem"></div>
 <div class="grid" id="grid"></div>
@@ -173,7 +174,8 @@ const NG=['棋碁棊','囲圍围','爛烂','燈灯','畫画','爲為为','蘇苏
 const NM2=new Map();NG.forEach(g=>{const a=[...g];a.forEach(c=>NM2.set(c,a[0]))});
 const norm=t=>[...String(t||'')].map(c=>NM2.get(c)||c).join('');
 const statEl=$('#stat'),setT=Object.getOwnPropertyDescriptor(Node.prototype,'textContent').set;let statMsg='';
-function updStat(){setT.call(statEl,(statMsg?statMsg+'　':'')+`表示 ${filteredList.length}首 / 全${POEMS.length}首`)}
+let layer='main';const inLayer=p=>layer==='main'?(p.kundoku&&p.kundoku.length>0):!(p.kundoku&&p.kundoku.length>0);
+function updStat(){const tot2=POEMS.filter(inLayer).length;setT.call(statEl,(statMsg?statMsg+'　':'')+`表示 ${filteredList.length}首 / ${layer==='main'?'解説付き':'資料編'} 全${tot2}首`)}
 Object.defineProperty(statEl,'textContent',{configurable:true,get(){return statMsg},set(v){statMsg=v;updStat()}});
 function formOf(p){if((p.era||'').includes('詞'))return'詞';const n=p.lines.length;return n===4?'絶句':n===8?'律詩':'その他'}
 const rb=(w,r)=>`<ruby>${w}<rt>${r}</rt></ruby>`;
@@ -252,9 +254,9 @@ let EXT=[],vert=true,favOnly=false,favs=ST.g('rk_fav',[]).map(x=>MIG[x]||x),show
 /* ---------- ギャラリー ---------- */
 function hl(s,ch){if(!ch)return esc(s);const nc=norm(ch);return [...s].map(c=>norm(c)===nc?`<b style="color:#c93a2b">${esc(c)}</b>`:esc(c)).join('')}
 let lim=60,lastCh='',comOnly=false,eraSel='',formSel='',filteredList=[];
-function renderGrid(list,ch){shown=list;lastCh=ch;let L=favOnly?list.filter(p=>favs.includes(p.id)):list;if(comOnly)L=L.filter(p=>p.kundoku.length);if(eraSel)L=L.filter(p=>(p.era||'').includes(eraSel));if(formSel)L=L.filter(p=>formOf(p)===formSel);filteredList=L;updStat();const tot=L.length;L=L.slice(0,lim);
+function renderGrid(list,ch){shown=list;lastCh=ch;let L=list.filter(inLayer);if(favOnly)L=L.filter(p=>favs.includes(p.id));if(comOnly)L=L.filter(p=>p.kundoku.length);if(eraSel)L=L.filter(p=>(p.era||'').includes(eraSel));if(formSel)L=L.filter(p=>formOf(p)===formSel);filteredList=L;updStat();const tot=L.length;L=L.slice(0,lim);
 $('#grid').innerHTML=L.length?L.map(p=>`<div class="card" onclick="openPoem('${p.id}')"><h3>${esc(p.title)}</h3><div class="au">${esc(p.au)}　${esc(p.era||'')}</div>
-<div class="pv ${vert?'v':''}">${p.lines.slice(0,vert?4:3).map(l=>`<div>${hl(l,ch)}</div>`).join('')}</div>${p.kundoku.length?`<span class="seal">${p.ai?'AI解':'解説'}</span>`:''}${favs.includes(p.id)?'<span style="position:absolute;right:10px;top:6px;color:#c93a2b">★</span>':''}</div>`).join('')+(tot>lim?`<div style="grid-column:1/-1;text-align:center"><button class="btn" onclick="lim+=60;renderGrid(shown,lastCh)">もっと見る（${lim}/${tot}首）</button></div>`:''):'<p>該当する詩がありません。</p>'}
+<div class="pv ${vert?'v':''}">${p.lines.slice(0,vert?4:3).map(l=>`<div>${hl(l,ch)}</div>`).join('')}</div>${p.kundoku.length?`<span class="seal">${p.ai?'AI解':'解説'}</span>`:'<div style="font-size:.78rem;color:#b8322a;margin-top:4px">資料編：原文のみ・解説未整備</div>'}${favs.includes(p.id)?'<span style="position:absolute;right:10px;top:6px;color:#c93a2b">★</span>':''}</div>`).join('')+(tot>lim?`<div style="grid-column:1/-1;text-align:center"><button class="btn" onclick="lim+=60;renderGrid(shown,lastCh)">もっと見る（${lim}/${tot}首）</button></div>`:''):'<p>該当する詩がありません。</p>'}
 function localSearch(q){q=q.trim();if(!q)return POEMS.slice();const nq=norm(q);return POEMS.filter(p=>norm(p.title+p.au+p.lines.join('')+p.kundoku.join('')+p.terms.join('')+p.kai).includes(nq))}
 async function extSearch(q){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),3000);
 try{const r=await fetch('https://poetry.palemoky.com/api/v1/poems/search?q='+encodeURIComponent(q),{signal:ac.signal});if(!r.ok)throw 0;const d=await r.json();
@@ -273,12 +275,17 @@ $('#qgo').onclick=()=>doSearch($('#q').value);$('#q').onkeydown=e=>{if(e.key==='
 $('#hkgo').onclick=()=>hika($('#hk').value);
 $('#vt').onclick=()=>{vert=!vert;renderGrid(shown)};
 $('#favf').onclick=()=>{favOnly=!favOnly;$('#favf').style.background=favOnly?'#c5a059':'';renderGrid(shown)};
-$('#comf').onclick=()=>{comOnly=!comOnly;$('#comf').style.background=comOnly?'#1c1b19':'';$('#comf').style.color=comOnly?'#f3edde':'';renderGrid(shown,lastCh)};
+$('#comf').onclick=()=>{comOnly=!comOnly;$('#comf').style.background=comOnly?'#1c1b19':'';$('#comf').style.color=comOnly?'#f3edde':'';if(comOnly&&layer!=='main'){layer='main';syncLayerUI()}renderGrid(shown,lastCh)};
 $('#formf').onchange=()=>{formSel=$('#formf').value;lim=60;renderGrid(shown,lastCh)};
 $('#eraf').onchange=()=>{eraSel=$('#eraf').value;lim=60;renderGrid(shown,lastCh)};
 $('#hk').onkeydown=e=>{if(e.key==='Enter')hika($('#hk').value)};
-$('#rnd').onclick=()=>openPoem(POEMS[Math.floor(Math.random()*POEMS.length)].id);
-$('#rs').onclick=()=>{$('#q').value='';$('#hk').value='';lim=60;comOnly=false;favOnly=false;eraSel='';formSel='';$('#eraf').value='';$('#formf').value='';['#comf','#favf'].forEach(i=>{$(i).style.background='';$(i).style.color=''});renderGrid(POEMS);$('#stat').textContent=`収録 ${POEMS.length}首（解説付き${NC}首＋原文のみ${POEMS.length-NC}首）`};
+$('#rnd').onclick=()=>{const pool=POEMS.filter(inLayer);if(pool.length)openPoem(pool[Math.floor(Math.random()*pool.length)].id)};
+$('#rs').onclick=()=>{$('#q').value='';$('#hk').value='';lim=60;comOnly=false;favOnly=false;eraSel='';formSel='';layer='main';syncLayerUI();$('#eraf').value='';$('#formf').value='';['#comf','#favf'].forEach(i=>{$(i).style.background='';$(i).style.color=''});renderGrid(POEMS);$('#stat').textContent=layerMsg()};
+const layerMsg=()=>`解説付き ${NC}首 ＋ 資料編 ${POEMS.length-NC}首`;
+function syncLayerUI(){$('#layermain').textContent=`正規コレクション（解説付き${NC}首）`;$('#layershiryo').textContent=`資料編（原文のみ${POEMS.length-NC}首）`;$('#layermain').classList.toggle('on',layer==='main');$('#layershiryo').classList.toggle('on',layer==='shiryo');$('#layernote').textContent=layer==='main'?'書き下し・現代語訳・解説のある首だけを表示しています':'原文のみの首です。書き下し・現代語訳・解説は未整備です'}
+function setLayer(l){layer=l;lim=60;if(l==='shiryo'&&comOnly){comOnly=false;$('#comf').style.background='';$('#comf').style.color=''}syncLayerUI();renderGrid(POEMS);$('#stat').textContent=layerMsg()}
+$('#layermain').onclick=()=>setLayer('main');
+$('#layershiryo').onclick=()=>setLayer('shiryo');
 $('#dexb').onclick=openDex;
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;for(const id of ['#cmodal','#tmodal','#modal']){const m=$(id);if(m.classList.contains('on')){m.classList.remove('on');break}}});
 
@@ -573,7 +580,7 @@ $$('.tab').forEach(b=>{b.setAttribute('role','tab');b.addEventListener('click',(
 const tt=document.createElement('button');tt.className='btn totop';tt.textContent='↑';tt.setAttribute('aria-label','先頭へ');tt.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});document.body.appendChild(tt);
 addEventListener('scroll',()=>tt.classList.toggle('on',scrollY>500));
 POEMS.forEach(p=>{const c=AIC[pkey(p)];if(c&&!p.kundoku.length)setAI(p,c)});
-dexUpd();renderGrid(POEMS);$('#stat').textContent=`収録 ${POEMS.length}首（解説付き${NC}首＋原文のみ${POEMS.length-NC}首）`;
+dexUpd();syncLayerUI();renderGrid(POEMS);$('#stat').textContent=layerMsg();
 </script>
 </body>
 </html>
