@@ -26,7 +26,7 @@ header{position:sticky; top:0; z-index:50; background:var(--pine2); color:#f3efe
 .brand{font-family:"Shippori Mincho B1",serif; font-weight:800; letter-spacing:.14em; font-size:19px; white-space:nowrap}
 .brand small{display:block; font-family:"Zen Kaku Gothic New",sans-serif; font-weight:500; letter-spacing:.28em; font-size:9px; color:var(--gold)}
 nav{margin-left:auto; display:flex; gap:4px}
-nav a{color:#e9e4d2; text-decoration:none; font-size:13px; font-weight:700; padding:10px 12px; border-radius:6px}
+nav a{color:#e9e4d2; text-decoration:none; font-size:13px; font-weight:700; padding:10px 12px; border-radius:6px; min-height:48px; display:inline-flex; align-items:center}
 nav a:hover{background:rgba(255,255,255,.12)}
 @media(max-width:640px){ nav a{padding:10px 7px; font-size:12px} .brand{font-size:16px} }
 @media(max-width:640px){ .head-in{flex-wrap:wrap; gap:6px} nav{width:100%; margin-left:0; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch} nav a{display:inline-block; white-space:nowrap} form.panel{top:118px} }
@@ -59,7 +59,7 @@ textarea{min-height:76px; font-size:14px}
 input:focus,select:focus,textarea:focus{border-color:var(--fairway); outline:3px solid rgba(200,162,74,.35)}
 .row{display:flex; gap:10px}.row>*{flex:1}
 .chips{display:flex; flex-wrap:wrap; gap:8px}
-.chip{border:1.5px solid #c9c2ab; background:#fff; border-radius:999px; padding:9px 14px; min-height:44px; font-size:13.5px; font-weight:700; color:var(--ink)}
+.chip{border:1.5px solid #c9c2ab; background:#fff; border-radius:999px; padding:9px 14px; min-height:48px; font-size:13.5px; font-weight:700; color:var(--ink)}
 .chip[aria-pressed=true]{background:var(--pine); border-color:var(--pine); color:#fff}
 .chip.gold[aria-pressed=true]{background:var(--gold-d); border-color:var(--gold-d); color:#231a02}
 .seg{display:flex; border:1.5px solid #c9c2ab; border-radius:8px; overflow:hidden}
@@ -70,7 +70,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fairway); outline:3px
 details{border-top:1px solid var(--line); margin-top:16px; padding-top:6px}
 summary{cursor:pointer; font-weight:900; font-size:13px; letter-spacing:.12em; color:var(--pine); padding:12px 0; min-height:48px}
 .presets{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px}
-.preset{border:1.5px dashed var(--gold-d); color:#7a5f14; background:#fdf6dd; border-radius:8px; padding:9px 12px; min-height:44px; font-weight:700; font-size:12.5px}
+.preset{border:1.5px dashed var(--gold-d); color:#7a5f14; background:#fdf6dd; border-radius:8px; padding:9px 12px; min-height:48px; font-weight:700; font-size:12.5px}
 .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; border:none; border-radius:8px; font-weight:900; min-height:52px; padding:12px 18px; font-size:15px; text-decoration:none}
 .btn-main{background:var(--pine); color:#fff; width:100%; margin-top:18px}
 .btn-main:hover{background:var(--fairway)}
@@ -112,7 +112,7 @@ summary{cursor:pointer; font-weight:900; font-size:13px; letter-spacing:.12em; c
 .book-btn:hover{background:var(--fairway)}
 .more-btn{width:100%; background:none; border:none; border-top:1px solid var(--line); min-height:48px; font-weight:700; color:var(--fairway); font-size:13.5px}
 .compare-line{padding:0 16px 12px}
-.compare-line label{display:flex; gap:8px; align-items:center; font-size:13px; font-weight:700; min-height:40px; cursor:pointer}
+.compare-line label{display:flex; gap:8px; align-items:center; font-size:13px; font-weight:700; min-height:48px; cursor:pointer}
 .compare-line input{width:20px; height:20px; accent-color:var(--fairway)}
 .watch{background:#fbf3d9; border:1.5px solid var(--gold)}
 .course.near{border:2px solid var(--gold); background:#fffdf6}
@@ -146,7 +146,7 @@ th{background:var(--cream); font-size:12px; letter-spacing:.06em}
 footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); font-size:12px}
 .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:86px; background:var(--pine2); color:#fff; padding:12px 20px; border-radius:8px; font-weight:700; z-index:99; display:none; max-width:92vw; text-align:center}
 /* skip link: キーボード利用者が検索結果へ直接移動できるようにする（通常は非表示、フォーカス時のみ表示） */
-.skip-link{position:absolute; left:16px; top:-70px; z-index:100; background:var(--pine2); color:#f7f2df; padding:12px 18px; border-radius:8px; font-weight:900; font-size:14px; text-decoration:none; border:2px solid var(--gold); transition:top .15s ease}
+.skip-link{position:absolute; left:16px; top:-70px; z-index:100; background:var(--pine2); color:#f7f2df; padding:12px 18px; border-radius:8px; font-weight:900; font-size:14px; text-decoration:none; border:2px solid var(--gold); transition:top .15s ease; min-height:48px; display:inline-flex; align-items:center}
 .skip-link:focus{top:10px; color:#fff}
 /* 押下・切替の質感：色と位置の変化をなめらかにする */
 .chip,.seg button,.preset,.book-btn,.btn,.more-btn{transition:background-color .15s ease, color .15s ease, border-color .15s ease, transform .15s ease}
@@ -480,7 +480,8 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
    ヤーデージ訂正（2026-11-13、ユーザー承認）：ヘリテイジ 6,880→5,000Y（朝日ゴルフ公式：9H 2,500Y×2。6,000Yルールでは対象外）／
    皆川城 6,650→青 6,686Y（基準値。白 6,210Yも併記。7,008Yはアコーディア公式レイアウト表で支持されず）／
    戸田パブリック 5,960→6,237Y（GORAで再確認。6,000Y超で対象内）。大平台・アジア取手・取手桜が丘はティー／ルート基準未決定のため据え置き。
-   価格再確認（2026-11-14）：全29組み合わせを再確認。かすみがうら 12/12 の3サイトを各−¥1,000訂正（GORA 18990／アコーディア 16990／じゃらん 17990）、石岡 PGM 25990→25900、スタート例の軽微なズレ3件も訂正。checked は再確認日 2026-11-14。 */
+   価格再確認（2026-11-14）：全29組み合わせを再確認。かすみがうら 12/12 の3サイトを各−¥1,000訂正（GORA 18990／アコーディア 16990／じゃらん 17990）、石岡 PGM 25990→25900、スタート例の軽微なズレ3件も訂正。checked は再確認日 2026-11-14。
+   価格再確認（2026-11-18）：GORAはカレンダー再取得＋18H抽出＋時間選択ページで照合。アコーディアはコースページの静的解析（planNm・price_total・12/12枠の frameJoson）で照合。GDO・PGM・習志野アコーディア・じゃらん4コースは実ブラウザで照合。全29組み合わせを確認。訂正は料金・プラン変更6件（取手桜が丘 12/12：GORA 21990→24990、アコーディア 20990→23990、GDO 21990→24990、じゃらん 21990→24990。取手桜が丘 12/15 GORA 8990→10990、石岡 12/15 GORA 11400→11900）、GORA かすみがうら 12/12 は組売 17990へ（プラン詳細で「お一人様の料金 総額 17,990円」と明記され1名あたり表示と判明したため、11-14の組売除外判断を覆して代表に採用。2名+5,500円・3名+2,200円の割増あり。じゃらんの組売も同表示で1名あたりと確認）、スタート例のズレ14件も訂正（早朝枠の完売が多く、残り1枠のみのプランあり）。9H+αプラン（皆川城アコーディア 8,990・じゃらん 9,990等）は18H代表から従来どおり除外（じゃらんの詳細で「2回目の9Hは日没で回れない場合あり」と確認）。PGM石岡 25900・習志野「18H空きなし」は変更なし。checked は再確認日 2026-11-18。 */
 const COURSES = [
  {name:"大平台カントリー倶楽部", area:"栃木・栃木市", pref:"栃木", drive:75, yard:7018, rating:73.6, par:72, holes:18, features:["乗用カート","ナビ付きカート","練習場あり"]},
  {name:"かすみがうらゴルフクラブ", area:"茨城・行方市", pref:"茨城", drive:60, yard:6754, rating:72.8, par:72, holes:18, features:["乗用カート","ナビ付きカート"]},
@@ -510,28 +511,28 @@ const COURSE_LINKS = {
 function courseLink(course, site){ const L=COURSE_LINKS[course.name]||{}; return L[site]||null; }
 
 const VERIFIED_PRICES={
- checked:"2026-11-14",
+ checked:"2026-11-18",
  dates:{
  "2026-12-12":{
-  "大平台カントリー倶楽部":{"アコーディア公式":{plan:"【得トク1000】 ●3B割増なし／超早時間限定／昼食補助付",price:14990,starts:"7:00〜7:07"},"楽天GORA":{plan:"[SALE]★超早時間枠★3B割増なし★昼食補助付",price:15990,starts:"7:00〜7:15"},"じゃらんゴルフ":{plan:"●3B割増なし／超早時間限定／昼食補助付",price:15990,starts:"7:00〜7:15"},"GDO":{plan:"＜狙い目＞ ●3B割増なし／超早時間限定／昼食補助付",price:15990,starts:"7:00〜7:15"}},
-  "かすみがうらゴルフクラブ":{"アコーディア公式":{plan:"【得トク1000】 早め限定／昼食補助付■組売プラン",price:16990,starts:"6:46〜7:21"},"楽天GORA":{plan:"[イマスグ]土日祝/早め限定/昼食補助付◎3B割増無",price:18990,starts:"6:46〜7:21"},"じゃらんゴルフ":{plan:"早め限定/昼食補助付■組売プラン！！",price:17990,starts:"6:46〜7:00"}},
+  "大平台カントリー倶楽部":{"アコーディア公式":{plan:"【得トク1000】 ●3B割増なし／超早時間限定／昼食補助付",price:14990,starts:"7:07"},"楽天GORA":{plan:"[SALE]★超早時間枠★3B割増なし★昼食補助付",price:15990,starts:"7:07"},"じゃらんゴルフ":{plan:"●3B割増なし／超早時間限定／昼食補助付",price:15990,starts:"7:07"},"GDO":{plan:"＜狙い目＞ ●3B割増なし／超早時間限定／昼食補助付",price:15990,starts:"7:07"}},
+  "かすみがうらゴルフクラブ":{"アコーディア公式":{plan:"【得トク1000】 早め限定／昼食補助付■組売プラン",price:16990,starts:"6:46〜7:14"},"楽天GORA":{plan:"[イマスグ]土日祝/早め限定/昼食補助付【組売プラン】",price:17990,starts:"6:46〜7:14"},"じゃらんゴルフ":{plan:"早め限定/昼食補助付■組売プラン！！",price:17990,starts:"6:46〜7:14"}},
   "ヘリテイジゴルフコース":{"楽天GORA":{none:"18Hプランの空きなし（9Hプランのみ空きあり）"}},
-  "皆川城カントリークラブ":{"アコーディア公式":{plan:"【得トク1000】リニューアル！枠限定・昼食補助付・3B割増なし",price:17990,starts:"7:00〜10:07"},"楽天GORA":{plan:"[イマスグ]リニューアル・枠限定・昼食補助付・3B無",price:18990,starts:"7:00〜7:22"},"じゃらんゴルフ":{plan:"リニューアル！枠限定・昼食補助付・3B割増なし",price:18990,starts:"7:00〜10:00"},"GDO":{plan:"＜狙い目＞ リニューアル！枠限定・昼食補助付・3B割増なし",price:18990,starts:"7:00〜10:07"}},
+  "皆川城カントリークラブ":{"アコーディア公式":{plan:"【得トク1000】リニューアル！枠限定・昼食補助付・3B割増なし",price:17990,starts:"10:07"},"楽天GORA":{plan:"[イマスグ]リニューアル・枠限定・昼食補助付・3B無",price:18990,starts:"10:07"},"じゃらんゴルフ":{plan:"リニューアル！枠限定・昼食補助付・3B割増なし",price:18990,starts:"10:07"},"GDO":{plan:"＜狙い目＞ リニューアル！枠限定・昼食補助付・3B割増なし",price:18990,starts:"10:07"}},
   "アジア取手カントリー倶楽部":{"楽天GORA":{none:"予約可能なプランなし"}},
   "戸田パブリックゴルフコース":{"楽天GORA":{none:"予約可能なプランなし"}},
   "石岡ゴルフ倶楽部":{"楽天GORA":{plan:"[イマスグ]土日祝/セルフ/昼食別/公開枠限定*",price:26900,starts:"7:22"},"PGM公式":{plan:"【直前HOT】土日祝ナビ付カートセルフ（昼食別）3サム保証/早めスタート限定*",price:25900,starts:"7:22"}},
-  "取手桜が丘ゴルフクラブ":{"アコーディア公式":{plan:"【得トク1000】【RENEW】早朝スルー★昼食補助付【備考必読】",price:20990,starts:"6:45〜7:00"},"楽天GORA":{plan:"[今コレ]【RENEW】【土日祝】早朝スルー★昼食補助付",price:21990,starts:"6:45〜7:00"},"じゃらんゴルフ":{plan:"【RENEW】早朝スルー ★昼食補助付【備考必読】",price:21990,starts:"6:45〜7:07"},"GDO":{plan:"＜狙い目＞ 【RENEW】早朝スルー ★昼食補助付【備考必読】",price:21990,starts:"6:45〜7:00"}},
+  "取手桜が丘ゴルフクラブ":{"アコーディア公式":{plan:"【得トク1000】【RENEW】公開枠限定★昼食補助付【備考必読】",price:23990,starts:"7:07〜7:37"},"楽天GORA":{plan:"[今コレ]【RENEW】土日祝◆セルフ・昼食補助付◆",price:24990,starts:"7:07〜7:37"},"じゃらんゴルフ":{plan:"【RENEW】公開枠限定　★昼食補助付【備考必読】",price:24990,starts:"7:07〜7:37"},"GDO":{plan:"＜狙い目＞【RENEW】公開枠限定 ★昼食補助付【備考必読】",price:24990,starts:"7:07〜7:37"}},
   "習志野カントリークラブ":{"アコーディア公式":{none:"18Hプランの空きなし（薄暮ハーフのみ表示）"}}
  },
  "2026-12-15":{
   "大平台カントリー倶楽部":{"楽天GORA":{plan:"[イマスグ]★早時間枠★3B割増なし／昼食補助付",price:4990,starts:"7:00〜7:45"}},
   "かすみがうらゴルフクラブ":{"楽天GORA":{plan:"[イマスグ]平日/早め限定/昼食補助付◎3B割増無",price:6990,starts:"7:00〜7:21"}},
-  "ヘリテイジゴルフコース":{"楽天GORA":{plan:"平日★安くまわりたい方★18H手引き 天然温泉付",price:5700,starts:"8:08〜10:08"}},
-  "皆川城カントリークラブ":{"楽天GORA":{plan:"[イマスグ]リニューアル★枠限定★昼食補助付★3B無",price:5990,starts:"6:52〜7:07"}},
-  "アジア取手カントリー倶楽部":{"楽天GORA":{plan:"平日ナビ付新カート/2サム割増無",price:7300,starts:"7:10〜8:20"}},
-  "戸田パブリックゴルフコース":{"楽天GORA":{plan:"【平日】カップ麺付き！９ホール×２回りプレー",price:7500,starts:"7:56〜8:28"}},
-  "石岡ゴルフ倶楽部":{"楽天GORA":{plan:"[イマスグ]平日セルフ/4サム優待/備考確認*",price:11400,starts:"7:00〜7:15"}},
-  "取手桜が丘ゴルフクラブ":{"楽天GORA":{plan:"[今コレ]【RENEW】平日◆早め◆セルフ・昼食補助付◆",price:8990,starts:"7:22〜7:30"}}
+  "ヘリテイジゴルフコース":{"楽天GORA":{plan:"平日★安くまわりたい方★18H手引き 天然温泉付",price:5700,starts:"8:00〜10:08"}},
+  "皆川城カントリークラブ":{"楽天GORA":{plan:"[イマスグ]リニューアル★枠限定★昼食補助付★3B無",price:5990,starts:"6:52〜10:07"}},
+  "アジア取手カントリー倶楽部":{"楽天GORA":{plan:"平日ナビ付新カート/2サム割増無",price:7300,starts:"7:10〜10:26"}},
+  "戸田パブリックゴルフコース":{"楽天GORA":{plan:"【平日】カップ麺付き！９ホール×２回りプレー",price:7500,starts:"8:28"}},
+  "石岡ゴルフ倶楽部":{"楽天GORA":{plan:"[イマスグ]平日セルフ/4サム優待/備考確認*",price:11900,starts:"7:07〜7:15"}},
+  "取手桜が丘ゴルフクラブ":{"楽天GORA":{plan:"[今コレ]【RENEW】平日◆セルフ・昼食補助付◆",price:10990,starts:"7:07〜10:22"}}
  }
 }};
 function verifiedPriceHTML(c, cond){
