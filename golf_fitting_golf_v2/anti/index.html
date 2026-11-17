@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#E9E4D6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+<title>DRIVER PHYSICS BENCH — ドライバー物理フィッティング・ラボ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E9E4D6; --paper2:#F3EFE4; --ink:#14130F; --ink2:#3B3830; --mute:#7C776A;
+  --sig:#FF4F12; --turf:#0E3B2C; --lime:#C8F031; --line:rgba(20,19,15,.14);
+  --serif:"Instrument Serif","Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --jp:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+  --safeB:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-x:hidden;scroll-behavior:smooth}
+body{font-family:var(--jp);color:var(--ink);background:var(--paper);min-height:100vh;width:100%;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:28px 28px;background-position:-1px -1px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;background:none;border:none}
+input[type=number]{-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.mono{font-family:var(--mono)}
+.serif{font-family:var(--serif);font-weight:400}
+
+/* ===== ticker ===== */
+.ticker{position:sticky;top:0;z-index:50;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+  border-bottom:2px solid var(--sig);padding-top:env(safe-area-inset-top,0px)}
+.ticker-in{height:30px;overflow:hidden;display:flex;align-items:center}
+.ticker .tag{flex:none;background:var(--sig);color:var(--ink);height:100%;display:flex;align-items:center;padding:0 10px;font-weight:800}
+.ticker .run{white-space:nowrap;display:inline-block;padding-left:100%;animation:tick 38s linear infinite}
+.ticker .run b{color:var(--lime);font-weight:600}
+@keyframes tick{to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.ticker .run{animation:none;padding-left:12px}.draw{animation:none;stroke-dashoffset:0}}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+/* ===== masthead ===== */
+.mast{padding:34px 0 26px;border-bottom:2px solid var(--ink);display:grid;grid-template-columns:1fr auto;gap:20px;align-items:end}
+.mast .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--ink2)}
+.mast h1{font-family:var(--serif);font-weight:400;font-size:clamp(54px,11vw,148px);line-height:.82;letter-spacing:-.03em;margin-top:10px}
+.mast h1 i{color:var(--sig)}
+.mast h1 .s{display:block;font-size:clamp(18px,2.5vw,38px);letter-spacing:0;font-style:italic;color:var(--ink2);margin-top:.22em;line-height:1.25}
+.mast .meta{font-family:var(--mono);font-size:11px;line-height:1.7;text-align:right;color:var(--ink2)}
+.mast .meta .stamp{display:inline-block;border:2px solid var(--sig);color:var(--sig);padding:6px 10px;transform:rotate(-4deg);font-weight:800;margin-bottom:10px;letter-spacing:.1em}
+
+.intro{display:grid;grid-template-columns:1.1fr 1fr;gap:0;border-bottom:2px solid var(--ink)}
+.intro .lead{padding:26px 26px 26px 0;border-right:1px solid var(--ink);font-size:15px;line-height:1.95}
+.intro .lead strong{background:linear-gradient(transparent 60%,var(--lime) 60%)}
+.layers{padding:18px 0 18px 26px;font-family:var(--mono);font-size:12px}
+.layers li{list-style:none;display:grid;grid-template-columns:44px 1fr;padding:7px 0;border-bottom:1px dashed var(--line)}
+.layers li span:first-child{color:var(--sig);font-weight:800}
+
+/* ===== stepper ===== */
+.bench{display:grid;grid-template-columns:210px 1fr;gap:0;margin-top:28px;border:2px solid var(--ink);background:var(--paper2);box-shadow:8px 8px 0 var(--ink)}
+.rail{border-right:2px solid var(--ink);padding:18px 0;background:var(--paper)}
+.rail button{display:grid;grid-template-columns:42px 1fr;align-items:center;width:100%;text-align:left;padding:12px 16px;font-size:13px;border-bottom:1px solid var(--line);min-height:52px}
+.rail button .no{font-family:var(--serif);font-size:28px;line-height:1;color:var(--mute)}
+.rail button .tt{font-weight:700}
+.rail button .tt small{display:block;font-family:var(--mono);font-weight:400;font-size:10px;color:var(--mute);letter-spacing:.08em}
+.rail button.on{background:var(--ink);color:var(--paper)}
+.rail button.on .no{color:var(--sig)}
+.rail button.done .no::after{content:"✓";font-family:var(--mono);font-size:12px;color:var(--turf);margin-left:2px;vertical-align:top}
+.rail .prog{margin:16px;height:6px;background:var(--line);position:relative}
+.rail .prog i{position:absolute;left:0;top:0;bottom:0;background:var(--sig);transition:width .4s}
+.stage{padding:26px 30px 30px;min-width:0}
+.step{display:none;animation:rise .45s cubic-bezier(.2,.8,.2,1)}
+.step.on{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.step h2{font-family:var(--serif);font-weight:400;font-size:44px;line-height:1;letter-spacing:-.01em;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.step h2 em{font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.18em;color:var(--paper);background:var(--turf);padding:4px 8px;transform:translateY(-8px)}
+.step .desc{font-size:13px;color:var(--ink2);margin:8px 0 18px;line-height:1.8}
+.q{border-top:1px solid var(--ink);padding:16px 0 18px}
+.q>label,.q .ql{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-weight:700;font-size:14px;margin-bottom:10px}
+.q .ql small,.q>label small{font-family:var(--mono);font-weight:400;font-size:10px;color:var(--mute);letter-spacing:.1em}
+.hint{font-size:12px;color:var(--mute);margin-top:8px;line-height:1.7}
+
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1.5px solid var(--ink);padding:10px 14px;min-height:44px;font-size:13px;font-weight:500;background:var(--paper2);transition:transform .12s,background .15s}
+.seg button:active{transform:translate(1px,1px)}
+.seg button.on{background:var(--ink);color:var(--paper);box-shadow:3px 3px 0 var(--sig)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.num{display:flex;align-items:stretch;border:1.5px solid var(--ink);background:#fff;min-height:50px}
+.num input{flex:1;min-width:0;border:none;outline:none;background:transparent;padding:8px 12px;font-family:var(--mono);font-size:20px;font-weight:600}
+.num .u{display:flex;align-items:center;padding:0 10px;font-family:var(--mono);font-size:11px;color:var(--mute);border-left:1px dashed var(--line)}
+.num .unk{border-left:1.5px solid var(--ink);padding:0 10px;font-size:11px;font-weight:700;background:var(--paper);min-width:64px}
+.num.off{background:repeating-linear-gradient(-45deg,#fff 0 6px,var(--paper) 6px 12px)}
+.num.off input{color:var(--mute)}
+.num.off .unk{background:var(--sig);color:var(--ink)}
+.num.bad{border-color:var(--sig);box-shadow:0 0 0 2px var(--sig) inset}
+.fld .cap{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--ink2);margin-bottom:5px;display:block}
+
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--ink)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;margin-top:-11px;background:var(--sig);border:2px solid var(--ink);border-radius:0;transform:rotate(45deg)}
+input[type=range]::-moz-range-track{height:4px;background:var(--ink)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--sig);border:2px solid var(--ink);border-radius:0}
+.rv{font-family:var(--mono);font-size:22px;font-weight:800}
+
+/* picture cards */
+.cards{display:grid;gap:10px}
+.cards.c6{grid-template-columns:repeat(3,1fr)}
+.cards.c10{grid-template-columns:repeat(5,1fr)}
+.card{border:1.5px solid var(--ink);background:var(--paper2);padding:8px 8px 10px;text-align:left;position:relative;transition:transform .15s,box-shadow .15s;min-height:44px}
+.card:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
+.card svg{width:100%;height:auto;display:block;background:var(--paper);border:1px solid var(--line)}
+.cards.c6 .card svg{aspect-ratio:160/60}
+.cards.c10 .card svg{aspect-ratio:100/140}
+.card .cn{font-family:var(--mono);font-size:10px;color:var(--sig);font-weight:800;margin-top:6px}
+.card .ct{font-size:12px;font-weight:700;line-height:1.35}
+.card .cs{font-size:10.5px;color:var(--mute);line-height:1.4;margin-top:2px}
+.card.on{background:var(--ink);color:var(--paper);box-shadow:4px 4px 0 var(--sig);transform:translate(-2px,-2px)}
+.card.on svg{background:#22201b;border-color:#444}
+.card.on .cs{color:#b7b1a2}
+.card.on .fl{stroke:var(--lime)}
+.card.on .gd{stroke:#5a564c}
+.card.on .tee{fill:var(--paper)}
+.fl{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linecap:round}
+.fl2{fill:none;stroke:var(--sig);stroke-width:2.4;stroke-linecap:round}
+.gd{stroke:var(--line);stroke-width:1;stroke-dasharray:3 3;fill:none}
+.tee{fill:var(--ink)}
+
+.facebox{display:grid;grid-template-columns:minmax(0,460px) 1fr;gap:20px;align-items:center}
+.facebox svg{width:100%;height:auto;aspect-ratio:440/250;touch-action:manipulation}
+.zone{cursor:pointer}
+.zone circle{fill:rgba(255,79,18,.08);stroke:var(--ink);stroke-width:1.2;stroke-dasharray:4 3;transition:fill .2s}
+.zone text{font-family:var(--mono);font-size:10px;font-weight:800;fill:var(--ink);pointer-events:none}
+.zone:hover circle{fill:rgba(255,79,18,.25)}
+.zone.on circle{fill:var(--sig);stroke-dasharray:none;stroke-width:2}
+.zone.on text{fill:var(--paper)}
+.facelist .seg button{flex:1 1 40%}
+
+.nav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:22px;padding-top:18px;border-top:2px solid var(--ink)}
+.btn{border:2px solid var(--ink);padding:14px 22px;font-weight:900;font-size:14px;letter-spacing:.06em;background:var(--paper2);min-height:50px;box-shadow:4px 4px 0 var(--ink);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn.go{background:var(--sig);color:var(--ink)}
+.btn.dark{background:var(--ink);color:var(--paper);box-shadow:4px 4px 0 var(--sig)}
+.btn[disabled]{opacity:.35;pointer-events:none}
+.err{color:var(--sig);font-weight:700;font-size:12px;min-height:16px}
+
+/* presets & live preview */
+.presetbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px dashed var(--line);font-family:var(--mono);font-size:10.5px}
+.presetbar span{color:var(--mute);letter-spacing:.12em;margin-right:4px}
+.presetbar button{border:1px solid var(--ink);background:var(--paper);padding:5px 9px;font-size:11px;font-family:var(--jp);font-weight:700;min-height:32px}
+.presetbar button:hover{background:var(--lime)}
+.dpbox{margin-top:10px;padding:9px 12px;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:11px;line-height:1.7;display:none}
+.dpbox.on{display:block}
+.dpbox b{color:var(--lime)}
+.ifcmini{display:inline-flex;gap:3px;align-items:flex-end;height:18px;margin-left:6px;vertical-align:bottom}
+.ifcmini i{display:inline-block;width:6px;background:var(--turf);border:1px solid var(--ink)}
+.wxq{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.wxq button{border:1px solid var(--ink);padding:5px 10px;font-size:11px;background:var(--paper);min-height:32px}
+.wxq button:hover{background:var(--lime)}
+
+/* weather */
+.wx{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:stretch}
+.wx .num input{font-size:16px;font-family:var(--jp);font-weight:500}
+.wxread{font-family:var(--mono);font-size:12px;margin-top:10px;padding:10px 12px;background:var(--ink);color:var(--paper);line-height:1.8}
+.wxread b{color:var(--lime)}
+
+/* ===== results ===== */
+#bench,#result{scroll-margin-top:46px}
+#result{display:none;margin-top:40px}
+#result.on{display:block;animation:rise .6s}
+.rhead{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:14px}
+.rhead h2{font-family:var(--serif);font-weight:400;font-size:clamp(44px,8vw,96px);line-height:.85;letter-spacing:-.02em}
+.rhead h2 i{color:var(--sig)}
+.verdict{margin-top:18px;display:grid;grid-template-columns:1.2fr 1fr;border:2px solid var(--ink);background:var(--ink);color:var(--paper)}
+.verdict .vt{padding:22px 24px;border-right:1px solid #444}
+.verdict .vt .lab{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--lime)}
+.verdict .vt h3{font-family:var(--serif);font-weight:400;font-size:38px;line-height:1.05;margin:8px 0 10px}
+.verdict .vt p{font-size:13px;line-height:1.9;color:#d9d3c4}
+.verdict .vk{display:grid;grid-template-columns:1fr 1fr;}
+.kpi{padding:16px 18px;border-bottom:1px solid #444;border-right:1px solid #444}
+.kpi .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:#9c968a}
+.kpi .v{font-family:var(--mono);font-size:30px;font-weight:800;line-height:1.1;margin-top:4px}
+.kpi .v small{font-size:12px;font-weight:400;color:#9c968a;margin-left:3px}
+.kpi .d{font-size:11px;color:var(--lime);margin-top:2px}
+
+.charts{display:grid;grid-template-columns:1.6fr 1fr;gap:0;margin-top:22px;border:2px solid var(--ink);background:var(--paper2)}
+.chart{padding:14px 16px;min-width:0}
+.chart+.chart{border-left:2px solid var(--ink)}
+.chart h4,.lay h4{font-family:var(--mono);font-size:11px;letter-spacing:.16em;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.chart svg{width:100%;height:auto;display:block;margin-top:8px}
+.legend{display:flex;gap:16px;font-family:var(--mono);font-size:10px;margin-top:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:18px;height:3px;background:var(--ink);vertical-align:middle;margin-right:5px}
+.legend i.o{background:var(--sig)}
+.legend i.d{background:repeating-linear-gradient(90deg,var(--ink) 0 4px,transparent 4px 7px)}
+.draw{stroke-dasharray:2000;stroke-dashoffset:2000;animation:dr 2.2s cubic-bezier(.3,.6,.2,1) forwards}
+@keyframes dr{to{stroke-dashoffset:0}}
+
+.lays{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:22px;border:2px solid var(--ink);background:var(--paper2)}
+.lay{padding:14px 16px;border-right:1px solid var(--ink);border-bottom:1px solid var(--ink);min-width:0}
+.lay:nth-child(3n){border-right:none}
+.lay h4 span{color:var(--sig)}
+.lay table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+.lay td{padding:5px 0;border-bottom:1px dashed var(--line);vertical-align:top}
+.lay td:last-child{text-align:right;font-family:var(--mono);font-weight:600;padding-left:8px}
+.lay .note{font-size:11.5px;line-height:1.7;color:var(--ink2);margin-top:8px}
+.flag{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 6px;margin:2px 3px 0 0;border:1px solid var(--ink)}
+.flag.r{background:var(--sig);border-color:var(--sig)}
+.flag.g{background:var(--lime)}
+
+.tabs{display:flex;gap:0;margin-top:34px;border:2px solid var(--ink);width:max-content;max-width:100%;overflow-x:auto}
+.tabs button{padding:12px 20px;font-weight:900;font-size:13px;min-height:46px;border-right:2px solid var(--ink);white-space:nowrap;background:var(--paper2)}
+.tabs button:last-child{border-right:none}
+.tabs button.on{background:var(--sig)}
+.seasonbox{margin-top:12px;padding:14px 16px;border:1.5px dashed var(--ink);font-size:12.5px;line-height:1.85;background:var(--paper2)}
+.seasonbox b{background:linear-gradient(transparent 55%,var(--lime) 55%)}
+
+.top10{margin-top:18px;display:grid;gap:14px}
+.fit{display:grid;grid-template-columns:96px 1fr 210px;border:2px solid var(--ink);background:var(--paper2);position:relative;min-width:0}
+.fit .rk{border-right:2px solid var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0;background:var(--paper)}
+.fit .rk b{font-family:var(--serif);font-weight:400;font-size:64px;line-height:.9}
+.fit .rk span{font-family:var(--mono);font-size:9px;letter-spacing:.2em}
+.fit:first-child{box-shadow:8px 8px 0 var(--sig)}
+.fit:first-child .rk{background:var(--ink);color:var(--paper)}
+.fit:first-child .rk b{color:var(--sig)}
+.fit .bd{padding:14px 18px;min-width:0}
+.fit .hd{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--mute)}
+.fit .nm{font-size:19px;font-weight:900;line-height:1.3;margin-top:2px}
+.fit .nm .x{color:var(--sig);font-family:var(--serif);font-weight:400;font-style:italic;margin:0 6px}
+.specs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin-top:10px;border-top:1px solid var(--ink);border-left:1px solid var(--line)}
+.specs div{padding:7px 8px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0}
+.specs div small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--mute)}
+.specs div span{font-size:12px;font-weight:700;word-break:break-word}
+.why{margin-top:10px;font-size:12px;line-height:1.85;color:var(--ink2)}
+.why li{margin-left:1.1em}
+.fit .sc{border-left:2px solid var(--ink);padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;gap:10px;background:var(--paper)}
+.fit .sc .big{font-family:var(--mono);font-size:44px;font-weight:800;line-height:1}
+.fit .sc .big small{font-size:13px;color:var(--mute)}
+.bars{display:grid;gap:4px}
+.bar{display:grid;grid-template-columns:62px 1fr 26px;gap:6px;align-items:center;font-family:var(--mono);font-size:9px}
+.bar .t{height:6px;background:var(--line);position:relative}
+.bar .t i{position:absolute;left:0;top:0;bottom:0;background:var(--ink)}
+.bar .t i.hi{background:var(--turf)}
+.bar .t i.lo{background:var(--sig)}
+.sub{margin-top:8px;font-size:11.5px;padding:8px 10px;background:var(--ink);color:var(--paper);line-height:1.7}
+.sub b{color:var(--lime)}
+
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0 10px}
+footer{margin-top:60px;border-top:2px solid var(--ink);padding:22px 0 calc(40px + var(--safeB));font-family:var(--mono);font-size:10.5px;color:var(--ink2);line-height:1.9}
+.toast{position:fixed;left:50%;bottom:calc(24px + var(--safeB));transform:translateX(-50%) translateY(120px);background:var(--ink);color:var(--paper);padding:12px 18px;font-size:13px;font-weight:700;border-left:6px solid var(--sig);transition:transform .35s;z-index:99;max-width:90vw}
+.toast.on{transform:translateX(-50%) translateY(0)}
+
+/* computing overlay */
+.calc{position:fixed;inset:0;background:rgba(20,19,15,.92);z-index:90;display:none;align-items:center;justify-content:center;color:var(--paper);font-family:var(--mono)}
+.calc.on{display:flex}
+.calc .box{width:min(520px,88vw)}
+.calc .ln{font-size:12px;padding:5px 0;opacity:.2;transition:opacity .2s;border-bottom:1px dashed #444}
+.calc .ln.on{opacity:1}
+.calc .ln.on::after{content:" ✓";color:var(--lime)}
+.calc h5{font-family:var(--serif);font-weight:400;font-size:44px;color:var(--sig);margin-bottom:12px}
+
+@media (max-width:900px){
+  .intro{grid-template-columns:1fr}.intro .lead{border-right:none;border-bottom:1px solid var(--ink);padding-right:0}.layers{padding-left:0}
+  .bench{grid-template-columns:1fr;box-shadow:5px 5px 0 var(--ink)}
+  .rail{display:grid;grid-template-columns:repeat(4,1fr);border-right:none;border-bottom:2px solid var(--ink);padding:0}
+  .rail button{grid-template-columns:1fr;text-align:center;padding:10px 4px;border-bottom:none;border-right:1px solid var(--line)}
+  .rail button .tt small{display:none}.rail button .tt{font-size:11px}
+  .rail .prog{grid-column:1/-1;margin:0;height:4px}
+  .stage{padding:20px 16px 22px}
+  .cards.c10{grid-template-columns:repeat(3,1fr)}
+  .facebox{grid-template-columns:1fr}
+  .verdict{grid-template-columns:1fr}.verdict .vt{border-right:none;border-bottom:1px solid #444}
+  .charts{grid-template-columns:1fr}.chart+.chart{border-left:none;border-top:2px solid var(--ink)}
+  .lays{grid-template-columns:1fr 1fr}.lay:nth-child(3n){border-right:1px solid var(--ink)}.lay:nth-child(2n){border-right:none}
+  .fit{grid-template-columns:64px 1fr}.fit .rk b{font-size:42px}
+  .fit .sc{grid-column:1/-1;border-left:none;border-top:2px solid var(--ink);flex-direction:row;align-items:center}
+  .fit .sc .bars{flex:1}
+  .specs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mast{grid-template-columns:1fr}.mast .meta{text-align:left}
+}
+@media (max-width:560px){
+  .wrap{padding:0 12px}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .cards.c6{grid-template-columns:repeat(2,1fr)}
+  .cards.c10{grid-template-columns:repeat(2,1fr)}
+  .lays{grid-template-columns:1fr}.lay{border-right:none!important}
+  .step h2{font-size:34px}
+  .verdict .vt h3{font-size:30px}.kpi .v{font-size:24px}
+  .wx{grid-template-columns:1fr 1fr}.wx .num{grid-column:1/-1}
+  .fit .sc .big{font-size:34px}
+}
+@media print{.ticker,.bench,.actions,.tabs,.intro{display:none!important}body{background:#fff}.fit{break-inside:avoid}.draw{animation:none!important;stroke-dashoffset:0!important}}
+</style>
+</head>
+<body>
+
+<div class="ticker"><div class="ticker-in"><span class="tag">LIVE AIR</span><div style="overflow:hidden;flex:1"><span class="run" id="tick">ρ 空気密度 計測中… ／ Open-Meteo（無料・登録不要API）から気温・気圧・湿度・標高を取得し、理想気体の状態方程式で空気密度を算出して弾道計算に反映します ／ DRIVER PHYSICS BENCH v2026.11</span></div></div></div>
+
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <div class="kicker">FITTING LAB / 7-LAYER PHYSICS ENGINE / EDITION 2026.11</div>
+      <h1>Driver <i>Physics</i> Bench<span class="s">— 物理で、あなたの1本を決める。</span></h1>
+    </div>
+    <div class="meta">
+      <div class="stamp">NO MEASURING DEVICE REQUIRED</div><br>
+      MAGNUS · D-PLANE · 3D GEAR<br>EULER–BERNOULLI · THERMO<br>DB: 2026.11 / HEAD × SHAFT × SLEEVE
+    </div>
+  </header>
+
+  <section class="intro">
+    <div class="lead">
+      計測器の数字が分からなくても大丈夫。<strong>「球の高さの絵」「9つの飛球線の絵」「打点の絵」</strong>を選ぶだけで、空気力学・D-Planeベクトル解析・3次元剛体衝突・梁理論から、<strong>最適なヘッド×シャフト×スリーブ設定のベスト10</strong>を導き出します。<br>
+      物理的にありえない数値や未入力は、<strong>Layer 0 が自動で検知・修復</strong>します。
+    </div>
+    <ol class="layers">
+      <li><span>L0</span><span>物理整合性フィルタ／矛盾データ自己修復</span></li>
+      <li><span>L1</span><span>マグヌス空力 × 弾道高低 2段階ハイブリッド推計</span></li>
+      <li><span>L2</span><span>9弾道 → D-Planeベクトル完全逆算</span></li>
+      <li><span>L3</span><span>トゥダウン変形 × 3Dギア効果</span></li>
+      <li><span>L4</span><span>生体力学 × 梁理論（重量・振動数・トルク）</span></li>
+      <li><span>L5</span><span>スリーブ変換・季節熱力学（Live Air）</span></li>
+      <li><span>L6</span><span>重み付き距離スコアリング → BEST 10</span></li>
+    </ol>
+  </section>
+
+  <!-- ================= BENCH ================= -->
+  <section class="bench" id="bench">
+    <nav class="rail" id="rail">
+      <button data-go="0" class="on"><span class="no">01</span><span class="tt">体格・経験<small>PHYSICAL</small></span></button>
+      <button data-go="1"><span class="no">02</span><span class="tt">弾道データ<small>BALLISTICS</small></span></button>
+      <button data-go="2"><span class="no">03</span><span class="tt">飛球線・打点<small>D-PLANE / IMPACT</small></span></button>
+      <button data-go="3"><span class="no">04</span><span class="tt">テンポ・環境<small>TEMPO / AIR</small></span></button>
+      <div class="prog"><i id="progbar" style="width:25%"></i></div>
+    </nav>
+    <div class="stage">
+      <div class="presetbar" id="presetbar">
+        <span>QUICK SAMPLE ▶</span>
+        <button type="button" data-pre="avg">一般アベレージ (HS40・スライス)</button>
+        <button type="button" data-pre="athlete">競技アスリート (HS47・プルフック×ローヒール)</button>
+        <button type="button" data-pre="senior">シニア・軽量 (HS33・低弾道)</button>
+        <button type="button" data-pre="garbage">L0自己修復テスト (矛盾値入力)</button>
+      </div>
+
+      <!-- STEP 1 -->
+      <div class="step on" data-step="0">
+        <h2>Physical <em>A / LAYER 4 INPUT</em></h2>
+        <p class="desc">体格と運動経験は、シャフト重量（W<sub>ideal</sub>）と切り返しの負荷（トルク・振動数）の計算に使います。</p>
+        <div class="q"><div class="ql">性別</div><div class="seg" data-k="gender"><button data-v="M" class="on">男性</button><button data-v="F">女性</button><button data-v="O">その他</button></div></div>
+        <div class="q"><div class="ql">年代</div><div class="seg" data-k="age"><button data-v="20">20代</button><button data-v="30">30代</button><button data-v="40" class="on">40代</button><button data-v="50">50代</button><button data-v="60">60代</button><button data-v="70">70代以上</button></div></div>
+        <div class="q"><div class="grid2">
+          <div class="fld"><span class="cap">HEIGHT / 身長</span><div class="num" data-n="height"><input type="text" inputmode="decimal" placeholder="170"><span class="u">cm</span><button class="unk" type="button">不明</button></div></div>
+          <div class="fld"><span class="cap">WEIGHT / 体重</span><div class="num" data-n="weight"><input type="text" inputmode="decimal" placeholder="68"><span class="u">kg</span><button class="unk" type="button">不明</button></div></div>
+        </div></div>
+        <div class="q"><div class="ql">主なスポーツ経験 <small>KINEMATIC SEQUENCE</small></div>
+          <div class="seg" data-k="sport">
+            <button data-v="golf" class="on">ゴルフ専念</button><button data-v="baseball">野球・ソフト</button><button data-v="tennis">テニス</button><button data-v="tabletennis">卓球</button><button data-v="badminton">バドミントン</button><button data-v="hockey">ホッケー</button><button data-v="kendo">剣道</button><button data-v="judo">柔道</button><button data-v="swim">水泳</button><button data-v="track">陸上</button><button data-v="soccer">サッカー</button>
+          </div>
+          <p class="hint">野球・テニス等の「回旋・リスト解放型」は切り返しでトルク負荷が大きく、先端ねじり剛性を強化します。</p>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step" data-step="1">
+        <h2>Ballistics <em>B / LAYER 0–1 INPUT</em></h2>
+        <p class="desc">まず「横から見た普段の球の高さ」を選んでください（第1判定基準）。数値は分かる項目だけでOK。デタラメな値でも物理法則で自動補正します。</p>
+        <div class="q"><div class="ql">【事前確認】見た目の球の高さ <small>PRIMARY / ROUTE A</small></div>
+          <div class="cards c6" id="trajCards"></div>
+        </div>
+        <div class="q"><div class="grid2">
+          <div class="fld"><span class="cap">HEAD SPEED / ヘッドスピード</span><div class="num" data-n="hs"><input type="text" inputmode="decimal" placeholder="例 42.0"><span class="u">m/s</span><button class="unk" type="button">不明</button></div></div>
+          <div class="fld"><span class="cap">BALL SPEED / ボール初速（任意）</span><div class="num off" data-n="bs"><input type="text" inputmode="decimal" placeholder="例 61.0" disabled><span class="u">m/s</span><button class="unk" type="button">不明</button></div></div>
+        </div>
+        <div class="grid2" id="hsAlt" style="margin-top:12px">
+          <div class="fld"><span class="cap">HSが不明なら → 7番アイアンのキャリー</span><div class="num" data-n="i7"><input type="text" inputmode="decimal" placeholder="例 150"><span class="u">yd</span><button class="unk" type="button">不明</button></div></div>
+          <div class="fld"><span class="cap">または ドライバーの飛距離（だいたい）</span><div class="num" data-n="dguess"><input type="text" inputmode="decimal" placeholder="例 230"><span class="u">yd</span><button class="unk" type="button">不明</button></div></div>
+        </div>
+        <p class="hint">HS推計式：HS ≈ 7Iキャリー ÷ 3.65 ／ HS ≈ ドライバー総飛距離 ÷ 5.75</p></div>
+        <div class="q"><div class="grid2">
+          <div class="fld"><span class="cap">CARRY / 平均キャリー（任意）</span><div class="num off" data-n="carry"><input type="text" inputmode="decimal" placeholder="例 215" disabled><span class="u">yd</span><button class="unk" type="button">不明</button></div></div>
+          <div class="fld"><span class="cap">TOTAL / 平均総飛距離（任意）</span><div class="num off" data-n="total"><input type="text" inputmode="decimal" placeholder="例 235" disabled><span class="u">yd</span><button class="unk" type="button">不明</button></div></div>
+        </div></div>
+        <div class="q"><div class="grid2">
+          <div><div class="ql">18Hの平均FWキープ数 <span class="rv" id="fwv">7</span></div><input type="range" min="0" max="14" value="7" id="fw"></div>
+          <div><div class="ql">平均OB数 <span class="rv" id="obv">2</span></div><input type="range" min="0" max="10" value="2" id="ob"></div>
+        </div></div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step" data-step="2">
+        <h2>D-Plane <em>C / LAYER 2–3 INPUT</em></h2>
+        <p class="desc">上から見た「いちばん多い球筋」を1つタップ。出球方向・フェース角・クラブ軌道・スピン軸はこの絵から自動で逆算されます（出球の個別質問はありません）。</p>
+        <div class="q"><div class="ql">飛球線（右打ち・上から見た図） <small>9 + 1 VECTORS</small></div>
+          <div class="cards c10" id="flightCards"></div>
+          <div class="dpbox" id="dpLive"></div>
+          <div class="err" id="errFlight"></div>
+        </div>
+        <div class="q"><div class="ql">スイングプレーン（自己認識・任意）</div>
+          <div class="seg" data-k="plane"><button data-v="io">インサイドアウト</button><button data-v="on">インサイドイン</button><button data-v="oi">アウトサイドイン</button><button data-v="unk" class="on">分からない（自動逆算）</button></div>
+        </div>
+        <div class="q"><div class="ql">フェースの当たりやすい場所 <small>IMPACT MAP / 3D GEAR</small></div>
+          <div class="facebox">
+            <svg viewBox="0 0 440 250" id="faceSvg" aria-label="ドライバーフェース打点選択">
+              <defs><pattern id="sc" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 4h8" stroke="rgba(20,19,15,.10)" stroke-width="1"/></pattern></defs>
+              <path d="M20 205 L18 120 Q16 70 58 52 L330 26 Q412 22 422 96 Q428 160 392 205 Q370 226 300 228 L60 228 Q22 228 20 205Z" fill="#fff" stroke="#14130F" stroke-width="2.4"/>
+              <path d="M20 205 L18 120 Q16 70 58 52 L330 26 Q412 22 422 96 Q428 160 392 205 Q370 226 300 228 L60 228 Q22 228 20 205Z" fill="url(#sc)"/>
+              <rect x="2" y="150" width="20" height="90" fill="#14130F"/>
+              <text x="6" y="146" font-family="JetBrains Mono,monospace" font-size="9" fill="#14130F">HOSEL</text>
+              <text x="30" y="246" font-family="JetBrains Mono,monospace" font-size="10" font-weight="800" fill="#7C776A">◀ HEEL ヒール（根元）</text>
+              <text x="300" y="246" font-family="JetBrains Mono,monospace" font-size="10" font-weight="800" fill="#7C776A">TOE トゥ（先）▶</text>
+              <line x1="222" y1="40" x2="222" y2="222" class="gd"/><line x1="24" y1="128" x2="420" y2="128" class="gd"/>
+              <g class="zone" data-z="HH"><circle cx="128" cy="86" r="36"/><text x="128" y="90" text-anchor="middle">HIGH HEEL</text></g>
+              <g class="zone" data-z="HT"><circle cx="320" cy="76" r="36"/><text x="320" y="80" text-anchor="middle">HIGH TOE</text></g>
+              <g class="zone" data-z="C"><circle cx="222" cy="128" r="34"/><text x="222" y="132" text-anchor="middle">CENTER</text></g>
+              <g class="zone" data-z="LH"><circle cx="118" cy="182" r="36"/><text x="118" y="186" text-anchor="middle">LOW HEEL</text></g>
+              <g class="zone" data-z="LT"><circle cx="326" cy="180" r="36"/><text x="326" y="184" text-anchor="middle">LOW TOE</text></g>
+            </svg>
+            <div class="facelist">
+              <div class="seg" data-k="impact">
+                <button data-v="HT">ハイトゥ（上・先）</button><button data-v="LT">ロートゥ（下・先）</button><button data-v="C">センター（芯）</button><button data-v="HH">ハイヒール（上・根元）</button><button data-v="LH">ローヒール（下・根元）</button>
+              </div>
+              <p class="hint" id="impactHint">打点ズレは「ギア効果」でスピン量と曲がりを変えます。迷ったらショットマーカーの跡やフェースの汚れ位置を思い出してください。</p>
+              <div class="err" id="errImpact"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step" data-step="3">
+        <h2>Tempo &amp; Air <em>D / LAYER 4–5 INPUT</em></h2>
+        <p class="desc">切り返しテンポ・アイアン重量・グリップ環境、そして季節（空気密度）を設定します。</p>
+        <div class="q"><div class="ql">切り返しテンポ・タメの強さ</div>
+          <div class="seg" data-k="tempo"><button data-v="slow">ゆったり（平滑）</button><button data-v="std" class="on">標準</button><button data-v="fast">速い・タメが強い（ベタ足・強振）</button></div></div>
+        <div class="q"><div class="ql">使用中のアイアンシャフト重量帯 <small>WEIGHT FLOW</small></div>
+          <div class="seg" data-k="iron">
+            <button data-v="lc">軽量カーボン 40–50g</button><button data-v="mc">中量カーボン 60–80g</button><button data-v="ls">軽量スチール 90g台</button><button data-v="ms">中量スチール 105–115g</button><button data-v="hs">重量スチール 120–130g</button><button data-v="unk" class="on">分からない</button>
+          </div></div>
+        <div class="q"><div class="grid2">
+          <div class="fld"><span class="cap">GLOVE SIZE / グローブサイズ</span><div class="num off" data-n="glove"><input type="text" inputmode="decimal" placeholder="例 24" disabled><span class="u">cm</span><button class="unk" type="button">不明</button></div></div>
+          <div><div class="ql" style="margin-bottom:6px">手汗・雨天時の滑りやすさ</div><div class="seg" data-k="slip"><button data-v="low">滑らない</button><button data-v="mid" class="on">普通</button><button data-v="high">よく滑る</button></div></div>
+        </div></div>
+        <div class="q"><div class="ql">プレー環境（Live Air） <small>OPEN-METEO / FREE API</small></div>
+          <div class="wx">
+            <div class="num"><input type="text" id="city" placeholder="地名（例：千葉、札幌、那覇）" enterkeyhint="search"></div>
+            <button class="btn" type="button" id="citySearch" style="box-shadow:3px 3px 0 var(--ink)">検索</button>
+            <button class="btn dark" type="button" id="geoBtn" style="box-shadow:3px 3px 0 var(--sig)">現在地</button>
+          </div>
+          <div class="wxq" id="wxQuick">
+            <button type="button" data-wx="35.6812,139.7671,東京">東京</button>
+            <button type="button" data-wx="35.6074,140.1065,千葉">千葉</button>
+            <button type="button" data-wx="36.3489,138.5972,軽井沢（高原）">軽井沢（高原）</button>
+            <button type="button" data-wx="43.0618,141.3545,札幌">札幌</button>
+            <button type="button" data-wx="26.2124,127.6809,那覇">那覇</button>
+          </div>
+          <div class="wxread" id="wxread">取得中…（失敗時は東京・標準大気で計算します）</div>
+        </div>
+        <div class="q"><div class="ql">診断する季節モード</div>
+          <div class="seg" data-k="season"><button data-v="auto" class="on">自動（現在の気温から）</button><button data-v="std">通年（春・秋）</button><button data-v="summer">夏仕様</button><button data-v="winter">冬仕様</button></div>
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="btn" type="button" id="prevBtn">← 戻る</button>
+        <span class="mono" style="font-size:11px;color:var(--mute)" id="stepLbl">STEP 01 / 04</span>
+        <button class="btn dark" type="button" id="nextBtn">次へ →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RESULT ================= -->
+  <section id="result">
+    <div class="rhead">
+      <h2>Fitting <i>Report</i></h2>
+      <div class="mono" style="font-size:11px;line-height:1.8;text-align:right" id="rmeta"></div>
+    </div>
+    <div class="verdict" id="verdict"></div>
+    <div class="charts">
+      <div class="chart"><h4><span>SIDE VIEW / 弾道シミュレーション（RK4 × マグヌス × 抗力）</span><span id="sideInfo"></span></h4><div id="sideChart"></div>
+        <div class="legend"><span><i class="d"></i>現状（推計）</span><span><i class="o"></i>BEST 1 装着時（予測）</span></div></div>
+      <div class="chart"><h4><span>TOP VIEW / 左右</span></h4><div id="topChart"></div>
+        <div class="legend"><span><i class="d"></i>現状</span><span><i class="o"></i>BEST 1</span></div></div>
+    </div>
+    <div class="lays" id="lays"></div>
+
+    <div class="tabs" id="seasonTabs"><button data-s="std">通年（春・秋）</button><button data-s="summer">夏仕様 28–35℃</button><button data-s="winter">冬仕様 0–10℃</button></div>
+    <div class="seasonbox" id="seasonBox"></div>
+    <div class="top10" id="top10"></div>
+    <div class="actions">
+      <button class="btn dark" type="button" id="editBtn">↺ 回答を修正する</button>
+      <button class="btn" type="button" id="copyBtn">結果をコピー</button>
+      <button class="btn" type="button" id="printBtn">印刷 / PDF</button>
+      <button class="btn" type="button" id="resetBtn">最初から</button>
+    </div>
+  </section>
+
+  <footer>
+    DRIVER PHYSICS BENCH — ALGORITHM: driver_fitting_algorithm_spec.md (7-LAYER) / UI: driver_fitting_webapp_prompt.md<br>
+    WEATHER: Open-Meteo API (open-meteo.com, free / no registration). Geocoding: Open-Meteo Geocoding API.<br>
+    ※ヘッドの慣性モーメント・重心深度・スピン傾向等は、アルゴリズム計算用に公開情報と一般的な設計傾向から設定した推定値です（メーカー公表値ではありません）。最終決定は試打・計測で確認してください。<br>
+    ※シャフトの重量・トルク・IFCは仕様書マスターテーブルに準拠し、各フレックス値は連続補間による推定値です。
+  </footer>
+</div>
+
+<div class="calc" id="calc"><div class="box"><h5>Computing…</h5><div id="calcLines"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   PHYSICS ENGINE (pure functions / no DOM)  — spec: 7-layer pipeline
+   ===================================================================== */
+const ENGINE = (() => {
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const rd = (x, d = 1) => Math.round(x * Math.pow(10, d)) / Math.pow(10, d);
+  const isNum = v => typeof v === 'number' && isFinite(v);
+
+  /* ---- Layer 2 table (spec 2-1) ---- */
+  const FLIGHT = {
+    1:{n:'プルフック',s:'左へ出て、さらに左へ巻く',face:-3.5,path:0.5,bias:-3,dir:-1,cv:-1,
+       fix:'フェース角+2.0°オープン化、ライ角−1.5°フラット、重心角≦22°、先端剛性最大化'},
+    2:{n:'プル',s:'左へ出て、そのまま左',face:-3.0,path:-3.0,bias:-2,dir:-1,cv:0,
+       fix:'フェース角+1.5°オープン化、手元剛性を下げ切り返しでヘッドをインサイドへ落とす'},
+    3:{n:'プルフェード',s:'左へ出て、右へ戻る',face:-1.5,path:-5.0,bias:1,dir:-1,cv:1,
+       fix:'手元調子でアウト軌道を緩和＋高MOIヘッドでスピン増を抑制'},
+    4:{n:'ドロー／フック',s:'真っ直ぐ出て、左へ',face:-0.5,path:3.0,bias:-1,dir:0,cv:-1,
+       fix:'重心角小〜中、ライ角−0.75°フラット、先端ねじれ剛性強化'},
+    5:{n:'ストレート',s:'真っ直ぐ出て、真っ直ぐ',face:0,path:0,bias:0,dir:0,cv:0,
+       fix:'ニュートラル重心・標準スリーブ。初速とミート率の最大化に集中'},
+    6:{n:'フェード／スライス',s:'真っ直ぐ出て、右へ',face:0.5,path:-3.0,bias:1.5,dir:0,cv:1,
+       fix:'高MOI・やや捕まり系ヘッド＋中調子でスピン過多を抑えキャリーを伸ばす'},
+    7:{n:'プッシュドロー',s:'右へ出て、左へ戻る',face:1.5,path:5.0,bias:-1,dir:1,cv:-1,
+       fix:'先端高剛性・中元しなりで「インから入りすぎて返る逆球」を封鎖'},
+    8:{n:'プッシュ',s:'右へ出て、そのまま右',face:3.0,path:3.0,bias:2,dir:1,cv:0,
+       fix:'アップライト+1.0°またはヒール寄りウェイトでフェースターンを促進'},
+    9:{n:'プッシュスライス',s:'右へ出て、さらに右へ',face:3.5,path:-0.5,bias:3,dir:1,cv:1,
+       fix:'重心角大（≧28°）ドローバイアス、ロフト+1.0°（クローズ化）、先中調子'},
+    10:{n:'左右に散る',s:'逆球・タイミング不安定',face:0,path:0,bias:0,dir:0,cv:0,scatter:true,
+       fix:'Izz≧5,200g·cm²＋超低トルクシャフト＋45.0インチ短尺化を最優先'}
+  };
+  const IMPACT = {
+    C:{n:'センター',x:0,y:0}, HT:{n:'ハイトゥ',x:12,y:8}, LT:{n:'ロートゥ',x:12,y:-8},
+    HH:{n:'ハイヒール',x:-12,y:8}, LH:{n:'ローヒール',x:-12,y:-8}
+  };
+  const TRAJ = {
+    1:{n:'ライナー・低弾道',spin:1750,launch:9.2},
+    2:{n:'中低弾道・強弾道',spin:2200,launch:11.0},
+    3:{n:'標準・中弾道',spin:2550,launch:13.0},
+    4:{n:'高弾道',spin:2850,launch:15.2},
+    5:{n:'吹き上がり・超高弾道',spin:3450,launch:16.6},
+    0:{n:'分からない・バラバラ'}
+  };
+  const SPORT = {
+    golf:{n:'ゴルフ専念',rot:false,strike:false}, baseball:{n:'野球',rot:true,strike:true},
+    tennis:{n:'テニス',rot:true,strike:true}, tabletennis:{n:'卓球',rot:true,strike:false},
+    badminton:{n:'バドミントン',rot:true,strike:false}, hockey:{n:'ホッケー',rot:true,strike:true},
+    kendo:{n:'剣道',rot:false,strike:false}, judo:{n:'柔道',rot:false,strike:false},
+    swim:{n:'水泳',rot:false,strike:false}, track:{n:'陸上',rot:false,strike:false},
+    soccer:{n:'サッカー',rot:false,strike:false}
+  };
+  const IRON = { lc:{n:'軽量カーボン',w:45}, mc:{n:'中量カーボン',w:70}, ls:{n:'軽量スチール',w:93},
+    ms:{n:'中量スチール',w:110}, hs:{n:'重量スチール',w:127}, unk:{n:'不明',w:null} };
+
+  /* ---- Head DB (2026.11 on-sale models; physical values = algorithm estimates) ---- */
+  const S_TM=[-2,-1.5,-1,-0.5,0,0.5,1,1.5,2], S_CW=[-1,-0.5,0,0.5,1,1.5,2], S_PG=[-1.5,-1,0,1,1.5],
+        S_TI=[-0.75,0,0.75,1.5], S_CB=[-1.5,-1,-0.5,0,0.5,1,1.5], S_SX=[-0.75,-0.25,0,0.25,0.75], S_PX=[-1.5,-1,-0.5,0,0.5,1,1.5];
+  const HEADS = [
+    {b:'TaylorMade',m:'Qi35',lo:[9,10.5,12],sl:S_TM,lie:'up',bias:0.3,spin:0,lau:0,moi:5200,z:36,ang:25,wt:'back'},
+    {b:'TaylorMade',m:'Qi35 MAX',lo:[9,10.5,12],sl:S_TM,lie:'up',bias:1.0,spin:180,lau:1.0,moi:5900,z:42,ang:27,wt:'back'},
+    {b:'TaylorMade',m:'Qi35 LS',lo:[8,9,10.5],sl:S_TM,lie:'up',bias:-1.5,spin:-350,lau:-1.0,moi:4500,z:30,ang:21,wt:'FB'},
+    {b:'TaylorMade',m:'Qi35 MAX LITE',lo:[10.5,12],sl:S_TM,lie:'up',bias:1.5,spin:250,lau:1.3,moi:5600,z:41,ang:28,wt:'fixed',lite:true},
+    {b:'Callaway',m:'ELYTE',lo:[9,10.5,12],sl:S_CW,lie:'d',bias:0.3,spin:-50,lau:0.2,moi:5200,z:37,ang:25,wt:'back'},
+    {b:'Callaway',m:'ELYTE X',lo:[9,10.5,12],sl:S_CW,lie:'d',bias:1.5,spin:150,lau:0.8,moi:5500,z:39,ang:28,wt:'back'},
+    {b:'Callaway',m:'ELYTE ◆◆◆ (Triple Diamond)',lo:[8,9,10.5],sl:S_CW,lie:'d',bias:-1.5,spin:-400,lau:-1.0,moi:4400,z:30,ang:21,wt:'FB'},
+    {b:'Callaway',m:'ELYTE MAX FAST',lo:[10.5,12],sl:S_CW,lie:'d',bias:1.6,spin:200,lau:1.2,moi:5300,z:39,ang:28,wt:'fixed',lite:true},
+    {b:'PING',m:'G440 MAX',lo:[9,10.5,12],sl:S_PG,lie:'flat',bias:0.5,spin:100,lau:0.6,moi:5900,z:42,ang:26,wt:'DNF'},
+    {b:'PING',m:'G440 LST',lo:[9,10.5],sl:S_PG,lie:'flat',bias:-1.2,spin:-300,lau:-0.6,moi:4900,z:33,ang:22,wt:'DNF'},
+    {b:'PING',m:'G440 SFT',lo:[10.5,12],sl:S_PG,lie:'flat',bias:2.5,spin:250,lau:0.8,moi:5500,z:40,ang:30,wt:'fixed'},
+    {b:'PING',m:'G440 K',lo:[9,10.5,12],sl:S_PG,lie:'flat',bias:0.6,spin:50,lau:0.4,moi:6100,z:43,ang:26,wt:'fixed'},
+    {b:'Titleist',m:'GT1',lo:[9,10,12],sl:S_TI,lie:'both',bias:0.8,spin:150,lau:0.9,moi:5000,z:39,ang:26,wt:'back',lite:true},
+    {b:'Titleist',m:'GT2',lo:[8,9,10,11],sl:S_TI,lie:'both',bias:0.2,spin:-80,lau:0.2,moi:5200,z:38,ang:25,wt:'back'},
+    {b:'Titleist',m:'GT3',lo:[8,9,10,11],sl:S_TI,lie:'both',bias:-0.6,spin:-200,lau:-0.3,moi:4700,z:34,ang:23,wt:'track'},
+    {b:'Titleist',m:'GT4',lo:[8,9,10],sl:S_TI,lie:'both',bias:-1.2,spin:-450,lau:-1.0,moi:4300,z:29,ang:21,wt:'back'},
+    {b:'Cobra',m:'DS-ADAPT MAX-K',lo:[9,10.5,12],sl:S_CB,lie:'d',bias:0.8,spin:100,lau:0.8,moi:6000,z:43,ang:26,wt:'FB'},
+    {b:'Cobra',m:'DS-ADAPT X',lo:[9,10.5,12],sl:S_CB,lie:'d',bias:1.2,spin:100,lau:0.6,moi:5300,z:38,ang:27,wt:'back',lite:true},
+    {b:'Cobra',m:'DS-ADAPT LS',lo:[8,9,10.5],sl:S_CB,lie:'d',bias:-1.0,spin:-350,lau:-0.8,moi:4500,z:31,ang:22,wt:'FB'},
+    {b:'Cobra',m:'DS-ADAPT MAX-D',lo:[10.5,12],sl:S_CB,lie:'d',bias:2.2,spin:200,lau:1.0,moi:5600,z:40,ang:29,wt:'back'},
+    {b:'Srixon',m:'ZXi',lo:[9,10.5],sl:S_SX,lie:'both',bias:0,spin:-50,lau:0,moi:5000,z:36,ang:24,wt:'back'},
+    {b:'Srixon',m:'ZXi LS',lo:[8,9,10.5],sl:S_SX,lie:'both',bias:-0.8,spin:-300,lau:-0.6,moi:4500,z:31,ang:22,wt:'FB'},
+    {b:'Srixon',m:'ZXi MAX',lo:[10.5,12],sl:S_SX,lie:'both',bias:1.0,spin:150,lau:0.7,moi:5500,z:40,ang:27,wt:'back'},
+    {b:'PXG',m:'0311 Black Ops',lo:[9,10.5,12],sl:S_PX,lie:'both',bias:0.3,spin:-50,lau:0.3,moi:5400,z:38,ang:25,wt:'FBtrack'},
+    {b:'PXG',m:'0311 Black Ops Tour-1',lo:[8,9,10.5],sl:S_PX,lie:'both',bias:-0.8,spin:-300,lau:-0.6,moi:4600,z:32,ang:22,wt:'FB'}
+  ];
+  /* weight options: spin(rpm), launch(deg), moi(+), bias(+draw) */
+  const WOPT = {
+    back:[{n:'標準ウェイト',s:0,l:0,m:0,b:0},{n:'後方ウェイト重め(+4g)',s:110,l:0.3,m:250,b:0.1},{n:'後方ウェイト軽め(−4g)',s:-110,l:-0.3,m:-250,b:-0.1}],
+    FB:[{n:'前方重/後方軽（前13g・後2g型）',s:-200,l:-0.5,m:-350,b:0},{n:'前後バランス',s:0,l:0,m:0,b:0},{n:'後方重/前方軽',s:160,l:0.4,m:350,b:0.15}],
+    DNF:[{n:'ウェイト：NEUTRAL',s:0,l:0,m:0,b:0},{n:'ウェイト：DRAW',s:30,l:0.1,m:-80,b:0.7},{n:'ウェイト：FADE',s:-30,l:-0.1,m:-80,b:-0.7}],
+    track:[{n:'CGトラック：中央',s:0,l:0,m:0,b:0},{n:'CGトラック：ヒール寄り',s:10,l:0,m:-60,b:0.7},{n:'CGトラック：トゥ寄り',s:-10,l:0,m:-60,b:-0.7}],
+    FBtrack:[{n:'ウェイト：中央・後方',s:60,l:0.2,m:150,b:0},{n:'ウェイト：前方',s:-180,l:-0.4,m:-300,b:0},{n:'ウェイト：ヒール寄り',s:20,l:0.1,m:-50,b:0.6},{n:'ウェイト：トゥ寄り',s:-20,l:0,m:-50,b:-0.6}],
+    fixed:[{n:'固定ウェイト（調整不可）',s:0,l:0,m:0,b:0}]
+  };
+  const LIEOPT = {
+    up:[{n:'STD',v:0},{n:'UPRT(+)',v:1}], d:[{n:'N(標準)',v:0},{n:'D(ドロー/アップライト)',v:1}],
+    flat:[{n:'標準ライ',v:0},{n:'フラット(−)',v:-1}], both:[{n:'標準ライ',v:0},{n:'フラット(−0.75°)',v:-1},{n:'アップライト(+0.75°)',v:1}]
+  };
+
+  /* ---- Shaft master (spec 6-2) ---- */
+  const KICK = {'先':0,'先中':0.25,'中':0.5,'中元':0.75,'元':1};
+  const SH = [
+    ['Fujikura','26 VENTUS TR BLACK',[[5,'S X'],[6,'S X'],[7,'S X'],[8,'X']],61,87.5,'元',3.5,2.6,44,55,99,'5S:[7-7-8-8]','6X,7X:[9-9-9-9]'],
+    ['Fujikura','26 VENTUS TR BLUE',[[5,'R S X'],[6,'S X'],[7,'S X']],61,79.5,'中元',3.6,2.7,40,51,95,'5R:[5-5-6-7]','6X,7X:[8-7-8-9]'],
+    ['Fujikura','26 VENTUS TR RED',[[5,'R S X'],[6,'S X'],[7,'S X']],60,79,'先中',3.6,2.8,39,49,88,'5R:[5-5-4-5]','6X,7X:[8-8-7-8]'],
+    ['Fujikura','24 VENTUS BLACK',[[5,'S X'],[6,'S X'],[7,'S X'],[8,'X']],59.5,84,'元',3.5,2.8,43,53,97,'5S:[6-7-8-8]','6X,7X:[8-8-9-9]'],
+    ['Fujikura','24 VENTUS BLUE',[[5,'R S X'],[6,'S X'],[7,'S X']],58.5,76,'中元',3.7,2.9,39,50,92,'5R:[5-4-6-7]','6X,7X:[8-7-8-9]'],
+    ['Fujikura','24 VENTUS RED',[[5,'R2 R S X'],[6,'SR S X'],[7,'S X']],52,75.5,'先中',4.1,2.9,36,48,85,'5R2:[4-3-3-4]','6S:[7-6-6-7]'],
+    ['Fujikura','VENTUS TR BLACK (2022)',[[5,'S X'],[6,'S X'],[7,'S X'],[8,'X']],59,89,'元',3.5,2.6,45,55,98,'5S:[7-7-8-8]','6X,7X:[9-9-8-9]'],
+    ['Fujikura','SPEEDER NX VIOLET / GOLD',[[40,'R2 R SR S'],[50,'R SR S X'],[60,'SR S X'],[70,'S X']],46,75,'中',5.4,2.9,34,48,86,'40R:[3-3-3-4]','60S:[6-6-6-7]'],
+    ['Fujikura','SPEEDER NX BLACK',[[40,'R2 R SR S'],[50,'R SR S X'],[60,'SR S X'],[70,'S X']],44,75,'先中',5.7,3.0,34,48,84,'40R:[4-3-3-3]','60S:[6-6-6-7]'],
+    ['Fujikura','SPEEDER NX GREEN',[[40,'R2 R SR S'],[50,'R SR S X'],[60,'SR S X'],[70,'S X']],44,75,'中',5.7,3.0,34,48,84,'40R:[4-3-3-3]','60S:[6-6-6-7]'],
+    ['Mitsubishi','Diamana WB',[[43,'R2 R SR S X'],[53,'R SR S X TX'],[63,'R SR S X TX'],[73,'S X TX'],[83,'S X TX']],43,83.5,'元',5.5,2.7,35,52,94,'43R:[3-4-5-5]','63X,73X:[7-8-8-9]'],
+    ['Mitsubishi','Diamana BB',[[43,'R2 R SR S X'],[53,'R SR S X TX'],[63,'R SR S X TX'],[73,'S X TX'],[83,'S X TX']],43.5,81,'中元',5.1,2.8,35,51,90,'43R:[3-3-4-5]','63X,73X:[7-7-8-8]'],
+    ['Mitsubishi','Diamana RB',[[43,'R2 R SR S X'],[53,'R SR S X TX'],[63,'R SR S X TX'],[73,'S X TX']],44,75,'先中',5.6,3.0,35,49,84,'43R:[4-3-3-4]','63S:[7-6-5-6]'],
+    ['Mitsubishi','Diamana PD',[[40,'R2 R SR S X'],[50,'R SR S X TX'],[60,'SR S X TX'],[70,'S X TX'],[80,'S X TX']],45.5,85.5,'中元',6.0,2.9,36,52,95,'40R:[3-3-4-5]','60X,70X:[8-7-8-9]'],
+    ['Mitsubishi','Diamana D-LIMITED',[[50,'R SR S X TX'],[60,'SR S X TX'],[70,'S X TX'],[80,'S X TX']],53.5,87.5,'元',5.0,2.7,40,53,95,'50R:[4-4-5-6]','60X,70X:[8-8-8-9]'],
+    ['Mitsubishi','TENSEI Pro White 1K',[[50,'R S X TX'],[60,'R S X TX'],[70,'S X TX'],[80,'S X TX']],53.5,85.5,'元',4.6,2.7,40,53,96,'50R:[4-5-6-7]','60X,70X:[7-8-8-9]'],
+    ['Mitsubishi','TENSEI Pro Orange 1K (CB)',[[50,'R S X TX'],[60,'R S X TX'],[70,'S X TX'],[80,'S X TX']],55.5,90,'元',3.9,2.4,40,53,98,'50R:[4-5-6-7]','60X,70X:[7-8-9-9]',true],
+    ['Mitsubishi','TENSEI Pro Blue 1K',[[50,'R S X TX'],[60,'R S X TX'],[70,'S X TX'],[80,'S X TX']],50.5,84,'中',4.9,2.9,38,50,88,'50R:[4-4-5-5]','60S:[6-6-7-7]'],
+    ['Mitsubishi','TENSEI Pro Red 1K',[[50,'R S X TX'],[60,'R S X TX'],[70,'S X TX'],[80,'S X TX']],50.5,84,'先中',4.9,2.9,38,50,88,'50R:[4-4-5-5]','60S:[6-6-7-7]'],
+    ['Mitsubishi','VANQUISH / VANQUISH VV',[[3,'R3 R2 R SR S X'],[4,'R2 R SR S X TX'],[5,'R2 R SR S X TX']],36.3,60.3,'先中',10.6,4.0,30,45,82,'3R2:[2-2-2-2]','5S:[5-5-5-5]'],
+    ['Graphite Design','TOUR AD GC',[[4,'R2 R1 S'],[5,'R2 R1 S X'],[6,'SR S X TX'],[7,'S X TX']],47,76,'中',5.5,2.7,36,50,93,'4R1:[3-3-4-4]','6X,7X:[8-7-8-8]'],
+    ['Graphite Design','TOUR AD FI / EK',[[4,'R2 R1 S X'],[5,'R2 R1 S X'],[6,'SR S X TX'],[7,'S X TX']],48,78,'中',5.3,2.8,36,50,91,'4R1:[3-3-3-4]','6X,7X:[8-7-7-8]'],
+    ['Graphite Design','TOUR AD VF',[[4,'R2 R1 S'],[5,'R2 R1 S X'],[6,'SR S X TX'],[7,'S X TX']],46,77,'中元',5.6,3.0,37,51,95,'4S:[4-4-5-5]','6X,7X:[8-7-8-9]'],
+    ['Graphite Design','TOUR AD CQ',[[4,'R2 R1 S'],[5,'R2 R1 S X'],[6,'SR S X TX'],[7,'S X TX'],[8,'S X']],45,85,'先中',6.1,2.8,36,50,86,'5R1:[4-4-3-4]','6X,7X:[7-7-8-8]'],
+    ['Graphite Design','TOUR AD UB / DI',[[4,'R2 R1 S'],[5,'R2 R1 S X'],[6,'SR S X TX'],[7,'S X TX'],[8,'S X']],45,85,'中',6.1,2.8,37,51,92,'5R1:[4-4-3-4]','6X,7X:[7-7-8-8]'],
+    ['UST Mamiya','LIN-Q WHITE EX',[[5,'R SR S SX X'],[6,'SR S SX X'],[7,'S X']],58,79,'元',3.4,2.8,40,51,95,'5R:[5-5-6-7]','6X,7X:[8-8-8-9]'],
+    ['UST Mamiya','LIN-Q BLUE EX',[[5,'R SR S SX X'],[6,'SR S SX X'],[7,'S X']],58,79,'中元',3.4,2.8,40,51,95,'5R:[5-5-6-7]','6X,7X:[8-8-8-9]'],
+    ['UST Mamiya','ATTAS RX SUNRISE RED',[[4,'R2 R SR S'],[5,'R SR S X'],[6,'SR S X'],[7,'S X']],45,75,'先',5.8,2.7,34,48,83,'4R:[3-3-2-3]','6S:[6-6-7-7]'],
+    ['UST Mamiya','ATTAS RX DAAAS',[[4,'R2 R SR S'],[5,'R SR S X'],[6,'SR S X'],[7,'S X']],45,75,'中元',5.8,2.7,34,48,90,'4R:[3-3-2-3]','6S:[6-6-7-7]'],
+    ['Nippon Shaft','N.S.PRO Regio Formula B+',[[45,'R S'],[55,'R S X'],[65,'SR S X'],[75,'S X']],47,77,'中',5.8,2.5,36,50,94,'45R:[3-3-4-4]','65X,75X:[7-7-8-9]'],
+    ['Nippon Shaft','N.S.PRO Regio Formula MB+',[[45,'R S'],[55,'R S X'],[65,'SR S X'],[75,'S X']],47,77,'中元',5.8,2.5,36,50,94,'45R:[3-3-4-4]','65X,75X:[7-7-8-9]'],
+    ['Project X','HZRDUS Smoke Green / Gen 5 / Denali',[[50,'5.5 6.0'],[60,'5.5 6.0 6.5 TX'],[70,'6.0 6.5 TX'],[80,'6.5 TX']],55,85,'元',4.0,2.4,40,56,99,'5.5:[5-5-6-7]','6.5,TX:[9-9-9-9]']
+  ];
+  const FLEXF = {R3:200,R2:209,R1:220,R:226,SR:240,S:254,SX:267,X:280,TX:293,'5.5':246,'6.0':262,'6.5':281};
+  const FLEXW = {R3:-3,R2:-2,R1:-1.5,R:-1,SR:0,S:1,SX:1.8,X:2.5,TX:3.5,'5.5':0,'6.0':1.5,'6.5':3};
+  const FLEXT = {R3:0.35,R2:0.25,R1:0.15,R:0.12,SR:0.06,S:0,SX:-0.04,X:-0.08,TX:-0.12,'5.5':0.05,'6.0':0,'6.5':-0.08};
+
+  function buildShafts(){
+    const out = [];
+    SH.forEach((r, mi) => {
+      const [mk, nm, series, wMin, wMax, kick, tqL, tqH, hsL, hsH, tip, ifcL, ifcH, cb] = r;
+      series.forEach(([n, fls]) => {
+        fls.split(' ').forEach(fl => {
+          const base = n < 10 ? n * 10 + 5 : n + 1;
+          const w = clamp(base + 3 + FLEXW[fl] - 3, wMin, wMax);
+          const pos = (w - wMin) / Math.max(1, (wMax - wMin));
+          const tq = clamp(tqL + (tqH - tqL) * pos + FLEXT[fl], 2.2, 11);
+          const freq = FLEXF[fl] + (w - 55) * 0.35;
+          const label = (nm.indexOf('HZRDUS') >= 0) ? `${n}g ${fl}` : `${n}${fl}`;
+          out.push({mi, mk, nm, n, fl, label, w: rd(w,1), tq: rd(tq,1), freq: rd(freq,0), kick: KICK[kick], kickN: kick + (cb ? '(CB)' : ''),
+            hs:[hsL, hsH], tip, ifc: w < 58 ? ifcL : ifcH, cb: !!cb});
+        });
+      });
+    });
+    return out;
+  }
+  const SHAFTS = buildShafts();
+
+  /* ---- Air density (ideal gas + vapor) ---- */
+  function airDensity(Tc, PhPa, RH){
+    const T = Tc + 273.15;
+    const es = 6.1078 * Math.pow(10, 7.5 * Tc / (Tc + 237.3));
+    const pv = clamp(RH, 0, 100) / 100 * es;
+    const pd = PhPa - pv;
+    return (pd * 100) / (287.058 * T) + (pv * 100) / (461.495 * T);
+  }
+
+  /* ---- 3D ballistic flight: RK4 with drag + Magnus (Layer 1 physics) ---- */
+  function fly(o){
+    const m = 0.04593, r = 0.02135, A = Math.PI * r * r, g = 9.81, rho = o.rho || 1.2;
+    const L = o.launch * Math.PI / 180, az = (o.az || 0) * Math.PI / 180, ga = (o.axis || 0) * Math.PI / 180;
+    let p = [0,0,0], v = [o.v*Math.cos(L)*Math.cos(az), o.v*Math.sin(L), o.v*Math.cos(L)*Math.sin(az)];
+    const w0 = o.spin * 2 * Math.PI / 60, ax = [0, -Math.sin(ga), Math.cos(ga)];
+    const k = 0.5 * rho * A / m;
+    let t = 0, apex = 0; const dt = 0.01, pts = [[0,0,0]];
+    const acc = (v, t) => {
+      const s = Math.hypot(v[0], v[1], v[2]) || 1e-6;
+      const w = w0 * Math.exp(-t / 22);
+      const S = r * w / s;
+      const Cl = Math.min(0.32, 0.48 * Math.pow(Math.max(S, 0), 0.4));
+      const Cd = 0.205 + 0.35 * S;
+      const cr = [ax[1]*v[2]-ax[2]*v[1], ax[2]*v[0]-ax[0]*v[2], ax[0]*v[1]-ax[1]*v[0]];
+      const cn = Math.hypot(cr[0], cr[1], cr[2]) || 1;
+      return [-k*Cd*s*v[0] + k*Cl*s*s*cr[0]/cn, -g - k*Cd*s*v[1] + k*Cl*s*s*cr[1]/cn, -k*Cd*s*v[2] + k*Cl*s*s*cr[2]/cn];
+    };
+    let n = 0;
+    while (t < 14){
+      const a1 = acc(v, t);
+      const v2 = v.map((x,i)=>x+a1[i]*dt/2), a2 = acc(v2, t+dt/2);
+      const v3 = v.map((x,i)=>x+a2[i]*dt/2), a3 = acc(v3, t+dt/2);
+      const v4 = v.map((x,i)=>x+a3[i]*dt), a4 = acc(v4, t+dt);
+      const np = p.map((x,i)=>x+dt*(v[i]+2*v2[i]+2*v3[i]+v4[i])/6);
+      v = v.map((x,i)=>x+dt*(a1[i]+2*a2[i]+2*a3[i]+a4[i])/6);
+      if (np[1] < 0){ const f = p[1] / (p[1] - np[1]); p = p.map((x,i)=>x + (np[i]-x)*f); t += dt*f; pts.push(p.slice()); break; }
+      p = np; t += dt; apex = Math.max(apex, p[1]);
+      if (++n % 5 === 0) pts.push(p.slice());
+    }
+    const vh = Math.hypot(v[0], v[2]);
+    const la = Math.atan2(-v[1], vh) * 180 / Math.PI;
+    return { carry: p[0]/0.9144, lat: p[2]/0.9144, apex: apex/0.9144, land: la, vh, t, pts: pts.map(q=>[q[0]/0.9144, q[1]/0.9144, q[2]/0.9144]) };
+  }
+  function rollModel(fl, spin, ground){
+    const angF = clamp(1 - fl.land / 56, 0.04, 0.78);
+    const spinF = clamp(1 - (spin - 2500) / 6500, 0.52, 1.28);
+    const r = 0.115 * fl.vh * fl.vh * angF * spinF * ground;
+    return clamp(r, 1, Math.min(48, fl.carry * 0.34));
+  }
+
+  /* ---- Weather / season scenario ---- */
+  function seasonOf(T){ return T >= 26 ? 'summer' : (T <= 11 ? 'winter' : 'std'); }
+  function scenario(season, env){
+    const P = env && isNum(env.p) ? env.p : 1013.25, RH = env && isNum(env.rh) ? env.rh : 60, T0 = env && isNum(env.t) ? env.t : 18;
+    let T;
+    if (season === 'summer') T = T0 >= 28 ? T0 : 32;
+    else if (season === 'winter') T = T0 <= 10 ? T0 : 5;
+    else T = (T0 > 11 && T0 < 26) ? T0 : 19;
+    return { season, T, P, RH, rho: airDensity(T, P, RH),
+      dHS: season === 'summer' ? 0.75 : season === 'winter' ? -1.2 : 0,
+      ground: season === 'summer' ? 0.8 : season === 'winter' ? 1.3 : 1.0 };
+  }
+
+  /* =================== ANALYZE (Layers 0–5) =================== */
+  function analyze(inp, env, seasonSel){
+    const notes = [];
+    const g = inp.gender || 'M';
+    const age = +inp.age || 40;
+    const height = isNum(inp.height) && inp.height >= 120 && inp.height <= 215 ? inp.height : (g === 'F' ? 158 : g === 'O' ? 165 : 171);
+    const weight = isNum(inp.weight) && inp.weight >= 30 && inp.weight <= 160 ? inp.weight : (g === 'F' ? 53 : g === 'O' ? 60 : 68);
+    const sport = SPORT[inp.sport] || SPORT.golf;
+    const fwN = isNum(inp.fw) ? inp.fw : 7, obN = isNum(inp.ob) ? inp.ob : 2;
+
+    /* ---------- Layer 2 : D-Plane ---------- */
+    const F = FLIGHT[inp.flight] || FLIGHT[5];
+    const I = IMPACT[inp.impact] || IMPACT.C;
+    let face = F.face, path = F.path, planeNote = '';
+    if (inp.plane && inp.plane !== 'unk' && !F.scatter){
+      const pv = {io:3, on:0, oi:-3}[inp.plane];
+      if (Math.abs(pv - path) >= 4){ path = 0.8 * path + 0.2 * pv; planeNote = '自己認識のプレーンと球筋から逆算した軌道が食い違うため、球筋（物理）を優先し20%のみ反映しました。'; }
+      else { path = 0.7 * path + 0.3 * pv; planeNote = '自己認識のプレーンを30%ブレンドして軌道を補正しました。'; }
+    }
+    const f2p = face - path;
+    const thetaH = 0.85 * face + 0.15 * path;
+    const gearAxis = -0.3 * I.x;
+    const kSpin = 1.9;
+    const gamma = F.scatter ? 0 : kSpin * f2p + gearAxis;
+    let bias = F.bias + (I.x > 0 ? -0.4 : I.x < 0 ? 0.4 : 0);
+    bias = clamp(bias * (1 + Math.min(obN, 6) * 0.06), -3, 3);
+    const antiLeft = Math.max(0, -bias), drawLv = Math.max(0, bias);
+    const L2 = { flight: inp.flight, F, face: rd(face,1), path: rd(path,1), f2p: rd(f2p,1), thetaH: rd(thetaH,1), gamma: rd(gamma,1), gearAxis: rd(gearAxis,1),
+      dirLbl: thetaH < -1 ? '左打ち出し' : thetaH > 1 ? '右打ち出し' : '中央打ち出し', bias: rd(bias,2), antiLeft, drawLv, planeNote,
+      biasLbl: bias <= -0.5 ? `Anti-Left Lv.${Math.min(3, Math.round(antiLeft))||1}` : bias >= 0.5 ? `Draw-Bias Lv.${Math.min(3, Math.round(drawLv))||1}` : 'Neutral' };
+
+    /* ---------- Layer 0 : sanity & imputation ---------- */
+    const flags = [];
+    const ageHS = {20:2,30:1.5,40:0,50:-1.5,60:-3.5,70:-6}[age] || 0;
+    let hs = null, hsSrc = '';
+    if (isNum(inp.hs)){
+      if (inp.hs >= 22 && inp.hs <= 65){ hs = inp.hs; hsSrc = '実測入力'; }
+      else flags.push({c:'HS_OUT_OF_RANGE', t:`HS ${inp.hs}m/s は物理的にありえない値のため破棄`});
+    }
+    if (hs === null && isNum(inp.i7) && inp.i7 >= 60 && inp.i7 <= 230){ hs = inp.i7 / 3.65; hsSrc = '7Iキャリー÷3.65'; }
+    const totalForHS = isNum(inp.dguess) ? inp.dguess : (isNum(inp.total) ? inp.total : null);
+    if (hs === null && isNum(totalForHS) && totalForHS >= 100 && totalForHS <= 380){
+      const okPair = !(isNum(inp.carry) && isNum(inp.total) && (inp.total < inp.carry || inp.total - inp.carry > 65));
+      if (okPair || isNum(inp.dguess)){ hs = totalForHS / 5.75; hsSrc = 'ドライバー総飛距離÷5.75'; }
+    }
+    if (hs === null){ hs = (g === 'F' ? 33 + ageHS * 0.7 : g === 'O' ? 38 + ageHS * 0.85 : 42 + ageHS) + (height - (g==='F'?158:171)) * 0.05; hsSrc = '体格・年代からの生体力学推計'; flags.push({c:'HS_IMPUTED', t:'HS未入力 → 体格・年代から推計'}); }
+    hs = clamp(hs, 22, 62);
+
+    const d = Math.hypot(I.x, I.y);
+    const f2pAbs = F.scatter ? 3 : Math.abs(f2p);
+    const sfTrue = clamp(1.495 - 0.0035 * d - 0.0008 * f2pAbs * f2pAbs, 1.32, 1.515);
+    let sf, bs, bsSrc;
+    if (isNum(inp.bs) && inp.bs > 0){
+      const sfIn = inp.bs / hs;
+      if (sfIn > 1.52 || sfIn < 1.30){ sf = sfTrue; bs = sf * hs; bsSrc = '矛盾値を打点から再算出'; flags.push({c:'SF_INVALID', t:`ミート率 ${sfIn.toFixed(3)} は物理限界外（1.30〜1.52）→ SF_true=${sfTrue.toFixed(3)} で補正`}); }
+      else { sf = sfIn; bs = inp.bs; bsSrc = '実測入力'; }
+    } else { sf = sfTrue; bs = sf * hs; bsSrc = '打点オフセット d から算出'; }
+
+    const carry = isNum(inp.carry) ? inp.carry : null, total = isNum(inp.total) ? inp.total : null;
+    const dflags = [];
+    if (carry === null || total === null) dflags.push('A:未入力');
+    if (carry !== null && total !== null && total < carry) dflags.push('B:総飛距離<キャリー');
+    if (carry !== null && total !== null && (total - carry > 65)) dflags.push('C:ラン>65yd');
+    if (carry !== null && carry > hs * 6.15) dflags.push('D:エネルギー保存則超過');
+    const invalidDist = dflags.length > 0;
+    if (invalidDist && !(dflags.length === 1 && dflags[0] === 'A:未入力')) flags.push({c:'INVALID_DIST_FLAG', t:'距離データ矛盾：'+dflags.filter(x=>x[0]!=='A').join(' / ')+' → 破棄して物理再構築'});
+    const L0 = { hs: rd(hs,1), hsSrc, bs: rd(bs,1), bsSrc, sf: rd(sf,3), sfTrue: rd(sfTrue,3), d: rd(d,1), flags, invalidDist, dflags, height, weight };
+
+    /* ---------- Season scenario ---------- */
+    const season = seasonSel && seasonSel !== 'auto' ? seasonSel : seasonOf(env && isNum(env.t) ? env.t : 18);
+    const SC = scenario(season, env);
+
+    /* ---------- Layer 1 : hybrid trajectory ---------- */
+    const planeA = {io:1.5, on:0, oi:-2.5, unk:null}[inp.plane || 'unk'];
+    let alpha = (planeA !== null && planeA !== undefined ? planeA * 0.5 + 0.35 * path * 0.5 : 0.35 * path) + (I.y > 0 ? 1.0 : I.y < 0 ? -1.2 : 0);
+    if (inp.traj === 5) alpha -= 1.5;  // balloon ⇒ steep descending blow
+    if (inp.traj === 1) alpha += 0.5;
+    alpha = clamp(alpha, -5, 5);
+    const spinFormula = 2450 + 65 * (hs - 43) - 180 * alpha - 35 * I.y;
+    const launchFormula = clamp(12.6 + 0.55 * alpha + 0.09 * I.y + (43 - hs) * 0.12, 7.5, 19);
+    const roll = (carry !== null && total !== null) ? total - carry : null;
+    const gap = carry !== null ? hs * 5.55 - carry : null;
+    let route, diag, spinEst, launchEst, spinCmd = 0, launchCmd = 0; const l1notes = [];
+    const T = TRAJ[inp.traj];
+    let fatal = false;
+    if (inp.traj && T && !invalidDist && roll !== null){
+      if (inp.traj === 5 && roll >= 30) fatal = true;
+      if (inp.traj === 1 && roll <= 6 && gap !== null && gap < 5) fatal = true;
+    }
+    if (inp.traj && T && inp.traj !== 0 && !fatal){
+      route = 'A';
+      spinEst = T.spin + 25 * (hs - 43) - 25 * I.y; launchEst = T.launch + 0.06 * I.y;
+      if (inp.traj === 5){ diag = '吹き上がり（高スピンロス）'; spinCmd = -600; launchCmd = -2.0; l1notes.push('マグヌス揚力 F_L が過大：推定 ω≧3,200rpm・落下角≧45°。ダウンブロー気味の入射または下部ヒットの縦ギア効果。'); }
+      else if (inp.traj === 1){ diag = 'ドロップ（低スピン失速）'; spinCmd = 500; launchCmd = 2.5; l1notes.push('揚力不足：推定 ω≦1,800rpm または打ち出し≦9.5°。頂点前に重力に負けて失速。'); }
+      else {
+        diag = inp.traj === 2 ? '中低弾道（強弾道）' : inp.traj === 3 ? '標準弾道（理想域）' : '高弾道';
+        if (!invalidDist){
+          if (roll <= 12 && gap >= 15){ spinEst += 300; diag += ' ＋ ラン不足のスピン過多傾向'; l1notes.push(`精密クロスチェック：ラン ${roll}yd ≦12yd かつ 理論キャリーとの差 ${gap.toFixed(0)}yd → スピン+300rpm補正`); }
+          else if (roll >= 28 && gap >= 15){ spinEst -= 300; diag += ' ＋ ドロップ傾向'; l1notes.push(`精密クロスチェック：ラン ${roll}yd ≧28yd かつ キャリー差 ${gap.toFixed(0)}yd → スピン−300rpm補正`); }
+          if (sf <= 1.43){ diag += ' ＋ オフセンター初速ロス'; l1notes.push(`ミート率 ${sf.toFixed(3)} ≦1.43 → 打点ロスを検出`); }
+          if (!l1notes.length) l1notes.push(`精密クロスチェック：ラン ${roll}yd／ミート率 ${sf.toFixed(3)} は弾道高さと整合。`);
+        } else l1notes.push('距離データ無効のため、弾道高さ（ルートA）のみで判定。');
+      }
+    } else {
+      if (fatal) l1notes.push('弾道高さの回答と距離データに致命的矛盾 → ルートBへ委譲。');
+      if (!invalidDist){
+        route = 'B-1';
+        spinEst = spinFormula; launchEst = launchFormula;
+        if (roll <= 12 && gap >= 15){ diag = '【強制判定】高スピン吹き上がり'; spinEst = Math.max(spinEst, 3200); launchEst += 1.2; spinCmd = -600; launchCmd = -1.5; }
+        else if (roll >= 28 && gap >= 15){ diag = '【強制判定】低スピンドロップ'; spinEst = Math.min(spinEst, 1900); launchEst -= 1.5; spinCmd = 500; launchCmd = 2.0; }
+        else if (sf <= 1.43 && roll > 12 && roll < 28){ diag = '【強制判定】オフセンター初速ロス'; }
+        else diag = '物理推計：大きな破綻なし';
+        l1notes.push(`ラン ${roll}yd ／ ミート率 ${sf.toFixed(3)} ／ 理論最大キャリー差 Gap=${gap.toFixed(0)}yd`);
+      } else {
+        route = 'B-2';
+        spinEst = spinFormula; launchEst = launchFormula;
+        diag = spinEst > 3000 ? '物理再構築：スピン過多' : spinEst < 2000 ? '物理再構築：スピン不足' : '物理再構築：標準域';
+        l1notes.push(`距離を破棄し ω_est = 2450 + 65(HS−43) − 180α − 35y で再構築（α=${alpha.toFixed(1)}°, y=${I.y}mm）`);
+      }
+    }
+    spinEst = clamp(spinEst, 1300, 4800);
+    launchEst = clamp(launchEst, 6.5, 20);
+    const hsS = clamp(hs + SC.dHS, 22, 63);
+    const idealSpin = clamp(2650 - 45 * (hsS - 40) + (SC.season === 'winter' ? 120 : SC.season === 'summer' ? -100 : 0), 1900, 2850);
+    const idealLaunch = clamp(14.8 - 0.18 * (hsS - 40) + 0.35 * alpha, 10.5, 18);
+    let spinNeed = clamp(idealSpin - spinEst, -1100, 900);
+    let launchNeed = clamp(idealLaunch - launchEst, -4, 4.5);
+    if (spinCmd) spinNeed = spinCmd < 0 ? Math.min(spinNeed, spinCmd) : Math.max(spinNeed, spinCmd);
+    if (launchCmd) launchNeed = launchCmd < 0 ? Math.min(launchNeed, launchCmd) : Math.max(launchNeed, launchCmd);
+    const bsS = sf * hsS;
+    const cur = fly({ v: bsS, launch: launchEst, spin: spinEst, axis: gamma, az: thetaH, rho: SC.rho });
+    const curRoll = rollModel(cur, spinEst, SC.ground);
+    const L1 = { route, diag, alpha: rd(alpha,1), spinEst: Math.round(spinEst), launchEst: rd(launchEst,1), idealSpin: Math.round(idealSpin), idealLaunch: rd(idealLaunch,1),
+      spinNeed: Math.round(spinNeed), launchNeed: rd(launchNeed,1), roll, gap: gap !== null ? rd(gap,0) : null, notes: l1notes, cur, curRoll: rd(curRoll,0),
+      traj: inp.traj, trajN: (TRAJ[inp.traj]||TRAJ[0]).n };
+
+    /* ---------- Layer 3 : toe-down & 3D gear ---------- */
+    let Lc = 45.25 + (height - 171) * 0.02 + (g === 'F' ? -0.5 : 0) + (hs < 36 ? -0.25 : 0);
+    if (inp.impact === 'LH' || inp.impact === 'HH') Lc = Math.min(Lc, 45.25);
+    if (inp.impact === 'LT') Lc = Math.min(Lc, 45.25);
+    if (inp.impact === 'C' && !F.scatter) Lc = Math.max(Lc, 45.25);
+    if (F.scatter) Lc = Math.min(Lc, 45.0);
+    const tdRaw = Math.pow(hs / 43, 2) * Math.pow(Lc / 45.5, 3);
+    if (inp.impact === 'LH' && tdRaw > 1.0) Lc = Math.min(Lc, 45.0);
+    Lc = clamp(Math.round(Lc * 4) / 4, 43.5, 45.75);
+    const toeIdx = Math.pow(hs / 43, 2) * Math.pow(Lc / 45.5, 3);
+    const toeMM = 27 * toeIdx;
+    const gearBack = Math.round(-60 * I.y);
+    const gearSide = Math.round(-38 * I.x);
+    let lieRec = 0;
+    if (inp.impact === 'LH') lieRec -= 1.0; if (inp.flight === 1) lieRec -= 1.5; else if (inp.flight === 2 || inp.flight === 4) lieRec -= 0.75;
+    if (inp.flight === 8) lieRec += 1.0; if (inp.flight === 9) lieRec += 0.5;
+    lieRec = clamp(lieRec, -1.5, 1.0);
+    const L3 = { L: Lc, toeIdx: rd(toeIdx,3), toeMM: rd(toeMM,1), gearBack, gearSide, lieRec, I,
+      text: {
+        LH:'トゥダウン過多＋下部ヒットの縦ギア効果でスピン増（+400〜700rpm）＋先端当たり負け。短尺化・フラットライ・前方ウェイト・先端高剛性を強制指定。',
+        HT:'上部ヒットで縦ギア効果スピン激減（−400〜600rpm）＋トゥの水平ギア効果で強ドロー回転。高MOI＋適正ロフト確保＋先端安定シャフト。',
+        HH:'縦ギアでスピン減・水平ギアで強スライス回転。手元しなりシャフトで切り返しのアウト軌道を補正、45.0〜45.25inch。',
+        LT:'下部ヒットのスピン増とトゥのフックギア効果が混在。起き上がり（手元浮き）が主因。高MOI・深重心＋素直な剛性曲線。',
+        C:'重心直撃でギア効果ロスゼロ。初速最大化のため45.25〜45.5inch・低スピン高初速を優先。'
+      }[inp.impact || 'C'] };
+
+    /* ---------- Layer 4 : biomechanics × beam theory ---------- */
+    const dWt = {fast:2.5, std:0, slow:-2.5}[inp.tempo || 'std'];
+    const dWa = {20:1.5,30:1.5,40:0,50:0,60:-3.5,70:-6}[age] || 0;
+    const ironW = (IRON[inp.iron] || IRON.unk).w;
+    let Wideal = ironW ? 0.45 * ironW + 14.5 + dWt + dWa : 1.45 * hs - 2.0 + 0.12 * (weight - 65) + dWt + dWa;
+    Wideal = clamp(Wideal, 34, 90);
+    const dFt = {fast:6, std:0, slow:-5}[inp.tempo || 'std'];
+    const dFs = sport.strike ? 3 : 0;
+    const fcpm = 4.35 * hs + 68 + dFt + dFs;
+    const flexOf = f => f < 215 ? 'L / R3 / R2' : f < 232 ? 'R' : f < 246 ? 'SR' : f < 262 ? 'S' : f < 276 ? 'SX / 6X / 7S' : f < 288 ? 'X（6Xハード/7X）' : 'TX / 8X';
+    const alLv = Math.min(3, Math.round(antiLeft));
+    const penalty = (d > 0 ? 1 : 0) + (F.scatter ? 1 : 0);
+    const tauFormula = clamp(6.8 - 0.08 * hs - 0.25 * alLv - 0.20 * penalty, 2.0, 6.2);
+    const tauAllow = clamp(tauFormula + 1.15 + Math.max(0, 42 - hs) * 0.65 + (antiLeft === 0 ? 0.4 : 0) - (sport.rot ? 0.20 : 0), 2.9, 11.2);
+    let kickT = 0.5 + ({fast:0.25, std:0, slow:-0.15}[inp.tempo || 'std']) + (sport.rot ? 0.1 : 0);
+    if (inp.traj === 1) kickT -= 0.25; if (inp.traj === 5) kickT += 0.25;
+    if (inp.impact === 'LH' || inp.impact === 'HH') kickT += 0.15;
+    if (inp.flight === 3) kickT += 0.2; if (inp.flight === 9 || inp.flight === 8) kickT -= 0.25; if (inp.flight === 1 || inp.flight === 2) kickT += 0.25;
+    if (hs < 36) kickT -= 0.15;
+    kickT = clamp(kickT, 0, 1);
+    let tipReq = 84 + (hs - 40) * 0.6 + (inp.impact === 'LH' ? 8 : 0) + antiLeft * 2.5 + (inp.tempo === 'fast' ? 3 : 0) + (inp.traj === 5 ? 3 : 0) - (inp.traj === 1 ? 4 : 0) + (F.scatter ? 3 : 0);
+    tipReq = clamp(tipReq, 72, 99);
+    const kickLbl = k => k < 0.13 ? '先調子' : k < 0.38 ? '先中調子' : k < 0.63 ? '中調子' : k < 0.88 ? '中元調子' : '元調子';
+    const L4 = { Wideal: rd(Wideal,1), wSrc: ironW ? `アイアン重量フロー（${IRON[inp.iron].n} ≈${ironW}g）` : 'HS・体重からの生体力学推計',
+      fcpm: rd(fcpm,0), flex: flexOf(fcpm), tauFormula: rd(tauFormula,2), tauAllow: rd(tauAllow,2), tauMax: rd(tauAllow,2), tauLo: rd(Math.max(2.0, tauFormula),2), kickT: rd(kickT,2), kickLbl: kickLbl(kickT), tipReq: Math.round(tipReq),
+      sport: sport.n, rot: sport.rot, dWt, dWa, dFt, dFs, alLv, penalty };
+
+    /* ---------- Layer 5 : sleeve / season ---------- */
+    const disp = (14 - fwN) / 14 * 0.6 + Math.min(obN, 8) / 8 * 0.4;
+    const needLowCG = (inp.traj === 5 || (inp.impact === 'LH' && spinNeed < -300)) && !F.scatter;
+    let moiReq = needLowCG ? (4350 + disp * 450) : (4500 + disp * 1400 + (inp.impact === 'HT' || inp.impact === 'LT' ? 400 : d > 0 ? 250 : 0));
+    if (F.scatter) moiReq = Math.max(moiReq, 5300);
+    moiReq = clamp(moiReq, 4300, 6100);
+    const sWeightAdj = SC.season === 'summer' ? 3.5 : 0;
+    const grip = (() => {
+      const gl = isNum(inp.glove) ? inp.glove : (g === 'F' ? 20 : 24);
+      let wraps = gl <= 20 ? 0 : gl <= 23 ? 1 : gl <= 25 ? 2 : 3;
+      let type = '標準ラバー（ツアーベルベット系 M60/M62）';
+      if (gl <= 20) type = 'レディース/細身 M58';
+      if (gl >= 26) type = 'ミッドサイズ（M62〜M64）';
+      if (antiLeft >= 1.5) wraps += 1;
+      if (drawLv >= 1.5) wraps = Math.max(0, wraps - 1);
+      const cord = inp.slip === 'high' || SC.season === 'summer';
+      if (cord) type = 'コード入り（MCC / Z-Grip / Tour Velvet Cord）' + (gl >= 26 ? ' ミッドサイズ' : '');
+      return { wraps: Math.min(wraps, 4), type, gl, cord };
+    })();
+    const L5 = { season: SC.season, T: rd(SC.T,1), P: rd(SC.P,1), RH: Math.round(SC.RH), rho: rd(SC.rho,4), dHS: SC.dHS, hsS: rd(hsS,1),
+      rhoDelta: rd((SC.rho / airDensity(15, 1013.25, 50) - 1) * 100, 1), moiReq: Math.round(moiReq), needLowCG, disp: rd(disp,2), grip, sWeightAdj, ground: SC.ground };
+
+    return { inp, L0, L1, L2, L3, L4, L5, SC, refLoft: hs >= 46 ? 9.5 : 10.5, hsS, bsS, sf, gamma, thetaH };
+  }
+
+  /* =================== Layer 6 : scoring =================== */
+  const W = { dp:0.28, gear:0.24, ei:0.20, tq:0.10, wt:0.10, ss:0.08 };
+  const K = 35;
+  function rank(D){
+    const { L0, L1, L2, L3, L4, L5, SC } = D;
+    const hs = D.hsS;
+    const fT = L4.fcpm + (SC.season === 'winter' ? -6 : SC.season === 'summer' ? 3 : 0);
+    const wT = L4.Wideal + L5.sWeightAdj;
+    const minLoft = hs >= 50 ? 7.5 : hs >= 46 ? 8.0 : hs >= 41 ? 8.5 : hs >= 36 ? 9.5 : 10.5;
+    const maxLoft = hs >= 48 ? 11.5 : hs >= 42 ? 12.5 : 14.5;
+    /* shaft pre-screen */
+    const byModel = {};
+    SHAFTS.forEach(s => {
+      const dF = (s.freq - fT) / 14, dK = (s.kick - L4.kickT) / 0.42;
+      const hsPen = hs < s.hs[0] - 1 ? (s.hs[0] - 1 - hs) / 4 : hs > s.hs[1] + 1 ? (hs - s.hs[1] - 1) / 4 : 0;
+      const dEI = Math.min(2.5, Math.sqrt(dF*dF + dK*dK + hsPen*hsPen));
+      const dTq = Math.min(2.5, Math.max(0, s.tq - L4.tauAllow) / 0.75 + Math.max(0, (L4.tauFormula - 1.6) - s.tq) / 1.4);
+      const dW = Math.min(2.5, Math.abs(s.w - wT) / 5.5);
+      const tipDef = Math.max(0, L4.tipReq - s.tip) / 9;
+      const pre = W.ei*dEI*dEI + W.tq*dTq*dTq + W.wt*dW*dW + W.gear*tipDef*tipDef*0.5;
+      const o = { s, dEI, dTq, dW, tipDef, pre };
+      (byModel[s.mi] = byModel[s.mi] || []).push(o);
+    });
+    const shaftPool = [];
+    Object.values(byModel).forEach(a => { a.sort((x,y)=>x.pre-y.pre); shaftPool.push(...a.slice(0,2)); });
+
+    const results = [];
+    HEADS.forEach((h, hi) => {
+      const lies = LIEOPT[h.lie] || [{n:'標準',v:0}];
+      const wops = WOPT[h.wt];
+      shaftPool.forEach(sp => {
+        const s = sp.s;
+        const kSpin = (0.5 - s.kick) * 220 + (s.cb ? -60 : 0);
+        const kLau = (0.5 - s.kick) * 1.0;
+        const kBias = (0.5 - s.kick) * 0.6 + (s.tq - 3.8) * 0.06;
+        const liteMis = h.lite ? Math.max(0, s.w - 58) / 6 : (s.w < 42 ? (42 - s.w) / 6 : 0);
+        const lowCGPen = L5.needLowCG ? Math.max(0, h.z - 34) / 8 : 0;
+        let best = null;
+        for (const lo of h.lo) for (const sd of h.sl) for (const wo of wops) for (const li of lies){
+          const eff = lo + sd;
+          if (eff < minLoft || eff > maxLoft) continue;
+          const dl = eff - D.refLoft;
+          const gearFix = L3.gearBack > 0 ? -L3.gearBack * (1 - h.z / 40) * 0.6 : 0;
+          const spinP = L1.spinEst + h.spin + dl * 200 + wo.s + kSpin + gearFix;
+          const lauP = L1.launchEst + h.lau + dl * 0.7 + wo.l + kLau;
+          const dSpin = (spinP - L1.idealSpin) / 460, dLau = (lauP - L1.idealLaunch) / 1.8;
+          const moi = h.moi + wo.m;
+          const dMoi = Math.max(0, L5.moiReq - moi) / 700;
+          const faceShift = -1.5 * sd; // + = open
+          const lieB = li.v * 0.4;
+          const devBias = h.bias + wo.b + lieB + kBias + (-faceShift) * 0.5 + (h.ang - 25) * 0.08;
+          const dDP = Math.min(2.5, Math.abs(L2.bias - devBias) / 1.65 + (L3.lieRec !== 0 && li.v !== 0 && Math.sign(li.v) !== Math.sign(L3.lieRec) ? 0.30 : 0));
+          const fwdPen = L5.needLowCG && wo.s > 0 ? 0.35 : 0;
+          const dGear = Math.min(2.5, Math.sqrt(dSpin*dSpin + dLau*dLau*0.6 + dMoi*dMoi + sp.tipDef*sp.tipDef + liteMis*liteMis + lowCGPen*lowCGPen + fwdPen*fwdPen));
+          let ssPref = SC.season === 'summer' ? -150 : SC.season === 'winter' ? 150 : 0;
+          const dSS = Math.min(2.5, Math.abs((h.spin + wo.s) - (ssPref + L1.spinNeed * 0.5)) / 500 + (SC.season === 'summer' && h.lite ? 0.4 : 0));
+          const tot = W.dp*dDP*dDP + W.gear*dGear*dGear + W.ei*sp.dEI*sp.dEI + W.tq*sp.dTq*sp.dTq + W.wt*sp.dW*sp.dW + W.ss*dSS*dSS;
+          if (!best || tot < best.tot) best = { tot, lo, sd, eff, wo, li, spinP, lauP, moi, dDP, dGear, dSS, devBias, faceShift };
+        }
+        if (!best) return;
+        const score = clamp(100 - K * best.tot, 0, 100);
+        results.push({ h, hi, sp, s, best, score, parts: { dp:best.dDP, gear:best.dGear, ei:sp.dEI, tq:sp.dTq, wt:sp.dW, ss:best.dSS } });
+      });
+    });
+    results.sort((a, b) => b.score - a.score);
+    const picked = [], hc = {}, sc = {};
+    for (const r of results){
+      const hk = r.hi, sk = r.s.mi;
+      if ((hc[hk] || 0) >= 2 || (sc[sk] || 0) >= 2) continue;
+      if (picked.some(p => p.hi === r.hi && p.s.mi === r.s.mi)) continue;
+      picked.push(r); hc[hk] = (hc[hk] || 0) + 1; sc[sk] = (sc[sk] || 0) + 1;
+      if (picked.length >= 10) break;
+    }
+    picked.forEach(r => decorate(r, D));
+    return picked;
+  }
+
+  function decorate(r, D){
+    const { L1, L2, L3, L4, L5, SC } = D;
+    const b = r.best, h = r.h, s = r.s;
+    const sleeveTxt = b.sd === 0 ? `STD ${b.lo}°` : `${b.lo}° → ${b.eff.toFixed(2).replace(/\.?0+$/,'')}°（${b.sd > 0 ? '+' : ''}${b.sd}°）`;
+    const faceTxt = b.faceShift === 0 ? 'フェース角 ±0' : `フェース角 ${b.faceShift > 0 ? '+' : ''}${b.faceShift.toFixed(2).replace(/\.?0+$/,'')}° ${b.faceShift > 0 ? 'オープン' : 'クローズ'}`;
+    r.sleeve = `${sleeveTxt} / ${faceTxt}` + (b.li.v !== 0 ? ` / ${b.li.n}` : '');
+    r.weightTxt = b.wo.n;
+    let L = L3.L;
+    if (h.lite && L < 45.5 && D.hsS < 40) L = Math.min(45.75, L + 0.25);
+    r.length = L;
+    r.grip = `${L5.grip.type}／下巻き ${L5.grip.wraps} 枚`;
+    // predicted improved flight
+    const dReduce = (L < 45.5 ? 0.15 : 0) + (b.moi >= 5500 ? 0.12 : 0) + (r.sp.tipDef === 0 ? 0.08 : 0);
+    const dFit = L0d(D) * (1 - dReduce);
+    const f2pFit = (D.L2.F.scatter ? 3 : Math.abs(L2.f2p)) * clamp(1 - (1 - Math.min(1, b.dDP)) * 0.45, 0.4, 1);
+    const sfFit = clamp(1.495 - 0.0035 * dFit - 0.0008 * f2pFit * f2pFit, 1.32, 1.515);
+    const sfUse = Math.max(sfFit, D.sf);
+    const gammaFit = D.L2.F.scatter ? 0 : Math.sign(D.gamma) * Math.max(0, Math.abs(D.gamma) - Math.abs(L2.bias) * 2.0 * (1 - Math.min(1, b.dDP)));
+    const thetaFit = D.thetaH * clamp(b.dDP, 0.25, 1);
+    const fl = fly({ v: sfUse * D.hsS, launch: b.lauP, spin: b.spinP, axis: gammaFit, az: thetaFit, rho: SC.rho });
+    r.pred = { fl, roll: rollModel(fl, b.spinP, SC.ground), spin: Math.round(b.spinP), launch: b.lauP, sf: sfUse };
+    r.pred.total = fl.carry + r.pred.roll;
+    // reasons (physics)
+    const why = [];
+    const al = L2.bias;
+    if (al <= -0.5) why.push(`D-Plane：Face to Path ${L2.f2p}° の左ミス傾向に対し、重心角${h.ang}°・${b.faceShift > 0 ? 'スリーブでフェース' + b.faceShift.toFixed(1) + '°オープン化' : 'ニュートラル〜つかまり抑制設計'}で左を物理的に遮断。`);
+    else if (al >= 0.5) why.push(`D-Plane：右ミス（スピン軸 ${L2.gamma}°）に対し、重心角${h.ang}°${b.faceShift < 0 ? '＋スリーブで' + Math.abs(b.faceShift).toFixed(1) + '°クローズ化' : ''}${b.wo.b > 0 ? '＋ドロー側ウェイト' : ''}でフェースターンを補助。`);
+    else why.push(`D-Plane：Face to Path ${L2.f2p}° のほぼニュートラル。ヘッドの捕まり特性が中立で初速最大化に集中できる。`);
+    why.push(`空力：推定 ${L1.spinEst}rpm/${L1.launchEst}° → 装着予測 ${Math.round(b.spinP)}rpm/${b.lauP.toFixed(1)}°（最適窓 ${L1.idealSpin}rpm/${L1.idealLaunch}°）。`);
+    if (D.inp.impact && D.inp.impact !== 'C') why.push(`3Dギア：${L3.I.n}打点に対し MOI≈${b.moi}g·cm²（要求${L5.moiReq}）、重心深度≈${h.z}mm、先端剛性指数${s.tip}（要求${L4.tipReq}）。トゥダウン指数 ${L3.toeIdx}。`);
+    else why.push(`3Dギア：センター打点。MOI≈${b.moi}g·cm²、重心深度≈${h.z}mmで反発効率を優先。`);
+    why.push(`梁理論：振動数 ≈${s.freq}cpm（目標${Math.round(L4.fcpm + (SC.season==='winter'?-6:SC.season==='summer'?3:0))}）、${s.kickN}調子（目標:${L4.kickLbl}）、トルク${s.tq}°（上限${L4.tauMax}°）、重量${s.w}g（理想${(L4.Wideal + L5.sWeightAdj).toFixed(1)}g）。`);
+    r.why = why;
+    // winter plan B sub shaft
+    if (SC.season === 'winter'){
+      const tgtW = s.w - 6.5;
+      let cand = SHAFTS.filter(x => x.w <= s.w - 4 && x.w >= s.w - 9.5 && x.kick >= 0.5 && x.kick <= 0.85);
+      cand.sort((a, c) => (Math.abs(a.w - tgtW) + Math.abs(a.freq - (s.freq - 8)) / 6) - (Math.abs(c.w - tgtW) + Math.abs(c.freq - (s.freq - 8)) / 6));
+      r.winterSub = cand[0] || null;
+    }
+  }
+  function L0d(D){ return D.L0.d; }
+
+  return { analyze, rank, fly, airDensity, seasonOf, FLIGHT, IMPACT, TRAJ, HEADS, SHAFTS, rollModel };
+})();
+
+/* =====================================================================
+   UI
+   ===================================================================== */
+(() => {
+  const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
+  const state = { gender:'M', age:'40', sport:'golf', traj:null, flight:null, plane:'unk', impact:null, tempo:'std', iron:'unk', slip:'mid', season:'auto', viewSeason:null };
+  let env = { t:null, p:null, rh:null, place:'東京（既定）', lat:35.6812, lon:139.7671, ok:false };
+  let step = 0, lastD = null, lastTop = null;
+  const LS = 'dpb_v2_state';
+
+  function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove('on'), 2600); }
+
+  /* ---- SVG pictures ---- */
+  function trajSVG(k){
+    const gl = '<line x1="4" y1="54" x2="156" y2="54" stroke="#14130F" stroke-width="1.5"/><line x1="4" y1="20" x2="156" y2="20" class="gd"/><line x1="4" y1="37" x2="156" y2="37" class="gd"/><circle cx="10" cy="54" r="2.4" class="tee"/>';
+    const P = {
+      1:'M10 54 Q55 36 92 42 Q108 46 118 54',
+      2:'M10 54 Q70 26 118 44 L118 54',
+      3:'M10 54 Q78 6 132 54',
+      4:'M10 54 Q78 -8 128 54',
+      5:'M10 54 Q40 40 70 12 Q90 -2 100 30 Q103 44 104 54'
+    }[k];
+    let extra = '';
+    if (k === 2) extra = '<path d="M118 54 L146 54" class="fl2" stroke-dasharray="3 3"/>';
+    if (k === 1) extra = '<path d="M118 54 L132 54" class="fl2" stroke-dasharray="3 3"/>';
+    if (k === 3) extra = '<path d="M132 54 L144 54" class="fl2" stroke-dasharray="3 3"/>';
+    if (k === 0) return `<svg viewBox="0 0 160 60">${gl}<path d="M10 54 Q60 20 110 54" class="fl" stroke-dasharray="3 4"/><path d="M10 54 Q70 0 128 54" class="fl" stroke-dasharray="3 4" opacity=".5"/><text x="80" y="32" font-family="JetBrains Mono" font-size="20" font-weight="800" fill="#FF4F12" text-anchor="middle">?</text></svg>`;
+    return `<svg viewBox="0 0 160 60">${gl}<path d="${P}" class="fl"/>${extra}</svg>`;
+  }
+  function flightSVG(k){
+    const F = ENGINE.FLIGHT[k];
+    const base = '<line x1="50" y1="132" x2="50" y2="8" class="gd"/><rect x="40" y="4" width="20" height="6" fill="none" stroke="#7C776A" stroke-width="1"/><circle cx="50" cy="132" r="3" class="tee"/>';
+    if (F.scatter){
+      return `<svg viewBox="0 0 100 140">${base}<path d="M50 132 C46 96 40 60 18 22" class="fl"/><path d="M50 132 C54 96 62 60 84 24" class="fl2"/><text x="50" y="76" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="800" fill="#FF4F12">±</text></svg>`;
+    }
+    const dx = F.dir * 16, cv = F.cv * 20;
+    const p1 = [50 + dx * 0.35, 96], p2 = [50 + dx * 0.8, 52], p3 = [50 + dx * 1.15 + cv, 14];
+    return `<svg viewBox="0 0 100 140">${base}<path d="M50 132 C${p1[0]} ${p1[1]} ${p2[0]} ${p2[1]} ${p3[0]} ${p3[1]}" class="fl"/><circle cx="${p3[0]}" cy="${p3[1]}" r="2.6" fill="#FF4F12"/></svg>`;
+  }
+  function buildCards(){
+    const tc = $('#trajCards');
+    [1,2,3,4,5,0].forEach(k => {
+      const T = ENGINE.TRAJ[k];
+      const sub = {1:'浮かずに早く落ちる',2:'風に強く、よく転がる',3:'理想的な放物線',4:'高く上がりキャリー型',5:'途中でホップ、真上から落ちる',0:'→距離・初速の物理推計へ'}[k];
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'card'; b.dataset.v = k;
+      b.innerHTML = `${trajSVG(k)}<div class="cn">${k ? '0'+k : '—'}</div><div class="ct">${T.n}</div><div class="cs">${sub}</div>`;
+      b.onclick = () => { state.traj = k; $$('#trajCards .card').forEach(c => c.classList.toggle('on', c === b)); save(); };
+      tc.appendChild(b);
+    });
+    const fc = $('#flightCards');
+    for (let k = 1; k <= 10; k++){
+      const F = ENGINE.FLIGHT[k];
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'card'; b.dataset.v = k;
+      b.innerHTML = `${flightSVG(k)}<div class="cn">${String(k).padStart(2,'0')}</div><div class="ct">${F.n}</div><div class="cs">${F.s}</div>`;
+      b.onclick = () => { state.flight = k; $$('#flightCards .card').forEach(c => c.classList.toggle('on', c === b)); $('#errFlight').textContent = ''; updDpLive(); save(); };
+      fc.appendChild(b);
+    }
+  }
+  function updDpLive(){
+    const box = $('#dpLive'); if (!box) return;
+    if (state.flight === null){ box.classList.remove('on'); return; }
+    const F = ENGINE.FLIGHT[state.flight];
+    let path = F.path;
+    if (state.plane && state.plane !== 'unk' && !F.scatter){
+      const pv = {io:3, on:0, oi:-3}[state.plane];
+      path = Math.abs(pv - path) >= 4 ? (0.8 * path + 0.2 * pv) : (0.7 * path + 0.3 * pv);
+    }
+    const f2p = F.face - path, th = 0.85 * F.face + 0.15 * path;
+    const I = state.impact ? ENGINE.IMPACT[state.impact] : {n:'未選択',x:0,y:0};
+    const gamma = F.scatter ? 0 : 1.9 * f2p - 0.3 * I.x;
+    box.classList.add('on');
+    box.innerHTML = F.scatter
+      ? `D-PLANE LIVE ▸ <b>${F.n}</b>（タイミング依存大） ／ 打点: <b>${I.n}</b> ／ 補正指令: <b>${F.fix}</b>`
+      : `D-PLANE LIVE ▸ <b>${F.n}</b> ／ 自動逆算 出球θ<sub>H</sub>=<b>${th>=0?'+':''}${th.toFixed(1)}°</b> · Face φ=<b>${F.face>=0?'+':''}${F.face.toFixed(1)}°</b> · Path ψ=<b>${path>=0?'+':''}${path.toFixed(1)}°</b> · SpinAxis γ=<b>${gamma>=0?'+':''}${gamma.toFixed(1)}°</b> ／ 打点: <b>${I.n}</b>`;
+  }
+
+  /* ---- segmented ---- */
+  function bindSegs(){
+    $$('.seg[data-k]').forEach(seg => {
+      const k = seg.dataset.k;
+      seg.addEventListener('click', e => {
+        const b = e.target.closest('button'); if (!b) return;
+        state[k] = b.dataset.v;
+        seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+        if (k === 'impact') setImpact(b.dataset.v);
+        if (k === 'plane') updDpLive();
+        if (k === 'season') updWx();
+        save();
+      });
+    });
+    $$('#faceSvg .zone').forEach(z => z.addEventListener('click', () => setImpact(z.dataset.z)));
+  }
+  function setImpact(v){
+    state.impact = v;
+    $$('#faceSvg .zone').forEach(z => z.classList.toggle('on', z.dataset.z === v));
+    $$('.seg[data-k=impact] button').forEach(x => x.classList.toggle('on', x.dataset.v === v));
+    $('#errImpact').textContent = '';
+    const t = {HT:'ハイトゥ：縦ギアでスピン減（−400〜600rpm）＋水平ギアでフック回転。', LT:'ロートゥ：下部ヒットのスピン増＋トゥのフックギアが混在。', C:'センター：ギア効果ロスゼロ、反発効率最大。', HH:'ハイヒール：スピン減＋水平ギアで強スライス回転。', LH:'ローヒール：トゥダウン過多＋縦ギアでスピン急増（+400〜700rpm）。'}[v];
+    $('#impactHint').textContent = t; updDpLive(); save();
+  }
+
+  /* ---- number fields with 「不明」 & fullwidth IME normalization ---- */
+  const toAscii = s => String(s || '').replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[．。]/g, '.').replace(/[－ー−]/g, '-');
+  function bindNums(){
+    $$('.num[data-n]').forEach(n => {
+      const inp = n.querySelector('input'), u = n.querySelector('.unk');
+      u.addEventListener('click', () => {
+        const off = !n.classList.contains('off');
+        n.classList.toggle('off', off); inp.disabled = off;
+        if (off) { inp.dataset.keep = inp.value; inp.value = ''; } else { inp.value = inp.dataset.keep || ''; setTimeout(()=>inp.focus(), 30); }
+        n.classList.remove('bad'); save();
+      });
+      inp.addEventListener('input', () => { n.classList.remove('bad'); save(); });
+      inp.addEventListener('blur', () => { const a = toAscii(inp.value); if (a !== inp.value) inp.value = a; save(); });
+    });
+    const fw = $('#fw'), ob = $('#ob');
+    fw.oninput = () => { $('#fwv').textContent = fw.value; save(); };
+    ob.oninput = () => { $('#obv').textContent = ob.value; save(); };
+  }
+  function numVal(k){
+    const n = document.querySelector(`.num[data-n="${k}"]`);
+    if (!n || n.classList.contains('off')) return null;
+    const v = parseFloat(toAscii(n.querySelector('input').value));
+    return isFinite(v) ? v : null;
+  }
+  function setNumField(k, val){
+    const n = document.querySelector(`.num[data-n="${k}"]`); if (!n) return;
+    const inp = n.querySelector('input');
+    const off = val === null || val === undefined || val === '';
+    n.classList.toggle('off', off); inp.disabled = off; inp.value = off ? '' : String(val);
+    n.classList.remove('bad');
+  }
+  function setSegVal(k, v){
+    state[k] = String(v);
+    const seg = document.querySelector(`.seg[data-k="${k}"]`); if (!seg) return;
+    seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === String(v)));
+  }
+  function applyPreset(key){
+    const P = {
+      avg: { seg:{gender:'M',age:'50',sport:'golf',plane:'oi',tempo:'std',iron:'ls',slip:'mid',season:'auto'},
+             num:{height:171,weight:67,hs:40,bs:58.2,i7:null,dguess:null,carry:202,total:226,glove:24},
+             fw:6, ob:3, traj:3, flight:6, impact:'C' },
+      athlete: { seg:{gender:'M',age:'40',sport:'baseball',plane:'io',tempo:'fast',iron:'ms',slip:'high',season:'auto'},
+                 num:{height:175,weight:74,hs:47,bs:67.3,i7:170,dguess:null,carry:245,total:255,glove:25},
+                 fw:7, ob:2, traj:5, flight:1, impact:'LH' },
+      senior: { seg:{gender:'F',age:'70',sport:'golf',plane:'unk',tempo:'slow',iron:'lc',slip:'low',season:'auto'},
+                num:{height:156,weight:50,hs:null,bs:null,i7:120,dguess:null,carry:null,total:null,glove:20},
+                fw:9, ob:1, traj:1, flight:9, impact:'HH' },
+      garbage: { seg:{gender:'M',age:'40',sport:'tennis',plane:'unk',tempo:'std',iron:'unk',slip:'mid',season:'auto'},
+                 num:{height:172,weight:68,hs:40,bs:80,i7:null,dguess:null,carry:300,total:250,glove:24},
+                 fw:5, ob:4, traj:0, flight:10, impact:'LT' }
+    }[key];
+    if (!P) return;
+    Object.entries(P.seg).forEach(([k, v]) => setSegVal(k, v));
+    Object.entries(P.num).forEach(([k, v]) => setNumField(k, v));
+    $('#fw').value = P.fw; $('#fwv').textContent = P.fw;
+    $('#ob').value = P.ob; $('#obv').textContent = P.ob;
+    state.traj = P.traj; $$('#trajCards .card').forEach(c => c.classList.toggle('on', c.dataset.v === String(P.traj)));
+    state.flight = P.flight; $$('#flightCards .card').forEach(c => c.classList.toggle('on', c.dataset.v === String(P.flight)));
+    setImpact(P.impact);
+    updWx(); save();
+    toast('サンプルをセットしました（そのまま解析または微調整できます）');
+    run();
+  }
+
+  function collect(){
+    return { gender: state.gender, age: +state.age, height: numVal('height'), weight: numVal('weight'), sport: state.sport,
+      traj: state.traj === null ? 0 : +state.traj, hs: numVal('hs'), bs: numVal('bs'), i7: numVal('i7'), dguess: numVal('dguess'),
+      carry: numVal('carry'), total: numVal('total'), fw: +$('#fw').value, ob: +$('#ob').value,
+      flight: state.flight === null ? null : +state.flight, plane: state.plane, impact: state.impact,
+      tempo: state.tempo, iron: state.iron, glove: numVal('glove'), slip: state.slip };
+  }
+
+  /* ---- persistence ---- */
+  function save(){
+    try{
+      const nums = {}; $$('.num[data-n]').forEach(n => nums[n.dataset.n] = { off: n.classList.contains('off'), v: n.querySelector('input').value });
+      localStorage.setItem(LS, JSON.stringify({ state, nums, fw: $('#fw').value, ob: $('#ob').value }));
+    }catch(e){}
+  }
+  function load(){
+    try{
+      const o = JSON.parse(localStorage.getItem(LS) || 'null'); if (!o) return;
+      Object.assign(state, o.state || {});
+      $$('.seg[data-k]').forEach(seg => { const v = state[seg.dataset.k]; if (v == null) return; seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === String(v))); });
+      if (state.traj !== null) $$('#trajCards .card').forEach(c => c.classList.toggle('on', c.dataset.v === String(state.traj)));
+      if (state.flight !== null) $$('#flightCards .card').forEach(c => c.classList.toggle('on', c.dataset.v === String(state.flight)));
+      if (state.impact) setImpact(state.impact);
+      Object.entries(o.nums || {}).forEach(([k, x]) => { const n = document.querySelector(`.num[data-n="${k}"]`); if (!n) return; const i = n.querySelector('input'); n.classList.toggle('off', !!x.off); i.disabled = !!x.off; i.value = x.v || ''; });
+      if (o.fw != null){ $('#fw').value = o.fw; $('#fwv').textContent = o.fw; }
+      if (o.ob != null){ $('#ob').value = o.ob; $('#obv').textContent = o.ob; }
+    }catch(e){}
+  }
+
+  /* ---- stepper ---- */
+  function go(n){
+    if (n > step && !validate(step, n)) return;
+    step = Math.max(0, Math.min(3, n));
+    $$('.step').forEach(s => s.classList.toggle('on', +s.dataset.step === step));
+    $$('#rail button').forEach(b => { const i = +b.dataset.go; b.classList.toggle('on', i === step); b.classList.toggle('done', i < step); });
+    $('#progbar').style.width = ((step + 1) * 25) + '%';
+    $('#stepLbl').textContent = `STEP 0${step + 1} / 04`;
+    $('#prevBtn').disabled = step === 0;
+    $('#nextBtn').textContent = step === 3 ? '解析を実行 ▶' : '次へ →';
+    $('#nextBtn').classList.toggle('go', step === 3); $('#nextBtn').classList.toggle('dark', step !== 3);
+    const top = $('#bench').getBoundingClientRect().top + window.scrollY - 40;
+    if (window.scrollY > top + 40) window.scrollTo({ top, behavior: 'smooth' });
+  }
+  function validate(from, to){
+    for (let s = from; s < to; s++){
+      if (s === 1){
+        const hs = numVal('hs');
+        if (hs !== null && (hs < 15 || hs > 80)){ document.querySelector('.num[data-n=hs]').classList.add('bad'); toast('HSは15〜80m/sの範囲で入力（または「不明」）'); go(1); return false; }
+      }
+      if (s === 2){
+        let ok = true;
+        if (state.flight === null){ $('#errFlight').textContent = '▲ 飛球線を1つ選んでください（分からなければ「左右に散る」）'; ok = false; }
+        if (!state.impact){ $('#errImpact').textContent = '▲ 打点を1つ選んでください（分からなければ「センター」）'; ok = false; }
+        if (!ok){ if (step !== 2){ step = 2; go(2); } toast('STEP 03 の未回答があります'); return false; }
+      }
+    }
+    return true;
+  }
+
+  /* ---- weather (Open-Meteo, free / no key) ---- */
+  async function fetchWx(lat, lon, place){
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m&timezone=auto`;
+    try{
+      const ctl = new AbortController(); const to = setTimeout(()=>ctl.abort(), 8000);
+      const r = await fetch(url, { signal: ctl.signal }); clearTimeout(to);
+      if (!r.ok) throw new Error(r.status);
+      const j = await r.json(); const c = j.current;
+      env = { t: c.temperature_2m, p: c.surface_pressure, rh: c.relative_humidity_2m, wind: c.wind_speed_10m, elev: j.elevation, place, lat, lon, ok: true };
+    }catch(e){
+      env = { t: null, p: null, rh: null, elev: null, place: place + '（取得失敗・標準大気）', lat, lon, ok: false };
+    }
+    updWx();
+  }
+  function updWx(){
+    const t = env.ok ? env.t : 18, p = env.ok ? env.p : 1013.25, rh = env.ok ? env.rh : 60;
+    const rho = ENGINE.airDensity(t, p, rh), rho0 = ENGINE.airDensity(15, 1013.25, 50);
+    const auto = ENGINE.seasonOf(t);
+    const sn = {std:'通年（春・秋）', summer:'夏仕様', winter:'冬仕様'};
+    const elTxt = env.elev != null ? ` ／ 標高 <b>${Math.round(env.elev)}m</b>` : '';
+    $('#wxread').innerHTML = `📍 ${env.place}<br>気温 <b>${t.toFixed(1)}℃</b> ／ 気圧 <b>${p.toFixed(1)}hPa</b> ／ 湿度 <b>${Math.round(rh)}%</b>${elTxt}${env.wind != null ? ` ／ 風 <b>${env.wind}km/h</b>` : ''}<br>空気密度 ρ = <b>${rho.toFixed(4)} kg/m³</b>（ISA比 ${((rho/rho0-1)*100).toFixed(1)}%）→ 自動判定：<b>${sn[auto]}</b>`;
+    $('#tick').innerHTML = `📍 ${env.place} ／ T <b>${t.toFixed(1)}℃</b> ／ P <b>${p.toFixed(1)}hPa</b> ／ RH <b>${Math.round(rh)}%</b>${env.elev != null ? ` ／ 標高 <b>${Math.round(env.elev)}m</b>` : ''} ／ ρ = P/(R·T) = <b>${rho.toFixed(4)} kg/m³</b> ／ 抗力 F<sub>D</sub>=½ρv²AC<sub>D</sub> は ISA比 <b>${((rho/rho0-1)*100).toFixed(1)}%</b> ／ 季節モード自動判定：<b>${sn[auto]}</b> ／ DATA: Open-Meteo (free, no key) ／ DRIVER PHYSICS BENCH v2026.11`;
+  }
+  async function citySearch(){
+    const q = $('#city').value.trim(); if (!q) return toast('地名を入力してください');
+    try{
+      const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&language=ja&format=json`);
+      const j = await r.json();
+      if (!j.results || !j.results.length) return toast('地名が見つかりませんでした');
+      const g = j.results[0];
+      $('#wxread').textContent = '取得中…';
+      await fetchWx(g.latitude, g.longitude, `${g.name}${g.admin1 ? '（' + g.admin1 + '）' : ''}`);
+      toast('環境データを更新しました');
+    }catch(e){ toast('通信に失敗しました（標準大気で計算します）'); }
+  }
+  function geo(){
+    if (!navigator.geolocation) return toast('この端末では位置情報が使えません');
+    navigator.geolocation.getCurrentPosition(async p => {
+      $('#wxread').textContent = '取得中…';
+      const lat = +p.coords.latitude.toFixed(3), lon = +p.coords.longitude.toFixed(3);
+      let label = '現在地';
+      try{
+        const rg = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ja`);
+        if (rg.ok){ const d = await rg.json(); const nm = [d.principalSubdivision, d.city || d.locality].filter(Boolean).join(' '); if (nm) label = nm + '（現在地）'; }
+      }catch(e){}
+      fetchWx(lat, lon, label);
+    }, () => toast('位置情報が許可されませんでした（地名検索をご利用ください）'), { timeout: 9000, maximumAge: 600000 });
+  }
+
+  /* ---- run ---- */
+  async function run(){
+    if (!validate(0, 3)) return;
+    const calc = $('#calc'), lines = $('#calcLines');
+    const L = ['L0 物理整合性フィルタ / 欠損補完','L1 マグヌス空力 × 弾道高低 ハイブリッド推計','L2 D-Plane ベクトル逆算','L3 トゥダウン変形 × 3Dギア効果','L4 生体力学 × オイラー・ベルヌーイ梁','L5 スリーブ変換 × 季節熱力学','L6 ヘッド×シャフト×スリーブ 全探索スコアリング'];
+    lines.innerHTML = L.map(x => `<div class="ln">${x}</div>`).join('');
+    calc.classList.add('on');
+    const inp = collect();
+    let err = null;
+    try{
+      state.viewSeason = state.season === 'auto' ? ENGINE.seasonOf(env.ok ? env.t : 18) : state.season;
+      lastD = ENGINE.analyze(inp, env.ok ? env : null, state.viewSeason);
+      lastTop = ENGINE.rank(lastD);
+    }catch(e){ err = e; console.error(e); }
+    const ln = lines.querySelectorAll('.ln');
+    for (let i = 0; i < ln.length; i++){ await new Promise(r => setTimeout(r, 160)); ln[i].classList.add('on'); }
+    await new Promise(r => setTimeout(r, 250));
+    calc.classList.remove('on');
+    if (err){ toast('計算エラー：' + err.message); return; }
+    render();
+    $('#result').classList.add('on');
+    window.scrollTo({ top: $('#result').getBoundingClientRect().top + window.scrollY - 36, behavior: 'smooth' });
+  }
+  function reSeason(s){
+    state.viewSeason = s;
+    lastD = ENGINE.analyze(collect(), env.ok ? env : null, s);
+    lastTop = ENGINE.rank(lastD);
+    render();
+  }
+
+  /* ---- render ---- */
+  const f1 = x => (Math.round(x * 10) / 10).toFixed(1), f0 = x => Math.round(x);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  function render(){
+    const D = lastD, T = lastTop, B = T[0];
+    const { L0, L1, L2, L3, L4, L5 } = D;
+    const sn = {std:'通年（春・秋）', summer:'夏仕様', winter:'冬仕様'}[L5.season];
+    const now = new Date();
+    $('#rmeta').innerHTML = `REPORT ${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}<br>SEASON: ${sn} / ρ=${L5.rho} / ${esc(env.place)}<br>SEARCH SPACE: ${ENGINE.HEADS.length} HEADS × ${ENGINE.SHAFTS.length} SHAFT SPECS × SLEEVE/WEIGHT/LIE`;
+    const gainC = B.pred.fl.carry - L1.cur.carry, gainT = B.pred.total - (L1.cur.carry + L1.curRoll);
+    $('#verdict').innerHTML = `
+      <div class="vt"><div class="lab">DIAGNOSIS / ROUTE ${L1.route}</div>
+        <h3>${esc(L1.diag)}<br><span style="color:var(--sig)">${esc(L2.F.n)}</span> × ${esc(L3.I.n)}</h3>
+        <p>球筋は<b>${L2.dirLbl}</b>（θ<sub>H</sub>=${L2.thetaH}°）、Face ${L2.face}° / Path ${L2.path}° / Face to Path ${L2.f2p}°。必要補正は <b>${L2.biasLbl}</b>。
+        BEST 1 は <b>${esc(B.h.b)} ${esc(B.h.m)}</b> × <b>${esc(B.s.nm)} ${esc(B.s.label)}</b>。${esc(L2.F.fix)}。</p></div>
+      <div class="vk">
+        <div class="kpi"><div class="k">HEAD SPEED</div><div class="v">${L0.hs}<small>m/s</small></div><div class="d">${esc(L0.hsSrc)}${L5.dHS ? ` → 季節補正 ${L5.hsS}` : ''}</div></div>
+        <div class="kpi"><div class="k">SMASH FACTOR</div><div class="v">${L0.sf.toFixed(3)}</div><div class="d">BS ${L0.bs}m/s（${esc(L0.bsSrc)}）</div></div>
+        <div class="kpi"><div class="k">CARRY 現状→BEST1</div><div class="v">${f0(L1.cur.carry)}→${f0(B.pred.fl.carry)}<small>yd</small></div><div class="d">${gainC >= 0 ? '+' : ''}${f1(gainC)} yd（シミュレーション）</div></div>
+        <div class="kpi"><div class="k">TOTAL 現状→BEST1</div><div class="v">${f0(L1.cur.carry + L1.curRoll)}→${f0(B.pred.total)}<small>yd</small></div><div class="d">${gainT >= 0 ? '+' : ''}${f1(gainT)} yd ／ 横ブレ ${f0(Math.abs(L1.cur.lat))}→${f0(Math.abs(B.pred.fl.lat))}yd</div></div>
+      </div>`;
+    drawCharts(D, B);
+    // layers
+    const fl = L0.flags.length ? L0.flags.map(f => `<span class="flag r">${esc(f.c)}</span>`).join('') : '<span class="flag g">ALL CLEAN</span>';
+    $('#lays').innerHTML = `
+      <div class="lay"><h4><span>L0</span> SANITY &amp; IMPUTATION</h4>
+        <table><tr><td>HS（採用値）</td><td>${L0.hs} m/s</td></tr><tr><td>HS 取得元</td><td>${esc(L0.hsSrc)}</td></tr><tr><td>打点オフセット d</td><td>${L0.d} mm</td></tr><tr><td>SF_true（理論）</td><td>${L0.sfTrue}</td></tr><tr><td>距離データ</td><td>${L0.invalidDist ? '無効 → 再構築' : '有効'}</td></tr></table>
+        <div class="note">${fl}<br>${L0.flags.map(f => '・' + esc(f.t)).join('<br>')}</div></div>
+      <div class="lay"><h4><span>L1</span> MAGNUS HYBRID</h4>
+        <table><tr><td>判定ルート</td><td>${L1.route}</td></tr><tr><td>弾道高さ回答</td><td>${esc(L1.trajN)}</td></tr><tr><td>推定スピン / 打ち出し</td><td>${L1.spinEst}rpm / ${L1.launchEst}°</td></tr><tr><td>最適窓</td><td>${L1.idealSpin}rpm / ${L1.idealLaunch}°</td></tr><tr><td>補正指令</td><td>${L1.spinNeed > 0 ? '+' : ''}${L1.spinNeed}rpm / ${L1.launchNeed > 0 ? '+' : ''}${L1.launchNeed}°</td></tr><tr><td>推定入射角 α</td><td>${L1.alpha}°</td></tr></table>
+        <div class="note">${L1.notes.map(esc).join('<br>')}</div></div>
+      <div class="lay"><h4><span>L2</span> D-PLANE INVERSE</h4>
+        <table><tr><td>出球方向 θ<sub>H</sub></td><td>${L2.thetaH}°（${L2.dirLbl}）</td></tr><tr><td>Face Angle φ</td><td>${L2.face}°</td></tr><tr><td>Club Path ψ</td><td>${L2.path}°</td></tr><tr><td>Face to Path</td><td>${L2.f2p}°</td></tr><tr><td>Spin Axis γ</td><td>${L2.gamma}°（ギア ${L2.gearAxis}°）</td></tr><tr><td>補正区分</td><td>${L2.biasLbl}</td></tr></table>
+        <div class="note">θ<sub>H</sub> = 0.85φ + 0.15ψ ／ γ ≈ 1.9(φ−ψ) + Δγ<sub>gear</sub><br>${esc(L2.planeNote)}</div></div>
+      <div class="lay"><h4><span>L3</span> TOE-DOWN × 3D GEAR</h4>
+        <table><tr><td>推奨クラブ長</td><td>${L3.L.toFixed(2)} inch</td></tr><tr><td>トゥダウン指数 δ/δ₀</td><td>${L3.toeIdx}</td></tr><tr><td>推定 δ<sub>toe</sub></td><td>≈${L3.toeMM} mm</td></tr><tr><td>縦ギア Δω<sub>back</sub></td><td>${L3.gearBack > 0 ? '+' : ''}${L3.gearBack} rpm</td></tr><tr><td>横ギア Δω<sub>side</sub></td><td>${L3.gearSide > 0 ? '+' : ''}${L3.gearSide} rpm</td></tr><tr><td>推奨ライ補正</td><td>${L3.lieRec > 0 ? '+' : ''}${L3.lieRec}°</td></tr></table>
+        <div class="note">${esc(L3.text)}</div></div>
+      <div class="lay"><h4><span>L4</span> BIOMECH × BEAM</h4>
+        <table><tr><td>理想シャフト重量 W<sub>ideal</sub></td><td>${L4.Wideal} g${L5.sWeightAdj ? ` (+${L5.sWeightAdj})` : ''}</td></tr><tr><td>振動数 f<sub>cpm</sub></td><td>${L4.fcpm} cpm</td></tr><tr><td>適正フレックス</td><td>${esc(L4.flex)}</td></tr><tr><td>許容トルク τ</td><td>${L4.tauFormula}°〜${L4.tauAllow}°</td></tr><tr><td>目標調子</td><td>${L4.kickLbl}</td></tr><tr><td>先端剛性要求</td><td>${L4.tipReq} / 100</td></tr></table>
+        <div class="note">W算出：${esc(L4.wSrc)}（ΔW<sub>tempo</sub> ${L4.dWt}g, ΔW<sub>age</sub> ${L4.dWa}g）<br>f = 4.35·HS + 68 + ${L4.dFt} + ${L4.dFs} ／ 経験：${esc(L4.sport)}${L4.rot ? '（回旋型：実効トルク引締）' : ''}</div></div>
+      <div class="lay"><h4><span>L5</span> SLEEVE × THERMO</h4>
+        <table><tr><td>季節モード</td><td>${sn}</td></tr><tr><td>想定気温 / 気圧</td><td>${L5.T}℃ / ${L5.P}hPa</td></tr><tr><td>空気密度 ρ</td><td>${L5.rho} (${L5.rhoDelta > 0 ? '+' : ''}${L5.rhoDelta}%)</td></tr><tr><td>HS 季節補正</td><td>${L5.dHS > 0 ? '+' : ''}${L5.dHS} m/s</td></tr><tr><td>要求MOI（散らばり指数 ${L5.disp}）</td><td>${L5.moiReq}</td></tr><tr><td>グリップ</td><td>下巻き ${L5.grip.wraps} 枚</td></tr></table>
+        <div class="note">スリーブ変換：Δφ<sub>face</sub> ≈ −1.5 × Δθ<sub>loft</sub>（ロフトを立てるとオープン）。${esc(L5.grip.type)}</div></div>`;
+    // season
+    $$('#seasonTabs button').forEach(b => b.classList.toggle('on', b.dataset.s === L5.season));
+    const sbox = {
+      std: '<b>通年（春・秋 15〜23℃）</b>：ρ≈1.20kg/m³ の標準空気密度・標準可動域。Layer 1〜4 のベースライン最適スペックをそのまま出力しています。',
+      summer: '<b>夏仕様（28〜35℃）</b>：筋肉粘性低下でHS +0.75m/s、発汗・樹脂温度上昇でフェースが返りやすく左引っかけ増。→ <b>シャフト重量 +3.5g</b>、ロフトを立てる（オープン化）方向を優先、前方ウェイトで低スピン強弾道、<b>コード入りグリップ</b>へ自動切替。',
+      winter: '<b>冬仕様（0〜10℃）</b>：空気密度 約+10%、厚着でHS −1.2m/s（約 −6cpm 相当）。<b>プランA</b>：現クラブのスリーブでロフト +0.5〜+1.0°＋後方ウェイトで打ち出し +1.2°。<b>プランB</b>：夏用より −5〜−8g 軽い・中元がしなる冬用サブシャフト（各カードに表示）。'
+    }[L5.season];
+    $('#seasonBox').innerHTML = sbox;
+    const ifcBars = str => {
+      const m = str.match(/\[(\d+)-(\d+)-(\d+)-(\d+)\]/); if (!m) return '';
+      return '<span class="ifcmini" title="手元-中元-先中-先端 剛性分布">' + [1,2,3,4].map(i => `<i style="height:${Math.max(4, Math.round(+m[i]*1.8))}px"></i>`).join('') + '</span>';
+    };
+    // top10
+    $('#top10').innerHTML = T.map((r, i) => {
+      const p = r.parts;
+      const bar = (lab, v) => { const pct = Math.max(4, Math.round((1 - Math.min(1, v / 1.6)) * 100)); return `<div class="bar"><span>${lab}</span><span class="t"><i class="${pct > 75 ? 'hi' : pct < 40 ? 'lo' : ''}" style="width:${pct}%"></i></span><span>${pct}</span></div>`; };
+      const sub = r.winterSub ? `<div class="sub">❄ 冬用サブシャフト（プランB）：<b>${esc(r.winterSub.nm)} ${esc(r.winterSub.label)}</b>（${r.winterSub.w}g / ${r.winterSub.kickN}調子 / ${r.winterSub.tq}° / ≈${r.winterSub.freq}cpm）</div>` : '';
+      return `<article class="fit">
+        <div class="rk"><span>RANK</span><b>${i + 1}</b></div>
+        <div class="bd">
+          <div class="hd">${esc(r.h.b).toUpperCase()} × ${esc(r.s.mk).toUpperCase()}</div>
+          <div class="nm">${esc(r.h.m)}<span class="x">×</span>${esc(r.s.nm)} <span style="color:var(--sig)">${esc(r.s.label)}</span></div>
+          <div class="specs">
+            <div><small>LOFT / SLEEVE</small><span>${esc(r.sleeve)}</span></div>
+            <div><small>WEIGHT SETUP</small><span>${esc(r.weightTxt)}</span></div>
+            <div><small>LENGTH</small><span>${r.length.toFixed(2)} inch</span></div>
+            <div><small>SHAFT</small><span>${r.s.w}g / ${esc(r.s.kickN)}調子 / ${r.s.tq}°</span></div>
+            <div><small>FREQ (45.25")</small><span>≈${r.s.freq} cpm</span></div>
+            <div><small>参考IFC</small><span class="mono">${esc(r.s.ifc)}${ifcBars(r.s.ifc)}</span></div>
+            <div><small>GRIP / 下巻き</small><span>${esc(r.grip)}</span></div>
+            <div><small>予測弾道</small><span>${r.pred.spin}rpm / ${r.pred.launch.toFixed(1)}° / C${f0(r.pred.fl.carry)}·T${f0(r.pred.total)}yd</span></div>
+          </div>
+          <ul class="why">${r.why.map(w => `<li>${esc(w)}</li>`).join('')}</ul>${sub}
+        </div>
+        <div class="sc"><div class="big">${r.score.toFixed(1)}<small>/100</small></div>
+          <div class="bars">${bar('D-PLANE', p.dp)}${bar('GEAR', p.gear)}${bar('EI/FREQ', p.ei)}${bar('TORQUE', p.tq)}${bar('WEIGHT', p.wt)}${bar('SEASON', p.ss)}</div></div>
+      </article>`;
+    }).join('');
+  }
+
+  function drawCharts(D, B){
+    const cur = D.L1.cur, pr = B.pred.fl;
+    const maxX = Math.max(cur.carry + D.L1.curRoll, B.pred.total, 120) * 1.08;
+    const maxY = Math.max(cur.apex, pr.apex, 20) * 1.35;
+    const W = 640, H = 250, pl = 34, pb = 26;
+    const sx = x => pl + x / maxX * (W - pl - 10), sy = y => H - pb - y / maxY * (H - pb - 14);
+    const path = pts => pts.map((p, i) => (i ? 'L' : 'M') + sx(p[0]).toFixed(1) + ' ' + sy(p[1]).toFixed(1)).join(' ');
+    let grid = '';
+    const step = maxX > 260 ? 50 : 25;
+    for (let x = 0; x <= maxX; x += step) grid += `<line x1="${sx(x)}" y1="${sy(0)}" x2="${sx(x)}" y2="12" stroke="rgba(20,19,15,.10)"/><text x="${sx(x)}" y="${H-8}" font-family="JetBrains Mono" font-size="9" text-anchor="middle" fill="#7C776A">${x}</text>`;
+    for (let y = 10; y <= maxY; y += 10) grid += `<line x1="${pl}" y1="${sy(y)}" x2="${W-10}" y2="${sy(y)}" stroke="rgba(20,19,15,.06)"/><text x="${pl-5}" y="${sy(y)+3}" font-family="JetBrains Mono" font-size="9" text-anchor="end" fill="#7C776A">${y}</text>`;
+    const cTot = cur.carry + D.L1.curRoll;
+    const closeLbl = Math.abs(B.pred.total - cTot) < 35;
+    $('#sideChart').innerHTML = `<svg viewBox="0 0 ${W} ${H}">${grid}
+      <line x1="${pl}" y1="${sy(0)}" x2="${W-10}" y2="${sy(0)}" stroke="#14130F" stroke-width="1.5"/>
+      <path d="${path(cur.pts)}" fill="none" stroke="#14130F" stroke-width="2" stroke-dasharray="5 4"/>
+      <line x1="${sx(cur.carry)}" y1="${sy(0)}" x2="${sx(cTot)}" y2="${sy(0)}" stroke="#14130F" stroke-width="4" opacity=".35"/>
+      <path class="draw" d="${path(pr.pts)}" fill="none" stroke="#FF4F12" stroke-width="3"/>
+      <line x1="${sx(pr.carry)}" y1="${sy(0)+3}" x2="${sx(B.pred.total)}" y2="${sy(0)+3}" stroke="#FF4F12" stroke-width="4"/>
+      <circle cx="${sx(B.pred.total)}" cy="${sy(0)+3}" r="4" fill="#FF4F12"/>
+      <text x="${sx(B.pred.total)}" y="${sy(0)-8}" font-family="JetBrains Mono" font-size="11" font-weight="800" text-anchor="end" fill="#FF4F12">BEST1 ${f0(B.pred.total)}yd</text>
+      <text x="${closeLbl ? sx(cur.carry)-6 : sx(cTot)}" y="${sy(0)-(closeLbl?26:22)}" font-family="JetBrains Mono" font-size="10" text-anchor="end" fill="#14130F">現状 ${f0(cTot)}yd</text>
+      <text x="${W-12}" y="22" font-family="JetBrains Mono" font-size="9" text-anchor="end" fill="#7C776A">APEX ${f0(cur.apex)}→${f0(pr.apex)}yd · LAND ${f0(cur.land)}°→${f0(pr.land)}°</text>
+    </svg>`;
+    $('#sideInfo').textContent = `ρ=${D.L5.rho}`;
+    // top view
+    const TW = 260, TH = 300, cx = TW / 2;
+    const maxL = Math.max(Math.abs(cur.lat), Math.abs(pr.lat), 25) * 1.3;
+    const tx = z => cx + z / maxL * (TW / 2 - 16), ty = x => TH - 20 - x / maxX * (TH - 40);
+    const tp = pts => pts.map((p, i) => (i ? 'L' : 'M') + tx(p[2]).toFixed(1) + ' ' + ty(p[0]).toFixed(1)).join(' ');
+    $('#topChart').innerHTML = `<svg viewBox="0 0 ${TW} ${TH}">
+      <rect x="${tx(-15)}" y="14" width="${tx(15)-tx(-15)}" height="${TH-34}" fill="rgba(14,59,44,.08)"/>
+      <line x1="${cx}" y1="${TH-20}" x2="${cx}" y2="12" stroke="#14130F" stroke-dasharray="3 3" opacity=".4"/>
+      <text x="${tx(15)+4}" y="26" font-family="JetBrains Mono" font-size="8" fill="#0E3B2C">FW 30yd</text>
+      <path d="${tp(cur.pts)}" fill="none" stroke="#14130F" stroke-width="2" stroke-dasharray="5 4"/>
+      <path class="draw" d="${tp(pr.pts)}" fill="none" stroke="#FF4F12" stroke-width="3"/>
+      <circle cx="${tx(cur.lat)}" cy="${ty(cur.carry)}" r="4" fill="none" stroke="#14130F" stroke-width="1.5"/>
+      <circle cx="${tx(pr.lat)}" cy="${ty(pr.carry)}" r="4.5" fill="#FF4F12"/>
+      <circle cx="${cx}" cy="${TH-20}" r="3" fill="#14130F"/>
+      <text x="${cx}" y="${TH-5}" font-family="JetBrains Mono" font-size="9" text-anchor="middle" fill="#7C776A">横ブレ ${f1(cur.lat)} → ${f1(pr.lat)} yd（+右/−左）</text>
+    </svg>`;
+  }
+
+  function copyText(){
+    if (!lastTop) return;
+    const D = lastD;
+    const lines = [`【DRIVER PHYSICS BENCH 診断結果】`, `診断: ${D.L1.diag} / ${D.L2.F.n} × ${D.L3.I.n}`, `HS ${D.L0.hs}m/s (${D.L0.hsSrc}) / SF ${D.L0.sf} / W_ideal ${D.L4.Wideal}g / f ${D.L4.fcpm}cpm (${D.L4.flex}) / τ≦${D.L4.tauMax}° / ${D.L4.kickLbl}`, ''];
+    lastTop.forEach((r, i) => lines.push(`${i + 1}. [${r.score.toFixed(1)}] ${r.h.b} ${r.h.m} × ${r.s.nm} ${r.s.label} | ${r.sleeve} | ${r.weightTxt} | ${r.length.toFixed(2)}inch | ${r.grip}`));
+    const txt = lines.join('\n');
+    const done = () => toast('クリップボードにコピーしました');
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(done, () => fallback(txt, done));
+    else fallback(txt, done);
+  }
+  function fallback(txt, done){
+    const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.top = '-1000px';
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+    try { document.execCommand('copy'); done(); } catch(e){ toast('コピーできませんでした'); }
+    document.body.removeChild(ta);
+  }
+
+  /* ---- init ---- */
+  buildCards(); bindSegs(); bindNums(); load(); updDpLive();
+  $$('#presetbar button').forEach(b => b.addEventListener('click', () => applyPreset(b.dataset.pre)));
+  $$('#wxQuick button').forEach(b => b.addEventListener('click', () => {
+    const [la, lo, nm] = b.dataset.wx.split(','); $('#wxread').textContent = '取得中…'; fetchWx(+la, +lo, nm);
+  }));
+  $$('#rail button').forEach(b => b.addEventListener('click', () => go(+b.dataset.go)));
+  $('#prevBtn').onclick = () => go(step - 1);
+  $('#nextBtn').onclick = () => step === 3 ? run() : go(step + 1);
+  $('#citySearch').onclick = citySearch;
+  $('#city').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); citySearch(); } });
+  $('#geoBtn').onclick = geo;
+  $$('#seasonTabs button').forEach(b => b.addEventListener('click', () => reSeason(b.dataset.s)));
+  $('#editBtn').onclick = () => { go(0); window.scrollTo({ top: $('#bench').getBoundingClientRect().top + window.scrollY - 40, behavior: 'smooth' }); };
+  $('#copyBtn').onclick = copyText;
+  $('#printBtn').onclick = () => window.print();
+  $('#resetBtn').onclick = () => { try{ localStorage.removeItem(LS); }catch(e){} location.reload(); };
+  go(0);
+  updWx();
+  fetchWx(env.lat, env.lon, '東京（既定）');
+  window.__DPB = { ENGINE, collect, state, run };
+})();
+</script>
+</body>
+</html>

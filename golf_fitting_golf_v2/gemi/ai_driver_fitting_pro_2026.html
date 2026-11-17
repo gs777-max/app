@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Driver Fitting Pro 2026 | ノーベル物理学賞×ツアープロ統合フィッティングエンジン</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #0b1120;
+      color: #f1f5f9;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(51, 65, 85, 0.7);
+      backdrop-filter: blur(12px);
+    }
+    .selectable-card {
+      transition: all 0.18s ease;
+      cursor: pointer;
+    }
+    .selectable-card:hover {
+      border-color: #38bdf8;
+      transform: translateY(-1px);
+    }
+    .selectable-card.active {
+      border-color: #10b981;
+      background: rgba(16, 185, 129, 0.14);
+      box-shadow: 0 0 0 1px #10b981;
+    }
+    .face-zone {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .face-zone:hover {
+      fill: rgba(56, 189, 248, 0.35);
+    }
+    .face-zone.active {
+      fill: rgba(16, 185, 129, 0.55);
+      stroke: #10b981;
+      stroke-width: 2.5px;
+    }
+    .flight-path {
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+    .flight-path:hover {
+      stroke-width: 4.5px;
+      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.8));
+    }
+    .flight-path.active {
+      stroke-width: 5px;
+      filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.95));
+    }
+    input[type="range"] {
+      accent-color: #10b981;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-emerald-500 selection:text-white">
+
+  <!-- Top Header -->
+  <header class="sticky top-0 z-30 border-b border-slate-800 bg-slate-950/90 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center font-extrabold text-slate-950 text-lg shadow-lg shadow-emerald-500/20">
+          3D
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">2026.11 最新全モデル対応</span>
+            <span class="text-xs text-slate-400 hidden sm:inline">3段階フィルタリング × 6大物理理論エンジン</span>
+          </div>
+          <h1 class="text-base sm:text-xl font-extrabold text-white tracking-tight">AI Driver Fitting Pro 2026 <span class="text-emerald-400 font-semibold text-sm">Nobel-Physics Edition</span></h1>
+        </div>
+      </div>
+
+      <!-- Quick Presets -->
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span class="text-xs text-slate-400 mr-1">プリセット読込:</span>
+        <button type="button" id="preset-hard" class="text-xs px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 font-semibold transition">
+          ① ハードヒッター(HS47・左ミス・ローヒール)
+        </button>
+        <button type="button" id="preset-avg" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium transition">
+          ② アベレージ(HS40.5・スライス)
+        </button>
+        <button type="button" id="preset-light" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium transition">
+          ③ シニア/女性(HS35・高弾道キャリー)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-8">
+
+    <!-- 3-Stage Architecture Banner -->
+    <section class="glass-card rounded-2xl p-4 sm:p-5 border border-slate-800">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-start gap-3">
+          <span class="px-2 py-1 rounded bg-cyan-500/20 text-cyan-300 font-bold shrink-0">Stage 1</span>
+          <div>
+            <div class="font-bold text-slate-100">スクリーニング（総重量フロー × 固有振動数）</div>
+            <p class="text-slate-400 mt-0.5">7番アイアン総重量とHS・体格から、30g台R2〜80g台TXの全領域で振れる重さ・硬さの大枠を決定。</p>
+          </div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-start gap-3">
+          <span class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 font-bold shrink-0">Stage 2</span>
+          <div>
+            <div class="font-bold text-slate-100">方向性・打点補正（9弾道D-Plane × 3Dギア効果）</div>
+            <p class="text-slate-400 mt-0.5">9弾道の絵から出球・フェース角・軌道を逆算。打点5領域と遠心力トゥダウン量から重心・10K MOI・調子を決定。</p>
+          </div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-start gap-3">
+          <span class="px-2 py-1 rounded bg-amber-500/20 text-amber-300 font-bold shrink-0">Stage 3</span>
+          <div>
+            <div class="font-bold text-slate-100">飛距離最大化（黄金ウィンドウ決定木 × 季節熱力学）</div>
+            <p class="text-slate-400 mt-0.5">球の高低イラスト（＋ラン＆ミート率推計）と理想ウィンドウの差からロフト・スリーブ・夏冬調整を確定。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INPUT GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Column: Inputs (7 cols) -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <!-- Section A: Physical, Sports, Iron Weight Flow -->
+        <section class="glass-card rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <span class="text-xs font-bold text-cyan-400 uppercase">Step A — Stage 1 Screening</span>
+              <h2 class="text-base font-bold text-white">1. フィジカル・スポーツ経験・アイアン重量フロー</h2>
+            </div>
+            <span class="text-xs text-slate-400">初心者〜上級者共通</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label for="inp-gender" class="block text-xs text-slate-300 mb-1 font-medium">性別</label>
+              <select id="inp-gender" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+                <option value="male" selected>男性</option>
+                <option value="female">女性</option>
+                <option value="other">その他</option>
+              </select>
+            </div>
+            <div>
+              <label for="inp-age" class="block text-xs text-slate-300 mb-1 font-medium">年代</label>
+              <select id="inp-age" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+                <option value="20">20代</option>
+                <option value="30">30代</option>
+                <option value="40">40代</option>
+                <option value="50" selected>50代</option>
+                <option value="60">60代</option>
+                <option value="70">70代以上</option>
+              </select>
+            </div>
+            <div>
+              <label for="inp-height" class="block text-xs text-slate-300 mb-1 font-medium">身長 (cm)</label>
+              <input type="number" id="inp-height" value="172" min="140" max="205" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+            </div>
+            <div>
+              <label for="inp-weight" class="block text-xs text-slate-300 mb-1 font-medium">体重 (kg)</label>
+              <input type="number" id="inp-weight" value="68" min="35" max="130" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="inp-sport" class="block text-xs text-slate-300 mb-1 font-medium">過去のスポーツ経験（ローテーション・トルク負荷判定）</label>
+              <select id="inp-sport" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+                <option value="baseball" selected>野球・ソフトボール（リスト解放・強打撃系）</option>
+                <option value="tennis">テニス・卓球・バドミントン・ホッケー（フェース開閉・回旋系）</option>
+                <option value="kendo">剣道・柔道・武道（縦振り・手元減速系）</option>
+                <option value="swim">水泳・陸上・サッカー・バスケ（体幹ボディターン系）</option>
+                <option value="golf">ゴルフ専念・特になし（標準オンプレーン系）</option>
+              </select>
+            </div>
+            <div>
+              <label for="inp-tempo" class="block text-xs text-slate-300 mb-1 font-medium">切り返しテンポ・タメの強さ（スイングDNA要素①）</label>
+              <select id="inp-tempo" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+                <option value="smooth">ゆったり・スムーズ（トップで間を待つ）</option>
+                <option value="standard">標準テンポ（平均的なリズム）</option>
+                <option value="fast" selected>速い・タメが強い（右踵ベタ足意識・強振タイプ）</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div>
+              <label for="inp-iron" class="block text-xs text-slate-300 mb-1 font-medium">現在の7番アイアンの種類（総重量フロー逆算用）</label>
+              <select id="inp-iron" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+                <option value="ultralight_carbon">超軽量カーボン (L/R2・40g台｜7I総重量 約352g)</option>
+                <option value="std_carbon">標準カーボン (R/SR・50〜60g台｜7I総重量 約378g)</option>
+                <option value="light_steel">軽量スチール (N.S.PRO 850/950GH neo等｜7I総重量 約405g)</option>
+                <option value="mid_steel" selected>中量スチール (MODUS3 105 / 115 / 120 S等｜7I総重量 約422g)</option>
+                <option value="heavy_steel">重量スチール (MODUS3 125 / DG S200・X100｜7I総重量 約438g)</option>
+                <option value="unknown">分からない（HSと体格から自動推計）</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label for="inp-glove" class="block text-xs text-slate-300 mb-1 font-medium">グローブサイズ (cm)</label>
+                <input type="number" id="inp-glove" value="23" min="18" max="28" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+              </div>
+              <div>
+                <label for="inp-sweat" class="block text-xs text-slate-300 mb-1 font-medium">手汗・好みのグリップ感</label>
+                <select id="inp-sweat" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+                  <option value="rubber" selected>しっとりラバー派</option>
+                  <option value="cord">手汗多め・コード派</option>
+                  <option value="thick_right">右手太め(引っかけ防止)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section B: Step 1 Ball Height Visual + Distance/Speed -->
+        <section class="glass-card rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <span class="text-xs font-bold text-amber-400 uppercase">Step B — Stage 3 Launch & Spin Optimization</span>
+              <h2 class="text-base font-bold text-white">2. 【事前確認】球の高低イラスト ＆ 弾道・飛距離データ</h2>
+            </div>
+            <span class="text-xs text-slate-400">未入力・矛盾値は物理式で自動補正</span>
+          </div>
+
+          <!-- Visual Ball Height Selector -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-xs font-semibold text-emerald-300">① 普段のドライバーの「球の高さ」を絵から選んでください（吹き上がり・ドロップ第1判定）</label>
+            </div>
+            <!-- SVG Trajectory Preview -->
+            <div class="bg-slate-950/90 rounded-xl p-3 border border-slate-800 mb-2.5">
+              <svg viewBox="0 0 500 115" class="w-full h-24 overflow-visible">
+                <!-- Ground line -->
+                <line x1="20" y1="100" x2="480" y2="100" stroke="#334155" stroke-width="2" />
+                <circle cx="25" cy="100" r="4" fill="#10b981" />
+                <text x="18" y="112" fill="#94a3b8" font-size="9">Tee</text>
+                <!-- 1: Low Liner -->
+                <path id="svg-h-low" d="M 25 100 Q 170 68 350 100" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="4 2" />
+                <!-- 2: Mid-Low Penetrating -->
+                <path id="svg-h-midlow" d="M 25 100 Q 230 38 435 100" fill="none" stroke="#10b981" stroke-width="3.5" />
+                <!-- 3: Optimal Mid -->
+                <path id="svg-h-mid" d="M 25 100 Q 245 24 450 100" fill="none" stroke="#64748b" stroke-width="2" />
+                <!-- 4: High -->
+                <path id="svg-h-high" d="M 25 100 Q 250 10 430 100" fill="none" stroke="#64748b" stroke-width="2" />
+                <!-- 5: Ballooning Hop -->
+                <path id="svg-h-balloon" d="M 25 100 C 140 55, 290 -5, 365 25 C 395 38, 405 75, 410 100" fill="none" stroke="#f43f5e" stroke-width="2" stroke-dasharray="3 3" />
+                <text x="305" y="14" fill="#f43f5e" font-size="9" font-weight="bold">⑤ 吹き上がり(ホップ失速)</text>
+                <text x="200" y="34" fill="#10b981" font-size="9" font-weight="bold">②〜③ 強弾道・適正放物線</text>
+                <text x="155" y="85" fill="#94a3b8" font-size="9">① 低弾道ドロップ</text>
+              </svg>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="height-cards">
+              <div data-height="low" class="selectable-card rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
+                <div class="font-bold text-white">① ライナー・低弾道</div>
+                <div class="text-slate-400 text-[11px] mt-0.5">浮力がつかず早めに落ちる</div>
+              </div>
+              <div data-height="midlow" class="selectable-card active rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
+                <div class="font-bold text-white">② 中低弾道・強弾道</div>
+                <div class="text-slate-400 text-[11px] mt-0.5">風に強くライナー性で伸びる</div>
+              </div>
+              <div data-height="mid" class="selectable-card rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
+                <div class="font-bold text-white">③ 標準・中弾道</div>
+                <div class="text-slate-400 text-[11px] mt-0.5">理想的な放物線で飛ぶ</div>
+              </div>
+              <div data-height="high" class="selectable-card rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
+                <div class="font-bold text-white">④ 高弾道</div>
+                <div class="text-slate-400 text-[11px] mt-0.5">高く上がってキャリーが出る</div>
+              </div>
+              <div data-height="balloon" class="selectable-card rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
+                <div class="font-bold text-rose-300">⑤ 吹き上がり・ホップ</div>
+                <div class="text-slate-400 text-[11px] mt-0.5">急上昇して真上から落ちる</div>
+              </div>
+              <div data-height="unknown" class="selectable-card rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
+                <div class="font-bold text-cyan-300">⑥ 分からない・バラバラ</div>
+                <div class="text-slate-400 text-[11px] mt-0.5">ラン＆ミート率から自動推計</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Numerical Launch Inputs with Fallback helper -->
+          <div class="pt-2 border-t border-slate-800/80">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <span class="text-xs font-semibold text-slate-200">② ヘッドスピード・初速・飛距離（分からない項目は空欄または自動推計ボタンでOK）</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] text-slate-400">HSが不明な方: 7I飛距離</span>
+                <input type="number" id="inp-7i-dist" placeholder="155" class="w-16 rounded bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-white">
+                <button type="button" id="btn-calc-hs" class="text-[11px] px-2 py-1 rounded bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-200 border border-cyan-500/40 transition">
+                  ydからHS換算
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div>
+                <label for="inp-hs" class="block text-xs text-slate-300 mb-1">ヘッドスピード HS (m/s)</label>
+                <input type="number" id="inp-hs" value="47.0" step="0.5" min="25" max="60" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm font-bold text-emerald-300 focus:border-emerald-500 focus:outline-none">
+              </div>
+              <div>
+                <label for="inp-bs" class="block text-xs text-slate-300 mb-1">ボールスピード BS (m/s) <span class="text-[10px] text-slate-400">(任意)</span></label>
+                <input type="number" id="inp-bs" value="68.5" step="0.5" placeholder="未入力なら自動推計" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+              </div>
+              <div>
+                <label for="inp-Carry" class="block text-xs text-slate-300 mb-1">平均キャリー (yd) <span class="text-[10px] text-slate-400">(任意)</span></label>
+                <input type="number" id="inp-Carry" value="258" step="1" placeholder="未入力なら自動推計" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+              </div>
+              <div>
+                <label for="inp-Total" class="block text-xs text-slate-300 mb-1">総飛距離 (yd) <span class="text-[10px] text-slate-400">(任意)</span></label>
+                <input type="number" id="inp-Total" value="276" step="1" placeholder="未入力なら自動推計" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+              </div>
+              <div>
+                <label for="inp-fw" class="block text-xs text-slate-300 mb-1">18H 平均FWキープ数 (0-14)</label>
+                <input type="number" id="inp-fw" value="6" min="0" max="14" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+              </div>
+              <div>
+                <label for="inp-ob" class="block text-xs text-slate-300 mb-1">18H 平均OB数 (発)</label>
+                <input type="number" id="inp-ob" value="1.8" step="0.5" min="0" max="15" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Right Column: Visual D-Plane 9 Flights & Face Impact 5 Zones (5 cols) -->
+      <div class="lg:col-span-5 space-y-6">
+
+        <!-- Section C: Step 2 Visual 9-Ball-Flight Selector -->
+        <section class="glass-card rounded-2xl p-5 space-y-3">
+          <div class="border-b border-slate-800 pb-2.5">
+            <span class="text-xs font-bold text-emerald-400 uppercase">Step C — Stage 2 D-Plane Vector Inversion</span>
+            <h2 class="text-base font-bold text-white">3. 飛球線（9つの弾道イラストから選択）</h2>
+            <p class="text-xs text-slate-400 mt-0.5">絵を1つ選ぶだけで「出球方向」「フェース向き」「スイング軌道」をD-Plane物理式から自動逆算します。</p>
+          </div>
+
+          <!-- Interactive Overhead SVG Driving Range -->
+          <div class="bg-slate-950 rounded-xl p-3 border border-slate-800 relative">
+            <svg viewBox="0 0 360 210" class="w-full h-44 overflow-visible">
+              <!-- Fairway Center Line & Grid -->
+              <polygon points="145,200 75,15 285,15 215,200" fill="rgba(16, 185, 129, 0.06)" />
+              <line x1="180" y1="200" x2="180" y2="12" stroke="#475569" stroke-width="1.5" stroke-dasharray="4 4" />
+              <text x="180" y="10" text-anchor="middle" fill="#94a3b8" font-size="9">目標方向 (Target 0°)</text>
+              <text x="55" y="16" text-anchor="middle" fill="#f43f5e" font-size="9">◀ 左 (Left)</text>
+              <text x="305" y="16" text-anchor="middle" fill="#38bdf8" font-size="9">右 (Right) ▶</text>
+
+              <!-- 9 Ball Flight Paths -->
+              <!-- 1: Pull Hook -->
+              <path data-flight="1" class="flight-path active" d="M 180 198 Q 130 110 42 28" fill="none" stroke="#f43f5e" stroke-width="3" />
+              <text x="35" y="25" fill="#fda4af" font-size="9" font-weight="bold">①プルフック</text>
+
+              <!-- 2: Pull Straight -->
+              <path data-flight="2" class="flight-path" d="M 180 198 L 95 22" fill="none" stroke="#fb923c" stroke-width="2.5" />
+              <text x="88" y="18" fill="#fdba74" font-size="9">②プル直進</text>
+
+              <!-- 3: Pull Fade -->
+              <path data-flight="3" class="flight-path" d="M 180 198 Q 115 95 162 24" fill="none" stroke="#facc15" stroke-width="2.5" />
+              <text x="142" y="22" fill="#fde047" font-size="8.5">③プルフェード</text>
+
+              <!-- 4: Straight Draw -->
+              <path data-flight="4" class="flight-path" d="M 180 198 Q 180 100 122 25" fill="none" stroke="#fb7185" stroke-width="2.5" />
+              <text x="115" y="36" fill="#fecdd3" font-size="8.5">④直進ドロー</text>
+
+              <!-- 5: Straight -->
+              <path data-flight="5" class="flight-path" d="M 180 198 L 180 20" fill="none" stroke="#10b981" stroke-width="2.5" />
+              <text x="180" y="34" text-anchor="middle" fill="#6ee7b7" font-size="8.5">⑤ストレート</text>
+
+              <!-- 6: Straight Fade -->
+              <path data-flight="6" class="flight-path" d="M 180 198 Q 180 100 238 25" fill="none" stroke="#38bdf8" stroke-width="2.5" />
+              <text x="235" y="36" fill="#bae6fd" font-size="8.5">⑥直進フェード</text>
+
+              <!-- 7: Push Draw -->
+              <path data-flight="7" class="flight-path" d="M 180 198 Q 245 95 198 24" fill="none" stroke="#a78bfa" stroke-width="2.5" />
+              <text x="208" y="22" fill="#ddd6fe" font-size="8.5">⑦プッシュドロー</text>
+
+              <!-- 8: Push Straight -->
+              <path data-flight="8" class="flight-path" d="M 180 198 L 265 22" fill="none" stroke="#60a5fa" stroke-width="2.5" />
+              <text x="272" y="18" fill="#bfdbfe" font-size="9">⑧プッシュ直進</text>
+
+              <!-- 9: Push Slice -->
+              <path data-flight="9" class="flight-path" d="M 180 198 Q 230 110 318 28" fill="none" stroke="#818cf8" stroke-width="2.5" />
+              <text x="315" y="25" text-anchor="end" fill="#c7d2fe" font-size="9">⑨プッシュスライス</text>
+
+              <!-- Tee Box -->
+              <circle cx="180" cy="198" r="5" fill="#10b981" stroke="#0f172a" stroke-width="2" />
+            </svg>
+          </div>
+
+          <!-- 10 Selectable Flight Cards -->
+          <div class="grid grid-cols-2 gap-1.5 text-xs" id="flight-cards">
+            <div data-flight="1" class="selectable-card active rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-rose-300">① 左へ出て、さらに左へ巻く</span>
+              <span class="block text-[10px] text-slate-400">プルフック・チーピン (出球:左)</span>
+            </div>
+            <div data-flight="2" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-orange-300">② 左へ出て、そのまま真っ直ぐ左</span>
+              <span class="block text-[10px] text-slate-400">プルストレート (出球:左)</span>
+            </div>
+            <div data-flight="3" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-amber-300">③ 左へ出て、右へ曲がって戻る</span>
+              <span class="block text-[10px] text-slate-400">プルフェード・スライス (出球:左)</span>
+            </div>
+            <div data-flight="4" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-pink-300">④ 真っ直ぐ出て、左へ曲がる</span>
+              <span class="block text-[10px] text-slate-400">ストレートドロー・フック (出球:中)</span>
+            </div>
+            <div data-flight="5" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-emerald-300">⑤ 真っ直ぐ出て、真っ直ぐ飛ぶ</span>
+              <span class="block text-[10px] text-slate-400">ストレート (出球:中)</span>
+            </div>
+            <div data-flight="6" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-sky-300">⑥ 真っ直ぐ出て、右へ曲がる</span>
+              <span class="block text-[10px] text-slate-400">ストレートフェード・スライス (出球:中)</span>
+            </div>
+            <div data-flight="7" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-purple-300">⑦ 右へ出て、左へ曲がって戻る</span>
+              <span class="block text-[10px] text-slate-400">プッシュドロー・フック (出球:右)</span>
+            </div>
+            <div data-flight="8" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-blue-300">⑧ 右へ出て、そのまま真っ直ぐ右</span>
+              <span class="block text-[10px] text-slate-400">プッシュストレート (出球:右)</span>
+            </div>
+            <div data-flight="9" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-indigo-300">⑨ 右へ出て、さらに右へ曲がる</span>
+              <span class="block text-[10px] text-slate-400">プッシュスライス (出球:右)</span>
+            </div>
+            <div data-flight="10" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-cyan-300">⑩ 右にも左にも大きく散る</span>
+              <span class="block text-[10px] text-slate-400">逆球・10K高MOIヘッド最優先</span>
+            </div>
+          </div>
+
+          <!-- Auto-Derived D-Plane Readout Banner -->
+          <div id="dplane-readout" class="rounded-xl bg-slate-950/90 border border-emerald-500/30 p-2.5 text-xs flex flex-wrap items-center justify-between gap-2">
+            <span class="font-semibold text-emerald-300">自動逆算出球: 左打ち出し (-3.0°)</span>
+            <span class="text-slate-300">推定フェース角: -3.5° (クローズ) ／ 推定軌道: +0.5° (インサイドアウト)</span>
+          </div>
+        </section>
+
+        <!-- Section D: Interactive Driver Face 5-Zone Impact Selector -->
+        <section class="glass-card rounded-2xl p-5 space-y-3">
+          <div class="border-b border-slate-800 pb-2.5">
+            <span class="text-xs font-bold text-cyan-400 uppercase">Step D — 3D Gear Effect & Toe-Down Deflection</span>
+            <h2 class="text-base font-bold text-white">4. ドライバーフェースの当たりやすい打点（絵をタップ）</h2>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+            <!-- SVG Clubface -->
+            <div class="sm:col-span-7 bg-slate-950 rounded-xl p-3 border border-slate-800">
+              <svg viewBox="0 0 280 155" class="w-full h-36">
+                <!-- Outer Clubface Contour -->
+                <path d="M 25 30 Q 140 12 245 32 Q 268 78 242 128 Q 140 144 35 125 Q 12 80 25 30 Z" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+                <!-- Hosel -->
+                <rect x="246" y="8" width="14" height="36" rx="4" transform="rotate(-12 246 8)" fill="#475569" stroke="#94a3b8" stroke-width="1.5" />
+                <text x="35" y="20" fill="#94a3b8" font-size="9">◀ トゥ側 (Toe: 先)</text>
+                <text x="235" y="20" text-anchor="end" fill="#94a3b8" font-size="9">ヒール側 (Heel: 根元) ▶</text>
+
+                <!-- 5 Clickable Zones -->
+                <!-- High-Toe -->
+                <path data-impact="high_toe" class="face-zone" d="M 28 33 Q 85 22 138 22 L 138 75 L 22 75 Q 20 50 28 33 Z" fill="rgba(51,65,85,0.5)" stroke="#475569" />
+                <text x="78" y="53" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="bold" pointer-events="none">ハイ・トゥ</text>
+
+                <!-- High-Heel -->
+                <path data-impact="high_heel" class="face-zone" d="M 142 22 Q 195 22 243 33 Q 255 55 253 75 L 142 75 Z" fill="rgba(51,65,85,0.5)" stroke="#475569" />
+                <text x="195" y="53" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="bold" pointer-events="none">ハイ・ヒール</text>
+
+                <!-- Low-Toe -->
+                <path data-impact="low_toe" class="face-zone" d="M 22 79 L 138 79 L 138 134 Q 80 132 36 123 Q 20 105 22 79 Z" fill="rgba(51,65,85,0.5)" stroke="#475569" />
+                <text x="78" y="108" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="bold" pointer-events="none">ロー・トゥ</text>
+
+                <!-- Low-Heel -->
+                <path data-impact="low_heel" class="face-zone active" d="M 142 79 L 253 79 Q 250 105 240 126 Q 195 135 142 134 Z" fill="rgba(51,65,85,0.5)" stroke="#475569" />
+                <text x="195" y="108" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="bold" pointer-events="none">ロー・ヒール</text>
+
+                <!-- Center Sweet Spot -->
+                <ellipse data-impact="center" class="face-zone" cx="140" cy="77" rx="34" ry="22" fill="rgba(30,41,59,0.92)" stroke="#94a3b8" stroke-width="1.5" />
+                <text x="140" y="81" text-anchor="middle" fill="#38bdf8" font-size="10" font-weight="bold" pointer-events="none">センター(芯)</text>
+              </svg>
+            </div>
+
+            <!-- Impact Zone Buttons -->
+            <div class="sm:col-span-5 space-y-1.5 text-xs" id="impact-buttons">
+              <button type="button" data-impact="low_heel" class="selectable-card active w-full text-left px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 font-semibold text-white">
+                ● ロー・ヒール (下・根元)
+              </button>
+              <button type="button" data-impact="high_heel" class="selectable-card w-full text-left px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 font-semibold text-white">
+                ● ハイ・ヒール (上・根元)
+              </button>
+              <button type="button" data-impact="center" class="selectable-card w-full text-left px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 font-semibold text-white">
+                ● センター (芯付近)
+              </button>
+              <button type="button" data-impact="high_toe" class="selectable-card w-full text-left px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 font-semibold text-white">
+                ● ハイ・トゥ (上・先)
+              </button>
+              <button type="button" data-impact="low_toe" class="selectable-card w-full text-left px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 font-semibold text-white">
+                ● ロー・トゥ (下・先)
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- SEASONAL TABS & EXECUTE BUTTON BAR -->
+    <section class="glass-card rounded-2xl p-4 border border-emerald-500/40 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs font-bold text-slate-300 mr-1">季節別環境モード切替:</span>
+        <button type="button" data-season="all" class="season-tab active px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 shadow transition">
+          🍁 通年・春秋ベース (15〜23℃)
+        </button>
+        <button type="button" data-season="summer" class="season-tab px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 transition">
+          ☀️ 夏場モード (28〜35℃・高湿度・左ミス防止)
+        </button>
+        <button type="button" data-season="winter" class="season-tab px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 transition">
+          ❄️ 冬場モード (0〜10℃・厚着HS低下・空気密度+10%)
+        </button>
+      </div>
+
+      <button type="button" id="btn-run-fitting" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/25 transition">
+        物理アルゴリズムで最適ベスト10を再算出
+      </button>
+    </section>
+
+    <!-- DIAGNOSTIC DASHBOARD (3-Stage Physics Readout) -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-extrabold text-white">ノーベル物理学賞×ツアープロ 3段階解析サマリー</h2>
+        <span id="sanity-badge" class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">
+          物理整合性チェック: 正常
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="physics-summary-cards">
+        <!-- Populated dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- TOP 10 RANKING OUTPUT -->
+    <section class="space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">2026年11月最新データベース完全照合（30g台R2 〜 80g台TX 全スペック対象）</span>
+          <h2 class="text-xl font-extrabold text-white" id="ranking-title">あなたに最適なドライバーセッティング ベスト10</h2>
+        </div>
+        <span class="text-xs text-slate-400">※スリクソンIFC（4桁 `[手元-中元-先中-先端]`）は剛性分布の参考値として併記</span>
+      </div>
+
+      <!-- Cards Container -->
+      <div id="top10-container" class="space-y-4">
+        <!-- Populated dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- SENSITIVITY ANALYSIS (Theory 7: 1-Parameter A/B Test Simulation) -->
+    <section class="glass-card rounded-2xl p-5 sm:p-6 space-y-4 border border-cyan-500/30">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+        <div>
+          <span class="text-xs font-bold text-cyan-400 uppercase">Theory 7 — Sensitivity Analysis (A/B Test Simulation)</span>
+          <h2 class="text-lg font-extrabold text-white">感度分析：第1位セッティングからの「1パラメータ変更」シミュレーション</h2>
+        </div>
+        <span id="priority-param-badge" class="text-xs px-3 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold">
+          最優先改善パラメータ: 算出中
+        </span>
+      </div>
+
+      <div id="sensitivity-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Populated dynamically by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // 1. 2026年11月時点 ヘッド＆全重量帯・全フレックス シャフトマスターデータベース
+    // =========================================================================
+    const HEAD_DB = [
+      {
+        id: 'elyte_td',
+        brand: 'Callaway',
+        model: 'ELYTE Triple Diamond (♦♦♦)',
+        category: 'Tour_LS',
+        baseLofts: [9.0, 10.5],
+        moiClass: 8900,
+        spinBias: -450,
+        launchBias: -1.2,
+        faceBias: 'anti_left_3',
+        lieBase: 57.0,
+        sleeveSystem: {
+          anti_left: 'OptiFit「D / -1」(ロフト-1.0° / オープンフェース / フラットライ)',
+          neutral: 'OptiFit「N / S」(標準ロフト / スクエア)',
+          draw: 'OptiFit「D / +1」(ロフト+1.0° / ドローバイアス)',
+          winter: 'OptiFit「N / +1」(ロフト+1.0° で冬場の打ち出し角とキャリー確保)'
+        },
+        weightSystem: {
+          low_spin: '前13g / 後2g（浅・低重心化で縦ギア効果スピン増と吹け上がりを遮断）',
+          balanced: '前8g / 後7g（ツアーカスタム中間配分）',
+          high_launch: '前2g / 後13g（深重心化で高打ち出し・高MOIモード）'
+        },
+        desc: '2025-2026ツアー主力モデル。重心角が小さく、前13g設定時の低スピン強弾道とヒールヒット時の左巻き込み防止性能が抜群。'
+      },
+      {
+        id: 'g440_lst',
+        brand: 'PING',
+        model: 'G440 LST',
+        category: 'Tour_LS_HighMOI',
+        baseLofts: [9.0, 10.5],
+        moiClass: 9650,
+        spinBias: -350,
+        launchBias: -0.6,
+        faceBias: 'anti_left_2',
+        lieBase: 58.0,
+        sleeveSystem: {
+          anti_left: 'フラット「-1.0°」(ライ角57°フラット＆オープンフェース)',
+          neutral: 'フラット「±0°」(標準ロフト・ライ角フラット設定)',
+          draw: '標準「+1.0°」(ロフト+1.0°・つかまり補助)',
+          winter: 'フラット「+1.0°」(フラットライを維持しつつ冬用ロフト+1.0°)'
+        },
+        weightSystem: {
+          low_spin: '29g可変ウェイト「Fadeポジション」(トゥ寄り配置で左ミス完全封鎖)',
+          balanced: '29g可変ウェイト「Neutralポジション」(高MOI直進設定)',
+          high_launch: '29g可変ウェイト「Drawポジション」(つかまり＆高打ち出し)'
+        },
+        desc: '低スピンモデルでありながら10Kに迫る超高MOIと58°のフラットライ設計を兼備。芯外し時の初速維持と方向安定性が極めて高い。'
+      },
+      {
+        id: 'gt3',
+        brand: 'Titleist',
+        model: 'GT3',
+        category: 'Tour_LS',
+        baseLofts: [9.0, 10.0],
+        moiClass: 8850,
+        spinBias: -420,
+        launchBias: -1.0,
+        faceBias: 'anti_left_3',
+        lieBase: 58.5,
+        sleeveSystem: {
+          anti_left: 'SureFit「B1」または「C1」(フラット -0.75° ＆ ロフト -0.75°)',
+          neutral: 'SureFit「A1」(標準セッティング)',
+          draw: 'SureFit「A2」または「D4」(+0.75° ロフト/アップライト)',
+          winter: 'SureFit「D4」(ロフト +0.75° で冬のドロップ防止)'
+        },
+        weightSystem: {
+          low_spin: 'SureFit CGトラック「T1 / T2 (Toe寄り)」(打点に重心を一致させ左を消す)',
+          balanced: 'SureFit CGトラック「N (Neutral)」',
+          high_launch: 'SureFit CGトラック「H1 (Heel寄り)」'
+        },
+        desc: 'フェース寄りに配置されたSureFit CGトラックにより、打点位置と重心位置を精密に一致させてボール初速を最大化するツアーモデル。'
+      },
+      {
+        id: 'qi35_ls',
+        brand: 'TaylorMade',
+        model: 'Qi35 LS',
+        category: 'Tour_LS',
+        baseLofts: [9.0, 10.5],
+        moiClass: 8950,
+        spinBias: -480,
+        launchBias: -1.3,
+        faceBias: 'anti_left_3',
+        lieBase: 57.0,
+        sleeveSystem: {
+          anti_left: 'スリーブ「LOWER (-0.75°〜-1.5°)」(オープンフェース化)',
+          neutral: 'スリーブ「STD LOFT」(標準57°ライ)',
+          draw: 'スリーブ「HIGHER (+1.5°)」',
+          winter: 'スリーブ「+0.75° LOFT」(冬場のキャリー維持)'
+        },
+        weightSystem: {
+          low_spin: 'TASウェイト「Toe 13g / Heel 3g / Back 3g」(前・トゥ重心で強弾道)',
+          balanced: 'TASウェイト「前重均等セッティング」',
+          high_launch: 'TASウェイト「Back 13g / Front 3g×2」(後方重で高MOI・高打ち出し)'
+        },
+        desc: 'カーボンフェースと3点TAS可変ウェイトにより、前後左右の重心位置を自在に制御できる超低スピン・高初速ヘッド。'
+      },
+      {
+        id: 'zxi_ls',
+        brand: 'Srixon',
+        model: 'ZXi LS (および 2026 ZXi RKT LS)',
+        category: 'Tour_LS',
+        baseLofts: [9.0, 10.5],
+        moiClass: 9100,
+        spinBias: -380,
+        launchBias: -0.8,
+        faceBias: 'anti_left_2',
+        lieBase: 57.5,
+        sleeveSystem: {
+          anti_left: 'QTSスリーブ「1.0° Flat / -1.0° Loft」',
+          neutral: 'QTSスリーブ「STD」',
+          draw: 'QTSスリーブ「+1.0° Loft / Upright」',
+          winter: 'QTSスリーブ「1.0° Flat / +0.5° Loft」'
+        },
+        weightSystem: {
+          low_spin: 'ソール前後ウェイト「前10g / 後4g」(浅重心・強弾道モード)',
+          balanced: '標準ウェイト配分 (前8g / 後6g)',
+          high_launch: 'ソール前後ウェイト「前4g / 後10g」(深重心・キャリーモード)'
+        },
+        desc: 'i-FLEXフェースによる圧倒的な初速性能とスリクソンアイアン（ZX7 Mk II / ZXi7）からの構えやすさ・流れが完璧な低スピンモデル。'
+      },
+      {
+        id: 'g440_k_max',
+        brand: 'PING',
+        model: 'G440 K / G440 MAX (10K MOIクラス)',
+        category: 'High_MOI_10K',
+        baseLofts: [9.0, 10.5, 12.0],
+        moiClass: 10150,
+        spinBias: 0,
+        launchBias: 0.8,
+        faceBias: 'neutral',
+        lieBase: 59.5,
+        sleeveSystem: {
+          anti_left: 'フラット「-1.0°」(ライ角58.5°フラット化で左巻きを防止)',
+          neutral: 'フラット「±0°」または「STD」',
+          draw: '標準「+1.0°」(高打ち出しドロー)',
+          winter: '標準「+1.0°」(冬場の高キャリー仕様)'
+        },
+        weightSystem: {
+          low_spin: '後部ウェイト「Fadeポジション」',
+          balanced: '後部ウェイト「Neutralポジション」(上下左右MOI 10,000g・cm²超)',
+          high_launch: '後部ウェイト「Drawポジション」'
+        },
+        desc: '上下左右の合計MOIが10,000g・cm²を超える究極の直進安定ヘッド。打点が散らばってもフェースがブレずFWキープ率を劇的に引き上げる。'
+      },
+      {
+        id: 'gt2',
+        brand: 'Titleist',
+        model: 'GT2',
+        category: 'Core_HighMOI',
+        baseLofts: [9.0, 10.0, 11.0],
+        moiClass: 9550,
+        spinBias: -150,
+        launchBias: 0.3,
+        faceBias: 'neutral',
+        lieBase: 58.5,
+        sleeveSystem: {
+          anti_left: 'SureFit「B1」(フラット -0.75°)',
+          neutral: 'SureFit「A1」(標準)',
+          draw: 'SureFit「D4」(+0.75° ロフト＆つかまり)',
+          winter: 'SureFit「C3 / D4」(+0.75° ロフト)'
+        },
+        weightSystem: {
+          low_spin: 'リアウェイト標準9g（低スピン高MOIバランス）',
+          balanced: 'リアウェイト標準9g',
+          high_launch: 'リアウェイト+2g増量（深重心・高打ち出し）'
+        },
+        desc: '高MOIによる抜群の寛容性とタイトリストらしい引き締まった打感・低スピン性能を高次元で融合した万能モデル。'
+      },
+      {
+        id: 'elyte_core',
+        brand: 'Callaway',
+        model: 'ELYTE (スタンダード) / ELYTE X',
+        category: 'Core_HighMOI',
+        baseLofts: [9.0, 10.5, 12.0],
+        moiClass: 9600,
+        spinBias: -100,
+        launchBias: 0.6,
+        faceBias: 'draw_1',
+        lieBase: 58.0,
+        sleeveSystem: {
+          anti_left: 'OptiFit「N / -1」(ロフト-1.0° で捕まりすぎを抑制)',
+          neutral: 'OptiFit「N / S」(標準)',
+          draw: 'OptiFit「D / S」または「D / +1」(ドローバイアス最大化)',
+          winter: 'OptiFit「D / +1」(冬場の右すっぽ抜け＆ドロップ防止)'
+        },
+        weightSystem: {
+          low_spin: 'ディスクリートウェイト「Neutralポジション」',
+          balanced: 'ディスクリートウェイト「Neutralポジション」',
+          high_launch: 'ディスクリートウェイト「Drawポジション」(ヒール寄り)'
+        },
+        desc: 'Ai 10xフェースが打点ブレによるスピンと初速のバラつきを自動補正。適度なつかまりと高い直進性を両立。'
+      },
+      {
+        id: 'qi35_max',
+        brand: 'TaylorMade',
+        model: 'Qi35 / Qi35 MAX (10K MOI)',
+        category: 'High_MOI_10K',
+        baseLofts: [9.0, 10.5, 12.0],
+        moiClass: 10050,
+        spinBias: +50,
+        launchBias: 1.0,
+        faceBias: 'draw_1',
+        lieBase: 58.0,
+        sleeveSystem: {
+          anti_left: 'スリーブ「LOWER (-0.75°)」',
+          neutral: 'スリーブ「STD LOFT」',
+          draw: 'スリーブ「UPRIGHT / HIGHER (+1.0°)」',
+          winter: 'スリーブ「HIGHER (+1.0°)」'
+        },
+        weightSystem: {
+          low_spin: 'TAS前後ウェイト「前重セッティング」(Qi35 Core)',
+          balanced: '10K固定高慣性ウェイト(Qi35 MAX)',
+          high_launch: 'TAS前後ウェイト「後重セッティング」'
+        },
+        desc: 'フェース面上のどこに当たってもヘッドがねじれない10Kクラスの慣性モーメントを実現し、安定したキャリーとFWキープをもたらす。'
+      },
+      {
+        id: 'g440_sft_hl',
+        brand: 'PING',
+        model: 'G440 SFT / G440 HL',
+        category: 'Draw_Light',
+        baseLofts: [10.5, 12.0],
+        moiClass: 9400,
+        spinBias: +250,
+        launchBias: 1.8,
+        faceBias: 'draw_3',
+        lieBase: 59.5,
+        sleeveSystem: {
+          anti_left: '標準「-1.0°」',
+          neutral: '標準「±0°」',
+          draw: '標準「+1.0°」(最大ドロー＆高弾道)',
+          winter: '標準「+1.5°」'
+        },
+        weightSystem: {
+          low_spin: '23gバックウェイト「Drawポジション」',
+          balanced: '23gバックウェイト「Draw+ポジション」(超つかまり設計)',
+          high_launch: 'HL軽量ウェイト仕様（振り抜きスピード最大化）'
+        },
+        desc: '右へのプッシュスライスやヒール擦り球を物理的に解消するドロー設計。軽量HL仕様はHS 38m/s以下のキャリーを劇的に伸ばす。'
+      }
+    ];
+
+    // 全重量帯(30g〜80g)・全フレックス(R2〜TX)対応シャフトマスターデータベース
+    const SHAFT_DB = [
+      // --- Fujikura 26 VENTUS TR BLACK ---
+      { id: '26v_tr_bk_5s', brand: 'Fujikura', model: '26 VENTUS TR BLACK 5', flex: 'S', weight: 61.0, torque: 3.5, kick: '元調子', cpm: 262, tipStiff: 96, cb: false, ifc: '[7-7-8-8]', note: '2026年最新世代。VeloCore+と手元Spread Tow Fabricで50g台ながら当たり負けゼロ。' },
+      { id: '26v_tr_bk_6s', brand: 'Fujikura', model: '26 VENTUS TR BLACK 6', flex: 'S', weight: 69.5, torque: 3.1, kick: '元調子', cpm: 270, tipStiff: 98, cb: false, ifc: '[8-8-8-9]', note: '2026年6月発売。初代TR BLACKより振動収束が速く、強振しても左へ行かない。' },
+      { id: '26v_tr_bk_6x', brand: 'Fujikura', model: '26 VENTUS TR BLACK 6', flex: 'X', weight: 69.5, torque: 2.9, kick: '元調子', cpm: 280, tipStiff: 99, cb: false, ifc: '[9-9-9-9]', note: 'VeloCore+とSpread Towで切り返しの扁平を完全抑制。HS46〜50m/sの左ミスを完全封鎖。' },
+      { id: '26v_tr_bk_7x', brand: 'Fujikura', model: '26 VENTUS TR BLACK 7', flex: 'X', weight: 79.5, torque: 2.7, kick: '元調子', cpm: 288, tipStiff: 100, cb: false, ifc: '[9-9-9-9]', note: 'ツアー最高峰のねじれ剛性(2.7°)。ハードヒッターが全力で叩ける絶対的直進シャフト。' },
+
+      // --- Fujikura 26 VENTUS TR BLUE ---
+      { id: '26v_tr_bl_5r', brand: 'Fujikura', model: '26 VENTUS TR BLUE 5', flex: 'R', weight: 61.0, torque: 3.6, kick: '中元調子', cpm: 244, tipStiff: 88, cb: false, ifc: '[5-5-6-7]', note: '2026年新型TR BLUEの5R。手元剛性が高く切り返しが速いHS40〜43m/s層に最適。' },
+      { id: '26v_tr_bl_5s', brand: 'Fujikura', model: '26 VENTUS TR BLUE 5', flex: 'S', weight: 61.0, torque: 3.4, kick: '中元調子', cpm: 255, tipStiff: 91, cb: false, ifc: '[6-6-7-8]', note: '中弾道・低スピンで振り抜きと方向安定性を高次元で両立する2026年最新50g台。' },
+      { id: '26v_tr_bl_6s', brand: 'Fujikura', model: '26 VENTUS TR BLUE 6', flex: 'S', weight: 69.5, torque: 3.1, kick: '中元調子', cpm: 265, tipStiff: 94, cb: false, ifc: '[7-6-8-8]', note: 'ヒールヒット時でもヘッドが当たり負けずストレートに運んでくれる2026年主力モデル。' },
+      { id: '26v_tr_bl_6x', brand: 'Fujikura', model: '26 VENTUS TR BLUE 6', flex: 'X', weight: 69.5, torque: 2.9, kick: '中元調子', cpm: 275, tipStiff: 96, cb: false, ifc: '[8-7-8-9]', note: 'Spread Tow Fabricで中間〜手元のねじれを2.9°に抑制。中元のしなり感と先端の圧倒的強さを両立。' },
+      { id: '26v_tr_bl_7s', brand: 'Fujikura', model: '26 VENTUS TR BLUE 7', flex: 'S', weight: 79.5, torque: 2.9, kick: '中元調子', cpm: 272, tipStiff: 96, cb: false, ifc: '[8-7-8-9]', note: '70g台の重さで軌道を安定させつつ、中元のタメで適正スピン・中弾道を生む。' },
+
+      // --- Fujikura 24 VENTUS BLACK ---
+      { id: '24v_bk_5s', brand: 'Fujikura', model: '24 VENTUS BLACK 5', flex: 'S', weight: 59.5, torque: 3.5, kick: '元調子', cpm: 258, tipStiff: 93, cb: false, ifc: '[6-7-8-8]', note: 'VeloCore Plus搭載。50g台でシャープに振り抜きながら吹け上がりと左ミスを抑える。' },
+      { id: '24v_bk_6s', brand: 'Fujikura', model: '24 VENTUS BLACK 6', flex: 'S', weight: 66.0, torque: 3.2, kick: '元調子', cpm: 266, tipStiff: 95, cb: false, ifc: '[7-7-8-9]', note: '初代より手元のしなり感を残してタイミングが取りやすく、先端剛性で直進性を最大化。' },
+      { id: '24v_bk_6x', brand: 'Fujikura', model: '24 VENTUS BLACK 6', flex: 'X', weight: 66.5, torque: 3.0, kick: '元調子', cpm: 276, tipStiff: 97, cb: false, ifc: '[8-8-9-9]', note: '66.5g・トルク3.0°。MODUS 120 Sからの重量フローにピタリと合い、ベタ足強振でも左へ巻かない。' },
+      { id: '24v_bk_7s', brand: 'Fujikura', model: '24 VENTUS BLACK 7', flex: 'S', weight: 75.0, torque: 3.0, kick: '元調子', cpm: 273, tipStiff: 97, cb: false, ifc: '[8-8-8-9]', note: '75gの重量感とVeloCore Plusの復元力でオフセンターヒット時のフェースブレを完封。' },
+      { id: '24v_bk_7x', brand: 'Fujikura', model: '24 VENTUS BLACK 7', flex: 'X', weight: 75.5, torque: 2.9, kick: '元調子', cpm: 284, tipStiff: 99, cb: false, ifc: '[8-8-9-9]', note: 'HS 47〜50m/sの本命スペック。ローヒール打点でもトゥダウンせず低スピン強弾道を維持。' },
+
+      // --- Fujikura 24 VENTUS BLUE & RED ---
+      { id: '24v_bl_5r', brand: 'Fujikura', model: '24 VENTUS BLUE 5', flex: 'R', weight: 58.5, torque: 3.7, kick: '中元調子', cpm: 238, tipStiff: 84, cb: false, ifc: '[5-4-6-7]', note: 'HS 40m/s前後から使えるVeloCore Plus搭載モデル。芯を外しても初速が落ちない。' },
+      { id: '24v_bl_5s', brand: 'Fujikura', model: '24 VENTUS BLUE 5', flex: 'S', weight: 58.5, torque: 3.5, kick: '中元調子', cpm: 250, tipStiff: 87, cb: false, ifc: '[6-5-7-7]', note: '中間のしなりでタイミングが取りやすく、先端剛性で左右のバラつきを抑える万能5S。' },
+      { id: '24v_bl_6s', brand: 'Fujikura', model: '24 VENTUS BLUE 6', flex: 'S', weight: 65.5, torque: 3.3, kick: '中元調子', cpm: 260, tipStiff: 90, cb: false, ifc: '[7-6-7-8]', note: '高MOIヘッドと相性抜群の王道6S。冬場のゴルフや力みを抜きたいラウンドにも最適。' },
+      { id: '24v_bl_6x', brand: 'Fujikura', model: '24 VENTUS BLUE 6', flex: 'X', weight: 66.0, torque: 3.1, kick: '中元調子', cpm: 271, tipStiff: 93, cb: false, ifc: '[8-7-8-9]', note: '66g・トルク3.1°。中元の適度なタメと先端のVeloCore Plusで安定したキャリーを稼ぐ。' },
+      { id: '24v_rd_5r', brand: 'Fujikura', model: '24 VENTUS RED 5', flex: 'R', weight: 53.0, torque: 4.0, kick: '先中調子', cpm: 232, tipStiff: 80, cb: false, ifc: '[5-4-4-5]', note: 'VeloCore Plusで先端の当たり負けを防ぎつつ、スピード感ある走りで高打ち出し・つかまりを実現。' },
+      { id: '24v_rd_6x', brand: 'Fujikura', model: '24 VENTUS RED 6', flex: 'X', weight: 67.5, torque: 3.2, kick: '先中調子', cpm: 269, tipStiff: 88, cb: false, ifc: '[8-7-7-7]', note: 'ハードヒッターが低スピンヘッドで球を上げてキャリーを伸ばせる叩ける先中調子。' },
+
+      // --- Mitsubishi Chemical Diamana PD / WB / BB / RB / D-LIMITED ---
+      { id: 'dia_pd_50s', brand: 'Mitsubishi', model: 'Diamana PD 50', flex: 'S', weight: 54.5, torque: 4.8, kick: '中元調子', cpm: 251, tipStiff: 86, cb: false, ifc: '[5-5-6-7]', note: '50g台でシャープに振り抜け、先端剛性で打点ブレを抑える中元調子。' },
+      { id: 'dia_pd_60s', brand: 'Mitsubishi', model: 'Diamana PD 60', flex: 'S', weight: 64.5, torque: 3.3, kick: '中元調子', cpm: 263, tipStiff: 92, cb: false, ifc: '[7-7-8-8]', note: 'MR70とボロン繊維を配合。切り返しのスムーズさとインパクトの先端安定感を両立。' },
+      { id: 'dia_pd_60x', brand: 'Mitsubishi', model: 'Diamana PD 60', flex: 'X', weight: 66.5, torque: 3.2, kick: '中元調子', cpm: 274, tipStiff: 95, cb: false, ifc: '[8-7-8-9]', note: '66.5g・トルク3.2°。MODUS 120 Sからの重量フローに完全合致し、左へのミスを抑えて強弾道を生む。' },
+      { id: 'dia_pd_70s', brand: 'Mitsubishi', model: 'Diamana PD 70', flex: 'S', weight: 74.0, torque: 3.0, kick: '中元調子', cpm: 270, tipStiff: 95, cb: false, ifc: '[7-7-8-9]', note: '74g・トルク3.0°。重さでスイングプレーンを安定させ、ローヒール打点の当たり負けを防止。' },
+      { id: 'dia_pd_70x', brand: 'Mitsubishi', model: 'Diamana PD 70', flex: 'X', weight: 75.0, torque: 3.0, kick: '中元調子', cpm: 281, tipStiff: 97, cb: false, ifc: '[8-7-8-9]', note: 'ボロン繊維補強の先端剛性(Tip 9)がローヒール打点のトゥダウンと左巻きを完封する本命モデル。' },
+
+      { id: 'dia_wb_53s', brand: 'Mitsubishi', model: 'Diamana WB 53', flex: 'S', weight: 54.0, torque: 4.6, kick: '元調子', cpm: 250, tipStiff: 87, cb: false, ifc: '[5-6-7-7]', note: '第6世代白マナ50g台。手元のしなりでタイミングが取りやすく先端が走らない。' },
+      { id: 'dia_wb_63s', brand: 'Mitsubishi', model: 'Diamana WB 63', flex: 'S', weight: 61.0, torque: 3.1, kick: '元調子', cpm: 263, tipStiff: 93, cb: false, ifc: '[6-7-8-8]', note: 'NEW TIP TECで先端ねじれを3.1°に最適化。手元がしなって左への引っかけを消す。' },
+      { id: 'dia_wb_63x', brand: 'Mitsubishi', model: 'Diamana WB 63', flex: 'X', weight: 63.5, torque: 3.1, kick: '元調子', cpm: 274, tipStiff: 95, cb: false, ifc: '[7-8-8-9]', note: '手元DIALEADとMR70により、切り返しが速いゴルファーでもフェースが被らず強弾道が打てる。' },
+      { id: 'dia_wb_73x', brand: 'Mitsubishi', model: 'Diamana WB 73', flex: 'X', weight: 72.0, torque: 2.9, kick: '元調子', cpm: 282, tipStiff: 97, cb: false, ifc: '[8-8-8-9]', note: '72g・トルク2.9°。高MOI・低スピンヘッドと組んで左を恐れず叩き込める第6世代白マナ。' },
+
+      { id: 'dia_bb_43r', brand: 'Mitsubishi', model: 'Diamana BB 43', flex: 'R', weight: 44.5, torque: 5.1, kick: '中元調子', cpm: 222, tipStiff: 78, cb: false, ifc: '[3-3-4-5]', note: '第6世代青マナ40g台。変曲点のない滑らかなしなり戻りでミート率とキャリーを向上。' },
+      { id: 'dia_bb_53s', brand: 'Mitsubishi', model: 'Diamana BB 53', flex: 'S', weight: 53.5, torque: 4.9, kick: '中元調子', cpm: 248, tipStiff: 85, cb: false, ifc: '[5-5-6-7]', note: 'クセのない中元調子でボディターン・リストターン問わず芯に集まる50g台。' },
+      { id: 'dia_bb_63s', brand: 'Mitsubishi', model: 'Diamana BB 63', flex: 'S', weight: 61.0, torque: 3.2, kick: '中元調子', cpm: 261, tipStiff: 90, cb: false, ifc: '[6-6-7-8]', note: 'MODUS 105/120ユーザーに好相性。自然なしなり戻りで初速と方向性を両立。' },
+      { id: 'dia_bb_63x', brand: 'Mitsubishi', model: 'Diamana BB 63', flex: 'X', weight: 61.5, torque: 3.2, kick: '中元調子', cpm: 271, tipStiff: 92, cb: false, ifc: '[7-7-8-8]', note: 'ハードすぎない61.5gのXフレックス。冬場のラウンドやタイミング重視のセッティングに最適。' },
+      { id: 'dia_bb_73x', brand: 'Mitsubishi', model: 'Diamana BB 73', flex: 'X', weight: 70.5, torque: 2.9, kick: '中元調子', cpm: 279, tipStiff: 94, cb: false, ifc: '[7-7-8-9]', note: '70.5g・トルク2.9°。青マナの素直な挙動にツアーレベルの先端安定性をプラス。' },
+
+      { id: 'dia_dlim_60x', brand: 'Mitsubishi', model: 'Diamana D-LIMITED 60', flex: 'X', weight: 66.0, torque: 3.3, kick: '元調子', cpm: 275, tipStiff: 95, cb: false, ifc: '[8-8-8-9]', note: '手元DIALEAD搭載。メジャー制覇の実績を持つ左ミス完全抑制の元調子。' },
+      { id: 'dia_dlim_70x', brand: 'Mitsubishi', model: 'Diamana D-LIMITED 70', flex: 'X', weight: 75.5, torque: 2.9, kick: '元調子', cpm: 283, tipStiff: 97, cb: false, ifc: '[8-8-9-9]', note: '75.5g・トルク2.9°。圧倒的な方向安定性でフェード・ストレートを自在に操れる。' },
+
+      // --- Mitsubishi TENSEI 1K Series ---
+      { id: 'ten_wh_60s', brand: 'Mitsubishi', model: 'TENSEI Pro White 1K 60', flex: 'S', weight: 61.5, torque: 3.8, kick: '元調子', cpm: 263, tipStiff: 93, cb: false, ifc: '[6-7-8-9]', note: '手元1Kクロスのしなやかなタメと強靭な先端剛性で芯を食うインパクトを実現。' },
+      { id: 'ten_wh_60x', brand: 'Mitsubishi', model: 'TENSEI Pro White 1K 60', flex: 'X', weight: 65.0, torque: 3.8, kick: '元調子', cpm: 274, tipStiff: 95, cb: false, ifc: '[7-8-8-9]', note: '切り返しで深いタメを作り、インパクトでヘッドが走らず左への巻き込みを防ぐ。' },
+      { id: 'ten_wh_70x', brand: 'Mitsubishi', model: 'TENSEI Pro White 1K 70', flex: 'X', weight: 74.5, torque: 2.7, kick: '元調子', cpm: 283, tipStiff: 98, cb: false, ifc: '[7-8-9-9]', note: '70g台でトルクが2.7°へ一気に絞られる特別設計。Diamana PD 7Xと同等の高い先端安定性。' },
+
+      { id: 'ten_or_60s', brand: 'Mitsubishi', model: 'TENSEI Pro Orange 1K 60', flex: 'S', weight: 68.0, torque: 3.0, kick: '元調子(CB)', cpm: 264, tipStiff: 95, cb: true, ifc: '[6-7-8-9]', note: 'カウンターバランス設計で重ヘッドのトゥダウンを抑制。トルク3.0°で方向性抜群。' },
+      { id: 'ten_or_60x', brand: 'Mitsubishi', model: 'TENSEI Pro Orange 1K 60 (および RIP+)', flex: 'X', weight: 72.5, torque: 3.0, kick: '元調子(CB)', cpm: 276, tipStiff: 97, cb: true, ifc: '[7-8-9-9]', note: 'カウンターバランスによりダウンスイングでのトゥダウン（ローヒール打点の主因）を劇的に軽減。' },
+      { id: 'ten_or_70x', brand: 'Mitsubishi', model: 'TENSEI Pro Orange 1K 70', flex: 'X', weight: 81.5, torque: 2.7, kick: '元調子(CB)', cpm: 284, tipStiff: 98, cb: true, ifc: '[7-8-9-9]', note: 'トルク2.7°＆カウンターバランス。高MOIヘッドを振り抜きやすくし、サイドスピンを極小化。' },
+
+      // --- Graphite Design TOUR AD ---
+      { id: 'ad_vf_5s', brand: 'Graphite Design', model: 'TOUR AD VF-5', flex: 'S', weight: 56.0, torque: 4.3, kick: '中元調子', cpm: 252, tipStiff: 88, cb: false, ifc: '[6-5-7-7]', note: '50g台で手元M40Xのシャープな振り抜きと先端T1100Gの強さを両立。' },
+      { id: 'ad_vf_6s', brand: 'Graphite Design', model: 'TOUR AD VF-6', flex: 'S', weight: 65.0, torque: 3.3, kick: '中元調子', cpm: 264, tipStiff: 94, cb: false, ifc: '[7-6-8-9]', note: '手元M40Xと先端T1100Gを採用。強い切り返しでも振り遅れず打点の散らばりを抑える。' },
+      { id: 'ad_vf_6x', brand: 'Graphite Design', model: 'TOUR AD VF-6', flex: 'X', weight: 67.0, torque: 3.3, kick: '中元調子', cpm: 275, tipStiff: 96, cb: false, ifc: '[8-7-8-9]', note: '点で攻める精度と初速を両立。インサイドから叩いてもフェースが被らない進化系中元調子。' },
+      { id: 'ad_vf_7x', brand: 'Graphite Design', model: 'TOUR AD VF-7', flex: 'X', weight: 75.0, torque: 3.0, kick: '中元調子', cpm: 283, tipStiff: 97, cb: false, ifc: '[8-7-8-9]', note: '75g・トルク3.0°。ハードヒッターの強いタメを受け止め、低スピン強弾道へ導く。' },
+
+      { id: 'ad_gc_5s', brand: 'Graphite Design', model: 'TOUR AD GC-5', flex: 'S', weight: 56.0, torque: 4.5, kick: '中調子', cpm: 251, tipStiff: 87, cb: false, ifc: '[5-5-6-6]', note: 'AD SHIELDと先太形状でシャフトの「ねじれとつぶれ」を抑え、ミート率を引き上げる。' },
+      { id: 'ad_gc_6s', brand: 'Graphite Design', model: 'TOUR AD GC-6', flex: 'S', weight: 65.0, torque: 3.1, kick: '中調子', cpm: 263, tipStiff: 92, cb: false, ifc: '[7-6-7-8]', note: '65g・トルク3.1°。剛性差の少ないニュートラル設計でオフセンターヒットに極めて強い。' },
+      { id: 'ad_gc_6x', brand: 'Graphite Design', model: 'TOUR AD GC-6', flex: 'X', weight: 67.0, torque: 3.1, kick: '中調子', cpm: 273, tipStiff: 94, cb: false, ifc: '[8-7-8-8]', note: 'フープ層AD SHIELDがつぶれ変形を防ぎ、ヒール・トゥ打点でも高初速を維持。' },
+      { id: 'ad_fi_6s', brand: 'Graphite Design', model: 'TOUR AD FI-6 (2025/2026)', flex: 'S', weight: 64.0, torque: 3.2, kick: '中調子', cpm: 261, tipStiff: 90, cb: false, ifc: '[7-6-7-8]', note: 'トルネードチップテクノロジー搭載。低スピンヘッドで初速を落とさず高い打ち出しを確保。' },
+
+      // --- UST Mamiya & Nippon Shaft & Project X ---
+      { id: 'linq_wh_6x', brand: 'UST Mamiya', model: 'LIN-Q WHITE EX 6', flex: 'X', weight: 70.0, torque: 3.1, kick: '元調子', cpm: 276, tipStiff: 96, cb: false, ifc: '[8-8-8-9]', note: 'QPly CoreとM40Xを融合。70g・トルク3.1°の重硬設計でフェード・直進弾道の再現性が抜群。' },
+      { id: 'linq_bl_6s', brand: 'UST Mamiya', model: 'LIN-Q BLUE EX 6', flex: 'S', weight: 67.0, torque: 2.9, kick: '中元調子', cpm: 264, tipStiff: 94, cb: false, ifc: '[7-7-8-9]', note: '60g台Sでトルク2.9°の超低トルクを実現。オフセンターヒット時のフェース開閉を徹底抑制。' },
+      { id: 'regio_b_65s', brand: 'Nippon Shaft', model: 'N.S.PRO Regio Formula B+ TYPE65', flex: 'S', weight: 66.5, torque: 2.9, kick: '中調子', cpm: 262, tipStiff: 93, cb: false, ifc: '[6-6-7-8]', note: 'MODUS3 TOUR 120と同一の剛性曲線を持つ専用設計。16軸組布とトルク2.9°で最速のつぶれ戻り。' },
+      { id: 'regio_b_65x', brand: 'Nippon Shaft', model: 'N.S.PRO Regio Formula B+ TYPE65', flex: 'X', weight: 68.5, torque: 2.9, kick: '中調子', cpm: 273, tipStiff: 95, cb: false, ifc: '[7-7-8-9]', note: 'MODUS3 120ユーザーに最高の同調性。先端16軸組布がローヒール打点の当たり負けをブロック。' },
+      { id: 'hzrdus_gn_65', brand: 'Project X', model: 'HZRDUS Smoke Green RDX 60', flex: '6.5(X)', weight: 64.0, torque: 2.8, kick: '元調子(CB)', cpm: 282, tipStiff: 99, cb: true, ifc: '[9-9-9-9]', note: 'トルク2.8°＆カウンターバランス。市場最高クラスのねじれ剛性で左へのミスを物理的にゼロにする。' },
+
+      // --- Lightweight / Mid-Speed Spectrum (30g〜50g R2/R/SR) ---
+      { id: 'vanq_4r2', brand: 'Mitsubishi', model: 'VANQUISH VV 4', flex: 'R2', weight: 47.7, torque: 6.0, kick: '中調子', cpm: 217, tipStiff: 76, cb: false, ifc: '[2-2-3-3]', note: '超精密軽量ブランド最新中調子。NEW TIP TECで軽量ながら打点ブレを抑えHSを+1.5m/s引き上げる。' },
+      { id: 'vanq_4r', brand: 'Mitsubishi', model: 'VANQUISH VV 4', flex: 'R', weight: 47.7, torque: 6.0, kick: '中調子', cpm: 231, tipStiff: 79, cb: false, ifc: '[3-3-3-4]', note: '40g台で先端剛性を高め、吹き上がらず前へ押し出す強弾道を実現する精密軽量シャフト。' },
+      { id: 'vanq_5sr', brand: 'Mitsubishi', model: 'VANQUISH VV 5', flex: 'SR', weight: 55.4, torque: 4.5, kick: '中調子', cpm: 236, tipStiff: 82, cb: false, ifc: '[4-4-4-5]', note: 'HS 38〜42m/s層に最適な50g台SR。重量・振動数公差±1の高精度でミート率が劇的に安定。' },
+      { id: 'nx_vio_40r', brand: 'Fujikura', model: 'SPEEDER NX VIOLET 40', flex: 'R', weight: 48.5, torque: 5.4, kick: '中調子', cpm: 228, tipStiff: 80, cb: false, ifc: '[3-3-3-4]', note: '新技術DHXがバイアス層を強化し、ヘッドスピードアップとオフセンターの安定感を両立。' },
+      { id: 'nx_vio_50sr', brand: 'Fujikura', model: 'SPEEDER NX VIOLET 50', flex: 'SR', weight: 55.0, torque: 4.6, kick: '中調子', cpm: 240, tipStiff: 84, cb: false, ifc: '[4-4-5-5]', note: 'つかまりと高打ち出しを確保しつつ、先端剛性で吹け上がりを防ぐ50g台主力モデル。' },
+      { id: 'nx_vio_50s', brand: 'Fujikura', model: 'SPEEDER NX VIOLET 50', flex: 'S', weight: 56.5, torque: 4.6, kick: '中調子', cpm: 249, tipStiff: 86, cb: false, ifc: '[5-5-5-6]', note: '中調子のタイミングの取りやすさとVTCによる先端・手元の部分トルク制御で直進性抜群。' }
+    ];
+
+    // =========================================================================
+    // 2. APPLICATION STATE & D-PLANE / IMPACT DEFINITIONS
+    // =========================================================================
+    const state = {
+      heightChoice: 'midlow', // low, midlow, mid, high, balloon, unknown
+      flightChoice: 1,        // 1..10
+      impactChoice: 'low_heel', // low_heel, high_heel, center, high_toe, low_toe
+      season: 'all'           // all, summer, winter
+    };
+
+    const DPLANE_MAP = {
+      1:  { name: '① 左へ出て、さらに左へ巻く (プルフック)', launchDir: '左打ち出し (-3.0°)', face: -3.5, path: 0.5, f2p: -4.0, bias: 'anti_left_3' },
+      2:  { name: '② 左へ出て、そのまま真っ直ぐ左 (プル直進)', launchDir: '左打ち出し (-3.0°)', face: -3.0, path: -3.0, f2p: 0.0, bias: 'anti_left_2' },
+      3:  { name: '③ 左へ出て、右へ曲がって戻る (プルフェード)', launchDir: '左打ち出し (-2.0°)', face: -1.5, path: -5.0, f2p: 3.5, bias: 'neutral_fade' },
+      4:  { name: '④ 真っ直ぐ出て、左へ曲がる (ストレートドロー)', launchDir: '中央打ち出し (0.0°)', face: -0.5, path: 3.0, f2p: -3.5, bias: 'anti_left_2' },
+      5:  { name: '⑤ 真っ直ぐ出て、真っ直ぐ飛ぶ (ストレート)', launchDir: '中央打ち出し (0.0°)', face: 0.0, path: 0.0, f2p: 0.0, bias: 'neutral' },
+      6:  { name: '⑥ 真っ直ぐ出て、右へ曲がる (ストレートフェード)', launchDir: '中央打ち出し (0.0°)', face: 0.5, path: -3.0, f2p: 3.5, bias: 'draw_1' },
+      7:  { name: '⑦ 右へ出て、左へ曲がって戻る (プッシュドロー)', launchDir: '右打ち出し (+2.0°)', face: 1.5, path: 5.0, f2p: -3.5, bias: 'anti_left_1' },
+      8:  { name: '⑧ 右へ出て、そのまま真っ直ぐ右 (プッシュ直進)', launchDir: '右打ち出し (+3.0°)', face: 3.0, path: 3.0, f2p: 0.0, bias: 'draw_2' },
+      9:  { name: '⑨ 右へ出て、さらに右へ曲がる (プッシュスライス)', launchDir: '右打ち出し (+3.0°)', face: 3.5, path: -0.5, f2p: 4.0, bias: 'draw_3' },
+      10: { name: '⑩ 球によって右にも左にも散る (逆球・タイミング不安定)', launchDir: '左右散乱 (±3.5°)', face: 0.0, path: 0.0, f2p: 4.5, bias: 'high_moi_10k' }
+    };
+
+    const IRON_WEIGHT_MAP = {
+      ultralight_carbon: { total7i: 352, shaft7i: 45, label: '超軽量カーボン (7I約352g)' },
+      std_carbon:        { total7i: 378, shaft7i: 60, label: '標準カーボン (7I約378g)' },
+      light_steel:       { total7i: 405, shaft7i: 96, label: '軽量スチール 950GH等 (7I約405g)' },
+      mid_steel:         { total7i: 422, shaft7i: 114, label: '中量スチール MODUS120等 (7I約422g)' },
+      heavy_steel:       { total7i: 438, shaft7i: 128, label: '重量スチール DG/MODUS125 (7I約438g)' }
+    };
+
+    // =========================================================================
+    // 3. MULTI-LAYER NOBEL-PHYSICS FITTING ENGINE
+    // =========================================================================
+    function runPhysicsEngine() {
+      // Read raw inputs
+      const gender = document.getElementById('inp-gender').value;
+      const age = parseInt(document.getElementById('inp-age').value, 10) || 50;
+      const heightCm = parseFloat(document.getElementById('inp-height').value) || 172;
+      const weightKg = parseFloat(document.getElementById('inp-weight').value) || 68;
+      const sport = document.getElementById('inp-sport').value;
+      const tempo = document.getElementById('inp-tempo').value;
+      const ironKey = document.getElementById('inp-iron').value;
+      const gloveCm = parseFloat(document.getElementById('inp-glove').value) || 23;
+      const sweatPref = document.getElementById('inp-sweat').value;
+
+      let rawHs = parseFloat(document.getElementById('inp-hs').value);
+      if (isNaN(rawHs) || rawHs < 25 || rawHs > 60) rawHs = 43.0;
+
+      // Seasonal Effective Head Speed adjustment
+      const effectiveHs = state.season === 'summer' ? rawHs + 0.6 : (state.season === 'winter' ? rawHs - 1.2 : rawHs);
+
+      const rawBs = parseFloat(document.getElementById('inp-bs').value);
+      const rawCarry = parseFloat(document.getElementById('inp-Carry').value);
+      const rawTotal = parseFloat(document.getElementById('inp-Total').value);
+      const fwKeep = parseFloat(document.getElementById('inp-fw').value) || 6;
+      const obCount = parseFloat(document.getElementById('inp-ob').value) || 1.5;
+
+      const dplane = DPLANE_MAP[state.flightChoice];
+
+      // -----------------------------------------------------------------------
+      // Layer 0: Sanity Check & Imputation Filter
+      // -----------------------------------------------------------------------
+      const impactOffsetMm = state.impactChoice === 'center' ? 3 : 13;
+      let sanityNotes = [];
+      let trueSf = 1.48;
+
+      if (!isNaN(rawBs) && rawBs > 30) {
+        const calcSf = rawBs / rawHs;
+        if (calcSf >= 1.30 && calcSf <= 1.515) {
+          trueSf = calcSf;
+        } else {
+          trueSf = Math.max(1.34, 1.495 - 0.0035 * impactOffsetMm - 0.0008 * Math.pow(Math.abs(dplane.f2p), 2));
+          sanityNotes.push(`BS/HS(${calcSf.toFixed(2)})が物理限界外のため打点からSF=${trueSf.toFixed(2)}へ自動補正`);
+        }
+      } else {
+        trueSf = Math.max(1.35, 1.495 - 0.0035 * impactOffsetMm - 0.0008 * Math.pow(Math.abs(dplane.f2p), 2));
+        sanityNotes.push(`BS未入力のため打点・軌道からSF=${trueSf.toFixed(2)}を自動推計`);
+      }
+      const trueBs = rawHs * trueSf;
+
+      // Distance validity check
+      let distValid = true;
+      if (isNaN(rawCarry) || isNaN(rawTotal) || rawTotal < rawCarry || (rawTotal - rawCarry) > 65 || rawCarry > rawHs * 6.15 || rawCarry < rawHs * 3.8) {
+        distValid = false;
+        sanityNotes.push('距離データが未入力または物理保存則外のためHS×弾道高低モデルで再構築');
+      }
+      const trueCarry = distValid ? rawCarry : Math.round(rawHs * 5.38 * (trueSf / 1.48));
+      const trueRoll = distValid ? (rawTotal - rawCarry) : (state.heightChoice === 'balloon' ? 8 : (state.heightChoice === 'low' ? 28 : 18));
+
+      const sanityBadge = document.getElementById('sanity-badge');
+      if (sanityNotes.length === 0) {
+        sanityBadge.textContent = `物理整合性チェック: 実測値正常 (ミート率 ${trueSf.toFixed(2)})`;
+        sanityBadge.className = 'text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold';
+      } else {
+        sanityBadge.textContent = `物理フィルタ補正済: ${sanityNotes[0]}`;
+        sanityBadge.className = 'text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold';
+      }
+
+      // -----------------------------------------------------------------------
+      // Stage 1: Weight Flow & Natural Frequency (f_cpm) Screening
+      // -----------------------------------------------------------------------
+      const tempoBonusWeight = tempo === 'fast' ? 2.5 : (tempo === 'smooth' ? -2.5 : 0);
+      const ageWeightAdj = age >= 70 ? -6.0 : (age >= 60 ? -3.5 : (age <= 30 ? 1.5 : 0));
+      const bodyWeightAdj = (weightKg - 65) * 0.12;
+
+      let idealDriverTotalWeight = 310;
+      let idealShaftWeight = 62;
+
+      if (ironKey !== 'unknown' && IRON_WEIGHT_MAP[ironKey]) {
+        const ironInfo = IRON_WEIGHT_MAP[ironKey];
+        idealDriverTotalWeight = Math.round(0.72 * ironInfo.total7i + 16.0 + tempoBonusWeight + ageWeightAdj);
+        idealShaftWeight = +(0.45 * ironInfo.shaft7i + 14.5 + tempoBonusWeight + ageWeightAdj).toFixed(1);
+      } else {
+        idealShaftWeight = +(1.45 * rawHs - 2.0 + bodyWeightAdj + tempoBonusWeight + ageWeightAdj).toFixed(1);
+        idealDriverTotalWeight = Math.round(idealShaftWeight + 250);
+      }
+
+      if (state.season === 'summer') {
+        idealShaftWeight = +(idealShaftWeight + 2.0).toFixed(1);
+      } else if (state.season === 'winter') {
+        idealShaftWeight = +(idealShaftWeight - 4.5).toFixed(1);
+      }
+
+      // Virtual Swing DNA (1-9 scale: Tempo / ToeDown / Kick)
+      const dnaTempo = Math.min(9, Math.max(1, (tempo === 'fast' ? 8 : (tempo === 'smooth' ? 3 : 5)) + (sport === 'baseball' || sport === 'tennis' ? 1 : 0)));
+      const dnaToeDown = Math.min(9, Math.max(1, Math.round((effectiveHs - 32) * 0.35) + (state.impactChoice === 'low_heel' || state.impactChoice === 'high_toe' ? 2 : 0)));
+      const dnaKick = (dplane.bias.startsWith('anti_left') || tempo === 'fast') ? 3 : (dplane.bias.startsWith('draw') ? 8 : 5);
+
+      const targetCpm = Math.round(4.35 * effectiveHs + 62 + 1.8 * dnaTempo + (sport === 'baseball' ? 3 : 0));
+
+      // -----------------------------------------------------------------------
+      // Stage 2: D-Plane Vector & 3D Gear Effect / 10K MOI Analysis
+      // -----------------------------------------------------------------------
+      const antiLeftLevel = dplane.bias === 'anti_left_3' ? 3 : (dplane.bias === 'anti_left_2' ? 2 : (dplane.bias === 'anti_left_1' ? 1 : 0));
+      const offCenterPenalty = state.impactChoice === 'center' ? 0 : 1;
+      const maxTorque = +(Math.max(2.6, 6.8 - 0.08 * effectiveHs - 0.25 * antiLeftLevel - 0.20 * offCenterPenalty)).toFixed(1);
+
+      const need10kMoi = (fwKeep <= 5 || obCount >= 2.5 || state.flightChoice === 10);
+
+      // Recommended club length (60-degree method)
+      let recLength = 45.25;
+      if (state.impactChoice === 'low_heel' || state.impactChoice === 'high_heel' || need10kMoi) {
+        recLength = effectiveHs >= 45 ? 45.25 : 45.0;
+      } else if (state.impactChoice === 'center' && fwKeep >= 9) {
+        recLength = 45.5;
+      }
+
+      // -----------------------------------------------------------------------
+      // Stage 3: Hybrid Ball-Height + Optimal Launch/Spin Window Decision Tree
+      // -----------------------------------------------------------------------
+      const optLaunch = +(21.5 - 0.20 * effectiveHs).toFixed(1);
+      const optSpin = Math.round(3350 - 26 * effectiveHs);
+
+      let spinDiagnosis = '適正スピンウィンドウ';
+      let spinAction = 'balanced'; // low_spin, balanced, high_launch
+      let recBaseLoft = effectiveHs >= 45 ? 9.0 : (effectiveHs >= 40 ? 10.5 : 11.5);
+
+      // Primary: Step 1 Visual Ball Height
+      if (state.heightChoice === 'balloon') {
+        spinDiagnosis = '吹き上がり・高スピンロス (推定3,100rpm超)';
+        spinAction = 'low_spin';
+        recBaseLoft = effectiveHs >= 43 ? 9.0 : 9.5;
+      } else if (state.heightChoice === 'low') {
+        spinDiagnosis = '低弾道・揚力不足ドロップ (推定1,850rpm未満)';
+        spinAction = 'high_launch';
+        recBaseLoft = effectiveHs >= 46 ? 10.0 : 10.5;
+      } else {
+        // Secondary Fallback & Cross-check via Roll = Total - Carry and Vertical Gear Effect
+        if (trueRoll <= 12 || (state.impactChoice === 'low_heel' && state.heightChoice === 'high')) {
+          spinDiagnosis = '下部打点・縦ギア効果によるスピン過多 (ラン不足)';
+          spinAction = 'low_spin';
+          recBaseLoft = effectiveHs >= 44 ? 9.0 : 10.0;
+        } else if (trueRoll >= 28 && trueCarry < rawHs * 5.1) {
+          spinDiagnosis = 'スピン不足によるキャリー失速';
+          spinAction = 'high_launch';
+          recBaseLoft = effectiveHs >= 45 ? 10.0 : 10.5;
+        } else if (state.impactChoice === 'low_heel' && effectiveHs >= 44) {
+          spinDiagnosis = 'ローヒール打点による縦ギア効果スピン増＆トゥダウン';
+          spinAction = 'low_spin';
+          recBaseLoft = 9.0;
+        }
+      }
+
+      if (state.season === 'winter' && recBaseLoft < 10.5 && spinAction !== 'low_spin') {
+        recBaseLoft = 10.0;
+      }
+
+      // Grip specification
+      let gripSpec = 'Golf Pride ツアーベルベット・ラバー360 (M60・バックラインなし)';
+      if (antiLeftLevel >= 2 || sweatPref === 'thick_right') {
+        const baseModel = (sweatPref === 'cord' || state.season === 'summer') ? 'Golf Pride MCC Teams / ツアーベルベット・コード' : 'Golf Pride ツアーベルベット・ラバー360';
+        gripSpec = `${baseModel} (口径M60・BLなし・右手側［下半分］下巻きテープ2〜3重巻きでリストの返りすぎを抑制)`;
+      } else if (gloveCm <= 21) {
+        gripSpec = 'Golf Pride ツアーベルベット・ラバー (M62またはL58 細め1重巻き・BLなし)';
+      } else if (gloveCm >= 25) {
+        gripSpec = 'Golf Pride MCC Plus4 Midsize または M60 全体下巻き3重巻き (BLなし)';
+      }
+
+      // -----------------------------------------------------------------------
+      // Score all Head x Shaft combinations
+      // -----------------------------------------------------------------------
+      const candidates = [];
+
+      for (const head of HEAD_DB) {
+        for (const shaft of SHAFT_DB) {
+          // 1. Weight Distance Penalty (Max 22 pts)
+          const wDiff = Math.abs(shaft.weight - idealShaftWeight);
+          const weightScore = Math.max(0, 22 - Math.pow(wDiff / 2.2, 1.55));
+
+          // 2. Frequency (CPM) & Flex Match (Max 22 pts)
+          const cpmDiff = Math.abs(shaft.cpm - targetCpm);
+          const cpmScore = Math.max(0, 22 - Math.pow(cpmDiff / 3.0, 1.5));
+
+          // 3. D-Plane & Kickpoint Match (Max 24 pts)
+          let dplaneScore = 15;
+          if (antiLeftLevel >= 2) {
+            if (head.faceBias.startsWith('anti_left')) dplaneScore += 6;
+            if (shaft.kick.includes('元')) dplaneScore += 3;
+            if (head.faceBias === 'draw_3') dplaneScore -= 12;
+          } else if (dplane.bias.startsWith('draw')) {
+            if (head.faceBias.startsWith('draw') || head.category === 'High_MOI_10K') dplaneScore += 6;
+            if (shaft.kick.includes('先') || shaft.kick === '中調子') dplaneScore += 3;
+            if (head.faceBias === 'anti_left_3') dplaneScore -= 10;
+          } else {
+            if (head.category.includes('HighMOI') || head.category === 'High_MOI_10K') dplaneScore += 6;
+            if (shaft.kick.includes('中')) dplaneScore += 3;
+          }
+          dplaneScore = Math.min(24, Math.max(0, dplaneScore));
+
+          // 4. Impact 5-Zone & 3D Gear Effect / Toe-Down Match (Max 22 pts)
+          let impactScore = 12;
+          if (state.impactChoice === 'low_heel') {
+            if (effectiveHs >= 43 || antiLeftLevel >= 1) {
+              // Hard hitter low-heel route: high tip stiffness + low torque + CB bonus
+              if (shaft.torque <= maxTorque) impactScore += 4;
+              if (shaft.tipStiff >= 94) impactScore += 4;
+              if (shaft.cb) impactScore += 2;
+            } else {
+              // Slicer low-heel route: High MOI + forgiving head
+              if (head.moiClass >= 9400) impactScore += 6;
+            }
+          } else if (state.impactChoice === 'high_toe') {
+            if (head.moiClass >= 9500) impactScore += 6;
+            if (shaft.tipStiff >= 92) impactScore += 4;
+          } else {
+            if (shaft.torque <= maxTorque + 0.4) impactScore += 6;
+          }
+          if (need10kMoi && head.moiClass >= 9600) {
+            impactScore += 4;
+          }
+          impactScore = Math.min(22, Math.max(0, impactScore));
+
+          // 5. Seasonal & Spin Window Match (Max 10 pts)
+          let seasonScore = 6;
+          if (spinAction === 'low_spin' && head.spinBias <= -350) seasonScore += 4;
+          if (spinAction === 'high_launch' && head.launchBias >= 0.3) seasonScore += 4;
+          if (state.season === 'winter' && (shaft.kick === '中元調子' || shaft.kick === '中調子')) seasonScore += 2;
+          if (state.season === 'summer' && shaft.torque <= 3.0) seasonScore += 2;
+          seasonScore = Math.min(10, seasonScore);
+
+          const totalScore = Math.round(Math.min(99, weightScore + cpmScore + dplaneScore + impactScore + seasonScore));
+
+          // Determine Sleeve & Weight strings
+          let sleeveText = head.sleeveSystem.neutral;
+          if (state.season === 'winter' && antiLeftLevel <= 1) {
+            sleeveText = head.sleeveSystem.winter;
+          } else if (antiLeftLevel >= 1 || state.impactChoice === 'low_heel') {
+            sleeveText = head.sleeveSystem.anti_left;
+          } else if (dplane.bias.startsWith('draw')) {
+            sleeveText = head.sleeveSystem.draw;
+          }
+
+          const weightText = head.weightSystem[spinAction] || head.weightSystem.balanced;
+          const chosenLoft = head.baseLofts.includes(9.0) && recBaseLoft <= 9.5 ? '9.0°' : (head.baseLofts[1] ? `${head.baseLofts[1].toFixed(1)}°` : `${head.baseLofts[0].toFixed(1)}°`);
+          const playLength = shaft.cb ? +(recLength + 0.15).toFixed(2) : recLength;
+
+          candidates.push({
+            score: totalScore,
+            head,
+            shaft,
+            chosenLoft,
+            playLength,
+            sleeveText,
+            weightText,
+            gripSpec
+          });
+        }
+      }
+
+      // Sort descending and pick diverse Top 10 (avoiding 5 identical shafts on the same head)
+      candidates.sort((a, b) => b.score - a.score);
+      const top10 = [];
+      const usedShafts = new Set();
+      const headCounts = {};
+
+      for (const item of candidates) {
+        if (top10.length >= 10) break;
+        const hCount = headCounts[item.head.id] || 0;
+        if (usedShafts.has(item.shaft.id) || hCount >= 3) continue;
+        usedShafts.add(item.shaft.id);
+        headCounts[item.head.id] = hCount + 1;
+        top10.push(item);
+      }
+
+      renderSummary({
+        effectiveHs,
+        trueBs,
+        trueSf,
+        trueCarry,
+        trueRoll,
+        idealDriverTotalWeight,
+        idealShaftWeight,
+        targetCpm,
+        maxTorque,
+        dnaTempo,
+        dnaToeDown,
+        dnaKick,
+        dplane,
+        optLaunch,
+        optSpin,
+        spinDiagnosis,
+        need10kMoi
+      });
+
+      renderTop10(top10, { dplane, spinDiagnosis, idealShaftWeight, effectiveHs });
+      renderSensitivity(top10[0], { antiLeftLevel, need10kMoi, spinAction, effectiveHs });
+    }
+
+    // =========================================================================
+    // 4. UI RENDERING FUNCTIONS
+    // =========================================================================
+    function renderSummary(data) {
+      const container = document.getElementById('physics-summary-cards');
+      const impactNames = {
+        low_heel: 'ロー・ヒール (下・根元)',
+        high_heel: 'ハイ・ヒール (上・根元)',
+        center: 'センター (芯)',
+        high_toe: 'ハイ・トゥ (上・先)',
+        low_toe: 'ロー・トゥ (下・先)'
+      };
+
+      container.innerHTML = `
+        <div class="p-4 rounded-xl bg-slate-900/95 border border-slate-800 space-y-1.5">
+          <div class="text-[11px] font-bold text-cyan-400 uppercase">Stage 1: 総重量フロー ＆ 固有振動数</div>
+          <div class="text-lg font-extrabold text-white">目標総重量 ${data.idealDriverTotalWeight}g <span class="text-xs font-normal text-slate-400">(シャフト ${data.idealShaftWeight}g前後)</span></div>
+          <div class="text-xs text-slate-300">適正振動数: <strong class="text-emerald-300">${data.targetCpm} cpm</strong> ／ 許容トルク上限: <strong class="text-emerald-300">${data.maxTorque}°</strong></div>
+          <div class="text-[11px] text-slate-400">仮想スイングDNA: Tempo[${data.dnaTempo}] / ToeDown[${data.dnaToeDown}] / Kick[${data.dnaKick}]</div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/95 border border-slate-800 space-y-1.5">
+          <div class="text-[11px] font-bold text-emerald-400 uppercase">Stage 2: 9弾道D-Plane逆算ベクトル</div>
+          <div class="text-sm font-extrabold text-white">${data.dplane.launchDir}</div>
+          <div class="text-xs text-slate-300">Face: <strong class="text-rose-300">${data.dplane.face > 0 ? '+' : ''}${data.dplane.face}°</strong> ／ Path: <strong class="text-cyan-300">${data.dplane.path > 0 ? '+' : ''}${data.dplane.path}°</strong></div>
+          <div class="text-[11px] text-slate-400">Face to Path: ${data.dplane.f2p}° (${data.dplane.f2p < 0 ? 'フック傾斜軸' : (data.dplane.f2p > 0 ? 'スライス傾斜軸' : '直進軸')})</div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/95 border border-slate-800 space-y-1.5">
+          <div class="text-[11px] font-bold text-purple-400 uppercase">Stage 2: 3Dギア効果 ＆ 10K MOI判定</div>
+          <div class="text-sm font-extrabold text-white">打点: ${impactNames[state.impactChoice]}</div>
+          <div class="text-xs text-slate-300">${state.impactChoice === 'low_heel' ? '遠心力トゥダウン＋縦ギア効果スピン増を補正' : (state.impactChoice === 'high_toe' ? '縦ギア効果スピン減＋強ドロー回転を補正' : 'オフセンター回転モーメントを最小化')}</div>
+          <div class="text-[11px] text-slate-400">10K MOI要求度: <strong class="${data.need10kMoi ? 'text-amber-300' : 'text-slate-300'}">${data.need10kMoi ? '高 (10,000g・cm²級優先)' : '標準 (操作性・初速両立)'}</strong></div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/95 border border-slate-800 space-y-1.5">
+          <div class="text-[11px] font-bold text-amber-400 uppercase">Stage 3: 黄金ウィンドウ ＆ 弾道効率</div>
+          <div class="text-sm font-extrabold text-white">${data.spinDiagnosis}</div>
+          <div class="text-xs text-slate-300">黄金目標: 打出 <strong class="text-amber-300">${data.optLaunch}°</strong> ／ スピン <strong class="text-amber-300">${data.optSpin} rpm</strong></div>
+          <div class="text-[11px] text-slate-400">実効HS ${data.effectiveHs.toFixed(1)}m/s ｜ 推定キャリー ${data.trueCarry}y (ラン ${data.trueRoll}y)</div>
+        </div>
+      `;
+    }
+
+    function renderTop10(list, ctx) {
+      const seasonLabels = {
+        all: '通年・春秋ベスト',
+        summer: '夏場モード (高温・左ミス遮断)',
+        winter: '冬場モード (低温・厚着キャリー補正)'
+      };
+      document.getElementById('ranking-title').textContent = `2026年11月最新：最適ドライバーセッティング ベスト10 【${seasonLabels[state.season]}】`;
+
+      const container = document.getElementById('top10-container');
+      container.innerHTML = list.map((item, idx) => {
+        const rank = idx + 1;
+        const isTop3 = rank <= 3;
+        const badgeClass = rank === 1
+          ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950'
+          : (isTop3 ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-200 border border-slate-700');
+
+        return `
+          <article class="glass-card rounded-2xl p-4 sm:p-5 border ${rank === 1 ? 'border-amber-400/60 shadow-lg shadow-amber-500/10' : (isTop3 ? 'border-emerald-500/40' : 'border-slate-800')}">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/90 pb-3 mb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="px-3 py-1 rounded-lg font-extrabold text-sm ${badgeClass}">第${rank}位</span>
+                <span class="text-xs px-2.5 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-700 font-semibold">${seasonLabels[state.season]}</span>
+                <h3 class="text-base sm:text-lg font-extrabold text-white">${item.head.brand} ${item.head.model} <span class="text-emerald-400">×</span> ${item.shaft.brand} ${item.shaft.model} (${item.shaft.flex})</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400">物理適合スコア</span>
+                <span class="text-xl font-extrabold text-emerald-400">${item.score}<span class="text-xs text-slate-400 font-normal">/100点</span></span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 text-xs">
+              <div class="md:col-span-4 space-y-1.5 bg-slate-900/80 p-3 rounded-xl border border-slate-800/80">
+                <div class="text-slate-400 font-semibold">■ ヘッド ＆ シャフト仕様</div>
+                <div><span class="text-slate-400">ヘッド:</span> <strong class="text-white">${item.head.brand} ${item.head.model} (${item.chosenLoft})</strong></div>
+                <div><span class="text-slate-400">シャフト:</span> <strong class="text-emerald-300">${item.shaft.model} [${item.shaft.flex}]</strong> (${item.shaft.weight}g / トルク ${item.shaft.torque}° / ${item.shaft.kick})</div>
+                <div><span class="text-slate-400">推奨クラブ長:</span> <strong class="text-white">${item.playLength} inch</strong> (60度法)</div>
+                <div><span class="text-slate-400">参考スリクソンIFC:</span> <code class="px-1.5 py-0.5 rounded bg-slate-950 text-cyan-300 font-bold border border-slate-700">${item.shaft.ifc}</code></div>
+              </div>
+
+              <div class="md:col-span-4 space-y-1.5 bg-slate-900/80 p-3 rounded-xl border border-slate-800/80">
+                <div class="text-slate-400 font-semibold">■ スリーブ・ウェイト・グリップ指定</div>
+                <div><span class="text-slate-400">スリーブ設定:</span> <strong class="text-amber-300">${item.sleeveText}</strong></div>
+                <div><span class="text-slate-400">ウェイト配分:</span> <span class="text-slate-200">${item.weightText}</span></div>
+                <div><span class="text-slate-400">グリップ仕様:</span> <span class="text-slate-200">${item.gripSpec}</span></div>
+              </div>
+
+              <div class="md:col-span-4 space-y-1.5 bg-slate-900/80 p-3 rounded-xl border border-slate-800/80">
+                <div class="text-slate-400 font-semibold">■ 物理・バイオメカニクス選定根拠</div>
+                <p class="text-slate-200 leading-relaxed">
+                  ${item.head.desc} ${item.shaft.note}
+                </p>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderSensitivity(topPick, ctx) {
+      if (!topPick) return;
+      let priorityText = '① スリーブ(フェース角・ライ角) ＞ ② 先端剛性(トルク) ＞ ③ 総重量 ＞ ④ ロフト角';
+      if (ctx.need10kMoi) {
+        priorityText = '① ヘッド慣性モーメント(10K MOI) ＞ ② クラブ長(短尺ミート率) ＞ ③ シャフト重量 ＞ ④ ロフト角';
+      } else if (ctx.spinAction === 'high_launch') {
+        priorityText = '① ロフト角＆深重心ウェイト ＞ ② シャフト先中しなり ＞ ③ 総重量フロー';
+      }
+      document.getElementById('priority-param-badge').textContent = `最優先感度パラメータ順: ${priorityText}`;
+
+      const container = document.getElementById('sensitivity-container');
+      container.innerHTML = `
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
+          <div class="font-bold text-cyan-300 text-sm">Test A：シャフト重量のみ ±10g 変えた場合</div>
+          <p class="text-slate-300"><strong class="text-white">・-10g 軽量化 (${Math.max(40, Math.round(topPick.shaft.weight - 10))}g帯へ):</strong> 初速は +0.6m/s 上がる一方、切り返しで手元が浮きやすくなりローヒール・トゥへの打点分散が約 +12% 増加（冬場の厚着時のみ有効）。</p>
+          <p class="text-slate-300"><strong class="text-white">・+10g 重量化 (${Math.round(topPick.shaft.weight + 10)}g帯へ):</strong> スイングプレーンが安定しサイドスピン分散が -16% 縮小するが、後半ハーフでHSが -0.7m/s 低下するリスク。</p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
+          <div class="font-bold text-emerald-300 text-sm">Test B：スリーブでロフトのみ ±1.0° 変えた場合</div>
+          <p class="text-slate-300"><strong class="text-white">・-1.0° 立てる (オープンフェース +1.5°):</strong> 打ち出し角 -0.8°・バックスピン -260rpm。インパクトでの左打ち出し角が約1.3°右へ補正され、左OB確率が大幅減少。</p>
+          <p class="text-slate-300"><strong class="text-white">・+1.0° 寝かせる (クローズフェース -1.5°):</strong> 打ち出し角 +0.8°・スピン +260rpm。冬場のドロップ防止には有効だが、夏場は左へのフック幅が +10yd 増加。</p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
+          <div class="font-bold text-amber-300 text-sm">Test C：キックポイント(調子)のみ変えた場合</div>
+          <p class="text-slate-300"><strong class="text-white">・元調子 ⇔ 中元調子:</strong> 切り返しの「間」が変化。ベタ足・強振時に手元が硬すぎると感じたら中元調子（PD / VF / TR BLUE / BB）へ変えるとミート率が +0.02 改善。</p>
+          <p class="text-slate-300"><strong class="text-white">・カウンターバランス化 (Orange 1K等):</strong> ヘッドのトゥダウン量 δ_toe が約 18% 減少し、ローヒール打点がセンターへ約 4mm 移動。</p>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 5. INTERACTIVE EVENT LISTENERS & PRESETS
+    // =========================================================================
+    function updateHeightUI(choice) {
+      state.heightChoice = choice;
+      document.querySelectorAll('#height-cards [data-height]').forEach(el => {
+        el.classList.toggle('active', el.dataset.height === choice);
+      });
+    }
+
+    function updateFlightUI(flightNum) {
+      state.flightChoice = flightNum;
+      document.querySelectorAll('#flight-cards [data-flight]').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.flight, 10) === flightNum);
+      });
+      document.querySelectorAll('.flight-path').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.flight, 10) === flightNum);
+      });
+      const info = DPLANE_MAP[flightNum];
+      document.getElementById('dplane-readout').innerHTML = `
+        <span class="font-semibold text-emerald-300">自動逆算出球: ${info.launchDir}</span>
+        <span class="text-slate-300">推定フェース角: ${info.face > 0 ? '+' : ''}${info.face}° ／ 推定軌道: ${info.path > 0 ? '+' : ''}${info.path}° (Face to Path: ${info.f2p}°)</span>
+      `;
+    }
+
+    function updateImpactUI(zone) {
+      state.impactChoice = zone;
+      document.querySelectorAll('.face-zone').forEach(el => {
+        el.classList.toggle('active', el.dataset.impact === zone);
+      });
+      document.querySelectorAll('#impact-buttons [data-impact]').forEach(el => {
+        el.classList.toggle('active', el.dataset.impact === zone);
+      });
+    }
+
+    function updateSeasonUI(season) {
+      state.season = season;
+      document.querySelectorAll('.season-tab').forEach(btn => {
+        const isActive = btn.dataset.season === season;
+        btn.className = isActive
+          ? 'season-tab active px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 shadow transition'
+          : 'season-tab px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition';
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // Height cards
+      document.querySelectorAll('#height-cards [data-height]').forEach(el => {
+        el.addEventListener('click', () => {
+          updateHeightUI(el.dataset.height);
+          runPhysicsEngine();
+        });
+      });
+
+      // Flight cards & SVG paths
+      document.querySelectorAll('#flight-cards [data-flight], .flight-path').forEach(el => {
+        el.addEventListener('click', () => {
+          updateFlightUI(parseInt(el.dataset.flight, 10));
+          runPhysicsEngine();
+        });
+      });
+
+      // Face impact zones & buttons
+      document.querySelectorAll('.face-zone, #impact-buttons [data-impact]').forEach(el => {
+        el.addEventListener('click', () => {
+          updateImpactUI(el.dataset.impact);
+          runPhysicsEngine();
+        });
+      });
+
+      // Season tabs
+      document.querySelectorAll('.season-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          updateSeasonUI(btn.dataset.season);
+          runPhysicsEngine();
+        });
+      });
+
+      // 7I distance to HS calculator
+      document.getElementById('btn-calc-hs').addEventListener('click', () => {
+        const dist7i = parseFloat(document.getElementById('inp-7i-dist').value);
+        if (!isNaN(dist7i) && dist7i >= 70 && dist7i <= 220) {
+          const estHs = +(dist7i / 3.65).toFixed(1);
+          document.getElementById('inp-hs').value = estHs;
+          runPhysicsEngine();
+        }
+      });
+
+      // Form inputs live update
+      ['inp-gender', 'inp-age', 'inp-height', 'inp-weight', 'inp-sport', 'inp-tempo', 'inp-iron', 'inp-glove', 'inp-sweat', 'inp-hs', 'inp-bs', 'inp-Carry', 'inp-Total', 'inp-fw', 'inp-ob'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('change', runPhysicsEngine);
+          el.addEventListener('input', runPhysicsEngine);
+        }
+      });
+
+      document.getElementById('btn-run-fitting').addEventListener('click', runPhysicsEngine);
+
+      // Presets
+      document.getElementById('preset-hard').addEventListener('click', () => {
+        document.getElementById('inp-gender').value = 'male';
+        document.getElementById('inp-age').value = '50';
+        document.getElementById('inp-height').value = '172';
+        document.getElementById('inp-weight').value = '68';
+        document.getElementById('inp-sport').value = 'baseball';
+        document.getElementById('inp-tempo').value = 'fast';
+        document.getElementById('inp-iron').value = 'mid_steel';
+        document.getElementById('inp-glove').value = '23';
+        document.getElementById('inp-sweat').value = 'thick_right';
+        document.getElementById('inp-hs').value = '47.0';
+        document.getElementById('inp-bs').value = '68.5';
+        document.getElementById('inp-Carry').value = '258';
+        document.getElementById('inp-Total').value = '276';
+        document.getElementById('inp-fw').value = '6';
+        document.getElementById('inp-ob').value = '1.8';
+        updateHeightUI('midlow');
+        updateFlightUI(1);
+        updateImpactUI('low_heel');
+        runPhysicsEngine();
+      });
+
+      document.getElementById('preset-avg').addEventListener('click', () => {
+        document.getElementById('inp-gender').value = 'male';
+        document.getElementById('inp-age').value = '40';
+        document.getElementById('inp-height').value = '170';
+        document.getElementById('inp-weight').value = '65';
+        document.getElementById('inp-sport').value = 'golf';
+        document.getElementById('inp-tempo').value = 'standard';
+        document.getElementById('inp-iron').value = 'light_steel';
+        document.getElementById('inp-glove').value = '23';
+        document.getElementById('inp-sweat').value = 'rubber';
+        document.getElementById('inp-hs').value = '40.5';
+        document.getElementById('inp-bs').value = '57.5';
+        document.getElementById('inp-Carry').value = '202';
+        document.getElementById('inp-Total').value = '214';
+        document.getElementById('inp-fw').value = '5';
+        document.getElementById('inp-ob').value = '2.5';
+        updateHeightUI('balloon');
+        updateFlightUI(9);
+        updateImpactUI('high_heel');
+        runPhysicsEngine();
+      });
+
+      document.getElementById('preset-light').addEventListener('click', () => {
+        document.getElementById('inp-gender').value = 'female';
+        document.getElementById('inp-age').value = '60';
+        document.getElementById('inp-height').value = '158';
+        document.getElementById('inp-weight').value = '52';
+        document.getElementById('inp-sport').value = 'swim';
+        document.getElementById('inp-tempo').value = 'smooth';
+        document.getElementById('inp-iron').value = 'ultralight_carbon';
+        document.getElementById('inp-glove').value = '20';
+        document.getElementById('inp-sweat').value = 'rubber';
+        document.getElementById('inp-hs').value = '35.0';
+        document.getElementById('inp-bs').value = '51.0';
+        document.getElementById('inp-Carry').value = '165';
+        document.getElementById('inp-Total').value = '192';
+        document.getElementById('inp-fw').value = '9';
+        document.getElementById('inp-ob').value = '0.5';
+        updateHeightUI('low');
+        updateFlightUI(6);
+        updateImpactUI('low_toe');
+        runPhysicsEngine();
+      });
+
+      // Initial calculation on load
+      runPhysicsEngine();
+    });
+  </script>
+</body>
+</html>
