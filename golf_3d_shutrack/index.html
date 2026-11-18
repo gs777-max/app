@@ -169,6 +169,8 @@
     /* Face dial, step buttons (>=44px) and preset chips */
     .step-btn { min-width: 44px; min-height: 44px; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
     #face-dial { touch-action: none; cursor: grab; border-radius: 50%; background: #14151a; border: 1px solid #353945; }
+    /* 2Dフェースのドラッグ中にページがスクロール／ズームして描画サイズが変わらないようにする */
+    #impact-2d-canvas { touch-action: none; }
     #face-dial:active { cursor: grabbing; }
     #face-dial:focus-visible { outline: 2px solid #ff7a33; outline-offset: 2px; }
     .face-chip { min-height: 44px; padding: 6px 10px; border-radius: 8px; background: #18191c; border: 1px solid #383b43; color: #e5e7eb; font-size: 11px; font-weight: 700; cursor: pointer; }
@@ -1503,9 +1505,24 @@
 
       const cx = w * 0.50;
       const cy = h * 0.53;
-      const scale = Math.min(w, h) * 0.011;
-      faceCenter2D = { cx, cy, scaleMmToPx: scale * 2.1 };
-      const m = faceCenter2D.scaleMmToPx;
+      // ヘッドとコールアウトがパネル内に収まるよう、幅・高さの両方で制限する。
+      // 旧式 scale = min(w,h)*0.011 (m = min(w,h)*0.0231) は縦長パネルで
+      // min(w,h)=幅となり、ヘッド幅 60*m がパネル幅を超えた
+      // （390px幅のパネルでヘッド幅541px＝139%にはみ出す）。
+      // 各制限の意味（m = scaleMmToPx）:
+      //  - ヘッド幅 60*m <= 0.58*w、ヘッド高さ 42*m <= 0.72*h
+      //  - 左右コールアウト中心 ±(32*m+36)＋ラベル半幅約35px がパネル内に収まる
+      //  - 上部コールアウトのタイトル上端 (cy-22*m-40) が 0 以上
+      //  - ホーゼル先端 (cy-34*m) が 0 以上、下端 (cy+21*m) が h 以下
+      const m = Math.max(1.2, Math.min(
+        (w * 0.58) / 60,
+        (h * 0.72) / 42,
+        (w / 2 - 70) / 32,
+        (0.53 * h - 40) / 22,
+        (0.53 * h) / 34,
+        (0.47 * h) / 21
+      ));
+      faceCenter2D = { cx, cy, scaleMmToPx: m };
 
       ctx.save();
       ctx.translate(cx, cy);
