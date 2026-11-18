@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Serif+JP:wght@600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ============ FIT LAB v2.0 — paper × deep green × brass editorial ============ */
+/* ============ FIT LAB v2.2 — paper × deep green × brass editorial ============ */
 :root{
   --paper:#F6F1E7; --card:#FFFDF8; --ink:#1A2420; --ink2:#3D4A43; --muted:#66756C;
   --green:#0E3B2E; --green2:#0A2E23; --green-soft:#EAF2EC; --green-line:#9DBFA9;
@@ -452,7 +452,7 @@ footer b{color:var(--ink2)}
       <div class="field">
         <label for="inp-hs">ヘッドスピード HS (m/s)</label>
         <input type="number" id="inp-hs" value="47.0" step="0.5" min="25" max="60">
-        <label class="unk"><input type="checkbox" id="unk-hs"> わからない（7番アイアンの飛距離から推計）</label>
+        <label class="unk"><input type="checkbox" id="unk-hs"> わからない（7番アイアンか総飛距離から推計）</label>
         <div class="converter" style="margin-top:8px">
           <span style="font-size:13px;color:var(--muted)">7I飛距離</span>
           <input type="number" id="inp-7i-dist" placeholder="155" aria-label="7番アイアンの飛距離（ヤード）">
@@ -764,7 +764,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Fitting v2.0</b><br>
+<b>FIT LAB — Driver Fitting v2.2</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
@@ -1303,10 +1303,21 @@ footer b{color:var(--ink2)}
       const gloveCm = parseFloat(document.getElementById('inp-glove').value) || 23;
       const sweatPref = document.getElementById('inp-sweat').value;
 
+      // v2.2: HS未入力時の自動逆算は仕様書 §0-1 通り「7I飛距離÷3.65 または 総飛距離÷5.75」。
+      // 7Iが無く総飛距離だけ分かる場合も、無言の43.0既定値にせず総飛距離から推計する。
+      const rawTotal = parseFloat(document.getElementById('inp-Total').value);
       let rawHs = parseFloat(document.getElementById('inp-hs').value);
+      let hsImputedNote = '';
       if (isNaN(rawHs) || rawHs < 25 || rawHs > 60) {
         const d7 = parseFloat(document.getElementById('inp-7i-dist').value);
-        rawHs = (!isNaN(d7) && d7 >= 70 && d7 <= 220) ? +(d7 / 3.65).toFixed(1) : 43.0;
+        if (!isNaN(d7) && d7 >= 70 && d7 <= 220) {
+          rawHs = +(d7 / 3.65).toFixed(1);
+        } else if (!isNaN(rawTotal) && rawTotal >= 150 && rawTotal <= 340) {
+          rawHs = +(rawTotal / 5.75).toFixed(1);
+          hsImputedNote = `HS未入力のため総飛距離${Math.round(rawTotal)}yd÷5.75からHS=${rawHs.toFixed(1)}へ自動推計`;
+        } else {
+          rawHs = 43.0;
+        }
       }
 
       // Seasonal Effective Head Speed adjustment
@@ -1314,7 +1325,6 @@ footer b{color:var(--ink2)}
 
       const rawBs = parseFloat(document.getElementById('inp-bs').value);
       const rawCarry = parseFloat(document.getElementById('inp-Carry').value);
-      const rawTotal = parseFloat(document.getElementById('inp-Total').value);
       const fwKeep = parseFloat(document.getElementById('inp-fw').value) || 6;
       const obCount = parseFloat(document.getElementById('inp-ob').value) || 1.5;
 
@@ -1325,6 +1335,7 @@ footer b{color:var(--ink2)}
       // -----------------------------------------------------------------------
       const impactOffsetMm = state.impactChoice === 'center' ? 3 : 13;
       let sanityNotes = [];
+      if (hsImputedNote) sanityNotes.push(hsImputedNote);
       let trueSf = 1.48;
 
       if (!isNaN(rawBs) && rawBs > 30) {
@@ -1931,7 +1942,7 @@ footer b{color:var(--ink2)}
 </script>
 
 <script>
-/* ================= FIT LAB v2.0 UI ================= */
+/* ================= FIT LAB v2.2 UI ================= */
 (function(){
 'use strict';
 var STEP_NAMES = {1:'あなたについて', 2:'球の高さと飛距離', 3:'球筋と打点', 4:'診断結果'};
