@@ -189,6 +189,18 @@
       #toggle-sidebar-btn, #btn-help-modal { min-height: 44px; min-width: 44px; }
       #left-sidebar button, #left-sidebar select { min-height: 44px; }
       #btn-record-shot { min-height: 48px; }
+      /* Floating fire button (mobile only): ドロワーを開かずに打てる。11指標ストリップ(88px)＋AIコーチフッター(52px)より上に配置 */
+      #btn-fire-fab {
+        display: flex; position: fixed; right: 12px; bottom: 156px; z-index: 40;
+        width: 60px; height: 60px; border-radius: 50%;
+        flex-direction: column; align-items: center; justify-content: center;
+        background: linear-gradient(180deg, #ff7433 0%, #e6500c 100%);
+        box-shadow: 0 4px 16px rgba(255, 98, 26, 0.55);
+        color: #fff; font-weight: 800; font-size: 12px; line-height: 1.15;
+        border: 2px solid rgba(255,255,255,0.85); cursor: pointer;
+        touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      }
+      #btn-fire-fab:active { transform: scale(0.94); }
       .tm-metric-card { display: flex !important; min-width: 108px; min-height: 64px; }
       #ai-coach-footer { flex-wrap: wrap; height: auto; min-height: 52px; padding: 8px 12px; }
       #ai-coach-footer button, #ai-coach-footer select { min-height: 44px; }
@@ -201,6 +213,8 @@
       #left-analysis-column { height: auto; min-height: 420px; }
       #panel-range { height: auto; min-height: 340px; }
     }
+    /* Floating fire button: hidden on desktop, shown on mobile (<=768px) */
+    #btn-fire-fab { display: none; }
   </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-[#0d0e12] text-gray-100 overflow-hidden">
@@ -549,6 +563,14 @@
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/></svg>
           <span>ショット計測・3D弾道発射 (履歴に追加)</span>
         </button>
+
+        <!-- Physics model disclosure: 出典と校正メモ -->
+        <details class="mt-1 rounded-md bg-[#18191c] border border-[#2d3037] px-2.5 py-2">
+          <summary class="text-[11px] font-bold text-gray-200 cursor-pointer">モデルについて（出典・精度）</summary>
+          <p class="mt-1.5 text-[10.5px] leading-relaxed text-gray-400">
+            弾道は Dプレーン＋ギア効果＋RK4 積分で計算。空力係数は Bearman &amp; Harvey (1976) らの風洞実験値に校正し、打出し方向のフェース寄与 84.5% は TrackMan 計測の約85%に合わせています。スピン減衰・ギア係数は校正値のため、実測との比較で調整することがあります。
+          </p>
+        </details>
       </div>
 
       <!-- TAB 2: SHOT HISTORY LIST -->
@@ -723,6 +745,12 @@
 
     </main>
   </div>
+
+  <!-- Floating fire button (mobile only): ドロワーを開かずにショット計測 -->
+  <button id="btn-fire-fab" aria-label="ショット計測・3D弾道発射" title="ショット計測 (R)">
+    <span aria-hidden="true" class="text-base leading-none">🏌️</span>
+    <span>打つ</span>
+  </button>
 
   <!-- ==================== MIDDLE-LOWER: 11-METRIC TRACKMAN DATA STRIP ==================== -->
   <section class="h-[88px] sm:h-[94px] shrink-0 bg-[#12141a] border-t border-[#282c37] px-2 py-1.5 z-30">
@@ -977,6 +1005,33 @@
       activeFlightAnim: null
     };
 
+    // ----------------------------------------------------------------------------
+    // PHYSICS MODEL — SOURCES & CALIBRATION NOTES (verified 2026-11-19)
+    // 弾道モデルの係数は下記の公開文献に校正している。数値を変える際はここも更新すること。
+    // [1] Bearman, P.W. & Harvey, J.K. (1976). "Golf ball aerodynamics",
+    //     Aeronautical Quarterly, pp. 112-122 — 風洞実験による Cd/Cl とスピン比 S=ωr/V の関係。
+    //     本実装の Cd=0.212+0.255S は S=0.05-0.30 で 0.225-0.288 となり、ディンプル球の
+    //     公表値 (約0.24-0.28、超臨界域) の範囲内。Cl は経験式 Cl≈0.5S/(0.4+S) と比べ
+    //     低スピン域 (S≈0.08、ドライバー打出し時) で +0.04 高めで公表値の上限寄り、
+    //     S>=0.25 では一致。低スピン域の Cl は今後の校正候補。
+    // [2] Jorgensen, T. (1994). The Physics of Golf — Dプレーンの提唱。
+    //     TrackMan のレーダー計測では打出し方向へのフェース寄与はドライバー約85%、
+    //     ミドルアイアン約75%。本実装の launchH = 0.845*face + 0.155*path は
+    //     ドライバー側の 85/15 に合わせている。
+    // [3] Penner, A.R. (2001). "The physics of golf: The convex face of a driver",
+    //     Am. J. Phys. 69(5), DOI 10.1119/1.1380380 — オフセンター打撃のギア効果と
+    //     バルジ (フェースの凸面) の数理モデル。Cochran & Stobbs (1968),
+    //     Search for the Perfect Swing も同機構の原典。
+    //     本実装のクラブ別ギア係数 (horizGear / vertGearSpin / bulgeDegPerMm) は
+    //     クラブ特性に合わせた校正値で、実測で直接検証された値ではない。
+    // [4] "Aerodynamics of Golf Balls in Still Air", MDPI Proc. 2(6), 238 (2018) —
+    //     実球の静止空気中での Cd/Cl 計測。Cd/Cl は速度・スピン・球種に依存する。
+    // スピン減衰: ω(t)=ω0*exp(-0.033t)。6秒の飛翔でスピンは約82%に減衰する。
+    //     文献上の目安「70m/s で約5%/秒の減衰」では約74%まで落ちるため、本実装は
+    //     やや減衰が遅い。同様に校正候補 (飛距離への影響は小さい)。
+    // バウンス/ロール係数 (0.56/0.28/0.38/0.58、減速 2.9m/s^2) はフェアウェイの
+    //     標準的な転がりを想定した校正値で、芝・グリーン条件では変わる。
+    // ----------------------------------------------------------------------------
     // ============================================================================
     // 3. CALIBRATED GOLF PHYSICS ENGINE (D-PLANE + 3D GEAR EFFECT + RK4 FLIGHT)
     // ============================================================================
@@ -1003,6 +1058,7 @@
       const launchV = Math.max(2.0, +(0.825 * dynLoft + 0.175 * aoa + rollAndVertGearDelta + 0.07).toFixed(1));
 
       const bulgeDelta = impX * spec.bulgeDegPerMm;
+      // 打出し方向: 0.845*face + 0.155*path は TrackMan 計測の約85/15 (ドライバー) に合わせたもの (Jorgensen 1994 のDプレーン)。
       const launchH = +(0.845 * face + 0.155 * path + bulgeDelta).toFixed(1);
 
       const baseSpin = chs * spinLoft * 6.015;
@@ -1010,6 +1066,7 @@
       const heelSpinDelta = impX < 0 ? Math.abs(impX) * 50 * (chs / 44.4) : -impX * 28 * (chs / 44.4);
       const spinRate = Math.round(Math.max(800, Math.min(11500, baseSpin + vertGearSpinDelta + heelSpinDelta)));
 
+      // ギア効果: Penner (2001) / Cochran & Stobbs (1968) の機構。クラブ別係数は校正値 (実測未検証)。
       const dPlaneAxis = faceToPath * 1.02;
       const horizGearAxisDelta = -impX * spec.horizGear * (chs / 44.4);
       const lieAxisDelta = (dynLie - spec.lie) * -0.002;
@@ -1051,6 +1108,9 @@
         const vRel = Math.sqrt(rvx * rvx + rvy * rvy + rvz * rvz) + 1e-6;
         const S = (curOmega * BALL_RADIUS) / vRel;
 
+        // Cd/Cl: Bearman & Harvey (1976) の風洞値に校正。S=ωr/V (無次元スピン比)。
+        // 検証 2026-11-19: Cd は S=0.05-0.30 で 0.225-0.288 (公表約0.24-0.28と一致)。
+        // Cl は Cl≈0.5S/(0.4+S) と比べ低スピン域で +0.04 高め (上限寄り) — 校正候補。
         const Cd = 0.212 + 0.255 * S;
         const Cl = Math.min(0.32, 0.082 + (0.62 * S) / (1.0 + 1.45 * S));
 
@@ -1094,6 +1154,7 @@
       }
 
       while (s[1] > 0 && t < 14.0) {
+        // スピン減衰 exp(-0.033t): 文献目安「70m/sで約5%/秒」よりやや遅い (6秒で82%残存 vs 約74%) — 校正候補。
         const curOmega = omega0 * Math.exp(-0.033 * t);
         const k1 = accel(s, curOmega);
         const s2 = s.map((v, i) => v + 0.5 * dt * k1[i]);
@@ -3022,6 +3083,15 @@
     }
 
     document.getElementById('btn-record-shot').addEventListener('click', recordCurrentShot);
+    // Floating fire button (mobile): ドロワーが開いていれば閉じて弾道を見えるようにしてから計測
+    document.getElementById('btn-fire-fab').addEventListener('click', () => {
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        document.getElementById('left-sidebar').classList.remove('mobile-open');
+        document.getElementById('sidebar-scrim')?.classList.add('hidden');
+        setTimeout(handleResize, 30);
+      }
+      recordCurrentShot();
+    });
     document.getElementById('btn-replay-flight').addEventListener('click', () => {
       update3DTrajectoryInRange(state.currentShot, true);
     });
