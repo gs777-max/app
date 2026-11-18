@@ -57,7 +57,20 @@ class handler(SimpleHTTPRequestHandler):
             super().__init__(*args, **kwargs)
 
     def end_headers(self):
-        self.send_header('Access-Control-Allow-Origin', '*')
+        # v2.9 小さな緩和: key.js と同じ許可オリジンにだけ CORS を反映する。
+        # ※ 完全な対策ではない（次フェーズでサーバー側プロキシ化が必須）。
+        origin = self.headers.get('Origin') if hasattr(self, 'headers') and self.headers else None
+        allowed = False
+        if origin:
+            if origin == 'https://app-aivoiceappvercel.vercel.app':
+                allowed = True
+            elif re.match(r'^https://[A-Za-z0-9-]+\.vercel\.app$', origin):
+                allowed = True
+            elif re.match(r'^http://(localhost|127\.0\.0\.1)(:\d+)?$', origin):
+                allowed = True
+        if allowed:
+            self.send_header('Access-Control-Allow-Origin', origin)
+            self.send_header('Vary', 'Origin')
         self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version')
         self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')

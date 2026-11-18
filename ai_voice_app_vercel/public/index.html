@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>感情AIボイス - ネオ・サイバーAIホログラムHUD (v2.8 Ultra-Fast & NoiseFilter)</title>
+  <title>感情AIボイス - ネオ・サイバーAIホログラムHUD (v2.9 Speed & Accuracy)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -596,7 +596,7 @@
       <div>
         <div class="brand-title">EMOTION AI // LIVE HUD</div>
         <div style="font-size: 0.68rem; font-family: 'Orbitron', monospace; color: var(--cyan-neon);">
-          BIDI-STREAM // ULTRA-FAST LOW-LATENCY & NOISE-GUARD (v2.8)
+          BIDI-STREAM // ULTRA-FAST LOW-LATENCY & NOISE-GUARD (v2.9)
         </div>
       </div>
     </div>
@@ -613,6 +613,10 @@
       <div class="telemetry-item" title="AI音声の受信パケット数">
         <span>RX:</span>
         <span id="stat-rx" style="color: #f43f5e;">0</span>
+      </div>
+      <div class="telemetry-item" title="発話終了からAI初回音声までの実測遅延">
+        <span>LAT:</span>
+        <span id="stat-latency" style="color: #34d399;">—</span>
       </div>
     </div>
 
@@ -698,8 +702,8 @@
 
       <div class="emotion-hud-panel">
         <div style="font-size: 0.78rem; font-family: 'Orbitron', monospace; font-weight: 700; color: var(--cyan-neon); display: flex; justify-content: space-between;">
-          <span>EMOTION SPECTRUM ANALYSIS</span>
-          <span id="top-emotion-label" style="color: #67e8f9;">通常 (NEUTRAL)</span>
+          <span>EMOTION SETTING（設定値・検出ではありません）</span>
+          <span id="top-emotion-label" style="color: #67e8f9;">設定: 喜び (80%)</span>
         </div>
         <div class="emo-meter-line">
           <span style="color: var(--joy-color);">😊 喜び</span>
@@ -817,7 +821,7 @@
   <script>
     /**
      * 天才プロゲームプロダクター & プログラマ設計
-     * 感情AIボイス - v2.6 (単一AudioContext・非同期アンロック・フォールバック堅牢化版)
+     * 感情AIボイス - v2.9 (遅延計測・AudioWorklet・ターン短縮・再生キュー上限・正確性修正版)
      */
     const LIVE_MODEL_NAME = 'models/gemini-2.5-flash-native-audio-latest';
     const REST_MODEL_NAME = 'models/gemini-2.5-flash';
@@ -854,7 +858,7 @@
         luna: {
           name: 'LUNA',
           image: './assets/cyber_luna_female.jpg',
-          voice: 'Aoede',
+          voice: 'Kore',
           personality: '明るく元気で感情豊かなサイバーヒロイン。親しみやすいタメ口口調（「〜だよ！」「〜ね！」）でテンポよく話す。',
           systemPrompt: 'あなたは明るく元気なサイバーヒロイン「ルナ」です。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短いタメ口でテンポよく返答してね！長文は避けてポンポン会話を弾ませて！'
         },
@@ -888,7 +892,17 @@
 
       scheduledSources: [],
       nextStartTime: 0,
-      
+
+      // v2.9 遅延計測・AudioWorklet・AIテキスト蓄積
+      silenceMs: 220, // 無音でターン確定とみなす時間（旧380ms）
+      latency: { turnCommittedAt: 0, firstAudioAt: 0, firstPlaybackAt: 0, lastMs: null, samples: [] },
+      droppedChunks: 0,
+      workletNode: null,
+      useWorklet: false,
+      aiTextAccum: '',
+      aiTextBubble: null,
+      aiTextBubbleBody: null,
+
       ws: null,
       history: []
     };
@@ -898,6 +912,7 @@
       statLabel: document.getElementById('stat-label'),
       statTx: document.getElementById('stat-tx'),
       statRx: document.getElementById('stat-rx'),
+      statLatency: document.getElementById('stat-latency'),
       
       btnCharHolo: document.getElementById('btn-char-holo'),
       btnCharLuna: document.getElementById('btn-char-luna'),
@@ -988,28 +1003,25 @@
     }
 
     async function initEnvConfig() {
-      // Vercel サーバーレスエンドポイント (JS: /api/key, Python: /api/server) を順次探索
+      // v2.9: 3エンドポイントを並列に試し、最初に成功したものを使う（直列待ちをやめる）
       const endpoints = ['/api/key', '/api/server', '/api/get-key'];
-      for (const ep of endpoints) {
-        try {
-          logMessage(`Vercel サーバーレスAPI (${ep}) へキー要求を送信中...`, 'info');
-          const res = await fetch(ep);
-          if (res.ok) {
-            const data = await res.json();
-            if (data && data.success && data.apiKey) {
-              appState.apiKey = data.apiKey.trim();
-              UI.cfgApiKey.value = appState.apiKey;
-              UI.envBadge.textContent = '✅ Vercel サーバーキー連携成功 (ACTIVE)';
-              UI.envBadge.style.color = '#34d399';
-              logMessage(`✅ Vercel サーバーレスAPI (${ep}) から Live API キーを自動ロード完了 (登録元: ${data.source || 'Vercel Env'}, Runtime: ${data.runtime || 'node'})`, 'success');
-              return true;
-            } else if (data && data.error) {
-              logMessage(`Vercel API (${ep}) 応答: ${data.error}`, 'warn');
-            }
-          }
-        } catch (err) {
-          logMessage(`サーバーレスAPI (${ep}) 接続スキップ: ${err.message}`, 'warn');
-        }
+      const tryEndpoint = async (ep) => {
+        const res = await fetch(ep);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data && data.success && data.apiKey) return { ep, data };
+        throw new Error(data && data.error ? data.error : 'no key');
+      };
+      try {
+        const first = await Promise.any(endpoints.map(tryEndpoint));
+        appState.apiKey = first.data.apiKey.trim();
+        UI.cfgApiKey.value = appState.apiKey;
+        UI.envBadge.textContent = '✅ Vercel サーバーキー連携成功 (ACTIVE)';
+        UI.envBadge.style.color = '#34d399';
+        logMessage(`✅ Vercel サーバーレスAPI (${first.ep}) から Live API キーを自動ロード完了 (登録元: ${first.data.source || 'Vercel Env'}, Runtime: ${first.data.runtime || 'node'})`, 'success');
+        return true;
+      } catch (err) {
+        logMessage('Vercel サーバーレスAPIからキーを取得できませんでした（全エンドポイント失敗）', 'warn');
       }
 
       // ローカルストレージ（設定モーダル保存済みキー）からの復元フォールバック
@@ -1062,7 +1074,7 @@
         UI.avatarImage.style.opacity = '1';
       }, 200);
       popToast(`キャラクター: ${char.name}`);
-      if (appState.isConnected && appState.isSessionReady) sendInstructionPatch();
+      if (appState.isConnected && appState.isSessionReady) sendSetupUpdate('キャラクター切替');
     }
 
     function setEmotion(emoKey) {
@@ -1072,10 +1084,11 @@
       });
       updateEmotionMeters(emoKey);
       popToast(`感情: ${emoKey.toUpperCase()} (${appState.intensity}%)`);
-      if (appState.isConnected && appState.isSessionReady) sendInstructionPatch();
+      if (appState.isConnected && appState.isSessionReady) sendSetupUpdate('感情設定');
     }
 
     function updateEmotionMeters(targetEmo) {
+      // v2.9: これは「設定値」の表示であり、音声からの感情検出ではない。
       const peak = appState.intensity;
       const rem = Math.max(0, 100 - peak);
       appState.detectedEmotions = {
@@ -1095,7 +1108,7 @@
       UI.txtAnger.textContent = `${appState.detectedEmotions.anger}%`;
 
       const names = { joy: '喜び (JOY)', fun: '楽しさ (FUN)', sadness: '悲しみ (SAD)', anger: '怒り (ANGER)' };
-      UI.topEmotionLabel.textContent = `${names[targetEmo]} (${peak}%)`;
+      UI.topEmotionLabel.textContent = `設定: ${names[targetEmo]} (${peak}%)`;
     }
 
     function startSpectrumVisualizer() {
@@ -1117,9 +1130,9 @@
         if (appState.analyserNode && (appState.isAiSpeaking || !appState.isMuted)) {
           appState.analyserNode.getByteFrequencyData(freqData);
         } else {
-          const t = performance.now() * 0.003;
+          // v2.9: 音声がないときはダミー波形を出さない（検出していないのに動いているように見せない）
           for (let i = 0; i < freqData.length; i++) {
-            freqData[i] = Math.sin(t + i * 0.2) * 12 + 16;
+            freqData[i] = 4;
           }
         }
 
@@ -1255,37 +1268,29 @@
       appState.filterLowpass.frequency.value = 3600;
       appState.filterLowpass.Q.value = 0.7;
 
-      appState.processorNode = appState.audioCtx.createScriptProcessor(4096, 1, 1);
-      
       appState.zeroGainNode = appState.audioCtx.createGain();
       appState.zeroGainNode.gain.value = 0;
 
-      // オーディオグラフの配線
+      // オーディオグラフの配線（フィルタ段まで）
       if (appState.enableNoiseFilter) {
         appState.micSource.connect(appState.filterHighpass);
         appState.filterHighpass.connect(appState.filterLowpass);
-        appState.filterLowpass.connect(appState.processorNode);
-      } else {
-        appState.micSource.connect(appState.processorNode);
       }
+      const micTail = appState.enableNoiseFilter ? appState.filterLowpass : appState.micSource;
 
-      appState.processorNode.connect(appState.zeroGainNode);
-      appState.zeroGainNode.connect(appState.audioCtx.destination);
-
-      // 高速ストリーミングのためチャンクサイズを 45ms に短縮 (以前の100msから大幅低遅延化)
-      const targetChunkSize = Math.round(inSampleRate * 0.045);
+      // v2.9: 送信チャンクを 45ms から 25ms に短縮
+      const targetChunkSize = Math.round(inSampleRate * 0.025);
       let sampleBuffer = [];
 
       let voiceSustainedFrames = 0; // 連続音声検出フレーム数
 
-      appState.processorNode.onaudioprocess = (e) => {
+      // --- マイク1フレーム分の処理（AudioWorklet / ScriptProcessor 共通）---
+      const processMicFrame = (inputBuffer) => {
         if (!appState.isConnected || appState.isPaused || appState.isMuted) {
           UI.micVuFill.style.width = '0%';
           UI.vuVal.textContent = '-∞ dB';
           return;
         }
-
-        const inputBuffer = e.inputBuffer.getChannelData(0);
 
         let sum = 0;
         for (let i = 0; i < inputBuffer.length; i++) {
@@ -1320,12 +1325,12 @@
         }
 
         // --- 人間の音声判定 & 時間的持続性フィルター (Temporal Persistence) ---
-        // 突発音（ペン落下、クリック、咳、キーボード音: < 50ms）は1フレームで消えるため無視
-        // 人間の声は母音の連続性により 150ms（約2〜3フレーム）以上継続する
+        // 突発音（ペン落下、クリック、咳、キーボード音）は1フレームで消えるため無視。
+        // 人間の声は母音の連続性により継続する（Workletでは25ms刻みのため2フレーム≒50ms）。
         if (amplifiedRms > threshold) {
           voiceSustainedFrames++;
 
-          // 2フレーム（約100ms〜150ms）以上継続して初めて「人間の声」と確定
+          // 2フレーム以上継続して初めて「人間の声」と確定
           if (voiceSustainedFrames >= 2) {
             appState.isUserSpeaking = true;
             appState.lastVoiceTimestamp = performance.now();
@@ -1340,12 +1345,17 @@
         } else {
           voiceSustainedFrames = Math.max(0, voiceSustainedFrames - 1);
 
-          // 超高速発話完了自動コミット (無音 380ms で即座にターン終了を送信！)
-          if (appState.isUserSpeaking && performance.now() - appState.lastVoiceTimestamp > 380) {
+          // v2.9: 発話完了自動コミット（無音 220ms でターン終了を送信。旧380ms）
+          if (appState.isUserSpeaking && performance.now() - appState.lastVoiceTimestamp > appState.silenceMs) {
             appState.isUserSpeaking = false;
             voiceSustainedFrames = 0;
             setTelemetryStatus('transmitting', 'AI RESPONDING...');
-            logMessage('⚡ 人間の発話完了を高速検知 (380ms無音) -> 即時ターンコミット送信', 'info');
+            logMessage(`⚡ 人間の発話完了を高速検知 (${appState.silenceMs}ms無音) -> 即時ターンコミット送信`, 'info');
+
+            // v2.9 遅延計測の起点
+            appState.latency.turnCommittedAt = performance.now();
+            appState.latency.firstAudioAt = 0;
+            appState.latency.firstPlaybackAt = 0;
 
             // サーバーに「ユーザーは話し終えたので直ちに応答を返せ」と合図を送り、AIの応答遅延を削ぎ落とす
             if (appState.isSessionReady && appState.ws && appState.ws.readyState === WebSocket.OPEN) {
@@ -1363,7 +1373,7 @@
           sampleBuffer.push(inputBuffer[i]);
         }
 
-        // 45ms 単位で Gemini Live API にリアルタイム送信
+        // 25ms 単位で Gemini Live API にリアルタイム送信
         if (sampleBuffer.length >= targetChunkSize) {
           const chunkToProcess = new Float32Array(sampleBuffer);
           sampleBuffer = [];
@@ -1388,6 +1398,55 @@
           }
         }
       };
+
+      // v2.9: AudioWorklet を優先（25ms刻み・メインスレッドを塞がない）。
+      // 使えないブラウザでは従来の ScriptProcessor(4096) にフォールバックする。
+      let workletOk = false;
+      try {
+        if (appState.audioCtx.audioWorklet) {
+          const workletCode = [
+            "class MicCaptureV29 extends AudioWorkletProcessor {",
+            "  constructor() { super(); this.buf = []; }",
+            "  process(inputs) {",
+            "    const input = inputs[0];",
+            "    if (!input || !input[0] || input[0].length === 0) return true;",
+            "    const ch = input[0];",
+            "    for (let i = 0; i < ch.length; i++) this.buf.push(ch[i]);",
+            "    while (this.buf.length >= 1200) {",
+            "      const out = new Float32Array(this.buf.splice(0, 1200));",
+            "      this.port.postMessage({ type: 'audio', samples: out }, [out.buffer]);",
+            "    }",
+            "    return true;",
+            "  }",
+            "}",
+            "registerProcessor('mic-capture-v29', MicCaptureV29);"
+          ].join('\n');
+          const blobUrl = URL.createObjectURL(new Blob([workletCode], { type: 'application/javascript' }));
+          await appState.audioCtx.audioWorklet.addModule(blobUrl);
+          const node = new AudioWorkletNode(appState.audioCtx, 'mic-capture-v29');
+          node.port.onmessage = (ev) => {
+            const msg = ev.data;
+            if (msg && msg.type === 'audio') processMicFrame(msg.samples);
+          };
+          micTail.connect(node);
+          node.connect(appState.zeroGainNode);
+          appState.zeroGainNode.connect(appState.audioCtx.destination);
+          appState.workletNode = node;
+          appState.useWorklet = true;
+          workletOk = true;
+          logMessage('マイク入力: AudioWorklet を使用（25ms刻み・低遅延）', 'success');
+        }
+      } catch (err) {
+        logMessage(`AudioWorklet の初期化に失敗 (${err.message})。ScriptProcessor にフォールバックします`, 'warn');
+      }
+      if (!workletOk) {
+        appState.processorNode = appState.audioCtx.createScriptProcessor(4096, 1, 1);
+        micTail.connect(appState.processorNode);
+        appState.processorNode.connect(appState.zeroGainNode);
+        appState.zeroGainNode.connect(appState.audioCtx.destination);
+        appState.processorNode.onaudioprocess = (e) => processMicFrame(e.inputBuffer.getChannelData(0));
+        logMessage('マイク入力: ScriptProcessor を使用（フォールバック）', 'info');
+      }
     }
 
     async function startLiveSession() {
@@ -1419,32 +1478,7 @@
 
         appState.ws.onopen = () => {
           logMessage('WebSocket 接続確立！ setup 送信中...', 'success');
-          const char = appState.characters[appState.selectedChar];
-          const emoNames = { joy: '喜び', anger: '怒り', sadness: '悲しみ', fun: '楽しさ' };
-
-          const setupMsg = {
-            setup: {
-              model: LIVE_MODEL_NAME,
-              generationConfig: {
-                responseModalities: ['AUDIO'],
-                speechConfig: {
-                  voiceConfig: {
-                    prebuiltVoiceConfig: {
-                      voiceName: char.voice
-                    }
-                  }
-                }
-              },
-              systemInstruction: {
-                parts: [
-                  {
-                    text: `${char.systemPrompt}\n【現在の感情設定】: ${emoNames[appState.emotion]} (強度: ${appState.intensity}%)\nユーザーの発話に対して、1〜2文で短くテンポよく生き生きと日本語で返答してください。`
-                  }
-                ]
-              }
-            }
-          };
-          appState.ws.send(JSON.stringify(setupMsg));
+          appState.ws.send(JSON.stringify(buildSetupMessage()));
         };
 
         appState.ws.onmessage = async (e) => {
@@ -1524,18 +1558,37 @@
             enqueueAudio(p.inlineData.data);
           }
           if (p.text) {
-            appendChat('ai', p.text, appState.emotion);
+            appendAiTextChunk(p.text);
           }
         }
       }
 
       if (data.serverContent && data.serverContent.turnComplete) {
+        finalizeAiText();
         logMessage('AI 応答ターン完了', 'info');
       }
     }
 
     function enqueueAudio(base64Pcm24k) {
       if (!appState.audioCtx) return;
+
+      // v2.9 遅延計測：発話終了→AI初回音声
+      if (appState.latency.turnCommittedAt && !appState.latency.firstAudioAt) {
+        appState.latency.firstAudioAt = performance.now();
+        const ms = Math.round(appState.latency.firstAudioAt - appState.latency.turnCommittedAt);
+        appState.latency.lastMs = ms;
+        appState.latency.samples.push(ms);
+        if (appState.latency.samples.length > 20) appState.latency.samples.shift();
+        if (UI.statLatency) UI.statLatency.textContent = `${ms}ms`;
+        logMessage(`⏱ 遅延実測: 発話終了→AI初回音声 ${ms}ms`, 'info');
+      }
+
+      // v2.9 再生キュー上限：1.5秒以上溜まった音声チャンクは破棄して最新に追従する
+      if (appState.nextStartTime - appState.audioCtx.currentTime > 1.5) {
+        appState.droppedChunks++;
+        if (appState.droppedChunks % 10 === 1) logMessage(`⏱ 再生キュー過多のため音声チャンクを破棄（累計 ${appState.droppedChunks}件）`, 'warn');
+        return;
+      }
 
       const rawBuffer = base64ToArrayBuffer(base64Pcm24k);
       const int16 = new Int16Array(rawBuffer);
@@ -1572,13 +1625,17 @@
       appState.analyserNode.connect(appState.audioCtx.destination);
 
       const now = appState.audioCtx.currentTime;
-      if (appState.nextStartTime < now) {
-        appState.nextStartTime = now;
-      }
-
-      source.start(appState.nextStartTime);
+      const scheduledStart = Math.max(appState.nextStartTime, now);
+      source.start(scheduledStart);
       const dur = audioBuf.duration / appState.playbackSpeed;
-      appState.nextStartTime += dur;
+      appState.nextStartTime = scheduledStart + dur;
+
+      // v2.9 遅延計測：発話終了→AI初回再生
+      if (appState.latency.firstAudioAt && !appState.latency.firstPlaybackAt) {
+        appState.latency.firstPlaybackAt = performance.now() + Math.max(0, scheduledStart - now) * 1000;
+        const totalMs = Math.round(appState.latency.firstPlaybackAt - appState.latency.turnCommittedAt);
+        logMessage(`⏱ 遅延実測: 発話終了→AI初回再生 ${totalMs}ms`, 'info');
+      }
 
       appState.scheduledSources.push(source);
       appState.isAiSpeaking = true;
@@ -1597,6 +1654,7 @@
     }
 
     function interruptAudio() {
+      finalizeAiText();
       for (const s of appState.scheduledSources) {
         try { s.stop(); } catch (e) {}
       }
@@ -1620,14 +1678,12 @@
       logMessage('💬 手動トリガー: 発話完了シグナルを送信してAIの即時返答を要求', 'info');
       popToast('AIに応答をリクエストしました');
 
+      // v2.9: ダミーのユーザー発言を送らない。turnComplete だけを送る。
+      appState.latency.turnCommittedAt = performance.now();
+      appState.latency.firstAudioAt = 0;
+      appState.latency.firstPlaybackAt = 0;
       const commitMsg = {
         clientContent: {
-          turns: [
-            {
-              role: 'user',
-              parts: [{ text: '（どうぞ答えてください）' }]
-            }
-          ],
           turnComplete: true
         }
       };
@@ -1659,27 +1715,109 @@
       }
     }
 
-    function sendInstructionPatch() {
-      if (!appState.ws || appState.ws.readyState !== WebSocket.OPEN) return;
+    // v2.9: Live API の setup メッセージを組み立てる（音声・感情・システム指示）。
+    // キャラ／感情の変更はこの setup の送り直しで行い、user ロールのターンとしては送らない
+    // （従来は指示文を role:user で送って会話履歴を汚染していた）。
+    function buildSetupMessage() {
+      const char = appState.characters[appState.selectedChar];
       const emoNames = { joy: '喜び', anger: '怒り', sadness: '悲しみ', fun: '楽しさ' };
-      const msg = {
-        clientContent: {
-          turns: [
-            {
-              role: 'user',
-              parts: [{ text: `【感情更新指示】現在のあなたの感情を「${emoNames[appState.emotion]}」、感情強度「${appState.intensity}%」に切り替えて会話を続けてください。` }]
+      return {
+        setup: {
+          model: LIVE_MODEL_NAME,
+          generationConfig: {
+            // v2.9: TEXT も返すことで、音声のみ応答でも会話ログに残るようにする
+            responseModalities: ['AUDIO', 'TEXT'],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: {
+                  voiceName: char.voice
+                }
+              }
             }
-          ],
-          turnComplete: true
+          },
+          // v2.9: サーバー側VADを明示（無音200msでターン終了とみなす）
+          realtimeInputConfig: {
+            automaticActivityDetection: {
+              disabled: false,
+              startOfSpeechSensitivity: 'START_OF_SPEECH_SENSITIVITY_HIGH',
+              endOfSpeechSensitivity: 'END_OF_SPEECH_SENSITIVITY_HIGH',
+              prefixPaddingMs: 20,
+              silenceDurationMs: 200
+            }
+          },
+          systemInstruction: {
+            parts: [
+              {
+                text: `${char.systemPrompt}\n【現在の感情設定】: ${emoNames[appState.emotion]} (強度: ${appState.intensity}%)\nユーザーの発話に対して、1〜2文で短くテンポよく生き生きと日本語で返答してください。`
+              }
+            ]
+          }
         }
       };
-      appState.ws.send(JSON.stringify(msg));
-      logMessage(`感情パッチ送信: ${emoNames[appState.emotion]} (${appState.intensity}%)`, 'info');
+    }
+
+    function sendSetupUpdate(reason) {
+      if (!appState.ws || appState.ws.readyState !== WebSocket.OPEN) return;
+      try {
+        appState.ws.send(JSON.stringify(buildSetupMessage()));
+        logMessage(`設定更新を送信 (${reason})`, 'info');
+      } catch (err) {
+        logMessage(`設定更新の送信に失敗 (${reason}): ${err.message}`, 'warn');
+      }
+    }
+
+    // v2.9: AIのテキスト応答を1つの吹き出しに蓄積し、会話ログに残す
+    // （従来は AUDIO のみの応答がログ・履歴エクスポートに残らなかった）
+    function appendAiTextChunk(text) {
+      if (!text) return;
+      if (!appState.aiTextBubble) {
+        const char = appState.characters[appState.selectedChar];
+        const div = document.createElement('div');
+        div.className = 'chat-bubble ai';
+        const meta = document.createElement('div');
+        meta.className = 'bubble-meta';
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = char.name;
+        const chip = document.createElement('span');
+        chip.className = 'emo-chip';
+        chip.textContent = `${appState.emotion.toUpperCase()} ${appState.intensity}%`;
+        meta.appendChild(nameSpan);
+        meta.appendChild(chip);
+        const body = document.createElement('div');
+        div.appendChild(meta);
+        div.appendChild(body);
+        UI.chatView.appendChild(div);
+        appState.aiTextBubble = div;
+        appState.aiTextBubbleBody = body;
+      }
+      appState.aiTextAccum += text;
+      appState.aiTextBubbleBody.textContent = appState.aiTextAccum;
+      UI.chatView.scrollTop = UI.chatView.scrollHeight;
+    }
+
+    function finalizeAiText() {
+      if (appState.aiTextBubble && appState.aiTextAccum.trim()) {
+        appState.history.push({
+          role: 'ai',
+          text: appState.aiTextAccum,
+          time: new Date().toLocaleTimeString(),
+          emotion: appState.emotion,
+          intensity: appState.intensity
+        });
+      }
+      appState.aiTextAccum = '';
+      appState.aiTextBubble = null;
+      appState.aiTextBubbleBody = null;
     }
 
     function disconnectSession() {
+      finalizeAiText();
+      if (speechRecognition) {
+        try { speechRecognition.stop(); } catch (e) {}
+        speechRecognition = null;
+      }
       if (appState.ws) {
-        appState.ws.close();
+        try { appState.ws.close(); } catch (e) {}
         appState.ws = null;
       }
       if (appState.micStream) {
@@ -1688,10 +1826,36 @@
       }
       interruptAudio();
 
+      // v2.9: オーディオノードを破棄して再接続時の重複を防ぐ
+      try { if (appState.workletNode) { appState.workletNode.port.onmessage = null; appState.workletNode.disconnect(); } } catch (e) {}
+      try { if (appState.processorNode) appState.processorNode.disconnect(); } catch (e) {}
+      try { if (appState.micSource) appState.micSource.disconnect(); } catch (e) {}
+      try { if (appState.filterHighpass) appState.filterHighpass.disconnect(); } catch (e) {}
+      try { if (appState.filterLowpass) appState.filterLowpass.disconnect(); } catch (e) {}
+      try { if (appState.zeroGainNode) appState.zeroGainNode.disconnect(); } catch (e) {}
+      try { if (appState.analyserNode) appState.analyserNode.disconnect(); } catch (e) {}
+      appState.workletNode = null;
+      appState.processorNode = null;
+      appState.micSource = null;
+      appState.filterHighpass = null;
+      appState.filterLowpass = null;
+      appState.zeroGainNode = null;
+      appState.analyserNode = null;
+      appState.useWorklet = false;
+      appState.nextStartTime = 0;
+      appState.latency.turnCommittedAt = 0;
+      appState.latency.firstAudioAt = 0;
+      appState.latency.firstPlaybackAt = 0;
+      if (appState.audioCtx) {
+        const ctx = appState.audioCtx;
+        appState.audioCtx = null;
+        ctx.close().catch(() => {});
+      }
+
       appState.isConnected = false;
       appState.isSessionReady = false;
       appState.isAiSpeaking = false;
-      
+
       UI.btnStart.style.display = 'inline-flex';
       UI.btnStop.style.display = 'none';
       UI.btnTalkDone.style.display = 'none';
@@ -1852,7 +2016,7 @@
       updateEmotionMeters(appState.emotion);
     });
     UI.intensitySlider.addEventListener('change', () => {
-      if (appState.isConnected && appState.isSessionReady) sendInstructionPatch();
+      if (appState.isConnected && appState.isSessionReady) sendSetupUpdate('感情強度');
     });
 
     UI.gainSlider.addEventListener('input', (e) => {
@@ -1998,7 +2162,7 @@
     });
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('🚀 ネオ・サイバーAIホログラムHUD 起動 (v2.8 Ultra-Fast LowLatency & NoiseFilter)', 'info');
+      logMessage('🚀 ネオ・サイバーAIホログラムHUD 起動 (v2.9 Speed & Accuracy)', 'info');
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
       await initEnvConfig();

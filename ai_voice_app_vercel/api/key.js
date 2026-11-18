@@ -7,10 +7,26 @@
  * エンドポイント: /api/key
  */
 
+// v2.9 小さな緩和: /api/key を叩けるオリジンを自サイトとローカル開発に限定する。
+// ※ 完全な対策ではない。サイト訪問者は誰でもキーを読める構造自体は変わらないため、
+//   次フェーズでサーバー側プロキシ化（キーをブラウザに渡さない設計）が必須。
+function isAllowedOrigin(origin) {
+  if (!origin) return false;
+  if (origin === 'https://app-aivoiceappvercel.vercel.app') return true;
+  if (/^https:\/\/[A-Za-z0-9-]+\.vercel\.app$/.test(origin)) return true;
+  if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return true;
+  if (/^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return true;
+  return false;
+}
+
 function handler(req, res) {
-  // CORS ヘッダーの設定
+  // CORS ヘッダーの設定（許可オリジンにだけ反映する）
+  const origin = req.headers && req.headers.origin;
+  if (isAllowedOrigin(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
