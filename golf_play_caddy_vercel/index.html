@@ -3594,6 +3594,45 @@
       renderIpRouteGraphics();
     }
 
+    // ★ 案B: ルート線は routePts 自体を描く。ティー／ピンを routePts へ投影し、
+    //   その間の区間だけを切り出して [ティー, ...区間内 routePts, ピン] を返す。
+    //   routePts が無い／短いホールでは従来のティー→IP→ピン線にフォールバックする。
+    function buildRouteLinePoints(hole) {
+      const fallback = [currentTeeCoord, ...currentIpCoords, currentPinCoord].filter(isValidCoord);
+      const pts = (hole && hole.routePts || []).filter(isValidCoord);
+      if (pts.length < 2 || !isValidCoord(currentTeeCoord) || !isValidCoord(currentPinCoord)) return fallback;
+      function projectAlong(target) {
+        let bestD = Infinity, bestAlong = 0, acc = 0;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const a = pts[i], b = pts[i + 1];
+          const segLen = calcDistanceMeters(a, b);
+          const k = Math.cos(a[0] * Math.PI / 180);
+          const bx = (b[1] - a[1]) * k * 111320, by = (b[0] - a[0]) * 110540;
+          const tx = (target[1] - a[1]) * k * 111320, ty = (target[0] - a[0]) * 110540;
+          const len2 = (bx * bx + by * by) || 1;
+          let t = (tx * bx + ty * by) / len2;
+          t = Math.max(0, Math.min(1, t));
+          const px = a[0] + (b[0] - a[0]) * t, py = a[1] + (b[1] - a[1]) * t;
+          const d = calcDistanceMeters(target, [px, py]);
+          if (d < bestD) { bestD = d; bestAlong = acc + segLen * t; }
+          acc += segLen;
+        }
+        return bestAlong;
+      }
+      const teeAlong = projectAlong(currentTeeCoord);
+      const pinAlong = projectAlong(currentPinCoord);
+      if (Math.abs(pinAlong - teeAlong) < 1) return fallback; // 投影が潰れる場合は従来線
+      const lo = Math.min(teeAlong, pinAlong), hi = Math.max(teeAlong, pinAlong);
+      const inner = [];
+      let acc = 0;
+      for (let i = 0; i < pts.length; i++) {
+        if (i > 0) acc += calcDistanceMeters(pts[i - 1], pts[i]);
+        if (acc > lo && acc < hi) inner.push(pts[i]);
+      }
+      if (pinAlong >= teeAlong) return [currentTeeCoord, ...inner, currentPinCoord];
+      return [currentTeeCoord, ...inner.slice().reverse(), currentPinCoord];
+    }
+
     function renderIpRouteGraphics() {
       ipMarkers.forEach(m => map.removeLayer(m));
       ipMarkers = [];
@@ -3601,9 +3640,12 @@
       ipSegmentBadgeMarkers = [];
       if (ipRoutePolyline && map.hasLayer(ipRoutePolyline)) map.removeLayer(ipRoutePolyline);
 
+      // ★ 案B: 緑のルート線は routePts 自体を描く (ティー→IP→ピンの直線ではない)。
+      //   IPマーカーと区間バッジは従来通りティー→IP→ピンの区間距離を示す。
+      const routeLine = buildRouteLinePoints(holeList[currentHoleIndex]);
       const allPoints = [currentTeeCoord, ...currentIpCoords, currentPinCoord];
 
-      ipRoutePolyline = L.polyline(allPoints, {
+      ipRoutePolyline = L.polyline(routeLine, {
         color: '#10b981',
         weight: 3.5,
         opacity: 0.9,
@@ -3676,8 +3718,9 @@
     }
 
     function updateIpPolylineAndBadges() {
+      // ★ 案B: ルート線は routePts から描くため、IPドラッグで線は変わらない。
+      //   ドラッグで更新するのはティー→IP→ピンの区間バッジだけ。
       const allPoints = [currentTeeCoord, ...currentIpCoords, currentPinCoord];
-      if (ipRoutePolyline) ipRoutePolyline.setLatLngs(allPoints);
 
       for (let i = 0; i < allPoints.length - 1; i++) {
         const p1 = allPoints[i];
@@ -7284,6 +7327,8 @@
       autoFocusPending = true;
       try {
         const pts = [currentTeeCoord, ...(currentIpCoords || []), currentPinCoord].filter(isValidCoord);
+        // ★ 案B: ドッグレッグの屈曲部が画面外に切れないよう、ルート線の点も枠に含める
+        buildRouteLinePoints(holeList[currentHoleIndex]).forEach(p => { if (isValidCoord(p)) pts.push(p); });
         const rect = getUsableViewRect();
         if (isHeadingUp && !headingRotationFrozen) applyHeadingUpRotation();
         const rotDeg = isHeadingUp ? -getAppliedHeadingBearing() : 0;
