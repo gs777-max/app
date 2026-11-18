@@ -146,6 +146,32 @@
     .tm-orange-btn:hover {
       background: linear-gradient(180deg, #ff854d 0%, #f25b16 100%);
     }
+
+    /* ---- Mobile (<=768px): drawer sidebar, scrollable metrics, 44px tap targets ---- */
+    @media (max-width: 768px) {
+      #layout-switcher { display: none; }
+      #left-sidebar {
+        position: fixed; top: 40px; bottom: 0; left: 0;
+        width: min(325px, 88vw); max-width: 88vw;
+        transform: translateX(-105%);
+        box-shadow: 0 0 40px rgba(0,0,0,.6);
+      }
+      #left-sidebar.mobile-open { transform: translateX(0); }
+      #toggle-sidebar-btn, #btn-help-modal { min-height: 44px; min-width: 44px; }
+      #left-sidebar button, #left-sidebar select { min-height: 44px; }
+      #btn-record-shot { min-height: 48px; }
+      .tm-metric-card { display: flex !important; min-width: 108px; min-height: 64px; }
+      #ai-coach-footer { flex-wrap: wrap; height: auto; min-height: 52px; padding: 8px 12px; }
+      #ai-coach-footer button, #ai-coach-footer select { min-height: 44px; }
+      .shot-delete-btn { min-width: 44px; min-height: 44px; }
+      #shot-history-container .shot-vis-toggle { width: 22px; height: 22px; }
+      input[type="range"] { height: 24px; }
+      input[type="range"]::-webkit-slider-thumb { width: 22px; height: 22px; }
+      input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; }
+      #workspace-grid { overflow-y: auto; display: block; }
+      #left-analysis-column { height: auto; min-height: 420px; }
+      #panel-range { height: auto; min-height: 340px; }
+    }
   </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-[#0d0e12] text-gray-100 overflow-hidden">
@@ -185,7 +211,7 @@
     </div>
 
     <!-- Center: Screen Layout Mode Selector -->
-    <div class="flex items-center gap-1 bg-[#202227] p-0.5 rounded-md border border-[#32353d]">
+    <div id="layout-switcher" class="flex items-center gap-1 bg-[#202227] p-0.5 rounded-md border border-[#32353d]">
       <button data-layout="pro_split" class="layout-btn px-2.5 py-1 rounded text-[11px] font-bold bg-[#f26522] text-white flex items-center gap-1 transition" title="左に解析3パネル・右に3D大画面レンジを配置">
         <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 16 16"><path d="M1 1h6v4H1V1zm0 5h6v4H1V6zm0 5h6v4H1v-4zm7-10h7v14H8V1z"/></svg>
         <span>標準プロ配置 (大画面3D)</span>
@@ -479,6 +505,7 @@
           <span>キャリー (クリックで再現)</span>
           <span class="text-[10px] text-gray-300">3D表示 | ★</span>
         </div>
+        <div id="history-persistence-note" class="px-3 py-1.5 bg-[#18191c] border-b border-[#2e3138] text-[10px] text-gray-400">履歴はこのブラウザに保存されます</div>
 
         <div id="shot-history-container" class="flex-1 overflow-y-auto divide-y divide-[#26282e]"></div>
 
@@ -493,6 +520,7 @@
       </div>
 
     </aside>
+    <div id="sidebar-scrim" class="hidden fixed inset-0 bg-black/60 z-10" aria-hidden="true"></div>
 
     <!-- ==================== ASYMMETRIC PRO WORKSPACE (LEFT 45% ANALYSIS / RIGHT 55% LARGE 3D RANGE) ==================== -->
     <main id="workspace-grid" class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-[2px] bg-[#2c2f36] overflow-hidden relative">
@@ -2290,7 +2318,107 @@
       setCardWarn('card-spin', warnings.impY);
     }
 
+    // ============================================================================
+    // 10a. SHOT HISTORY PERSISTENCE (localStorage, versioned)
+    // Stores only swing params + display metadata; the shot itself is
+    // recomputed with calculateShotPhysics() on load, so stored entries stay
+    // valid even if the physics display changes. Physics is untouched here.
+    // ============================================================================
+    const SHOT_HISTORY_STORAGE_KEY = 'golf-mirror-shots-v1';
+    const SHOT_HISTORY_MAX_ITEMS = 100;
+    let shotHistoryPersistenceAvailable = true;
+
+    function updateHistoryPersistenceNote() {
+      const el = document.getElementById('history-persistence-note');
+      if (!el) return;
+      el.textContent = shotHistoryPersistenceAvailable
+        ? '履歴はこのブラウザに保存されます'
+        : '保存できません（プライベートモード等）。履歴はこのセッションのみです';
+    }
+
+    function saveShotHistory() {
+      try {
+        const shots = state.shotHistory.slice(0, SHOT_HISTORY_MAX_ITEMS).map((item) => ({
+          id: item.id,
+          label: item.label,
+          color: item.color,
+          visible: item.visible !== false,
+          createdAt: item.createdAt || null,
+          params: {
+            club: item.params.club, chs: item.params.chs, aoa: item.params.aoa,
+            clubPath: item.params.clubPath, faceAngle: item.params.faceAngle,
+            dynamicLoft: item.params.dynamicLoft, dynamicLie: item.params.dynamicLie,
+            impactOffset: item.params.impactOffset, impactHeight: item.params.impactHeight
+          }
+        }));
+        window.localStorage.setItem(SHOT_HISTORY_STORAGE_KEY, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), shots }));
+        shotHistoryPersistenceAvailable = true;
+        return true;
+      } catch (e) {
+        // Quota exceeded / private mode / storage disabled: history keeps
+        // working in memory only; the rest of the app must not break.
+        shotHistoryPersistenceAvailable = false;
+        updateHistoryPersistenceNote();
+        return false;
+      }
+    }
+
+    function loadShotHistory() {
+      let raw = null;
+      try {
+        raw = window.localStorage.getItem(SHOT_HISTORY_STORAGE_KEY);
+      } catch (e) {
+        shotHistoryPersistenceAvailable = false;
+        updateHistoryPersistenceNote();
+        return null;
+      }
+      if (raw === null) return null; // never saved: seed defaults (first run only)
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.shots)) return null;
+        return parsed.shots;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function rebuildShotFromStored(stored, index) {
+      if (!stored || typeof stored !== 'object') return null;
+      const p = stored.params || {};
+      const num = (v, fallback) => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
+      const params = {
+        club: (typeof p.club === 'string' && CLUBS[p.club]) ? p.club : '1W',
+        chs: num(p.chs, 44.4), aoa: num(p.aoa, 0), clubPath: num(p.clubPath, 0),
+        faceAngle: num(p.faceAngle, 0), dynamicLoft: num(p.dynamicLoft, 13),
+        dynamicLie: num(p.dynamicLie, 56), impactOffset: num(p.impactOffset, 0),
+        impactHeight: num(p.impactHeight, 0)
+      };
+      const merged = { ...state, ...params };
+      return {
+        id: (typeof stored.id === 'number' ? stored.id : Date.now() + index),
+        label: (typeof stored.label === 'string' && stored.label) ? stored.label : `保存ショット #${index + 1}`,
+        params,
+        shot: calculateShotPhysics(merged),
+        color: (typeof stored.color === 'string' && stored.color) ? stored.color : SHOT_COLORS[index % SHOT_COLORS.length],
+        visible: stored.visible !== false,
+        createdAt: stored.createdAt || null
+      };
+    }
+
     function initDefaultShotHistory() {
+      const storedShots = loadShotHistory();
+      if (storedShots !== null) {
+        // Saved history exists (possibly empty after the user cleared it):
+        // restore it as-is and never re-seed the defaults over it.
+        state.shotHistory = storedShots
+          .map((stored, i) => rebuildShotFromStored(stored, i))
+          .filter(Boolean)
+          .slice(0, SHOT_HISTORY_MAX_ITEMS);
+        saveShotHistory();
+        renderShotHistorySidebar();
+        updateHistoryPersistenceNote();
+        return;
+      }
       const presets = [
         { chs: 44.4, aoa: 0.4, clubPath: -9.8, faceAngle: -8.4, dynamicLoft: 12.9, dynamicLie: 44.3, impactOffset: -3.0, impactHeight: -6.0, club: '1W', label: '画像1基準 (206.6y)' },
         { chs: 34.6, aoa: -1.6, clubPath: -6.5, faceAngle: -10.2, dynamicLoft: 17.4, dynamicLie: 45.0, impactOffset: 2.0, impactHeight: -2.0, club: '1W', label: '画像2基準 (151.4y)' },
@@ -2310,7 +2438,9 @@
           visible: true
         };
       });
+      saveShotHistory();
       renderShotHistorySidebar();
+      updateHistoryPersistenceNote();
     }
 
     function renderShotHistorySidebar() {
@@ -2335,19 +2465,29 @@
               <div class="text-[10px] text-gray-300 font-num">HS ${s.chs.toFixed(1)} | ${s.spinRate}rpm | ${sideLabel}</div>
             </div>
           </div>
-          <div class="flex items-center gap-2 text-gray-300">
+          <div class="flex items-center gap-1 text-gray-300">
             <input type="checkbox" ${item.visible ? 'checked' : ''} class="shot-vis-toggle rounded bg-[#18191c] border-gray-500 text-[#f26522]" title="3D比較表示切替" />
+            <button type="button" class="shot-delete-btn px-2 py-1 rounded text-gray-400 hover:text-rose-300 hover:bg-rose-950/60 text-sm font-bold" aria-label="このショットを削除" title="このショットを削除">✕</button>
           </div>
         `;
 
         row.addEventListener('click', (e) => {
-          if (e.target.classList.contains('shot-vis-toggle')) return;
+          if (e.target.classList.contains('shot-vis-toggle') || e.target.closest('.shot-delete-btn')) return;
           Object.assign(state, item.params);
           recalculateAndRefreshUI(true);
         });
 
         row.querySelector('.shot-vis-toggle').addEventListener('change', (e) => {
           item.visible = e.target.checked;
+          saveShotHistory();
+          renderShotHistorySidebar();
+          update3DTrajectoryInRange(state.currentShot, false);
+        });
+
+        row.querySelector('.shot-delete-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          state.shotHistory = state.shotHistory.filter((h) => h.id !== item.id);
+          saveShotHistory();
           renderShotHistorySidebar();
           update3DTrajectoryInRange(state.currentShot, false);
         });
@@ -2367,6 +2507,7 @@
           `;
           lItem.querySelector('input').addEventListener('change', (e) => {
             item.visible = e.target.checked;
+            saveShotHistory();
             renderShotHistorySidebar();
             update3DTrajectoryInRange(state.currentShot, false);
           });
@@ -2481,7 +2622,21 @@
 
     document.getElementById('toggle-sidebar-btn').addEventListener('click', () => {
       const sb = document.getElementById('left-sidebar');
-      sb.classList.toggle('hidden');
+      const scrim = document.getElementById('sidebar-scrim');
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        const willOpen = !sb.classList.contains('mobile-open');
+        sb.classList.remove('hidden');
+        sb.classList.toggle('mobile-open', willOpen);
+        if (scrim) scrim.classList.toggle('hidden', !willOpen);
+      } else {
+        sb.classList.toggle('hidden');
+      }
+      setTimeout(handleResize, 30);
+    });
+
+    document.getElementById('sidebar-scrim')?.addEventListener('click', () => {
+      document.getElementById('left-sidebar').classList.remove('mobile-open');
+      document.getElementById('sidebar-scrim').classList.add('hidden');
       setTimeout(handleResize, 30);
     });
 
@@ -2585,8 +2740,11 @@
         },
         shot,
         color,
-        visible: true
+        visible: true,
+        createdAt: new Date().toISOString()
       });
+      state.shotHistory = state.shotHistory.slice(0, SHOT_HISTORY_MAX_ITEMS);
+      saveShotHistory();
       renderShotHistorySidebar();
       update3DTrajectoryInRange(shot, true);
     }
@@ -2605,6 +2763,7 @@
 
     document.getElementById('btn-clear-history').addEventListener('click', () => {
       state.shotHistory = [];
+      saveShotHistory();
       renderShotHistorySidebar();
       update3DTrajectoryInRange(state.currentShot, false);
     });
@@ -2711,6 +2870,10 @@
         const targetEl = document.getElementById(card.dataset.focus);
         if (targetEl) {
           document.getElementById('left-sidebar').classList.remove('hidden');
+          if (window.matchMedia('(max-width: 768px)').matches) {
+            document.getElementById('left-sidebar').classList.add('mobile-open');
+            document.getElementById('sidebar-scrim')?.classList.remove('hidden');
+          }
           document.getElementById('tab-btn-controls').click();
           targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
           setTimeout(handleResize, 30);
@@ -2779,6 +2942,10 @@
     // 12. RESIZE & MAIN RENDER LOOP
     // ============================================================================
     function handleResize() {
+      if (!window.matchMedia('(max-width: 768px)').matches) {
+        document.getElementById('left-sidebar').classList.remove('mobile-open');
+        document.getElementById('sidebar-scrim')?.classList.add('hidden');
+      }
       if (state.currentShot) {
         drawDPlaneVisualizer(state.currentShot);
         drawImpactLocation2D(state.currentShot);
@@ -2807,6 +2974,8 @@
 
     const ro = new ResizeObserver(() => handleResize());
     ro.observe(document.getElementById('workspace-grid'));
+    const rangePanelEl = document.getElementById('panel-range');
+    if (rangePanelEl) ro.observe(rangePanelEl);
     window.addEventListener('resize', handleResize);
 
     const clock = new THREE.Clock();
