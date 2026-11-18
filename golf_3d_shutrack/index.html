@@ -1,0 +1,2857 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GOLF MIRROR RANGE & TrackMan 4 | 3D弾道・Dプレーン・ギア効果シミュレーター</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <!-- Three.js Import Map -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --tm-bg-dark: #0d0e12;
+      --tm-bg-panel: #15171e;
+      --tm-bg-card: #1c1f28;
+      --tm-border: #2a2e39;
+      --tm-orange: #ff621a;
+      --tm-orange-bright: #ff7a33;
+      --tm-blue: #3898ff;
+    }
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    input[type="number"] {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--tm-bg-dark);
+      color: #f3f4f6;
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+      overflow: hidden;
+    }
+    .font-num {
+      font-family: 'Inter', 'JetBrains Mono', sans-serif;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+    /* High-visibility focus ring for keyboard accessibility */
+    button:focus-visible, select:focus-visible, input:focus-visible {
+      outline: 2px solid #ff7a33;
+      outline-offset: 2px;
+    }
+    /* Custom Range Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      background: #2b2f3a;
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--tm-orange);
+      cursor: pointer;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 8px rgba(255, 98, 26, 0.75);
+      transition: transform 0.12s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+    input[type="range"].blue-slider::-webkit-slider-thumb {
+      background: var(--tm-blue);
+      box-shadow: 0 0 8px rgba(56, 152, 255, 0.75);
+    }
+    /* Inline numeric editor */
+    .inline-num-input {
+      background: #14151a;
+      border: 1px solid #353945;
+      border-radius: 4px;
+      color: #ffffff;
+      font-family: 'Inter', 'JetBrains Mono', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      width: 54px;
+      text-align: right;
+      padding: 1px 4px;
+    }
+    .inline-num-input:focus {
+      border-color: #ff621a;
+      background: #1e2129;
+      outline: none;
+    }
+    /* Bottom 11-Metric Card Styling */
+    .tm-metric-card {
+      background: linear-gradient(180deg, #1e2129 0%, #171920 100%);
+      border: 1px solid #2b2f3b;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      position: relative;
+    }
+    .tm-metric-card:hover {
+      border-color: #ff621a;
+      background: #232732;
+    }
+    .tm-metric-card.active-card {
+      border-color: #ff621a;
+      box-shadow: inset 0 0 0 1px #ff621a;
+    }
+    .tm-metric-card.warn-card {
+      border-color: rgba(244, 63, 94, 0.9);
+      background: linear-gradient(180deg, rgba(72, 20, 34, 0.65) 0%, #181a20 100%);
+      box-shadow: inset 0 0 10px rgba(244, 63, 94, 0.22);
+    }
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #141519;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #383c47;
+      border-radius: 999px;
+    }
+    .tm-orange-btn {
+      background: linear-gradient(180deg, #ff7433 0%, #e6500c 100%);
+      box-shadow: 0 2px 10px rgba(255, 98, 26, 0.4);
+    }
+    .tm-orange-btn:hover {
+      background: linear-gradient(180deg, #ff854d 0%, #f25b16 100%);
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#0d0e12] text-gray-100 overflow-hidden">
+
+  <!-- ==================== TOP NAVIGATION & VIEW MODE BAR ==================== -->
+  <header class="h-10 shrink-0 bg-[#141518] border-b border-[#2c2f36] px-3 flex items-center justify-between z-30">
+    <!-- Left: GOLF MIRROR RANGE Brand & Sidebar Toggle -->
+    <div class="flex items-center gap-2">
+      <button id="toggle-sidebar-btn" aria-label="入力と履歴パネルを開閉" class="px-2 py-1 rounded bg-[#25272c] hover:bg-[#32353c] text-gray-100 flex items-center gap-1.5 text-xs font-bold border border-[#383b43] transition" title="左ドロワー開閉 (ショートカット: H)">
+        <svg class="w-4 h-4 text-[#f26522]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        <span>入力＆履歴</span>
+      </button>
+
+      <div class="flex items-center gap-1.5 bg-[#23252a] px-2.5 py-1 rounded border border-[#34373f]">
+        <span class="w-3.5 h-3.5 rounded-sm bg-[#f26522] flex items-center justify-center text-[9px] font-black text-white">P</span>
+        <span class="text-[11px] font-extrabold tracking-tight text-white">GOLF MIRROR</span>
+        <span class="text-[9px] text-[#f26522] font-bold uppercase tracking-widest">RANGE</span>
+      </div>
+
+      <!-- Quick Calibration Presets -->
+      <div class="hidden xl:flex items-center gap-1 ml-1">
+        <button data-preset="screen1" class="preset-pill px-2 py-1 rounded text-[11px] font-bold bg-[#f26522] text-white shadow transition">
+          画像1再現 (ヒール下・4869rpm)
+        </button>
+        <button data-preset="screen2" class="preset-pill px-2 py-1 rounded text-[11px] font-bold bg-[#25282e] hover:bg-[#32363e] text-gray-200 border border-[#383b43] transition">
+          画像2再現 (151.4y・最適値)
+        </button>
+        <button data-preset="tour_pure" class="preset-pill px-2 py-1 rounded text-[11px] font-bold bg-[#25282e] hover:bg-[#32363e] text-gray-200 border border-[#383b43] transition">
+          芯・ストレート
+        </button>
+        <button data-preset="high_toe_draw" class="preset-pill px-2 py-1 rounded text-[11px] font-bold bg-[#25282e] hover:bg-[#32363e] text-amber-300 border border-[#383b43] transition">
+          ハイトゥ・強ドロー
+        </button>
+      </div>
+    </div>
+
+    <!-- Center: Screen Layout Mode Selector -->
+    <div class="flex items-center gap-1 bg-[#202227] p-0.5 rounded-md border border-[#32353d]">
+      <button data-layout="pro_split" class="layout-btn px-2.5 py-1 rounded text-[11px] font-bold bg-[#f26522] text-white flex items-center gap-1 transition" title="左に解析3パネル・右に3D大画面レンジを配置">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 16 16"><path d="M1 1h6v4H1V1zm0 5h6v4H1V6zm0 5h6v4H1v-4zm7-10h7v14H8V1z"/></svg>
+        <span>標準プロ配置 (大画面3D)</span>
+      </button>
+      <button data-layout="quad" class="layout-btn px-2.5 py-1 rounded text-[11px] font-bold text-gray-200 hover:bg-[#2c2f36] transition">
+        均等4画面
+      </button>
+      <button data-layout="screen1" class="layout-btn px-2.5 py-1 rounded text-[11px] font-bold text-gray-200 hover:bg-[#2c2f36] transition">
+        Dプレーン＋打点
+      </button>
+      <button data-layout="range_only" class="layout-btn px-2.5 py-1 rounded text-[11px] font-bold text-gray-200 hover:bg-[#2c2f36] transition">
+        3Dレンジ全画面
+      </button>
+    </div>
+
+    <!-- Right: Live Open-Meteo Weather & Keyboard Help -->
+    <div class="flex items-center gap-2 text-[11px]">
+      <div class="hidden md:flex items-center gap-1.5 bg-[#202227] border border-[#32353d] rounded px-2 py-0.5">
+        <span class="text-gray-300">気象API:</span>
+        <select id="course-weather-select" aria-label="コース気象データ選択" class="bg-transparent text-[#38bdf8] font-bold focus:outline-none cursor-pointer">
+          <option value="std">標準大気 (無風・15°C・0m)</option>
+          <option value="35.915,139.406,45">霞ヶ関CC (埼玉・リアルタイム)</option>
+          <option value="35.805,140.138,25">習志野CC (千葉・リアルタイム)</option>
+          <option value="34.953,139.142,140">川奈ホテル富士C (静岡)</option>
+          <option value="56.343,-2.802,10">St Andrews (スコットランド)</option>
+          <option value="19.420,-99.230,2350">Mexico City (標高2350m・飛距離増)</option>
+          <option value="gps">現在地 (GPS取得)</option>
+        </select>
+      </div>
+      <div class="hidden lg:flex items-center gap-2 bg-[#202227] border border-[#32353d] rounded px-2.5 py-0.5 font-num">
+        <span id="meteo-temp" class="text-amber-300 font-bold">20.0°C</span>
+        <span class="text-gray-600">|</span>
+        <span id="meteo-rho" class="text-cyan-300 font-bold" title="空気密度 ρ">ρ 1.204</span>
+        <span class="text-gray-600">|</span>
+        <span id="meteo-wind" class="text-emerald-300 font-bold">風 0.0m/s</span>
+      </div>
+      <button id="btn-help-modal" aria-label="キーボードショートカット一覧" class="w-6 h-6 rounded bg-[#25282e] hover:bg-[#32363e] border border-[#383b43] text-gray-200 font-bold text-xs flex items-center justify-center transition" title="操作ガイド・ショートカット (?)">
+        ?
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN UPPER AREA (SIDEBAR + ASYMMETRIC PRO WORKSPACE) ==================== -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- LEFT SIDEBAR: SWING CONTROLS & SHOT HISTORY -->
+    <aside id="left-sidebar" class="w-[325px] xl:w-[345px] shrink-0 h-full bg-[#1a1b1f] border-r border-[#2d3037] flex flex-col z-20 overflow-hidden transition-all duration-200">
+      
+      <!-- Sidebar Mode Tabs -->
+      <div class="grid grid-cols-2 bg-[#141518] p-1 border-b border-[#2d3037] shrink-0">
+        <button id="tab-btn-controls" class="py-1.5 rounded text-xs font-bold bg-[#f26522] text-white shadow">
+          スイング・打点入力
+        </button>
+        <button id="tab-btn-history" class="py-1.5 rounded text-xs font-bold text-gray-300 hover:text-white flex items-center justify-center gap-1.5">
+          <span>ショット履歴</span>
+          <span id="shot-count-badge" class="px-1.5 py-0.2 rounded-full bg-[#2b2e35] text-gray-100 text-[10px] font-num">5</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: PRECISION SWING, D-PLANE & IMPACT LOCATION CONTROLS -->
+      <div id="sidebar-tab-controls" class="flex-1 overflow-y-auto p-2.5 space-y-2.5">
+        
+        <!-- Club Selector & Presets -->
+        <div class="bg-[#23252a] p-2 rounded border border-[#32353d] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-gray-200">使用クラブ選択</span>
+            <span id="club-spec-info" class="text-[10px] font-num text-[#ff7a33] font-bold">1W ロフト 10.5° / 重心深 38mm</span>
+          </div>
+          <div class="grid grid-cols-6 gap-1">
+            <button data-club="1W" class="club-select-btn py-1 rounded text-xs font-bold bg-[#f26522] text-white">1W</button>
+            <button data-club="3W" class="club-select-btn py-1 rounded text-xs font-bold bg-[#18191c] text-gray-200 hover:bg-[#2c2f36]">3W</button>
+            <button data-club="UT" class="club-select-btn py-1 rounded text-xs font-bold bg-[#18191c] text-gray-200 hover:bg-[#2c2f36]">UT</button>
+            <button data-club="5I" class="club-select-btn py-1 rounded text-xs font-bold bg-[#18191c] text-gray-200 hover:bg-[#2c2f36]">5I</button>
+            <button data-club="7I" class="club-select-btn py-1 rounded text-xs font-bold bg-[#18191c] text-gray-200 hover:bg-[#2c2f36]">7I</button>
+            <button data-club="PW" class="club-select-btn py-1 rounded text-xs font-bold bg-[#18191c] text-gray-200 hover:bg-[#2c2f36]">PW</button>
+          </div>
+          <!-- Preset Buttons inside Sidebar -->
+          <div class="grid grid-cols-2 gap-1 pt-1">
+            <button data-preset="screen1" class="text-left px-2 py-1 rounded bg-[#2d3038] hover:bg-[#383c46] border border-[#f26522]/70 text-[10px]">
+              <div class="font-bold text-[#ff8547]">① 画像1 完全再現</div>
+              <div class="text-gray-300 font-num">44.4m/s・ヒール-3/下-6</div>
+            </button>
+            <button data-preset="screen2" class="text-left px-2 py-1 rounded bg-[#2d3038] hover:bg-[#383c46] border border-[#3b9eff]/60 text-[10px]">
+              <div class="font-bold text-[#60a5fa]">② 画像2 完全再現</div>
+              <div class="text-gray-300 font-num">34.6m/s・151.4yds</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section A: Impact Location + 9-Point Quick Strike Matrix -->
+        <div class="bg-[#23252a] p-2.5 rounded border border-[#32353d] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-[#ff7a33]">● インパクトロケーション (打点・ギア効果)</span>
+            <button id="btn-center-impact" class="text-[10px] px-1.5 py-0.5 rounded bg-[#18191c] hover:bg-[#2d3037] text-gray-200 border border-[#3a3d45]" title="ショートカット: Esc">
+              芯(0,0)リセット
+            </button>
+          </div>
+
+          <!-- 9-Point Quick Strike Matrix (Accessibility & Instant Testing) -->
+          <div class="bg-[#18191c] p-1.5 rounded border border-[#2f323b]">
+            <div class="flex items-center justify-between text-[9.5px] text-gray-300 mb-1 px-0.5">
+              <span>◀ トゥ側 (ドローギア)</span>
+              <span class="font-bold text-gray-400">9分割クイック打点</span>
+              <span>ヒール側 (スライス) ▶</span>
+            </div>
+            <div class="grid grid-cols-3 gap-1 text-[10px] font-bold">
+              <button data-strike="10,8" class="strike-matrix-btn py-1 rounded bg-[#252830] hover:bg-[#343844] text-gray-200 border border-[#323640]">高・トゥ (+10,+8)</button>
+              <button data-strike="0,8" class="strike-matrix-btn py-1 rounded bg-[#252830] hover:bg-[#343844] text-gray-200 border border-[#323640]">高・中央 (0,+8)</button>
+              <button data-strike="-10,8" class="strike-matrix-btn py-1 rounded bg-[#252830] hover:bg-[#343844] text-gray-200 border border-[#323640]">高・ヒール (-10,+8)</button>
+              <button data-strike="10,0" class="strike-matrix-btn py-1 rounded bg-[#252830] hover:bg-[#343844] text-gray-200 border border-[#323640]">中・トゥ (+10,0)</button>
+              <button data-strike="0,0" class="strike-matrix-btn py-1 rounded bg-[#2b2924] hover:bg-[#3b372c] text-amber-300 border border-amber-500/50">◎ 芯 (0,0)</button>
+              <button data-strike="-10,0" class="strike-matrix-btn py-1 rounded bg-[#252830] hover:bg-[#343844] text-gray-200 border border-[#323640]">中・ヒール (-10,0)</button>
+              <button data-strike="10,-8" class="strike-matrix-btn py-1 rounded bg-[#252830] hover:bg-[#343844] text-gray-200 border border-[#323640]">低・トゥ (+10,-8)</button>
+              <button data-strike="0,-8" class="strike-matrix-btn py-1 rounded bg-[#252830] hover:bg-[#343844] text-gray-200 border border-[#323640]">低・中央 (0,-8)</button>
+              <button data-strike="-10,-8" class="strike-matrix-btn py-1 rounded bg-[#252830] hover:bg-[#343844] text-gray-200 border border-[#323640]">低・ヒール (-10,-8)</button>
+            </div>
+          </div>
+
+          <!-- Horizontal Impact Offset (-24mm Heel to +24mm Toe) with Direct Numeric Input -->
+          <div>
+            <div class="flex items-center justify-between text-xs mb-0.5">
+              <span class="text-gray-200">インパクトオフセット (左右)</span>
+              <div class="flex items-center gap-1">
+                <input id="num-imp-x" type="number" min="-24" max="24" step="0.5" value="-3.0" class="inline-num-input" aria-label="インパクトオフセット数値入力" />
+                <span id="lbl-imp-x-dir" class="text-[10px] font-bold text-[#ff7a33] w-11 text-right">mm ヒール</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button data-step="impactOffset,-0.5" aria-label="オフセットをヒール側へ0.5mm移動" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <input id="inp-imp-x" type="range" min="-24" max="24" step="0.5" value="-3.0" />
+              <button data-step="impactOffset,0.5" aria-label="オフセットをトゥ側へ0.5mm移動" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+            </div>
+          </div>
+
+          <!-- Vertical Impact Height (-18mm Down to +18mm Up) with Direct Numeric Input -->
+          <div>
+            <div class="flex items-center justify-between text-xs mb-0.5">
+              <span class="text-gray-200">インパクトハイト (上下)</span>
+              <div class="flex items-center gap-1">
+                <input id="num-imp-y" type="number" min="-18" max="18" step="0.5" value="-6.0" class="inline-num-input" aria-label="インパクトハイト数値入力" />
+                <span id="lbl-imp-y-dir" class="text-[10px] font-bold text-[#60a5fa] w-11 text-right">mm ダウン</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button data-step="impactHeight,-0.5" aria-label="ハイトを下へ0.5mm移動" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <input id="inp-imp-y" type="range" min="-18" max="18" step="0.5" value="-6.0" />
+              <button data-step="impactHeight,0.5" aria-label="ハイトを上へ0.5mm移動" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+            </div>
+          </div>
+
+          <!-- Dynamic Lie -->
+          <div>
+            <div class="flex items-center justify-between text-xs mb-0.5">
+              <span class="text-gray-200">ダイナミックライ</span>
+              <div class="flex items-center gap-1">
+                <input id="num-lie" type="number" min="35" max="62" step="0.1" value="44.3" class="inline-num-input" aria-label="ダイナミックライ数値入力" />
+                <span class="text-[10px] text-gray-300 w-6">deg</span>
+              </div>
+            </div>
+            <input id="inp-lie" type="range" class="blue-slider" min="35" max="62" step="0.1" value="44.3" />
+          </div>
+        </div>
+
+        <!-- Section B: Club Delivery & D-Plane Sliders with Direct Numeric Inputs -->
+        <div class="bg-[#23252a] p-2.5 rounded border border-[#32353d] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-[#60a5fa]">● クラブ軌道・Dプレーン入力</span>
+            <label class="flex items-center gap-1 text-[10px] text-gray-200 cursor-pointer" title="ONにするとフェイス角とアタック角からダイナミックロフトを自動連動します">
+              <input id="chk-auto-loft" type="checkbox" class="rounded bg-[#18191c] border-gray-500 text-[#f26522] focus:ring-0" />
+              <span>ロフト自動連動</span>
+            </label>
+          </div>
+
+          <!-- Club Speed -->
+          <div>
+            <div class="flex items-center justify-between text-xs mb-0.5">
+              <span class="text-gray-200">クラブスピード</span>
+              <div class="flex items-center gap-1">
+                <input id="num-chs" type="number" min="25" max="58" step="0.1" value="44.4" class="inline-num-input text-[#ff7a33]" aria-label="クラブスピード数値入力" />
+                <span class="text-[10px] text-gray-300 w-6">m/s</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button data-step="chs,-0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <input id="inp-chs" type="range" min="25" max="58" step="0.1" value="44.4" />
+              <button data-step="chs,0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+            </div>
+          </div>
+
+          <!-- Attack Angle -->
+          <div>
+            <div class="flex items-center justify-between text-xs mb-0.5">
+              <span class="text-gray-200">アタックアングル</span>
+              <div class="flex items-center gap-1">
+                <input id="num-aoa" type="number" min="-10" max="10" step="0.1" value="0.4" class="inline-num-input" aria-label="アタックアングル数値入力" />
+                <span class="text-[10px] text-gray-300 w-6">deg</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button data-step="aoa,-0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <input id="inp-aoa" type="range" class="blue-slider" min="-10" max="10" step="0.1" value="0.4" />
+              <button data-step="aoa,0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+            </div>
+          </div>
+
+          <!-- Dynamic Loft -->
+          <div>
+            <div class="flex items-center justify-between text-xs mb-0.5">
+              <span class="text-gray-200">ダイナミックロフト</span>
+              <div class="flex items-center gap-1">
+                <input id="num-dyn-loft" type="number" min="5" max="48" step="0.1" value="12.9" class="inline-num-input text-rose-300" aria-label="ダイナミックロフト数値入力" />
+                <span class="text-[10px] text-gray-300 w-6">deg</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button data-step="dynamicLoft,-0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <input id="inp-dyn-loft" type="range" min="5" max="48" step="0.1" value="12.9" />
+              <button data-step="dynamicLoft,0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+            </div>
+          </div>
+
+          <!-- Club Path -->
+          <div id="box-club-path" class="rounded p-1 transition">
+            <div class="flex items-center justify-between text-xs mb-0.5">
+              <span class="text-gray-200">クラブパス <span id="lbl-path-tag" class="text-[10px] text-[#60a5fa] font-bold">(アウトイン)</span></span>
+              <div class="flex items-center gap-1">
+                <input id="num-path" type="number" min="-15" max="15" step="0.1" value="-9.8" class="inline-num-input text-[#60a5fa]" aria-label="クラブパス数値入力" />
+                <span class="text-[10px] text-gray-300 w-6">deg</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button data-step="clubPath,-0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <input id="inp-path" type="range" class="blue-slider" min="-15" max="15" step="0.1" value="-9.8" />
+              <button data-step="clubPath,0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+            </div>
+          </div>
+
+          <!-- Face Angle -->
+          <div id="box-face-angle" class="rounded p-1 transition">
+            <div class="flex items-center justify-between text-xs mb-0.5">
+              <span class="text-gray-200">フェイスアングル <span id="lbl-face-tag" class="text-[10px] text-rose-300 font-bold">(クローズ)</span></span>
+              <div class="flex items-center gap-1">
+                <input id="num-face" type="number" min="-15" max="15" step="0.1" value="-8.4" class="inline-num-input text-rose-300" aria-label="フェイスアングル数値入力" />
+                <span class="text-[10px] text-gray-300 w-6">deg</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button data-step="faceAngle,-0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <input id="inp-face" type="range" min="-15" max="15" step="0.1" value="-8.4" />
+              <button data-step="faceAngle,0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+            </div>
+          </div>
+
+          <!-- Wind Speed & Direction Sliders -->
+          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-[#32353d]">
+            <div>
+              <div class="flex justify-between text-[10px] mb-0.5">
+                <span class="text-gray-300">風速 (m/s)</span>
+                <span id="lbl-wind-spd" class="font-num font-bold text-emerald-300">0.0 m/s</span>
+              </div>
+              <input id="inp-wind-spd" type="range" class="blue-slider" min="0" max="15" step="0.5" value="0" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[10px] mb-0.5">
+                <span class="text-gray-300">風向 (0°追風)</span>
+                <span id="lbl-wind-dir" class="font-num font-bold text-emerald-300">180°</span>
+              </div>
+              <input id="inp-wind-dir" type="range" class="blue-slider" min="0" max="350" step="10" value="180" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Fire & Record Shot Button -->
+        <button id="btn-record-shot" class="w-full py-2.5 rounded-md tm-orange-btn text-white font-bold text-xs tracking-wide flex items-center justify-center gap-2 transition active:scale-[0.99]" title="ショートカット: R (再生のみは Space)">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/></svg>
+          <span>ショット計測・3D弾道発射 (履歴に追加)</span>
+        </button>
+      </div>
+
+      <!-- TAB 2: SHOT HISTORY LIST -->
+      <div id="sidebar-tab-history" class="hidden flex-1 flex-col overflow-hidden">
+        <div class="p-3 bg-[#202226] border-b border-[#2e3138] flex items-center justify-between">
+          <div>
+            <div class="text-xs font-extrabold text-white tracking-wide">CURRENT PLAYER</div>
+            <div class="text-[11px] text-gray-300">ドライバー | 2026/11/13 Session</div>
+          </div>
+          <div id="history-total-count" class="text-sm font-num font-bold text-white">5</div>
+        </div>
+
+        <div class="px-3 py-2 bg-[#18191c] border-b border-[#2e3138] flex items-center justify-between text-xs text-gray-200">
+          <span>キャリー (クリックで再現)</span>
+          <span class="text-[10px] text-gray-300">3D表示 | ★</span>
+        </div>
+
+        <div id="shot-history-container" class="flex-1 overflow-y-auto divide-y divide-[#26282e]"></div>
+
+        <div class="p-2.5 bg-[#16171a] border-t border-[#2d3037] flex gap-2">
+          <button id="btn-compare-mode" class="flex-1 py-2.5 rounded tm-orange-btn text-white text-xs font-bold tracking-wider transition">
+            スイング比較 (全軌跡重ね合わせ: ON)
+          </button>
+          <button id="btn-clear-history" class="px-2.5 py-2 rounded bg-[#262930] hover:bg-rose-950 text-gray-200 text-xs font-bold border border-[#3a3e47]">
+            クリア
+          </button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ==================== ASYMMETRIC PRO WORKSPACE (LEFT 45% ANALYSIS / RIGHT 55% LARGE 3D RANGE) ==================== -->
+    <main id="workspace-grid" class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-[2px] bg-[#2c2f36] overflow-hidden relative">
+
+      <!-- LEFT COLUMN (45% = 5 cols): 3 STACKED ANALYTICAL PANELS -->
+      <div id="left-analysis-column" class="lg:col-span-5 h-full grid grid-rows-3 gap-[2px] bg-[#2c2f36] overflow-hidden">
+
+        <!-- PANEL 1: D-PLANE & CLUB DELIVERY VISUALIZER -->
+        <section id="panel-dplane" class="bg-[#1e2024] relative flex flex-col overflow-hidden">
+          <div class="h-7 shrink-0 px-2.5 flex items-center justify-between border-b border-[#2b2e35] bg-[#1a1b1f]">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[11px] font-bold text-gray-200">クラブ軌道＆Dプレーン解析</span>
+              <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-[#292c33] text-[#ff7a33] font-num">側面 ＋ 上面</span>
+            </div>
+            <span class="text-[11px] font-bold text-white panel-club-title">ドライバー</span>
+          </div>
+          <div class="flex-1 relative w-full h-full">
+            <canvas id="dplane-canvas" class="w-full h-full block"></canvas>
+          </div>
+        </section>
+
+        <!-- PANEL 2: IMPACT LOCATION & GEAR EFFECT HEATMAP -->
+        <section id="panel-impact" class="bg-[#1e2024] relative flex flex-col overflow-hidden">
+          <div class="h-7 shrink-0 px-2.5 flex items-center justify-between border-b border-[#2b2e35] bg-[#1a1b1f]">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[11px] font-bold text-gray-200">インパクトロケーション</span>
+              <button id="btn-toggle-heatmap" class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-[#292c33] hover:bg-[#353944] text-amber-300 border border-[#3d424f] transition" title="フェース上のギア効果スピン・反発効率分布を表示">
+                🔥 ギア効果ヒートマップ
+              </button>
+            </div>
+            <div class="flex items-center gap-1 bg-[#141518] p-0.5 rounded border border-[#32353d]">
+              <button id="btn-impact-2d" class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-[#f26522] text-white">2Dフェース</button>
+              <button id="btn-impact-3d" class="px-1.5 py-0.2 rounded text-[9.5px] font-bold text-gray-300 hover:text-white">3Dヘッド</button>
+            </div>
+          </div>
+
+          <div class="flex-1 relative w-full h-full overflow-hidden">
+            <canvas id="impact-2d-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+            <canvas id="impact-3d-canvas" class="w-full h-full hidden cursor-grab"></canvas>
+
+            <div class="pointer-events-none absolute bottom-1.5 left-2 right-2 flex items-center justify-between text-[10px] bg-[#141518]/90 px-2.5 py-0.5 rounded border border-[#2e3138] font-num">
+              <span id="impact-gear-summary" class="text-amber-300 font-bold truncate">
+                ギア効果: 横打点(-3mm)→軸 +7.1°右 / 縦打点(-6mm)→+1380rpm
+              </span>
+              <span id="impact-smash-badge" class="text-cyan-300 font-bold shrink-0 ml-2">
+                ミート率: 1.408
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- PANEL 3: TRACKMAN OPTIMIZER -->
+        <section id="panel-optimizer" class="bg-[#1e2024] relative flex flex-col overflow-hidden">
+          <div class="h-7 shrink-0 px-2.5 flex items-center justify-between border-b border-[#2b2e35] bg-[#1a1b1f]">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[11px] font-bold text-gray-200">最大キャリー＋トータル</span>
+              <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-[#292c33] text-[#60a5fa] font-bold">青バー＝最適ゾーン</span>
+            </div>
+            <div class="flex items-center gap-3 text-[11px] font-num">
+              <span>キャリー <strong id="opt-curr-carry" class="text-white text-sm">207</strong><span class="text-[#60a5fa] text-[10px] ml-0.5">(最適<span id="opt-ideal-carry">246</span>y)</span></span>
+              <span>トータル <strong id="opt-curr-total" class="text-white text-sm">221</strong><span class="text-[#60a5fa] text-[10px] ml-0.5">(最適<span id="opt-ideal-total">271</span>y)</span></span>
+            </div>
+          </div>
+
+          <div class="flex-1 relative w-full h-full p-1">
+            <canvas id="optimizer-canvas" class="w-full h-full block"></canvas>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT COLUMN (55% = 7 cols, FULL HEIGHT): LARGE 3D DRIVING RANGE VIEWPORT (IMAGE_C3D91A.PNG PRESERVED) -->
+      <section id="panel-range" class="lg:col-span-7 h-full bg-[#151922] relative flex flex-col overflow-hidden">
+        <!-- Floating Top Controls over 3D Range -->
+        <div class="absolute top-2.5 left-2.5 right-2.5 flex items-start justify-between z-10 pointer-events-none">
+          <!-- Camera Angle Buttons -->
+          <div class="pointer-events-auto flex items-center gap-1 bg-[#16171a]/90 backdrop-blur px-1.5 py-1 rounded border border-[#32353d] shadow-lg">
+            <button data-cam="behind" class="cam-mode-btn px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#f26522] text-white" title="ショートカット: 1">打席後方</button>
+            <button data-cam="follow" class="cam-mode-btn px-2 py-0.5 rounded text-[10.5px] font-bold text-gray-200 hover:bg-[#2a2d34]" title="ショートカット: 2">追跡カメラ</button>
+            <button data-cam="overhead" class="cam-mode-btn px-2 py-0.5 rounded text-[10.5px] font-bold text-gray-200 hover:bg-[#2a2d34]" title="ショートカット: 3">上空俯瞰</button>
+            <button data-cam="side" class="cam-mode-btn px-2 py-0.5 rounded text-[10.5px] font-bold text-gray-200 hover:bg-[#2a2d34]" title="ショートカット: 4">真横(高さ)</button>
+            <button id="btn-replay-flight" class="ml-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-emerald-600/85 hover:bg-emerald-500 text-white transition" title="弾道アニメーション再生 (Space)">▶ 再生</button>
+          </div>
+
+          <!-- Right Stack: Day/Night Switcher + Collapsible 3D Trajectory Legend Card -->
+          <div class="pointer-events-auto flex flex-col items-end gap-1.5">
+            <div class="flex items-center gap-1 bg-[#16171a]/90 backdrop-blur px-1.5 py-1 rounded border border-[#32353d] shadow-lg">
+              <button id="btn-theme-day" class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#3b9eff] text-white">昼・リアル芝 (画像2)</button>
+              <button id="btn-theme-night" class="px-2 py-0.5 rounded text-[10.5px] font-bold text-gray-200 hover:bg-[#2a2d34]">夜・発光Toptracer</button>
+            </div>
+
+            <!-- Compact Collapsible Legend Explaining Every Trajectory Line in 3D Viewport -->
+            <div class="bg-[#16171a]/88 backdrop-blur border border-[#32353d] rounded-md px-2.5 py-1.5 text-[10.5px] shadow-lg max-w-[260px]">
+              <div class="flex items-center justify-between gap-3">
+                <button id="btn-toggle-legend" class="font-bold text-gray-100 flex items-center gap-1 hover:text-[#ff7a33] transition">
+                  <span>📊 弾道ライン凡例</span>
+                  <span id="legend-chevron" class="text-[9px] text-gray-400">▼</span>
+                </button>
+                <label class="flex items-center gap-1 text-[10px] text-gray-300 cursor-pointer" title="過去の比較弾道を一括表示/非表示">
+                  <input id="chk-legend-compare" type="checkbox" checked class="rounded bg-[#18191c] border-gray-500 text-[#f26522] w-3 h-3" />
+                  <span>比較軌跡</span>
+                </label>
+              </div>
+              <div id="legend-body" class="mt-1.5 pt-1.5 border-t border-[#2b2f3a] space-y-1 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-4 h-1.5 rounded-full shrink-0" style="background: linear-gradient(90deg, #ff3b30, #ffcc00, #34c759, #007aff, #af52de);"></span>
+                  <span class="text-white font-bold">太い虹色線:</span>
+                  <span class="text-gray-200 truncate">現在の計測ショット</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-4 h-0.5 bg-gray-900 border border-gray-500 shrink-0"></span>
+                  <span class="text-gray-200 font-bold">芝面黒線:</span>
+                  <span class="text-gray-300 truncate">地上投影シャドウ(曲がり幅)</span>
+                </div>
+                <div id="legend-history-list" class="space-y-1 pt-0.5">
+                  <!-- Populated dynamically with each comparison line's color & label -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Three.js 3D Range Canvas -->
+        <div class="flex-1 relative w-full h-full">
+          <canvas id="range-3d-canvas" class="w-full h-full block"></canvas>
+        </div>
+
+        <!-- Floating Bottom Telemetry Pill on 3D Range -->
+        <div class="pointer-events-none absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-[11px] font-num">
+          <div class="bg-[#16171a]/90 backdrop-blur px-2.5 py-1 rounded border border-[#32353d] text-gray-100 shadow">
+            トータル: <span id="range-badge-total" class="text-[#ff7a33] font-bold">221.4 yds</span>
+            (ラン <span id="range-badge-roll" class="text-emerald-300 font-bold">+14.8 yds</span>)
+            / 最高到達点: <span id="range-badge-apex" class="text-sky-300 font-bold">21.8 yds</span>
+          </div>
+          <div id="range-shot-shape-tag" class="bg-[#16171a]/90 backdrop-blur px-2.5 py-1 rounded border border-[#32353d] text-amber-300 font-bold shadow">
+            プル(左打出)・フェード/スライス
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==================== MIDDLE-LOWER: 11-METRIC TRACKMAN DATA STRIP ==================== -->
+  <section class="h-[88px] sm:h-[94px] shrink-0 bg-[#12141a] border-t border-[#282c37] px-2 py-1.5 z-30">
+    <div class="h-full grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-11 gap-1.5 overflow-x-auto">
+
+      <!-- 1. クラブスピード -->
+      <div id="card-chs" data-focus="inp-chs" class="tm-metric-card flex flex-col justify-between px-2 py-1" title="クリックでクラブスピード入力へ移動">
+        <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">クラブスピード</div>
+        <div id="m-chs" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">44.4</div>
+        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
+          <span>37.2</span>
+          <span class="text-gray-100 font-bold">m/s</span>
+          <span>±4.5</span>
+        </div>
+      </div>
+
+      <!-- 2. アタックアングル -->
+      <div id="card-aoa" data-focus="inp-aoa" class="tm-metric-card flex flex-col justify-between px-2 py-1" title="クリックでアタックアングル入力へ移動">
+        <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">アタックアングル</div>
+        <div id="m-aoa" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">0.4</div>
+        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
+          <span>0.5</span>
+          <span class="text-gray-100 font-bold">deg</span>
+          <span>±3.4</span>
+        </div>
+      </div>
+
+      <!-- 3. ボールスピード -->
+      <div id="card-bs" data-focus="inp-chs" class="tm-metric-card flex flex-col justify-between px-2 py-1">
+        <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">ボールスピード</div>
+        <div id="m-bs" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">62.5</div>
+        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
+          <span>52.6</span>
+          <span class="text-gray-100 font-bold">m/s</span>
+          <span>±7.0</span>
+        </div>
+      </div>
+
+      <!-- 4. スピン量 -->
+      <div id="card-spin" data-focus="inp-imp-y" class="tm-metric-card flex flex-col justify-between px-2 py-1">
+        <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">スピン量 <span class="warn-badge hidden text-rose-400">⚠</span></div>
+        <div id="m-spin" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">4869</div>
+        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
+          <span>3365</span>
+          <span class="text-gray-100 font-bold">rpm</span>
+          <span>±902</span>
+        </div>
+      </div>
+
+      <!-- 5. キャリー -->
+      <div id="card-carry" data-focus="inp-chs" class="tm-metric-card flex flex-col justify-between px-2 py-1">
+        <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">キャリー</div>
+        <div id="m-carry" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">206.6</div>
+        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
+          <span>166.7</span>
+          <span class="text-gray-100 font-bold">yds</span>
+          <span>±32.1</span>
+        </div>
+      </div>
+
+      <!-- 6. キャリーサイド -->
+      <div id="card-side" data-focus="inp-imp-x" class="tm-metric-card flex flex-col justify-between px-2 py-1">
+        <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">キャリーサイド <span class="warn-badge hidden text-rose-400">⚠</span></div>
+        <div id="m-side" class="text-2xl xl:text-[25px] leading-none font-extrabold font-num text-white text-center my-auto">15.3<span class="text-base">左</span></div>
+        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
+          <span>5.2左</span>
+          <span class="text-gray-100 font-bold">yds</span>
+          <span>±20.1</span>
+        </div>
+      </div>
+
+      <!-- 7. ローポイント -->
+      <div id="card-lowpt" data-focus="inp-aoa" class="tm-metric-card hidden sm:flex flex-col justify-between px-2 py-1">
+        <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">ローポイント</div>
+        <div id="m-lowpt" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">3.9B</div>
+        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
+          <span>3.6B</span>
+          <span class="text-gray-100 font-bold">cm</span>
+          <span>±10.5</span>
+        </div>
+      </div>
+
+      <!-- 8. クラブパス -->
+      <div id="card-path" data-focus="inp-path" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
+        <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">クラブパス <span class="warn-badge hidden text-rose-400">⚠</span></div>
+        <div id="m-path" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">-9.8</div>
+        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
+          <span>-4.8</span>
+          <span class="text-gray-100 font-bold">deg</span>
+          <span>±5.4</span>
+        </div>
+      </div>
+
+      <!-- 9. 着地角 -->
+      <div id="card-land" data-focus="inp-dyn-loft" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
+        <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">着地角</div>
+        <div id="m-land" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">40.6</div>
+        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
+          <span>34.4</span>
+          <span class="text-gray-100 font-bold">deg</span>
+          <span>±9.1</span>
+        </div>
+      </div>
+
+      <!-- 10. 左右打出角 -->
+      <div id="card-hla" data-focus="inp-face" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
+        <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">左右打出角 <span class="warn-badge hidden text-rose-400">⚠</span></div>
+        <div id="m-hla" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">-8.8</div>
+        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
+          <span>-4.4</span>
+          <span class="text-gray-100 font-bold">deg</span>
+          <span>±5.8</span>
+        </div>
+      </div>
+
+      <!-- 11. 打出角 -->
+      <div id="card-vla" data-focus="inp-dyn-loft" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
+        <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">打出角</div>
+        <div id="m-vla" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">9.4</div>
+        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
+          <span>15.0</span>
+          <span class="text-gray-100 font-bold">deg</span>
+          <span>±4.6</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== PATTERN B: FIXED BOTTOM DASHBOARD FOOTER (AI COACH BAR + UNDO) ==================== -->
+  <footer id="ai-coach-footer" class="h-[52px] shrink-0 bg-[#0d0e12] border-t border-[#292d38] px-3 flex items-center gap-3 z-40 shadow-[0_-6px_20px_rgba(0,0,0,0.65)]">
+    <div class="shrink-0 bg-gradient-to-r from-[#ff621a] to-[#f2530c] text-white text-xs font-extrabold px-3.5 py-2 rounded-md flex items-center gap-1.5 shadow-[0_0_15px_rgba(255,98,26,0.5)]">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      </svg>
+      <span>AIコーチ診断</span>
+    </div>
+
+    <div class="shrink-0 relative">
+      <select id="ai-target-shape" aria-label="目標弾道を選択" class="appearance-none bg-[#1c1f26] hover:bg-[#242832] text-gray-100 text-xs font-bold border border-[#363b47] rounded-md pl-3 pr-8 py-2 cursor-pointer focus:outline-none focus:border-[#ff621a] transition shadow-inner">
+        <option value="straight">目標: 完全なストレート</option>
+        <option value="draw">目標: 理想のプッシュドロー</option>
+        <option value="fade">目標: 理想のパワーフェード</option>
+      </select>
+      <svg class="w-3.5 h-3.5 text-gray-300 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </div>
+
+    <div class="flex-1 h-[36px] bg-[#16181f] border border-[#2d313d] rounded-md px-3 flex items-center justify-between overflow-hidden shadow-inner">
+      <div id="ai-advice-text" class="text-xs font-bold text-gray-100 truncate pr-2">
+        <span class="text-rose-400 font-extrabold mr-1.5">改善ポイント:</span> ⚠️ 打点が下部(-6mm)です。ギア効果でバックスピンが増大し飛距離をロスしています。
+      </div>
+      <div class="shrink-0 flex items-center gap-1.5 ml-2">
+        <button id="btn-undo-ideal" class="hidden px-2.5 py-1 rounded bg-[#252934] hover:bg-[#343a49] text-amber-300 text-[11px] font-bold border border-amber-500/40 transition" title="理想値適用前のスイング状態に戻す">
+          ↩ 元に戻す
+        </button>
+        <button id="btn-apply-ideal" class="px-2.5 py-1 rounded bg-[#252934] hover:bg-[#ff621a] text-gray-100 hover:text-white text-[11px] font-bold border border-[#3b4152] transition flex items-center gap-1" title="選択中の目標弾道の理想スイング＆打点を即座に適用して3D比較します">
+          <span>✨ 理想値を適用</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== KEYBOARD SHORTCUTS & ACCESSIBILITY HELP MODAL ==================== -->
+  <div id="help-modal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
+    <div class="bg-[#181a20] border border-[#323642] rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-[#2b2e38] pb-2.5">
+        <h3 id="help-modal-title" class="text-sm font-extrabold text-white flex items-center gap-2">
+          <span class="text-[#ff621a]">⌨️</span> 操作ガイド＆キーボードショートカット
+        </h3>
+        <button id="btn-close-help" class="text-gray-400 hover:text-white text-sm font-bold px-2 py-0.5 rounded">✕</button>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">弾道アニメーション再生</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">Space</kbd></div>
+        <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">ショット計測＆履歴追加</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">R</kbd></div>
+        <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">打点の微調整 (0.5mm)</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">↑ ↓ ← →</kbd></div>
+        <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">打点を芯(0,0)へリセット</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">Esc</kbd></div>
+        <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">3Dカメラ視点切替</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">1 / 2 / 3 / 4</kbd></div>
+        <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">左サイドバー開閉</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">H</kbd></div>
+      </div>
+      <p class="text-[11px] text-gray-300 leading-relaxed">
+        ・右側の3Dドライビングレンジはマウスドラッグで回転、ホイールでズーム可能です。<br>
+        ・左サイドバーの数値ボックスはクリックして直接キーボードから数値を入力できます。
+      </p>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN APPLICATION MODULE ==================== -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+    // ============================================================================
+    // 1. CONSTANTS & CLUB SPECIFICATIONS
+    // ============================================================================
+    const YARDS_PER_M = 1.0936133;
+    const BALL_MASS = 0.04593;
+    const BALL_RADIUS = 0.021335;
+    const BALL_AREA = Math.PI * BALL_RADIUS * BALL_RADIUS;
+    const GRAVITY = 9.80665;
+
+    const CLUBS = {
+      '1W': { name: 'ドライバー', loft: 10.5, lie: 56.0, cgMm: 38, maxSmash: 1.495, horizGear: 2.36, vertGearSpin: 230, vertGearLaunch: 0.23, bulgeDegPerMm: 0.14 },
+      '3W': { name: '3W フェアウェイ', loft: 15.0, lie: 57.0, cgMm: 31, maxSmash: 1.475, horizGear: 1.85, vertGearSpin: 195, vertGearLaunch: 0.19, bulgeDegPerMm: 0.11 },
+      'UT': { name: 'ユーティリティ', loft: 21.0, lie: 58.5, cgMm: 22, maxSmash: 1.435, horizGear: 1.35, vertGearSpin: 155, vertGearLaunch: 0.15, bulgeDegPerMm: 0.08 },
+      '5I': { name: '5番アイアン', loft: 25.0, lie: 60.5, cgMm: 12, maxSmash: 1.395, horizGear: 0.75, vertGearSpin: 110, vertGearLaunch: 0.10, bulgeDegPerMm: 0.04 },
+      '7I': { name: '7番アイアン', loft: 32.0, lie: 61.5, cgMm: 10, maxSmash: 1.345, horizGear: 0.60, vertGearSpin: 95,  vertGearLaunch: 0.09, bulgeDegPerMm: 0.03 },
+      'PW': { name: 'ピッチングW', loft: 45.0, lie: 63.0, cgMm: 8,  maxSmash: 1.250, horizGear: 0.40, vertGearSpin: 75,  vertGearLaunch: 0.07, bulgeDegPerMm: 0.02 }
+    };
+
+    const SHOT_COLORS = ['#38bdf8', '#f26522', '#a855f7', '#22c55e', '#facc15', '#ec4899'];
+
+    // ============================================================================
+    // 2. APPLICATION STATE
+    // ============================================================================
+    const state = {
+      club: '1W',
+      chs: 44.4,
+      aoa: 0.4,
+      clubPath: -9.8,
+      faceAngle: -8.4,
+      dynamicLoft: 12.9,
+      dynamicLie: 44.3,
+      impactOffset: -3.0,
+      impactHeight: -6.0,
+      autoCoupleLoft: false,
+
+      tempC: 20.0,
+      pressureHpa: 1013.25,
+      altitudeM: 25,
+      airDensity: 1.204,
+      windSpeedMs: 0.0,
+      windDirDeg: 180,
+
+      layoutMode: 'pro_split',
+      impactViewMode: '2d',
+      showImpactHeatmap: false,
+      rangeTheme: 'day',
+      cameraMode: 'behind',
+      compareAllShots: true,
+      previousBeforeIdeal: null,
+
+      currentShot: null,
+      shotHistory: [],
+      activeFlightAnim: null
+    };
+
+    // ============================================================================
+    // 3. CALIBRATED GOLF PHYSICS ENGINE (D-PLANE + 3D GEAR EFFECT + RK4 FLIGHT)
+    // ============================================================================
+    function calculateShotPhysics(params = state) {
+      const spec = CLUBS[params.club] || CLUBS['1W'];
+      const chs = params.chs;
+      const aoa = params.aoa;
+      const path = params.clubPath;
+      const face = params.faceAngle;
+      const dynLoft = params.dynamicLoft;
+      const dynLie = params.dynamicLie;
+      const impX = params.impactOffset;
+      const impY = params.impactHeight;
+
+      const spinLoft = Math.max(4.0, +(dynLoft - aoa).toFixed(1));
+      const faceToPath = +(face - path).toFixed(1);
+
+      const offCenterLoss = 0.00145 * (impX * impX) + 0.00192 * (impY * impY) + (impX < 0 ? Math.abs(impX) * 0.0018 : 0);
+      const loftLoss = Math.max(0, (spinLoft - 12.0) * 0.0098);
+      const smashFactor = Math.max(1.08, Math.min(spec.maxSmash, spec.maxSmash - offCenterLoss - loftLoss));
+      const ballSpeed = +(chs * smashFactor).toFixed(1);
+
+      const rollAndVertGearDelta = impY * spec.vertGearLaunch;
+      const launchV = Math.max(2.0, +(0.825 * dynLoft + 0.175 * aoa + rollAndVertGearDelta + 0.07).toFixed(1));
+
+      const bulgeDelta = impX * spec.bulgeDegPerMm;
+      const launchH = +(0.845 * face + 0.155 * path + bulgeDelta).toFixed(1);
+
+      const baseSpin = chs * spinLoft * 6.015;
+      const vertGearSpinDelta = -impY * spec.vertGearSpin * (chs / 44.4);
+      const heelSpinDelta = impX < 0 ? Math.abs(impX) * 50 * (chs / 44.4) : -impX * 28 * (chs / 44.4);
+      const spinRate = Math.round(Math.max(800, Math.min(11500, baseSpin + vertGearSpinDelta + heelSpinDelta)));
+
+      const dPlaneAxis = faceToPath * 1.02;
+      const horizGearAxisDelta = -impX * spec.horizGear * (chs / 44.4);
+      const lieAxisDelta = (dynLie - spec.lie) * -0.002;
+      const spinAxis = Math.max(-42, Math.min(42, +(dPlaneAxis + horizGearAxisDelta + lieAxisDelta).toFixed(1)));
+
+      const lowPointVal = +(Math.abs(aoa * 3.1 - 2.66)).toFixed(1);
+      const lowPointSuffix = aoa >= -0.2 ? 'B' : 'A';
+      const lowPointStr = `${lowPointVal}${lowPointSuffix}`;
+
+      const vlaRad = THREE.MathUtils.degToRad(launchV);
+      const hlaRad = THREE.MathUtils.degToRad(launchH);
+      const v0 = chs * smashFactor;
+
+      let vx = v0 * Math.cos(vlaRad) * Math.sin(hlaRad);
+      let vy = v0 * Math.sin(vlaRad);
+      let vz = v0 * Math.cos(vlaRad) * Math.cos(hlaRad);
+
+      const windRad = THREE.MathUtils.degToRad(params.windDirDeg);
+      const windVx = params.windSpeedMs * Math.sin(windRad);
+      const windVz = params.windSpeedMs * Math.cos(windRad);
+
+      const spinAxisRad = THREE.MathUtils.degToRad(spinAxis);
+      const omega0 = (spinRate * 2 * Math.PI) / 60.0;
+      const rho = params.airDensity;
+      const dt = 0.008;
+
+      let s = [0, 0.02, 0, vx, vy, vz];
+      const trajectory = [{ x: 0, y: 0.02, z: 0, t: 0, phase: 'air' }];
+      let apexM = 0;
+      let t = 0;
+
+      function accel(st, curOmega) {
+        const [, py, , svx, svy, svz] = st;
+        const windGrad = Math.min(1.3, 0.75 + 0.25 * Math.pow(Math.max(0.1, py) / 10.0, 0.2));
+        const rvx = svx - windVx * windGrad;
+        const rvy = svy;
+        const rvz = svz - windVz * windGrad;
+
+        const vRel = Math.sqrt(rvx * rvx + rvy * rvy + rvz * rvz) + 1e-6;
+        const S = (curOmega * BALL_RADIUS) / vRel;
+
+        const Cd = 0.212 + 0.255 * S;
+        const Cl = Math.min(0.32, 0.082 + (0.62 * S) / (1.0 + 1.45 * S));
+
+        const dynFactor = (0.5 * rho * BALL_AREA * vRel) / BALL_MASS;
+        const axDrag = -dynFactor * Cd * rvx;
+        const ayDrag = -dynFactor * Cd * rvy;
+        const azDrag = -dynFactor * Cd * rvz;
+
+        const hSpd = Math.sqrt(rvx * rvx + rvz * rvz) + 1e-6;
+        const fwdX = rvx / hSpd;
+        const fwdZ = rvz / hSpd;
+        const rightX = fwdZ;
+        const rightZ = -fwdX;
+
+        const cosA = Math.cos(spinAxisRad);
+        const sinA = Math.sin(spinAxisRad);
+
+        const ox = -rightX * cosA;
+        const oy = -sinA;
+        const oz = -rightZ * cosA;
+
+        const ux = rvx / vRel;
+        const uy = rvy / vRel;
+        const uz = rvz / vRel;
+
+        const cx = oy * uz - oz * uy;
+        const cy = oz * ux - ox * uz;
+        const cz = ox * uy - oy * ux;
+
+        const liftAccel = dynFactor * vRel * Cl;
+        const latLiftGain = 0.62;
+
+        return [
+          svx,
+          svy,
+          svz,
+          axDrag + liftAccel * cx * latLiftGain,
+          ayDrag + liftAccel * cy - GRAVITY,
+          azDrag + liftAccel * cz
+        ];
+      }
+
+      while (s[1] > 0 && t < 14.0) {
+        const curOmega = omega0 * Math.exp(-0.033 * t);
+        const k1 = accel(s, curOmega);
+        const s2 = s.map((v, i) => v + 0.5 * dt * k1[i]);
+        const k2 = accel(s2, curOmega);
+        const s3 = s.map((v, i) => v + 0.5 * dt * k2[i]);
+        const k3 = accel(s3, curOmega);
+        const s4 = s.map((v, i) => v + dt * k3[i]);
+        const k4 = accel(s4, curOmega);
+
+        const prev = [...s];
+        for (let i = 0; i < 6; i++) {
+          s[i] += (dt / 6.0) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+        }
+        t += dt;
+        if (s[1] > apexM) apexM = s[1];
+
+        if (s[1] <= 0 && t > 0.1) {
+          const frac = prev[1] / (prev[1] - s[1] + 1e-6);
+          s[0] = prev[0] + frac * (s[0] - prev[0]);
+          s[1] = 0;
+          s[2] = prev[2] + frac * (s[2] - prev[2]);
+          trajectory.push({ x: s[0], y: 0, z: s[2], t, phase: 'carry' });
+          break;
+        }
+        trajectory.push({ x: s[0], y: s[1], z: s[2], t, phase: 'air' });
+      }
+
+      const carryX = s[0];
+      const carryZ = s[2];
+      const carryYards = +(carryZ * YARDS_PER_M).toFixed(1);
+      const carrySideYards = +(carryX * YARDS_PER_M).toFixed(1);
+      const apexYards = +(apexM * YARDS_PER_M).toFixed(1);
+
+      const landHorizSpd = Math.sqrt(s[3] * s[3] + s[5] * s[5]) + 1e-6;
+      const landingAngle = +(Math.atan2(Math.abs(s[4]), landHorizSpd) * (180 / Math.PI) * 1.19).toFixed(1);
+
+      const spinStopFactor = Math.max(0.12, 1.0 - (spinRate / 9000) * (landingAngle / 50));
+      let bx = carryX;
+      let bz = carryZ;
+      let bvx = s[3] * 0.56 * spinStopFactor;
+      let bvy = Math.abs(s[4]) * 0.28 * spinStopFactor;
+      let bvz = s[5] * 0.56 * spinStopFactor;
+
+      for (let b = 0; b < 2; b++) {
+        if (bvy < 0.6) break;
+        const bDur = (2 * bvy) / GRAVITY;
+        for (let step = 1; step <= 10; step++) {
+          const bt = (step / 10) * bDur;
+          trajectory.push({
+            x: bx + bvx * bt,
+            y: Math.max(0, bvy * bt - 0.5 * GRAVITY * bt * bt),
+            z: bz + bvz * bt,
+            t: t + bt,
+            phase: 'roll'
+          });
+        }
+        bx += bvx * bDur;
+        bz += bvz * bDur;
+        t += bDur;
+        bvy *= 0.38;
+        bvx *= 0.58;
+        bvz *= 0.58;
+      }
+
+      const rollSpd = Math.sqrt(bvx * bvx + bvz * bvz);
+      const decel = 2.9;
+      const rollTime = Math.min(2.8, rollSpd / decel);
+      for (let step = 1; step <= 12; step++) {
+        const rt = (step / 12) * rollTime;
+        const d = rollSpd * rt - 0.5 * decel * rt * rt;
+        trajectory.push({
+          x: bx + (bvx / (rollSpd + 1e-6)) * d,
+          y: 0.01,
+          z: bz + (bvz / (rollSpd + 1e-6)) * d,
+          t: t + rt,
+          phase: 'roll'
+        });
+      }
+
+      const finalPt = trajectory[trajectory.length - 1];
+      const totalYards = +(finalPt.z * YARDS_PER_M).toFixed(1);
+      const rollYards = Math.max(0, +(totalYards - carryYards).toFixed(1));
+
+      const optBallSpeed = +(chs * spec.maxSmash).toFixed(1);
+      const optSpinLoft = aoa >= 0 ? { min: 11.5, max: 15.5 } : { min: 13.5, max: 18.0 };
+      const optLaunchV = aoa >= 0 ? { min: 12.5, max: 16.0 } : { min: 11.5, max: 15.0 };
+      const optSpin = aoa >= 0 ? { min: 2000, max: 2650 } : { min: 2450, max: 3150 };
+      const optApexYds = {
+        min: Math.round(chs * 0.62 - 6),
+        max: Math.round(chs * 0.78 - 4)
+      };
+
+      const optCarryYards = Math.round(chs * 5.56 - (aoa < 0 ? 18 : 0) - (chs < 38 ? 12 : 0));
+      const optTotalYards = Math.round(optCarryYards + 23);
+
+      return {
+        club: params.club,
+        clubName: spec.name,
+        chs,
+        aoa,
+        clubPath: path,
+        faceAngle: face,
+        dynamicLoft: dynLoft,
+        dynamicLie: dynLie,
+        impactOffset: impX,
+        impactHeight: impY,
+        spinLoft,
+        faceToPath,
+        smashFactor,
+        ballSpeed,
+        launchV,
+        launchH,
+        spinRate,
+        spinAxis,
+        lowPointStr,
+        carryYards,
+        totalYards,
+        rollYards,
+        carrySideYards,
+        apexYards,
+        landingAngle,
+        horizGearAxisDelta,
+        vertGearSpinDelta,
+        optCarryYards,
+        optTotalYards,
+        optRanges: {
+          spinLoft: optSpinLoft,
+          ballSpeed: { min: +(optBallSpeed - 1.8).toFixed(1), max: optBallSpeed },
+          launchV: optLaunchV,
+          spin: optSpin,
+          apex: optApexYds
+        },
+        trajectory
+      };
+    }
+
+    // ============================================================================
+    // 4. PANEL 1: D-PLANE & CLUB DELIVERY 2D/VECTOR CANVAS
+    // ============================================================================
+    const dplaneCanvas = document.getElementById('dplane-canvas');
+
+    function drawDPlaneVisualizer(shot) {
+      if (!dplaneCanvas) return;
+      const rect = dplaneCanvas.parentElement.getBoundingClientRect();
+      if (rect.width < 10 || rect.height < 10) return;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dplaneCanvas.width = rect.width * dpr;
+      dplaneCanvas.height = rect.height * dpr;
+      const ctx = dplaneCanvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.fillStyle = '#1e2024';
+      ctx.fillRect(0, 0, w, h);
+
+      const midY = h * 0.49;
+
+      ctx.strokeStyle = '#2b2e35';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(16, midY);
+      ctx.lineTo(w - 16, midY);
+      ctx.stroke();
+
+      // UPPER DIAGRAM: SIDE VIEW
+      const impactX_top = w * 0.56;
+      const impactY_top = midY * 0.62;
+      const vecLen = Math.min(w * 0.28, 130);
+
+      ctx.strokeStyle = '#1d7dfa';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(impactX_top - vecLen * 1.15, impactY_top);
+      ctx.lineTo(impactX_top + vecLen * 0.65, impactY_top);
+      ctx.stroke();
+
+      const aoaVisRad = THREE.MathUtils.degToRad(shot.aoa * 1.6);
+      const loftVisRad = THREE.MathUtils.degToRad(shot.dynamicLoft * 1.45);
+
+      ctx.fillStyle = 'rgba(180, 188, 200, 0.35)';
+      ctx.beginPath();
+      ctx.moveTo(impactX_top, impactY_top);
+      ctx.arc(impactX_top, impactY_top, vecLen * 0.85, Math.PI + aoaVisRad, Math.PI + loftVisRad, shot.dynamicLoft < shot.aoa);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(impactX_top, impactY_top);
+      ctx.lineTo(impactX_top - Math.cos(aoaVisRad) * vecLen, impactY_top - Math.sin(aoaVisRad) * vecLen);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(impactX_top, impactY_top);
+      ctx.lineTo(impactX_top - Math.cos(loftVisRad) * vecLen, impactY_top - Math.sin(loftVisRad) * vecLen);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.75)';
+      ctx.beginPath();
+      ctx.moveTo(impactX_top, impactY_top);
+      ctx.lineTo(impactX_top, impactY_top - 28);
+      ctx.lineTo(impactX_top + Math.sin(loftVisRad * 0.6) * 28, impactY_top - 28);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.save();
+      ctx.translate(impactX_top, impactY_top);
+      ctx.rotate(THREE.MathUtils.degToRad(shot.dynamicLoft * 0.4));
+      ctx.strokeStyle = '#525866';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(6, -22);
+      ctx.lineTo(11, -55);
+      ctx.stroke();
+      ctx.strokeStyle = '#f26522';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(5, -28);
+      ctx.lineTo(10, -28);
+      ctx.stroke();
+
+      const headGrad = ctx.createLinearGradient(0, -28, 65, 12);
+      headGrad.addColorStop(0, '#383c45');
+      headGrad.addColorStop(0.5, '#1d1f24');
+      headGrad.addColorStop(1, '#0e1013');
+      ctx.fillStyle = headGrad;
+      ctx.strokeStyle = '#525866';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, 5);
+      ctx.lineTo(2, -24);
+      ctx.quadraticCurveTo(35, -26, 62, -2);
+      ctx.quadraticCurveTo(65, 6, 52, 8);
+      ctx.quadraticCurveTo(24, 10, 0, 5);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      const ballX_top = impactX_top - vecLen * 1.05;
+      const ballY_top = impactY_top - Math.sin(loftVisRad * 0.7) * (vecLen * 0.9);
+      drawGolfBall2D(ctx, ballX_top, ballY_top, 12);
+
+      drawMetricCallout(ctx, impactX_top - 36, impactY_top - 42, 'ダイナミックロフト', shot.dynamicLoft.toFixed(1), 'deg', 'center');
+      drawMetricCallout(ctx, ballX_top - 34, ballY_top + 10, 'スピン量', String(shot.spinRate), 'rpm', 'right');
+      drawMetricCallout(ctx, impactX_top - vecLen * 0.55, impactY_top + 25, 'スピンロフト', shot.spinLoft.toFixed(1), 'deg', 'center');
+      drawMetricCallout(ctx, impactX_top + 42, impactY_top + 25, 'アタックアングル', shot.aoa.toFixed(1), 'deg', 'center');
+
+      // LOWER DIAGRAM: TOP VIEW
+      const impactX_bot = w * 0.56;
+      const impactY_bot = midY + (h - midY) * 0.48;
+
+      ctx.strokeStyle = '#3f444e';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(impactX_bot - vecLen * 1.15, impactY_bot);
+      ctx.lineTo(impactX_bot + vecLen * 0.65, impactY_bot);
+      ctx.stroke();
+
+      const faceVisRad = THREE.MathUtils.degToRad(shot.faceAngle * 1.3);
+      const pathVisRad = THREE.MathUtils.degToRad(shot.clubPath * 1.3);
+
+      ctx.fillStyle = 'rgba(180, 188, 200, 0.28)';
+      ctx.beginPath();
+      ctx.moveTo(impactX_bot, impactY_bot);
+      ctx.arc(impactX_bot, impactY_bot, vecLen * 0.85, Math.PI + faceVisRad, Math.PI + pathVisRad, shot.clubPath < shot.faceAngle);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#1d7dfa';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(impactX_bot, impactY_bot);
+      ctx.lineTo(impactX_bot - Math.cos(pathVisRad) * vecLen, impactY_bot - Math.sin(pathVisRad) * vecLen);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(impactX_bot, impactY_bot);
+      ctx.lineTo(impactX_bot - Math.cos(faceVisRad) * vecLen, impactY_bot - Math.sin(faceVisRad) * vecLen);
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(impactX_bot, impactY_bot);
+      ctx.rotate(faceVisRad * 0.55);
+
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -34);
+      ctx.lineTo(0, 34);
+      ctx.stroke();
+
+      const crownGrad = ctx.createRadialGradient(22, 0, 4, 28, 0, 48);
+      crownGrad.addColorStop(0, '#32363f');
+      crownGrad.addColorStop(1, '#101216');
+      ctx.fillStyle = crownGrad;
+      ctx.strokeStyle = '#4b515e';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -32);
+      ctx.bezierCurveTo(50, -36, 62, -14, 60, 4);
+      ctx.bezierCurveTo(58, 24, 38, 36, 0, 32);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath();
+      ctx.arc(6, 0, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      const ballX_bot = impactX_bot - Math.cos(faceVisRad) * vecLen * 1.02;
+      const ballY_bot = impactY_bot - Math.sin(faceVisRad) * vecLen * 1.02;
+      drawGolfBall2D(ctx, ballX_bot, ballY_bot, 12, shot.spinAxis);
+
+      const faceDirSub = shot.faceAngle < -0.2 ? 'クローズ' : shot.faceAngle > 0.2 ? 'オープン' : 'スクエア';
+      const pathDirSub = shot.clubPath < -0.2 ? 'アウトイン' : shot.clubPath > 0.2 ? 'インアウト' : 'ストレート';
+      const ftpDirSub = shot.faceToPath > 0.2 ? 'オープン' : shot.faceToPath < -0.2 ? 'クローズ' : 'スクエア';
+      const axisDirSub = shot.spinAxis > 0.2 ? '右' : shot.spinAxis < -0.2 ? '左' : '中立';
+
+      drawMetricCallout(ctx, impactX_bot - 12, impactY_bot - 44, 'フェイスアングル', shot.faceAngle.toFixed(1), 'deg', 'center', faceDirSub);
+      drawMetricCallout(ctx, ballX_bot - 26, ballY_bot - 8, 'スピン軸', Math.abs(shot.spinAxis).toFixed(1), 'deg', 'right', axisDirSub);
+      drawMetricCallout(ctx, impactX_bot - vecLen * 0.58, impactY_bot + 40, 'フェイストゥパス', Math.abs(shot.faceToPath).toFixed(1), 'deg', 'center', ftpDirSub);
+      drawMetricCallout(ctx, impactX_bot + 44, impactY_bot + 40, 'クラブパス', shot.clubPath.toFixed(1), 'deg', 'center', pathDirSub);
+    }
+
+    function drawGolfBall2D(ctx, x, y, r, spinAxisDeg = null) {
+      const grad = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(0.75, '#d1d5db');
+      grad.addColorStop(1, '#6b7280');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (spinAxisDeg !== null) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(THREE.MathUtils.degToRad(spinAxisDeg));
+        ctx.strokeStyle = '#f26522';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -r - 4);
+        ctx.lineTo(0, r + 4);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function drawMetricCallout(ctx, x, y, title, valStr, unitStr, align = 'center', subLabel = '') {
+      ctx.save();
+      ctx.textAlign = align;
+      ctx.fillStyle = '#e5e7eb';
+      ctx.font = 'bold 9.5px "Noto Sans JP", sans-serif';
+      ctx.fillText(title, x, y);
+
+      if (subLabel) {
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = 'bold 8.5px "Noto Sans JP", sans-serif';
+        ctx.fillText(subLabel, x - (align === 'center' ? 24 : 36), y + 10);
+      }
+
+      const numX = align === 'center' ? x + 6 : x;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 16px "Inter", sans-serif';
+      ctx.fillText(valStr, numX, y + 18);
+
+      const numWidth = ctx.measureText(valStr).width;
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = 'bold 9px "Inter", sans-serif';
+      const unitOffset = align === 'center' ? numX + numWidth / 2 + 10 : numX + 13;
+      ctx.fillText(unitStr, unitOffset, y + 17);
+      ctx.restore();
+    }
+
+    // ============================================================================
+    // 5. PANEL 2: IMPACT LOCATION 2D CLUBFACE + GEAR EFFECT HEATMAP + 3D HEAD
+    // ============================================================================
+    const impact2dCanvas = document.getElementById('impact-2d-canvas');
+    let faceCenter2D = { cx: 0, cy: 0, scaleMmToPx: 3.5 };
+
+    function drawImpactLocation2D(shot) {
+      if (!impact2dCanvas || state.impactViewMode !== '2d') return;
+      const rect = impact2dCanvas.parentElement.getBoundingClientRect();
+      if (rect.width < 10 || rect.height < 10) return;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      impact2dCanvas.width = rect.width * dpr;
+      impact2dCanvas.height = rect.height * dpr;
+      const ctx = impact2dCanvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.fillStyle = '#1e2024';
+      ctx.fillRect(0, 0, w, h);
+
+      const cx = w * 0.50;
+      const cy = h * 0.53;
+      const scale = Math.min(w, h) * 0.011;
+      faceCenter2D = { cx, cy, scaleMmToPx: scale * 2.1 };
+      const m = faceCenter2D.scaleMmToPx;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      // Hosel & Shaft
+      ctx.strokeStyle = '#383c46';
+      ctx.lineWidth = 12;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(24 * m, -8 * m);
+      ctx.lineTo(38 * m, -34 * m);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#f26522';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(26 * m, -18 * m);
+      ctx.lineTo(32 * m, -15 * m);
+      ctx.stroke();
+
+      // Outer Metallic Driver Head Frame
+      const outerGrad = ctx.createLinearGradient(-30 * m, -20 * m, 30 * m, 20 * m);
+      outerGrad.addColorStop(0, '#525866');
+      outerGrad.addColorStop(0.5, '#2b2f38');
+      outerGrad.addColorStop(1, '#15171c');
+      ctx.fillStyle = outerGrad;
+      ctx.strokeStyle = '#687082';
+      ctx.lineWidth = 1.8;
+
+      ctx.beginPath();
+      ctx.moveTo(-27 * m, -12 * m);
+      ctx.bezierCurveTo(-9 * m, -21 * m, 16 * m, -17 * m, 25 * m, -7 * m);
+      ctx.bezierCurveTo(30 * m, 3 * m, 22 * m, 15 * m, 9 * m, 17 * m);
+      ctx.bezierCurveTo(-7 * m, 19 * m, -24 * m, 15 * m, -28 * m, 3 * m);
+      ctx.bezierCurveTo(-30 * m, -4 * m, -28 * m, -9 * m, -27 * m, -12 * m);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Inner Clubface Path
+      ctx.beginPath();
+      ctx.moveTo(-23 * m, -9 * m);
+      ctx.bezierCurveTo(-7 * m, -16 * m, 13 * m, -13 * m, 20 * m, -5 * m);
+      ctx.bezierCurveTo(23 * m, 2 * m, 18 * m, 12 * m, 7 * m, 14 * m);
+      ctx.bezierCurveTo(-7 * m, 15 * m, -20 * m, 12 * m, -24 * m, 2 * m);
+      ctx.closePath();
+
+      const faceGrad = ctx.createRadialGradient(0, 0, 2 * m, 0, 0, 25 * m);
+      faceGrad.addColorStop(0, '#2e323b');
+      faceGrad.addColorStop(1, '#191b20');
+      ctx.fillStyle = faceGrad;
+      ctx.fill();
+      ctx.strokeStyle = '#434854';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Optional Gear-Effect & COR Heatmap Overlay
+      if (state.showImpactHeatmap) {
+        ctx.save();
+        ctx.clip();
+        const hGrad = ctx.createLinearGradient(-24 * m, 0, 22 * m, 0);
+        hGrad.addColorStop(0, 'rgba(56, 189, 248, 0.42)');
+        hGrad.addColorStop(0.5, 'rgba(16, 185, 129, 0.35)');
+        hGrad.addColorStop(1, 'rgba(244, 63, 94, 0.42)');
+        ctx.fillStyle = hGrad;
+        ctx.fillRect(-26 * m, -18 * m, 52 * m, 36 * m);
+
+        const sGrad = ctx.createRadialGradient(0, 0, 1 * m, 0, 0, 12 * m);
+        sGrad.addColorStop(0, 'rgba(250, 204, 21, 0.55)');
+        sGrad.addColorStop(1, 'rgba(250, 204, 21, 0)');
+        ctx.fillStyle = sGrad;
+        ctx.fillRect(-26 * m, -18 * m, 52 * m, 36 * m);
+
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.font = 'bold 8.5px "Noto Sans JP", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ドローギア', -13 * m, -4 * m);
+        ctx.fillText('スライスギア', 12 * m, -4 * m);
+        ctx.fillText('低スピン飛距離帯', 0, -9 * m);
+        ctx.fillText('高スピン失速帯', 0, 10 * m);
+        ctx.restore();
+      }
+
+      // Scorelines
+      ctx.strokeStyle = 'rgba(209, 213, 219, 0.35)';
+      ctx.lineWidth = 1;
+      for (let gy = -8; gy <= 10; gy += 3.5) {
+        ctx.beginPath();
+        ctx.moveTo(-20 * m, gy * m);
+        ctx.lineTo(-6 * m, gy * m);
+        ctx.moveTo(6 * m, gy * m);
+        ctx.lineTo(18 * m, gy * m);
+        ctx.stroke();
+      }
+
+      // Dashed Crosshairs
+      ctx.strokeStyle = 'rgba(229, 231, 235, 0.75)';
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(-30 * m, 0);
+      ctx.lineTo(30 * m, 0);
+      ctx.moveTo(0, -21 * m);
+      ctx.lineTo(0, 21 * m);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Glowing Orange Impact Marker
+      const markerX = -shot.impactOffset * m;
+      const markerY = -shot.impactHeight * m;
+
+      ctx.fillStyle = 'rgba(242, 101, 34, 0.25)';
+      ctx.beginPath();
+      ctx.arc(markerX, markerY, 3.8 * m, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(242, 101, 34, 0.75)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(markerX, markerY, 2.4 * m, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#f26522';
+      ctx.beginPath();
+      ctx.arc(markerX, markerY, 1.3 * m, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+
+      // 3 Callout Labels around the Head
+      const heightSub = shot.impactHeight < -0.2 ? 'ダウン' : shot.impactHeight > 0.2 ? 'アップ' : 'センター';
+      drawImpactCallout(ctx, cx, cy - 22 * m - 14, 'インパクトハイト', `${shot.impactHeight.toFixed(0)}`, 'mm', heightSub);
+
+      const offsetSub = shot.impactOffset < -0.2 ? 'ヒール' : shot.impactOffset > 0.2 ? 'トゥ' : 'センター';
+      drawImpactCallout(ctx, cx - 32 * m - 36, cy - 4, 'オフセット', `${shot.impactOffset.toFixed(0)}`, 'mm', offsetSub);
+
+      drawImpactCallout(ctx, cx + 32 * m + 36, cy - 4, 'ライ角', `${shot.dynamicLie.toFixed(1)}`, 'deg', '');
+    }
+
+    function drawImpactCallout(ctx, x, y, title, valStr, unitStr, subText) {
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#e5e7eb';
+      ctx.font = 'bold 10.5px "Noto Sans JP", sans-serif';
+      ctx.fillText(title, x, y - 16);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 20px "Inter", sans-serif';
+      ctx.fillText(valStr, x - 9, y + 4);
+
+      const numW = ctx.measureText(valStr).width;
+      ctx.fillStyle = '#d1d5db';
+      ctx.font = 'bold 10px "Inter", sans-serif';
+      ctx.fillText(unitStr, x - 9 + numW / 2 + 13, y + 3);
+
+      if (subText) {
+        ctx.fillStyle = '#d1d5db';
+        ctx.font = 'bold 10px "Noto Sans JP", sans-serif';
+        ctx.fillText(subText, x, y + 17);
+      }
+      ctx.restore();
+    }
+
+    let isDragging2DFace = false;
+    function updateImpactFrom2DCanvas(e) {
+      const rect = impact2dCanvas.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+
+      const dxMm = -(px - faceCenter2D.cx) / faceCenter2D.scaleMmToPx;
+      const dyMm = -(py - faceCenter2D.cy) / faceCenter2D.scaleMmToPx;
+
+      state.impactOffset = Math.max(-24, Math.min(24, Math.round(dxMm * 2) / 2));
+      state.impactHeight = Math.max(-18, Math.min(18, Math.round(dyMm * 2) / 2));
+      recalculateAndRefreshUI(false);
+    }
+
+    impact2dCanvas.addEventListener('pointerdown', (e) => {
+      isDragging2DFace = true;
+      updateImpactFrom2DCanvas(e);
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (isDragging2DFace) updateImpactFrom2DCanvas(e);
+    });
+    window.addEventListener('pointerup', () => {
+      if (isDragging2DFace) {
+        isDragging2DFace = false;
+        update3DTrajectoryInRange(state.currentShot, false);
+      }
+    });
+
+    // ============================================================================
+    // 6. PANEL 2 (3D MODE): THREE.JS PBR 3D CLUBHEAD
+    // ============================================================================
+    const impact3dCanvas = document.getElementById('impact-3d-canvas');
+    const headRenderer = new THREE.WebGLRenderer({ canvas: impact3dCanvas, antialias: true });
+    headRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const headScene = new THREE.Scene();
+    headScene.background = new THREE.Color(0x1e2024);
+
+    const headCamera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+    headCamera.position.set(0, 0.2, 4.2);
+    const headControls = new OrbitControls(headCamera, impact3dCanvas);
+    headControls.enableDamping = true;
+
+    headScene.add(new THREE.AmbientLight(0xffffff, 1.2));
+    const hDirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    hDirLight.position.set(3, 5, 4);
+    headScene.add(hDirLight);
+
+    const club3DPivot = new THREE.Group();
+    headScene.add(club3DPivot);
+    let impact3DMarker = null;
+    let gearArrow3D = null;
+
+    function build3DClubheadInspector() {
+      while (club3DPivot.children.length) club3DPivot.remove(club3DPivot.children[0]);
+
+      const faceGeo = new THREE.PlaneGeometry(2.4, 1.6, 20, 14);
+      const pos = faceGeo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        pos.setZ(i, -(x * x) * 0.045 - (y * y) * 0.045);
+      }
+      faceGeo.computeVertexNormals();
+
+      const faceMat = new THREE.MeshStandardMaterial({ color: 0x2b303c, metalness: 0.8, roughness: 0.3, side: THREE.DoubleSide });
+      club3DPivot.add(new THREE.Mesh(faceGeo, faceMat));
+
+      const crownGeo = new THREE.SphereGeometry(1.28, 32, 24);
+      crownGeo.scale(1.0, 0.65, 1.35);
+      const crown = new THREE.Mesh(crownGeo, new THREE.MeshStandardMaterial({ color: 0x12141a, metalness: 0.6, roughness: 0.25 }));
+      crown.position.set(0, -0.05, -0.9);
+      club3DPivot.add(crown);
+
+      const hosel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.14, 0.18, 1.5, 16),
+        new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.85, roughness: 0.2 })
+      );
+      hosel.position.set(1.25, 0.6, -0.1);
+      hosel.rotation.z = -0.25;
+      club3DPivot.add(hosel);
+
+      impact3DMarker = new THREE.Group();
+      const dot = new THREE.Mesh(
+        new THREE.RingGeometry(0.08, 0.16, 24),
+        new THREE.MeshBasicMaterial({ color: 0xf26522, side: THREE.DoubleSide })
+      );
+      dot.position.z = 0.02;
+      impact3DMarker.add(dot);
+
+      gearArrow3D = new THREE.ArrowHelper(new THREE.Vector3(0, 0.15, 1).normalize(), new THREE.Vector3(0, 0, 0.05), 0.9, 0xf26522, 0.22, 0.14);
+      impact3DMarker.add(gearArrow3D);
+      club3DPivot.add(impact3DMarker);
+    }
+    build3DClubheadInspector();
+
+    function sync3DClubheadMarker(shot) {
+      if (!impact3DMarker) return;
+      const vx = -shot.impactOffset / 20.0;
+      const vy = shot.impactHeight / 20.0;
+      const vz = -(vx * vx) * 0.045 - (vy * vy) * 0.045;
+      impact3DMarker.position.set(vx, vy, vz);
+      if (gearArrow3D) {
+        gearArrow3D.setDirection(new THREE.Vector3(-shot.launchH * 0.02, shot.launchV * 0.02, 1).normalize());
+      }
+      club3DPivot.rotation.y = THREE.MathUtils.degToRad(-shot.faceAngle * 0.8);
+    }
+
+    // ============================================================================
+    // 7. PANEL 3: TRACKMAN OPTIMIZER GAUGES CANVAS
+    // ============================================================================
+    const optimizerCanvas = document.getElementById('optimizer-canvas');
+
+    function drawOptimizerGauges(shot) {
+      if (!optimizerCanvas) return;
+      const rect = optimizerCanvas.parentElement.getBoundingClientRect();
+      if (rect.width < 10 || rect.height < 10) return;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      optimizerCanvas.width = rect.width * dpr;
+      optimizerCanvas.height = rect.height * dpr;
+      const ctx = optimizerCanvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+
+      document.getElementById('opt-curr-carry').textContent = Math.round(shot.carryYards);
+      document.getElementById('opt-ideal-carry').textContent = shot.optCarryYards;
+      document.getElementById('opt-curr-total').textContent = Math.round(shot.totalYards);
+      document.getElementById('opt-ideal-total').textContent = shot.optTotalYards;
+
+      const gauges = [
+        { title: 'スピンロフト', unit: 'deg', min: 8, max: 28, val: shot.spinLoft, fmt: shot.spinLoft.toFixed(1), optMin: shot.optRanges.spinLoft.min, optMax: shot.optRanges.spinLoft.max },
+        { title: 'ボールスピード', unit: 'm/s', min: Math.floor(shot.chs * 1.25), max: Math.ceil(shot.chs * 1.54), val: shot.ballSpeed, fmt: shot.ballSpeed.toFixed(1), optMin: shot.optRanges.ballSpeed.min, optMax: shot.optRanges.ballSpeed.max },
+        { title: '打出角', unit: 'deg', min: 6, max: 24, val: shot.launchV, fmt: shot.launchV.toFixed(1), optMin: shot.optRanges.launchV.min, optMax: shot.optRanges.launchV.max },
+        { title: 'スピン量', unit: 'rpm', min: 1400, max: 5200, val: shot.spinRate, fmt: String(shot.spinRate), optMin: shot.optRanges.spin.min, optMax: shot.optRanges.spin.max },
+        { title: '最高到達点', unit: 'yds', min: 8, max: 46, val: shot.apexYards, fmt: shot.apexYards.toFixed(1), optMin: shot.optRanges.apex.min, optMax: shot.optRanges.apex.max }
+      ];
+
+      const colW = w / gauges.length;
+      const topPad = 20;
+      const botPad = 18;
+      const barH = Math.max(40, h - topPad - botPad);
+
+      gauges.forEach((g, idx) => {
+        const cx = colW * idx + colW * 0.36;
+
+        ctx.fillStyle = '#ff7a33';
+        ctx.font = 'bold 10px "Noto Sans JP", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(g.title, colW * idx + colW * 0.5, 12);
+
+        const barW = 9;
+        const barX = cx - barW / 2;
+        ctx.fillStyle = '#2b2e35';
+        ctx.fillRect(barX, topPad, barW, barH);
+
+        const clamp = (v) => Math.max(g.min, Math.min(g.max, v));
+        const yFromVal = (v) => topPad + barH - ((clamp(v) - g.min) / (g.max - g.min)) * barH;
+
+        const yOptTop = yFromVal(g.optMax);
+        const yOptBot = yFromVal(g.optMin);
+        ctx.fillStyle = '#3b82f6';
+        ctx.fillRect(barX, yOptTop, barW, Math.max(5, yOptBot - yOptTop));
+
+        const isOutOfOpt = g.val < g.optMin || g.val > g.optMax;
+        const valY = yFromVal(g.val);
+        const tagW = 46;
+        const tagH = 16;
+        const tagX = barX + barW + 3;
+
+        if (isOutOfOpt) {
+          ctx.strokeStyle = 'rgba(244, 63, 94, 0.85)';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(barX - 1, topPad, barW + 2, barH);
+        }
+
+        ctx.fillStyle = isOutOfOpt ? '#e11d48' : '#e86c1f';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(barX + barW, valY);
+        ctx.lineTo(tagX + 4, valY - tagH / 2);
+        ctx.lineTo(tagX + tagW, valY - tagH / 2);
+        ctx.lineTo(tagX + tagW, valY + tagH / 2);
+        ctx.lineTo(tagX + 4, valY + tagH / 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        const arrow = g.val < g.optMin ? '▲' : g.val > g.optMax ? '▼' : '';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 10px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${g.fmt}${arrow}`, tagX + 4 + (tagW - 4) / 2, valY + 3.5);
+
+        ctx.fillStyle = '#d1d5db';
+        ctx.font = 'bold 9.5px "Inter", sans-serif';
+        ctx.fillText(g.unit, colW * idx + colW * 0.5, h - 4);
+      });
+    }
+
+    // ============================================================================
+    // 8. PANEL 4: THREE.JS LARGE 3D DRIVING RANGE VIEWPORT
+    // ============================================================================
+    const rangeCanvas = document.getElementById('range-3d-canvas');
+    const rangeRenderer = new THREE.WebGLRenderer({ canvas: rangeCanvas, antialias: true });
+    rangeRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    rangeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    const rangeScene = new THREE.Scene();
+    const rangeCamera = new THREE.PerspectiveCamera(44, 1, 0.1, 1200);
+    rangeCamera.position.set(0, 3.0, -10.5);
+
+    const rangeControls = new OrbitControls(rangeCamera, rangeCanvas);
+    rangeControls.enableDamping = true;
+    rangeControls.maxPolarAngle = Math.PI / 2 - 0.01;
+    rangeControls.target.set(0, 11, 115);
+
+    const composer = new EffectComposer(rangeRenderer);
+    composer.addPass(new RenderPass(rangeScene, rangeCamera));
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(800, 600), 0.75, 0.35, 0.25);
+    composer.addPass(bloomPass);
+
+    const rangeAmbient = new THREE.AmbientLight(0xffffff, 1.35);
+    rangeScene.add(rangeAmbient);
+    const rangeSun = new THREE.DirectionalLight(0xfffbeb, 1.8);
+    rangeSun.position.set(-50, 90, -40);
+    rangeScene.add(rangeSun);
+
+    let turfMesh = null;
+    let mountainGroup = null;
+    const trajectory3DGroup = new THREE.Group();
+    rangeScene.add(trajectory3DGroup);
+
+    const toSceneX = (golfX) => -golfX;
+
+    function createProceduralTurfTexture(isDay = true) {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 512;
+      const ctx = c.getContext('2d');
+      for (let i = 0; i < 16; i++) {
+        ctx.fillStyle = isDay
+          ? (i % 2 === 0 ? '#4d7c2b' : '#588932')
+          : (i % 2 === 0 ? '#071422' : '#0a1b2e');
+        ctx.fillRect(0, i * 32, 512, 32);
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(16, 24);
+      return tex;
+    }
+
+    function createYardageSignSprite(text) {
+      const c = document.createElement('canvas');
+      c.width = 160;
+      c.height = 64;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = 'rgba(18, 22, 28, 0.85)';
+      ctx.beginPath();
+      ctx.roundRect(10, 10, 140, 44, 10);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 26px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 80, 33);
+
+      const tex = new THREE.CanvasTexture(c);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+      sprite.scale.set(11, 4.4, 1);
+      return sprite;
+    }
+
+    function build3DRangeEnvironment() {
+      const turfGeo = new THREE.PlaneGeometry(520, 560);
+      const turfMat = new THREE.MeshStandardMaterial({
+        map: createProceduralTurfTexture(true),
+        roughness: 0.9,
+        metalness: 0.05
+      });
+      turfMesh = new THREE.Mesh(turfGeo, turfMat);
+      turfMesh.rotation.x = -Math.PI / 2;
+      turfMesh.position.set(0, -0.02, 220);
+      rangeScene.add(turfMesh);
+
+      const centerLine = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0.03, 0), new THREE.Vector3(0, 0.03, 350)]),
+        new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.65 })
+      );
+      rangeScene.add(centerLine);
+
+      [50, 100, 150, 200, 250, 300].forEach((yd) => {
+        const zM = yd / YARDS_PER_M;
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(-85, 0.03, zM),
+          new THREE.Vector3(85, 0.03, zM)
+        ]);
+        rangeScene.add(new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45 })));
+
+        // Subtle 3D Yardage Markers on Fairway Edges
+        const signL = createYardageSignSprite(`${yd}y`);
+        signL.position.set(42, 2.3, zM);
+        rangeScene.add(signL);
+
+        const signR = createYardageSignSprite(`${yd}y`);
+        signR.position.set(-42, 2.3, zM);
+        rangeScene.add(signR);
+      });
+
+      // Target Pin & Orange Flag at 250 Yards
+      const z250 = 250 / YARDS_PER_M;
+      const pole = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.14, 0.14, 11, 12),
+        new THREE.MeshBasicMaterial({ color: 0xffffff })
+      );
+      pole.position.set(0, 5.5, z250);
+      rangeScene.add(pole);
+
+      const flag = new THREE.Mesh(
+        new THREE.BoxGeometry(3.2, 2.0, 0.1),
+        new THREE.MeshBasicMaterial({ color: 0xff621a })
+      );
+      flag.position.set(-1.6, 10.0, z250);
+      rangeScene.add(flag);
+
+      mountainGroup = new THREE.Group();
+      const mtMat = new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.95 });
+      const hillMat = new THREE.MeshStandardMaterial({ color: 0x2d4c22, roughness: 0.9 });
+
+      const mainMt = new THREE.Mesh(new THREE.ConeGeometry(160, 95, 7), mtMat);
+      mainMt.position.set(35, 45, 440);
+      mountainGroup.add(mainMt);
+
+      const leftHill = new THREE.Mesh(new THREE.ConeGeometry(140, 68, 6), hillMat);
+      leftHill.position.set(150, 30, 380);
+      mountainGroup.add(leftHill);
+
+      const rightHill = new THREE.Mesh(new THREE.ConeGeometry(150, 75, 6), hillMat);
+      rightHill.position.set(-140, 34, 370);
+      mountainGroup.add(rightHill);
+
+      const treeMat = new THREE.MeshStandardMaterial({ color: 0x1e3f19, roughness: 0.9 });
+      for (let i = 0; i < 45; i++) {
+        const tree = new THREE.Mesh(new THREE.ConeGeometry(4 + (i % 3), 12 + (i % 5) * 2, 6), treeMat);
+        const side = i % 2 === 0 ? 1 : -1;
+        tree.position.set(side * (68 + (i % 7) * 8), 6, 60 + i * 7);
+        mountainGroup.add(tree);
+      }
+      rangeScene.add(mountainGroup);
+
+      applyRangeTheme(state.rangeTheme);
+    }
+
+    function applyRangeTheme(theme) {
+      state.rangeTheme = theme;
+      const isDay = theme === 'day';
+      rangeScene.background = new THREE.Color(isDay ? 0x8bb8e8 : 0x050811);
+      rangeScene.fog = new THREE.FogExp2(isDay ? 0x9ec2e6 : 0x050811, 0.0016);
+      if (turfMesh) {
+        turfMesh.material.map = createProceduralTurfTexture(isDay);
+        turfMesh.material.needsUpdate = true;
+      }
+
+      document.getElementById('btn-theme-day').className = isDay
+        ? 'px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#3b9eff] text-white'
+        : 'px-2 py-0.5 rounded text-[10.5px] font-bold text-gray-200 hover:bg-[#2a2d34]';
+      document.getElementById('btn-theme-night').className = !isDay
+        ? 'px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#f26522] text-white'
+        : 'px-2 py-0.5 rounded text-[10.5px] font-bold text-gray-200 hover:bg-[#2a2d34]';
+    }
+
+    build3DRangeEnvironment();
+
+    const activeBall3D = new THREE.Mesh(
+      new THREE.SphereGeometry(0.45, 20, 20),
+      new THREE.MeshBasicMaterial({ color: 0xffffff })
+    );
+    rangeScene.add(activeBall3D);
+
+    function update3DTrajectoryInRange(currentShot, animateFlight = false) {
+      while (trajectory3DGroup.children.length) {
+        trajectory3DGroup.remove(trajectory3DGroup.children[0]);
+      }
+
+      const shotsToRender = [];
+      if (state.compareAllShots) {
+        state.shotHistory.forEach((h) => {
+          if (h.visible) shotsToRender.push({ shot: h.shot, color: h.color, isCurrent: false });
+        });
+      }
+      shotsToRender.push({ shot: currentShot, color: '#ffffff', isCurrent: true, animate: animateFlight });
+
+      shotsToRender.forEach((item) => {
+        const pts = item.shot.trajectory.map(p => new THREE.Vector3(toSceneX(p.x), p.y, p.z));
+        if (pts.length < 2) return;
+        const curve = new THREE.CatmullRomCurve3(pts);
+
+        const radius = item.isCurrent ? 1.15 : 0.28;
+        const tubeGeo = new THREE.TubeGeometry(curve, 160, radius, 12, false);
+        
+        if (item.isCurrent) {
+          const count = tubeGeo.attributes.position.count;
+          const colors = new Float32Array(count * 3);
+          const colorObj = new THREE.Color();
+          for (let i = 0; i < count; i++) {
+            const u = tubeGeo.attributes.uv.getX(i);
+            colorObj.setHSL(u * 0.82, 1.0, 0.54);
+            colors[i * 3] = colorObj.r;
+            colors[i * 3 + 1] = colorObj.g;
+            colors[i * 3 + 2] = colorObj.b;
+          }
+          tubeGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        }
+
+        const tubeMat = new THREE.MeshBasicMaterial({
+          color: item.isCurrent ? 0xffffff : item.color,
+          vertexColors: item.isCurrent,
+          transparent: true,
+          opacity: item.isCurrent ? 1.0 : 0.65
+        });
+        const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+        trajectory3DGroup.add(tubeMesh);
+
+        if (item.isCurrent) {
+          const haloGeo = new THREE.TubeGeometry(curve, 160, radius * 1.55, 10, false);
+          haloGeo.setAttribute('color', tubeGeo.getAttribute('color'));
+          const haloMat = new THREE.MeshBasicMaterial({
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.24,
+            depthWrite: false
+          });
+          trajectory3DGroup.add(new THREE.Mesh(haloGeo, haloMat));
+        }
+
+        const shadowPts = item.shot.trajectory.map(p => new THREE.Vector3(toSceneX(p.x), 0.04, p.z));
+        const shadowCurve = new THREE.CatmullRomCurve3(shadowPts);
+        const shadowGeo = new THREE.TubeGeometry(shadowCurve, 100, item.isCurrent ? 0.32 : 0.14, 6, false);
+        const shadowMat = new THREE.MeshBasicMaterial({
+          color: state.rangeTheme === 'day' ? 0x162012 : 0x38bdf8,
+          transparent: true,
+          opacity: item.isCurrent ? 0.62 : 0.25
+        });
+        trajectory3DGroup.add(new THREE.Mesh(shadowGeo, shadowMat));
+
+        if (item.animate && tubeGeo.index) {
+          const totalIdx = tubeGeo.index.count;
+          tubeGeo.setDrawRange(0, 0);
+          state.activeFlightAnim = {
+            tubeGeo,
+            totalIdx,
+            rawPts: item.shot.trajectory,
+            elapsed: 0,
+            duration: 1.5
+          };
+        } else {
+          const last = item.shot.trajectory[item.shot.trajectory.length - 1];
+          activeBall3D.position.set(toSceneX(last.x), 0.3, last.z);
+        }
+      });
+    }
+
+    // ============================================================================
+    // 9. OPEN-METEO API LIVE WEATHER INTEGRATION
+    // ============================================================================
+    async function syncOpenMeteoWeather(val) {
+      if (val === 'std') {
+        state.tempC = 15.0;
+        state.pressureHpa = 1013.25;
+        state.altitudeM = 0;
+        state.airDensity = 1.225;
+        state.windSpeedMs = 0.0;
+        updateWeatherBadges();
+        recalculateAndRefreshUI(true);
+        return;
+      }
+
+      if (val === 'gps' && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => fetchMeteoCoords(pos.coords.latitude, pos.coords.longitude, 30),
+          () => fetchMeteoCoords(35.915, 139.406, 45)
+        );
+        return;
+      }
+
+      const [lat, lon, alt] = val.split(',').map(Number);
+      await fetchMeteoCoords(lat, lon, alt);
+    }
+
+    async function fetchMeteoCoords(lat, lon, fallbackAlt) {
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,surface_pressure,wind_speed_10m,wind_direction_10m`);
+        const data = await res.json();
+        const cur = data.current || {};
+        state.tempC = typeof cur.temperature_2m === 'number' ? cur.temperature_2m : 20.0;
+        state.pressureHpa = typeof cur.surface_pressure === 'number' ? cur.surface_pressure : 1013.25;
+        state.altitudeM = typeof data.elevation === 'number' ? Math.round(data.elevation) : fallbackAlt;
+        state.windSpeedMs = typeof cur.wind_speed_10m === 'number' ? +(cur.wind_speed_10m / 3.6).toFixed(1) : 2.0;
+        state.windDirDeg = typeof cur.wind_direction_10m === 'number' ? Math.round(cur.wind_direction_10m) : 180;
+        state.airDensity = +((state.pressureHpa * 100) / (287.058 * (state.tempC + 273.15))).toFixed(3);
+      } catch (e) {
+        state.altitudeM = fallbackAlt;
+        state.pressureHpa = +(1013.25 * Math.pow(1 - (0.0065 * fallbackAlt) / 288.15, 5.255)).toFixed(1);
+        state.airDensity = +((state.pressureHpa * 100) / (287.058 * (state.tempC + 273.15))).toFixed(3);
+      }
+      document.getElementById('inp-wind-spd').value = state.windSpeedMs;
+      document.getElementById('inp-wind-dir').value = state.windDirDeg;
+      updateWeatherBadges();
+      recalculateAndRefreshUI(true);
+    }
+
+    function updateWeatherBadges() {
+      document.getElementById('meteo-temp').textContent = `${state.tempC.toFixed(1)}°C`;
+      document.getElementById('meteo-rho').textContent = `ρ ${state.airDensity.toFixed(3)}`;
+      document.getElementById('meteo-wind').textContent = `風 ${state.windSpeedMs.toFixed(1)}m/s`;
+      document.getElementById('lbl-wind-spd').textContent = `${state.windSpeedMs.toFixed(1)} m/s`;
+      document.getElementById('lbl-wind-dir').textContent = `${state.windDirDeg}°`;
+    }
+
+    // ============================================================================
+    // 10. UI SYNCHRONIZATION, BOTTOM 11 METRICS & SHOT HISTORY
+    // ============================================================================
+    function classifyShotShapeJP(launchH, spinAxis) {
+      const start = launchH < -1.5 ? 'プル(左打出)・' : launchH > 1.5 ? 'プッシュ(右打出)・' : 'ストレート打出・';
+      const curve = spinAxis > 2.0 ? 'フェード/スライス' : spinAxis < -2.0 ? 'ドロー/フック' : '直進弾道';
+      return `${start}${curve}`;
+    }
+
+    function recalculateAndRefreshUI(rebuild3DTrail = false) {
+      if (state.autoCoupleLoft) {
+        const spec = CLUBS[state.club] || CLUBS['1W'];
+        state.dynamicLoft = +(spec.loft + state.aoa * 0.45 + state.faceAngle * 0.25 + 2.2).toFixed(1);
+      }
+
+      const shot = calculateShotPhysics(state);
+      state.currentShot = shot;
+
+      document.querySelectorAll('.panel-club-title').forEach(el => { el.textContent = shot.clubName; });
+      const spec = CLUBS[state.club];
+      document.getElementById('club-spec-info').textContent = `${state.club} ロフト ${spec.loft}° / 重心深 ${spec.cgMm}mm`;
+
+      // Sync both range sliders and inline numeric inputs
+      document.getElementById('inp-imp-x').value = state.impactOffset;
+      document.getElementById('num-imp-x').value = state.impactOffset.toFixed(1);
+      const xDir = state.impactOffset < -0.2 ? 'mm ヒール' : state.impactOffset > 0.2 ? 'mm トゥ' : 'mm センター';
+      document.getElementById('lbl-imp-x-dir').textContent = xDir;
+
+      document.getElementById('inp-imp-y').value = state.impactHeight;
+      document.getElementById('num-imp-y').value = state.impactHeight.toFixed(1);
+      const yDir = state.impactHeight < -0.2 ? 'mm ダウン' : state.impactHeight > 0.2 ? 'mm アップ' : 'mm センター';
+      document.getElementById('lbl-imp-y-dir').textContent = yDir;
+
+      document.getElementById('inp-lie').value = state.dynamicLie;
+      document.getElementById('num-lie').value = state.dynamicLie.toFixed(1);
+
+      document.getElementById('inp-chs').value = state.chs;
+      document.getElementById('num-chs').value = state.chs.toFixed(1);
+
+      document.getElementById('inp-aoa').value = state.aoa;
+      document.getElementById('num-aoa').value = state.aoa.toFixed(1);
+
+      document.getElementById('inp-dyn-loft').value = state.dynamicLoft;
+      document.getElementById('num-dyn-loft').value = state.dynamicLoft.toFixed(1);
+
+      document.getElementById('inp-path').value = state.clubPath;
+      document.getElementById('num-path').value = state.clubPath.toFixed(1);
+      const pathTag = state.clubPath < -0.2 ? '(アウトイン)' : state.clubPath > 0.2 ? '(インアウト)' : '(ストレート)';
+      document.getElementById('lbl-path-tag').textContent = pathTag;
+
+      document.getElementById('inp-face').value = state.faceAngle;
+      document.getElementById('num-face').value = state.faceAngle.toFixed(1);
+      const faceTag = state.faceAngle < -0.2 ? '(クローズ)' : state.faceAngle > 0.2 ? '(オープン)' : '(スクエア)';
+      document.getElementById('lbl-face-tag').textContent = faceTag;
+
+      // Update Bottom 11-Metric Strip
+      document.getElementById('m-chs').textContent = shot.chs.toFixed(1);
+      document.getElementById('m-aoa').textContent = shot.aoa.toFixed(1);
+      document.getElementById('m-bs').textContent = shot.ballSpeed.toFixed(1);
+      document.getElementById('m-spin').textContent = shot.spinRate;
+      document.getElementById('m-carry').textContent = shot.carryYards.toFixed(1);
+
+      const sideDir = shot.carrySideYards < -0.05 ? '左' : shot.carrySideYards > 0.05 ? '右' : '';
+      document.getElementById('m-side').innerHTML = `${Math.abs(shot.carrySideYards).toFixed(1)}<span class="text-base">${sideDir}</span>`;
+
+      document.getElementById('m-lowpt').textContent = shot.lowPointStr;
+      document.getElementById('m-path').textContent = shot.clubPath.toFixed(1);
+      document.getElementById('m-land').textContent = shot.landingAngle.toFixed(1);
+      document.getElementById('m-hla').textContent = shot.launchH.toFixed(1);
+      document.getElementById('m-vla').textContent = shot.launchV.toFixed(1);
+
+      const hGearStr = `${shot.horizGearAxisDelta >= 0 ? '+' : ''}${shot.horizGearAxisDelta.toFixed(1)}°${shot.horizGearAxisDelta >= 0 ? '右' : '左'}`;
+      const vGearStr = `${shot.vertGearSpinDelta >= 0 ? '+' : ''}${Math.round(shot.vertGearSpinDelta)}rpm`;
+      document.getElementById('impact-gear-summary').textContent =
+        `ギア効果: 横打点(${shot.impactOffset}mm)→軸 ${hGearStr} / 縦打点(${shot.impactHeight}mm)→${vGearStr}`;
+      document.getElementById('impact-smash-badge').textContent = `ミート率: ${shot.smashFactor.toFixed(3)}`;
+
+      document.getElementById('range-badge-total').textContent = `${shot.totalYards.toFixed(1)} yds`;
+      document.getElementById('range-badge-roll').textContent = `+${shot.rollYards.toFixed(1)} yds`;
+      document.getElementById('range-badge-apex').textContent = `${shot.apexYards.toFixed(1)} yds`;
+      document.getElementById('range-shot-shape-tag').textContent = classifyShotShapeJP(shot.launchH, shot.spinAxis);
+
+      drawDPlaneVisualizer(shot);
+      drawImpactLocation2D(shot);
+      sync3DClubheadMarker(shot);
+      drawOptimizerGauges(shot);
+      evaluateSwingAndProvideFeedback(shot);
+
+      if (rebuild3DTrail) {
+        update3DTrajectoryInRange(shot, false);
+      }
+    }
+
+    // ============================================================================
+    // 10.5 AI COACH LOGIC (SWING IMPROVEMENT ADVISOR)
+    // ============================================================================
+    function evaluateSwingAndProvideFeedback(shot) {
+      const target = document.getElementById('ai-target-shape')?.value || 'straight';
+      const adviceEl = document.getElementById('ai-advice-text');
+      if (!adviceEl) return;
+
+      const label = target === 'straight' ? '完全なストレート' : target === 'draw' ? '理想のプッシュドロー' : '理想のパワーフェード';
+      const curPath = shot.clubPath;
+      const ftp = shot.faceToPath;
+      const curImpX = shot.impactOffset;
+      const curImpY = shot.impactHeight;
+
+      let advices = [];
+      let warnings = { path: false, face: false, impX: false, impY: false };
+
+      if (curImpY < -3) {
+        warnings.impY = true;
+        advices.push(`⚠️打点が下部(${curImpY}mm)です。ギア効果でバックスピンが増大し飛距離をロスしています。ティーを高めにしてください。`);
+      } else if (curImpY > 3) {
+        warnings.impY = true;
+        advices.push(`⚠️打点が上部(${curImpY}mm)です。打ち出しが高くなりすぎる傾向があります。`);
+      }
+
+      if (target === 'draw') {
+        if (curPath < 1) {
+          warnings.path = true;
+          advices.push(`❌パス(${curPath}°)がカット軌道です。ドローにはインサイドアウト(+4°付近)が必要です。`);
+        }
+        if (ftp < -1.5) {
+          warnings.face = true;
+          advices.push(`❌フェースがかぶりすぎ(FaceToPath: ${ftp}°)。フェースをあと${(Math.abs(ftp) - 1).toFixed(1)}°開くかヒール寄りで相殺してください。`);
+        } else if (ftp > 3) {
+          warnings.face = true;
+          advices.push(`❌フェースが開きすぎてプッシュアウトします。`);
+        }
+        if (curImpX < -2) {
+          warnings.impX = true;
+          advices.push(`⚠️ヒールヒット(${curImpX}mm)によるスライスギア効果が出ています。センター〜ややトゥ側で打つのが理想です。`);
+        }
+      } else if (target === 'fade') {
+        if (curPath > -1) {
+          warnings.path = true;
+          advices.push(`❌パス(${curPath}°)がインサイド軌道です。フェードにはアウトサイドイン(-4°付近)が必要です。`);
+        }
+        if (ftp > 1.5) {
+          warnings.face = true;
+          advices.push(`❌フェースが開きすぎ(FaceToPath: ${ftp}°)。フェースをあと${(ftp - 1).toFixed(1)}°閉じるかトゥ寄りで相殺してください。`);
+        } else if (ftp < -3) {
+          warnings.face = true;
+          advices.push(`❌フェースが閉じすぎて左へ引っ掛けます。`);
+        }
+        if (curImpX > 2) {
+          warnings.impX = true;
+          advices.push(`⚠️トゥヒット(${curImpX}mm)によるフックギア効果が出ています。センター〜ややヒール側で打つのが理想です。`);
+        }
+      } else {
+        if (Math.abs(curPath) > 2) {
+          warnings.path = true;
+          advices.push(`⚠️パス(${curPath}°)がストレートから逸れています。0°に近づけてください。`);
+        }
+        if (Math.abs(ftp) > 1.5) {
+          warnings.face = true;
+          advices.push(ftp > 0 ? `⚠️フェースが開いています。右へ飛び出します。` : `⚠️フェースが閉じています。左へ引っ掛けます。`);
+        }
+        if (Math.abs(curImpX) > 3) {
+          warnings.impX = true;
+          advices.push(curImpX > 0 ? `⚠️トゥヒット(${curImpX}mm)のギア効果でフック回転が発生。センターへ戻してください。` : `⚠️ヒールヒット(${curImpX}mm)のギア効果でスライス回転が発生。センターへ戻してください。`);
+        }
+      }
+
+      if (advices.length === 0) {
+        adviceEl.innerHTML = `<span class="text-emerald-400 font-extrabold mr-1.5">✅ 理想弾道達成:</span> 素晴らしい！「${label}」の理想的なDプレーン軌道と打点(ギア効果)が形成されています。`;
+      } else {
+        adviceEl.innerHTML = `<span class="text-rose-400 font-extrabold mr-1.5">改善ポイント:</span> ${advices.join(' ')}`;
+      }
+
+      const setCardWarn = (cardId, isWarn) => {
+        const card = document.getElementById(cardId);
+        if (!card) return;
+        card.classList.toggle('warn-card', Boolean(isWarn));
+        const badge = card.querySelector('.warn-badge');
+        if (badge) badge.classList.toggle('hidden', !isWarn);
+      };
+      setCardWarn('card-path', warnings.path);
+      setCardWarn('card-hla', warnings.face);
+      setCardWarn('card-side', warnings.impX || warnings.face);
+      setCardWarn('card-spin', warnings.impY);
+    }
+
+    function initDefaultShotHistory() {
+      const presets = [
+        { chs: 44.4, aoa: 0.4, clubPath: -9.8, faceAngle: -8.4, dynamicLoft: 12.9, dynamicLie: 44.3, impactOffset: -3.0, impactHeight: -6.0, club: '1W', label: '画像1基準 (206.6y)' },
+        { chs: 34.6, aoa: -1.6, clubPath: -6.5, faceAngle: -10.2, dynamicLoft: 17.4, dynamicLie: 45.0, impactOffset: 2.0, impactHeight: -2.0, club: '1W', label: '画像2基準 (151.4y)' },
+        { chs: 45.2, aoa: 2.2, clubPath: 2.5, faceAngle: 1.0, dynamicLoft: 13.5, dynamicLie: 56.0, impactOffset: 8.0, impactHeight: 6.0, club: '1W', label: 'ハイトゥ・ドロー (243.1y)' },
+        { chs: 43.0, aoa: 1.2, clubPath: 0.5, faceAngle: 0.0, dynamicLoft: 13.2, dynamicLie: 55.5, impactOffset: 0.0, impactHeight: 2.0, club: '1W', label: '芯・ストレート (235.7y)' },
+        { chs: 41.2, aoa: 0.5, clubPath: -2.0, faceAngle: -1.5, dynamicLoft: 13.8, dynamicLie: 55.0, impactOffset: -2.0, impactHeight: 0.0, club: '1W', label: 'フェード基準 (216.2y)' }
+      ];
+
+      state.shotHistory = presets.map((p, i) => {
+        const merged = { ...state, ...p };
+        return {
+          id: i + 1,
+          label: p.label,
+          params: p,
+          shot: calculateShotPhysics(merged),
+          color: SHOT_COLORS[i % SHOT_COLORS.length],
+          visible: true
+        };
+      });
+      renderShotHistorySidebar();
+    }
+
+    function renderShotHistorySidebar() {
+      const container = document.getElementById('shot-history-container');
+      const legendList = document.getElementById('legend-history-list');
+      container.innerHTML = '';
+      if (legendList) legendList.innerHTML = '';
+
+      document.getElementById('shot-count-badge').textContent = state.shotHistory.length;
+      document.getElementById('history-total-count').textContent = state.shotHistory.length;
+
+      state.shotHistory.forEach((item) => {
+        const s = item.shot;
+        const sideLabel = s.carrySideYards < 0 ? `${Math.abs(s.carrySideYards).toFixed(1)}左` : `${s.carrySideYards.toFixed(1)}右`;
+        const row = document.createElement('div');
+        row.className = 'px-3 py-2.5 hover:bg-[#252830] flex items-center justify-between cursor-pointer transition';
+        row.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${item.color}"></span>
+            <div>
+              <div class="text-sm font-extrabold font-num text-white">${s.carryYards.toFixed(1)} <span class="text-xs font-normal text-gray-300">yds</span> <span class="text-[10px] text-gray-400 font-normal ml-1">${item.label || ''}</span></div>
+              <div class="text-[10px] text-gray-300 font-num">HS ${s.chs.toFixed(1)} | ${s.spinRate}rpm | ${sideLabel}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-gray-300">
+            <input type="checkbox" ${item.visible ? 'checked' : ''} class="shot-vis-toggle rounded bg-[#18191c] border-gray-500 text-[#f26522]" title="3D比較表示切替" />
+          </div>
+        `;
+
+        row.addEventListener('click', (e) => {
+          if (e.target.classList.contains('shot-vis-toggle')) return;
+          Object.assign(state, item.params);
+          recalculateAndRefreshUI(true);
+        });
+
+        row.querySelector('.shot-vis-toggle').addEventListener('change', (e) => {
+          item.visible = e.target.checked;
+          renderShotHistorySidebar();
+          update3DTrajectoryInRange(state.currentShot, false);
+        });
+
+        container.appendChild(row);
+
+        // Also populate compact 3D Legend card item
+        if (legendList) {
+          const lItem = document.createElement('label');
+          lItem.className = 'flex items-center justify-between gap-1.5 cursor-pointer hover:text-white text-gray-200';
+          lItem.innerHTML = `
+            <span class="flex items-center gap-1.5 truncate">
+              <span class="w-3 h-1 rounded-full shrink-0" style="background:${item.color}"></span>
+              <span class="truncate">${item.label || `${s.carryYards.toFixed(0)}y (${sideLabel})`}</span>
+            </span>
+            <input type="checkbox" ${item.visible ? 'checked' : ''} class="rounded bg-[#18191c] border-gray-500 text-[#f26522] w-3 h-3 shrink-0" />
+          `;
+          lItem.querySelector('input').addEventListener('change', (e) => {
+            item.visible = e.target.checked;
+            renderShotHistorySidebar();
+            update3DTrajectoryInRange(state.currentShot, false);
+          });
+          legendList.appendChild(lItem);
+        }
+      });
+    }
+
+    // ============================================================================
+    // 11. EVENT LISTENERS & KEYBOARD ACCESSIBILITY
+    // ============================================================================
+    const PRESET_CONFIGS = {
+      screen1: { club: '1W', chs: 44.4, aoa: 0.4, clubPath: -9.8, faceAngle: -8.4, dynamicLoft: 12.9, dynamicLie: 44.3, impactOffset: -3.0, impactHeight: -6.0 },
+      screen2: { club: '1W', chs: 34.6, aoa: -1.6, clubPath: -6.5, faceAngle: -10.2, dynamicLoft: 17.4, dynamicLie: 45.0, impactOffset: 2.0, impactHeight: -2.0 },
+      tour_pure: { club: '1W', chs: 46.0, aoa: 2.5, clubPath: 0.0, faceAngle: 0.0, dynamicLoft: 13.5, dynamicLie: 56.0, impactOffset: 0.0, impactHeight: 0.0 },
+      high_toe_draw: { club: '1W', chs: 45.5, aoa: 3.0, clubPath: 1.5, faceAngle: 0.5, dynamicLoft: 13.2, dynamicLie: 56.0, impactOffset: 12.0, impactHeight: 8.0 }
+    };
+
+    document.querySelectorAll('[data-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cfg = PRESET_CONFIGS[btn.dataset.preset];
+        if (!cfg) return;
+        Object.assign(state, cfg);
+
+        document.querySelectorAll('.preset-pill').forEach(p => {
+          p.className = p.dataset.preset === btn.dataset.preset
+            ? 'preset-pill px-2 py-1 rounded text-[11px] font-bold bg-[#f26522] text-white shadow transition'
+            : 'preset-pill px-2 py-1 rounded text-[11px] font-bold bg-[#25282e] hover:bg-[#32363e] text-gray-200 border border-[#383b43] transition';
+        });
+
+        recalculateAndRefreshUI(false);
+        update3DTrajectoryInRange(state.currentShot, true);
+      });
+    });
+
+    // 9-Point Quick Strike Matrix Buttons
+    document.querySelectorAll('[data-strike]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const [ox, oy] = btn.dataset.strike.split(',').map(Number);
+        state.impactOffset = ox;
+        state.impactHeight = oy;
+        recalculateAndRefreshUI(true);
+      });
+    });
+
+    // Impact Heatmap Toggle
+    document.getElementById('btn-toggle-heatmap').addEventListener('click', (e) => {
+      state.showImpactHeatmap = !state.showImpactHeatmap;
+      e.target.className = state.showImpactHeatmap
+        ? 'px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-amber-500 text-black border border-amber-300 transition'
+        : 'px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-[#292c33] hover:bg-[#353944] text-amber-300 border border-[#3d424f] transition';
+      drawImpactLocation2D(state.currentShot);
+    });
+
+    // 3D Legend Collapsible Toggle & Bulk Compare Checkbox
+    document.getElementById('btn-toggle-legend').addEventListener('click', () => {
+      const body = document.getElementById('legend-body');
+      const chev = document.getElementById('legend-chevron');
+      const isHidden = body.classList.toggle('hidden');
+      chev.textContent = isHidden ? '▶' : '▼';
+    });
+
+    document.getElementById('chk-legend-compare').addEventListener('change', (e) => {
+      state.compareAllShots = e.target.checked;
+      document.getElementById('btn-compare-mode').textContent = `スイング比較 (全軌跡重ね合わせ: ${state.compareAllShots ? 'ON' : 'OFF'})`;
+      update3DTrajectoryInRange(state.currentShot, false);
+    });
+
+    // Layout Switcher
+    function setWorkspaceLayout(mode) {
+      state.layoutMode = mode;
+      const grid = document.getElementById('workspace-grid');
+      const leftCol = document.getElementById('left-analysis-column');
+      const pDplane = document.getElementById('panel-dplane');
+      const pImpact = document.getElementById('panel-impact');
+      const pOpt = document.getElementById('panel-optimizer');
+      const pRange = document.getElementById('panel-range');
+
+      [leftCol, pDplane, pImpact, pOpt, pRange].forEach(p => p.classList.remove('hidden'));
+
+      if (mode === 'pro_split') {
+        grid.className = 'flex-1 grid grid-cols-1 lg:grid-cols-12 gap-[2px] bg-[#2c2f36] overflow-hidden relative';
+        leftCol.className = 'lg:col-span-5 h-full grid grid-rows-3 gap-[2px] bg-[#2c2f36] overflow-hidden';
+        pRange.className = 'lg:col-span-7 h-full bg-[#151922] relative flex flex-col overflow-hidden';
+      } else if (mode === 'quad') {
+        grid.className = 'flex-1 grid grid-cols-1 lg:grid-cols-12 gap-[2px] bg-[#2c2f36] overflow-hidden relative';
+        leftCol.className = 'lg:col-span-6 h-full grid grid-rows-3 gap-[2px] bg-[#2c2f36] overflow-hidden';
+        pRange.className = 'lg:col-span-6 h-full bg-[#151922] relative flex flex-col overflow-hidden';
+      } else if (mode === 'screen1') {
+        grid.className = 'flex-1 grid grid-cols-1 lg:grid-cols-12 gap-[2px] bg-[#2c2f36] overflow-hidden relative';
+        leftCol.className = 'lg:col-span-12 h-full grid grid-cols-2 grid-rows-1 gap-[2px] bg-[#2c2f36] overflow-hidden';
+        pOpt.classList.add('hidden');
+        pRange.classList.add('hidden');
+      } else if (mode === 'range_only') {
+        grid.className = 'flex-1 grid grid-cols-1 bg-[#2c2f36] overflow-hidden relative';
+        leftCol.classList.add('hidden');
+        pRange.className = 'col-span-1 h-full bg-[#151922] relative flex flex-col overflow-hidden';
+      }
+
+      document.querySelectorAll('.layout-btn').forEach(b => {
+        b.className = b.dataset.layout === mode
+          ? 'layout-btn px-2.5 py-1 rounded text-[11px] font-bold bg-[#f26522] text-white flex items-center gap-1 transition'
+          : 'layout-btn px-2.5 py-1 rounded text-[11px] font-bold text-gray-200 hover:bg-[#2c2f36] transition';
+      });
+
+      setTimeout(handleResize, 25);
+    }
+
+    document.querySelectorAll('.layout-btn').forEach(btn => {
+      btn.addEventListener('click', () => setWorkspaceLayout(btn.dataset.layout));
+    });
+
+    document.getElementById('toggle-sidebar-btn').addEventListener('click', () => {
+      const sb = document.getElementById('left-sidebar');
+      sb.classList.toggle('hidden');
+      setTimeout(handleResize, 30);
+    });
+
+    document.getElementById('tab-btn-controls').addEventListener('click', () => {
+      document.getElementById('sidebar-tab-controls').classList.remove('hidden');
+      document.getElementById('sidebar-tab-history').classList.add('hidden');
+      document.getElementById('sidebar-tab-history').classList.remove('flex');
+      document.getElementById('tab-btn-controls').className = 'py-1.5 rounded text-xs font-bold bg-[#f26522] text-white shadow';
+      document.getElementById('tab-btn-history').className = 'py-1.5 rounded text-xs font-bold text-gray-300 hover:text-white flex items-center justify-center gap-1.5';
+    });
+
+    document.getElementById('tab-btn-history').addEventListener('click', () => {
+      document.getElementById('sidebar-tab-controls').classList.add('hidden');
+      document.getElementById('sidebar-tab-history').classList.remove('hidden');
+      document.getElementById('sidebar-tab-history').classList.add('flex');
+      document.getElementById('tab-btn-history').className = 'py-1.5 rounded text-xs font-bold bg-[#f26522] text-white shadow flex items-center justify-center gap-1.5';
+      document.getElementById('tab-btn-controls').className = 'py-1.5 rounded text-xs font-bold text-gray-300 hover:text-white';
+    });
+
+    document.querySelectorAll('.club-select-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.club = btn.dataset.club;
+        const spec = CLUBS[state.club];
+        state.dynamicLoft = +(spec.loft + 2.4).toFixed(1);
+        state.dynamicLie = spec.lie;
+        document.querySelectorAll('.club-select-btn').forEach(b => {
+          b.className = b.dataset.club === state.club
+            ? 'club-select-btn py-1 rounded text-xs font-bold bg-[#f26522] text-white'
+            : 'club-select-btn py-1 rounded text-xs font-bold bg-[#18191c] text-gray-200 hover:bg-[#2c2f36]';
+        });
+        recalculateAndRefreshUI(true);
+      });
+    });
+
+    // Sync both Sliders & Direct Numeric Inputs
+    const dualInputMap = [
+      ['inp-imp-x', 'num-imp-x', 'impactOffset', -24, 24],
+      ['inp-imp-y', 'num-imp-y', 'impactHeight', -18, 18],
+      ['inp-lie', 'num-lie', 'dynamicLie', 35, 62],
+      ['inp-chs', 'num-chs', 'chs', 25, 58],
+      ['inp-aoa', 'num-aoa', 'aoa', -10, 10],
+      ['inp-dyn-loft', 'num-dyn-loft', 'dynamicLoft', 5, 48],
+      ['inp-path', 'num-path', 'clubPath', -15, 15],
+      ['inp-face', 'num-face', 'faceAngle', -15, 15]
+    ];
+
+    dualInputMap.forEach(([sliderId, numId, key, minV, maxV]) => {
+      const sEl = document.getElementById(sliderId);
+      const nEl = document.getElementById(numId);
+      sEl.addEventListener('input', () => {
+        state[key] = parseFloat(sEl.value);
+        recalculateAndRefreshUI(true);
+      });
+      nEl.addEventListener('change', () => {
+        const val = parseFloat(nEl.value);
+        if (!isNaN(val)) {
+          state[key] = Math.max(minV, Math.min(maxV, val));
+          recalculateAndRefreshUI(true);
+        }
+      });
+    });
+
+    ['inp-wind-spd', 'inp-wind-dir'].forEach((id, idx) => {
+      const key = idx === 0 ? 'windSpeedMs' : 'windDirDeg';
+      document.getElementById(id).addEventListener('input', (e) => {
+        state[key] = parseFloat(e.target.value);
+        updateWeatherBadges();
+        recalculateAndRefreshUI(true);
+      });
+    });
+
+    document.querySelectorAll('[data-step]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const [key, deltaStr] = btn.dataset.step.split(',');
+        state[key] = +(state[key] + parseFloat(deltaStr)).toFixed(1);
+        recalculateAndRefreshUI(true);
+      });
+    });
+
+    document.getElementById('btn-center-impact').addEventListener('click', () => {
+      state.impactOffset = 0.0;
+      state.impactHeight = 0.0;
+      recalculateAndRefreshUI(true);
+    });
+
+    document.getElementById('chk-auto-loft').addEventListener('change', (e) => {
+      state.autoCoupleLoft = e.target.checked;
+      recalculateAndRefreshUI(true);
+    });
+
+    function recordCurrentShot() {
+      const shot = calculateShotPhysics(state);
+      const color = SHOT_COLORS[state.shotHistory.length % SHOT_COLORS.length];
+      state.shotHistory.unshift({
+        id: Date.now(),
+        label: `ショット #${state.shotHistory.length + 1} (${shot.carryYards.toFixed(0)}y)`,
+        params: {
+          club: state.club, chs: state.chs, aoa: state.aoa, clubPath: state.clubPath,
+          faceAngle: state.faceAngle, dynamicLoft: state.dynamicLoft, dynamicLie: state.dynamicLie,
+          impactOffset: state.impactOffset, impactHeight: state.impactHeight
+        },
+        shot,
+        color,
+        visible: true
+      });
+      renderShotHistorySidebar();
+      update3DTrajectoryInRange(shot, true);
+    }
+
+    document.getElementById('btn-record-shot').addEventListener('click', recordCurrentShot);
+    document.getElementById('btn-replay-flight').addEventListener('click', () => {
+      update3DTrajectoryInRange(state.currentShot, true);
+    });
+
+    document.getElementById('btn-compare-mode').addEventListener('click', (e) => {
+      state.compareAllShots = !state.compareAllShots;
+      document.getElementById('chk-legend-compare').checked = state.compareAllShots;
+      e.target.textContent = `スイング比較 (全軌跡重ね合わせ: ${state.compareAllShots ? 'ON' : 'OFF'})`;
+      update3DTrajectoryInRange(state.currentShot, false);
+    });
+
+    document.getElementById('btn-clear-history').addEventListener('click', () => {
+      state.shotHistory = [];
+      renderShotHistorySidebar();
+      update3DTrajectoryInRange(state.currentShot, false);
+    });
+
+    document.getElementById('btn-impact-2d').addEventListener('click', () => {
+      state.impactViewMode = '2d';
+      impact2dCanvas.classList.remove('hidden');
+      impact3dCanvas.classList.add('hidden');
+      document.getElementById('btn-impact-2d').className = 'px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-[#f26522] text-white';
+      document.getElementById('btn-impact-3d').className = 'px-1.5 py-0.2 rounded text-[9.5px] font-bold text-gray-300 hover:text-white';
+      drawImpactLocation2D(state.currentShot);
+    });
+
+    document.getElementById('btn-impact-3d').addEventListener('click', () => {
+      state.impactViewMode = '3d';
+      impact2dCanvas.classList.add('hidden');
+      impact3dCanvas.classList.remove('hidden');
+      document.getElementById('btn-impact-3d').className = 'px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-[#f26522] text-white';
+      document.getElementById('btn-impact-2d').className = 'px-1.5 py-0.2 rounded text-[9.5px] font-bold text-gray-300 hover:text-white';
+      handleResize();
+    });
+
+    document.getElementById('btn-theme-day').addEventListener('click', () => {
+      applyRangeTheme('day');
+      update3DTrajectoryInRange(state.currentShot, false);
+    });
+    document.getElementById('btn-theme-night').addEventListener('click', () => {
+      applyRangeTheme('night');
+      update3DTrajectoryInRange(state.currentShot, false);
+    });
+
+    function setCameraAngle(camMode) {
+      state.cameraMode = camMode;
+      document.querySelectorAll('.cam-mode-btn').forEach(b => {
+        b.className = b.dataset.cam === state.cameraMode
+          ? 'cam-mode-btn px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#f26522] text-white'
+          : 'cam-mode-btn px-2 py-0.5 rounded text-[10.5px] font-bold text-gray-200 hover:bg-[#2a2d34]';
+      });
+      if (camMode === 'behind') {
+        rangeCamera.position.set(0, 3.0, -10.5);
+        rangeControls.target.set(0, 11, 115);
+      } else if (camMode === 'overhead') {
+        rangeCamera.position.set(0, 260, 130);
+        rangeControls.target.set(0, 0, 140);
+      } else if (camMode === 'side') {
+        rangeCamera.position.set(165, 20, 115);
+        rangeControls.target.set(0, 15, 115);
+      } else if (camMode === 'follow') {
+        update3DTrajectoryInRange(state.currentShot, true);
+      }
+      rangeControls.update();
+    }
+
+    document.querySelectorAll('.cam-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => setCameraAngle(btn.dataset.cam));
+    });
+
+    document.getElementById('course-weather-select').addEventListener('change', (e) => {
+      syncOpenMeteoWeather(e.target.value);
+    });
+
+    document.getElementById('ai-target-shape')?.addEventListener('change', () => {
+      recalculateAndRefreshUI(false);
+    });
+
+    // Apply Ideal + Undo Snapshot
+    document.getElementById('btn-apply-ideal')?.addEventListener('click', () => {
+      state.previousBeforeIdeal = {
+        clubPath: state.clubPath,
+        faceAngle: state.faceAngle,
+        aoa: state.aoa,
+        dynamicLoft: state.dynamicLoft,
+        impactOffset: state.impactOffset,
+        impactHeight: state.impactHeight
+      };
+      document.getElementById('btn-undo-ideal').classList.remove('hidden');
+
+      const target = document.getElementById('ai-target-shape')?.value || 'straight';
+      if (target === 'straight') {
+        Object.assign(state, { clubPath: 0.0, faceAngle: 0.0, aoa: 2.0, dynamicLoft: 13.2, impactOffset: 0.0, impactHeight: 1.0 });
+      } else if (target === 'draw') {
+        Object.assign(state, { clubPath: 4.0, faceAngle: 2.0, aoa: 2.8, dynamicLoft: 13.0, impactOffset: 2.0, impactHeight: 1.5 });
+      } else if (target === 'fade') {
+        Object.assign(state, { clubPath: -4.0, faceAngle: -2.0, aoa: 1.0, dynamicLoft: 13.4, impactOffset: -1.5, impactHeight: 0.5 });
+      }
+      recalculateAndRefreshUI(false);
+      update3DTrajectoryInRange(state.currentShot, true);
+    });
+
+    document.getElementById('btn-undo-ideal')?.addEventListener('click', () => {
+      if (!state.previousBeforeIdeal) return;
+      Object.assign(state, state.previousBeforeIdeal);
+      state.previousBeforeIdeal = null;
+      document.getElementById('btn-undo-ideal').classList.add('hidden');
+      recalculateAndRefreshUI(false);
+      update3DTrajectoryInRange(state.currentShot, true);
+    });
+
+    // Metric Card Click -> Focus Input
+    document.querySelectorAll('.tm-metric-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.tm-metric-card').forEach(c => c.classList.remove('active-card'));
+        card.classList.add('active-card');
+        const targetEl = document.getElementById(card.dataset.focus);
+        if (targetEl) {
+          document.getElementById('left-sidebar').classList.remove('hidden');
+          document.getElementById('tab-btn-controls').click();
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(handleResize, 30);
+        }
+      });
+    });
+
+    // Help Modal Controls
+    const helpModal = document.getElementById('help-modal');
+    document.getElementById('btn-help-modal').addEventListener('click', () => helpModal.classList.remove('hidden'));
+    document.getElementById('btn-close-help').addEventListener('click', () => helpModal.classList.add('hidden'));
+    helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
+
+    // Global Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        update3DTrajectoryInRange(state.currentShot, true);
+      } else if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        recordCurrentShot();
+      } else if (e.key === 'h' || e.key === 'H') {
+        e.preventDefault();
+        document.getElementById('toggle-sidebar-btn').click();
+      } else if (e.key === '?') {
+        e.preventDefault();
+        helpModal.classList.toggle('hidden');
+      } else if (e.key === 'Escape') {
+        if (!helpModal.classList.contains('hidden')) {
+          helpModal.classList.add('hidden');
+        } else {
+          state.impactOffset = 0.0;
+          state.impactHeight = 0.0;
+          recalculateAndRefreshUI(true);
+        }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        state.impactOffset = Math.min(24, +(state.impactOffset + 0.5).toFixed(1));
+        recalculateAndRefreshUI(true);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        state.impactOffset = Math.max(-24, +(state.impactOffset - 0.5).toFixed(1));
+        recalculateAndRefreshUI(true);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        state.impactHeight = Math.min(18, +(state.impactHeight + 0.5).toFixed(1));
+        recalculateAndRefreshUI(true);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        state.impactHeight = Math.max(-18, +(state.impactHeight - 0.5).toFixed(1));
+        recalculateAndRefreshUI(true);
+      } else if (e.key === '1') {
+        setCameraAngle('behind');
+      } else if (e.key === '2') {
+        setCameraAngle('follow');
+      } else if (e.key === '3') {
+        setCameraAngle('overhead');
+      } else if (e.key === '4') {
+        setCameraAngle('side');
+      }
+    });
+
+    // ============================================================================
+    // 12. RESIZE & MAIN RENDER LOOP
+    // ============================================================================
+    function handleResize() {
+      if (state.currentShot) {
+        drawDPlaneVisualizer(state.currentShot);
+        drawImpactLocation2D(state.currentShot);
+        drawOptimizerGauges(state.currentShot);
+      }
+
+      const rangeParent = rangeCanvas.parentElement;
+      if (rangeParent && rangeParent.clientWidth > 0 && rangeParent.clientHeight > 0) {
+        const w = rangeParent.clientWidth;
+        const h = rangeParent.clientHeight;
+        rangeRenderer.setSize(w, h, false);
+        composer.setSize(w, h);
+        rangeCamera.aspect = w / h;
+        rangeCamera.updateProjectionMatrix();
+      }
+
+      const headParent = impact3dCanvas.parentElement;
+      if (headParent && headParent.clientWidth > 0 && headParent.clientHeight > 0) {
+        const hw = headParent.clientWidth;
+        const hh = headParent.clientHeight;
+        headRenderer.setSize(hw, hh, false);
+        headCamera.aspect = hw / hh;
+        headCamera.updateProjectionMatrix();
+      }
+    }
+
+    const ro = new ResizeObserver(() => handleResize());
+    ro.observe(document.getElementById('workspace-grid'));
+    window.addEventListener('resize', handleResize);
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(0.05, clock.getDelta());
+
+      if (state.activeFlightAnim) {
+        const anim = state.activeFlightAnim;
+        anim.elapsed += dt;
+        const p = Math.min(1.0, anim.elapsed / anim.duration);
+        anim.tubeGeo.setDrawRange(0, Math.floor(p * anim.totalIdx));
+
+        const ptIdx = Math.min(anim.rawPts.length - 1, Math.floor(p * (anim.rawPts.length - 1)));
+        const pt = anim.rawPts[ptIdx];
+        const sx = toSceneX(pt.x);
+        activeBall3D.position.set(sx, pt.y + 0.3, pt.z);
+
+        if (state.cameraMode === 'follow') {
+          rangeCamera.position.lerp(new THREE.Vector3(sx * 0.6, Math.max(3.0, pt.y * 0.75 + 4), pt.z - 22), 0.12);
+          rangeControls.target.lerp(new THREE.Vector3(sx, pt.y, pt.z + 15), 0.18);
+        }
+
+        if (p >= 1.0) state.activeFlightAnim = null;
+      }
+
+      rangeControls.update();
+      if (state.rangeTheme === 'night') {
+        composer.render();
+      } else {
+        rangeRenderer.render(rangeScene, rangeCamera);
+      }
+
+      if (state.impactViewMode === '3d') {
+        headControls.update();
+        headRenderer.render(headScene, headCamera);
+      }
+    }
+
+    window.onload = () => {
+      initDefaultShotHistory();
+      recalculateAndRefreshUI(true);
+      handleResize();
+      animate();
+    };
+  </script>
+</body>
+</html>
