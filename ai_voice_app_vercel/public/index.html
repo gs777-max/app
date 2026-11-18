@@ -2,826 +2,577 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>感情AIボイス - ネオ・サイバーAIホログラムHUD (v2.9 Speed & Accuracy)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AIボイス — 話すだけの、日常の会話パートナー。マイクで話しかけると、選んだパートナーがすぐに応えます。">
+  <meta property="og:title" content="AIボイス — 日常ではなす相棒">
+  <meta property="og:description" content="話すだけの、日常の会話パートナー。マイクで話しかけると、選んだパートナーがすぐに応えます。">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#f7f5f2">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <title>AIボイス — 日常ではなす相棒 (v3.0)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
+    /* v3.0 Everyday Pro — デザインシステム
+       方針: 明るい日常系。白と暖かいグレー、アクセントは深い緑1色のみ。
+       グラデーション・グロー・走査線・レティクル等のSF装飾は使わない。
+       フォントは Zen Kaku Gothic New 1ファミリーに統一。 */
     :root {
-      --bg-deep: #030712;
-      --bg-panel: rgba(8, 14, 30, 0.85);
-      --bg-panel-solid: #0b1120;
-      --border-cyan: rgba(6, 182, 212, 0.4);
-      --border-cyan-glow: #06b6d4;
-      --cyan-neon: #22d3ee;
-      --blue-neon: #3b82f6;
-      --magenta-neon: #f43f5e;
-      --text-main: #f8fafc;
-      --text-dim: #94a3b8;
-      
-      --joy-color: #fbbf24;
-      --joy-glow: rgba(251, 191, 36, 0.5);
-      --anger-color: #ef4444;
-      --anger-glow: rgba(239, 68, 68, 0.5);
-      --sadness-color: #38bdf8;
-      --sadness-glow: rgba(56, 189, 248, 0.5);
-      --fun-color: #c084fc;
-      --fun-glow: rgba(192, 132, 252, 0.5);
-      
-      --theme-active: var(--cyan-neon);
+      --bg: #f7f5f2;
+      --surface: #ffffff;
+      --surface-soft: #f1ede8;
+      --ink: #1e1c1a;
+      --ink-soft: #4a4642;
+      --muted: #6f6a64;
+      --line: #e6e0d9;
+      --line-strong: #d6cfc6;
+      --accent: #0f6b5c;
+      --accent-ink: #0b4f44;
+      --accent-soft: #e2efec;
+      --danger: #b3261e;
+      --danger-soft: #fbeae8;
+      --warn: #8a6100;
+      --ok: #1e7a4c;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --shadow-sm: 0 1px 2px rgba(30, 28, 26, 0.06);
+      --shadow-md: 0 8px 24px rgba(30, 28, 26, 0.07);
+      --focus: 0 0 0 3px rgba(15, 107, 92, 0.35);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
+    html { -webkit-text-size-adjust: 100%; }
     body {
-      background-color: var(--bg-deep);
-      background-image: 
-        radial-gradient(circle at 50% 10%, rgba(6, 182, 212, 0.15) 0%, transparent 60%),
-        radial-gradient(circle at 10% 90%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
-        radial-gradient(circle at 90% 90%, rgba(244, 63, 94, 0.12) 0%, transparent 50%),
-        linear-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
-      background-size: 100% 100%, 100% 100%, 100% 100%, 32px 32px, 32px 32px;
-      color: var(--text-main);
-      font-family: 'Rajdhani', 'Zen Kaku Gothic New', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Zen Kaku Gothic New', -apple-system, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
     }
+    button { font-family: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visible {
+      outline: none; box-shadow: var(--focus); border-radius: 8px;
+    }
+    img { max-width: 100%; }
 
     /* ヘッダー */
     header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 24px;
-      background: rgba(3, 7, 18, 0.9);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--border-cyan);
-      box-shadow: 0 4px 24px rgba(6, 182, 212, 0.15);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      position: sticky; top: 0; z-index: 100;
     }
-
-    .brand { display: flex; align-items: center; gap: 12px; }
-
-    .brand-logo-hex {
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.3));
-      border: 2px solid var(--cyan-neon);
-      border-radius: 8px;
-      box-shadow: 0 0 16px rgba(6, 182, 212, 0.5);
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      width: 40px; height: 40px; flex: 0 0 40px; border-radius: 12px;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; font-weight: 900;
     }
-    .brand-logo-hex svg { width: 24px; height: 24px; fill: var(--cyan-neon); }
-
-    .brand-title {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.25rem;
-      font-weight: 900;
-      letter-spacing: 2px;
-      background: linear-gradient(90deg, #22d3ee, #60a5fa, #f43f5e);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+    .brand-title { font-size: 1.15rem; font-weight: 900; letter-spacing: 0.02em; line-height: 1.3; }
+    .brand-sub { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+    .header-status { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--surface-soft); border: 1px solid var(--line);
+      border-radius: 999px; padding: 6px 12px;
+      font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap;
     }
-
-    .hud-telemetry {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      font-family: 'Orbitron', monospace;
-      font-size: 0.75rem;
+    .status-indicator { width: 9px; height: 9px; border-radius: 50%; background: #9a938b; flex: 0 0 9px; }
+    .status-indicator.ready { background: var(--ok); }
+    .status-indicator.transmitting { background: var(--accent); }
+    .status-indicator.receiving { background: #c77f2a; }
+    .latency-chip {
+      font-size: 0.78rem; font-weight: 700; color: var(--muted);
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 999px; padding: 6px 10px; white-space: nowrap;
     }
-
-    .telemetry-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 6px;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    .latency-chip strong { color: var(--accent-ink); font-weight: 900; }
+    .header-actions { display: flex; gap: 8px; }
+    .btn-ghost {
+      background: var(--surface); border: 1px solid var(--line-strong); color: var(--ink-soft);
+      padding: 9px 14px; border-radius: 999px; font-size: 0.88rem; font-weight: 700;
+      min-height: 44px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
     }
+    .btn-ghost:hover { border-color: var(--ink-soft); color: var(--ink); }
 
-    .status-indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #64748b;
-      box-shadow: 0 0 6px #64748b;
-      transition: all 0.3s;
-    }
-
-    .status-indicator.ready { background: #10b981; box-shadow: 0 0 12px #10b981; }
-    .status-indicator.transmitting { background: #22d3ee; box-shadow: 0 0 14px #22d3ee; animation: blink 0.6s infinite alternate; }
-    .status-indicator.receiving { background: #f43f5e; box-shadow: 0 0 14px #f43f5e; animation: blink 0.6s infinite alternate; }
-    @keyframes blink { 0% { opacity: 0.4; } 100% { opacity: 1; } }
-
-    .header-actions { display: flex; align-items: center; gap: 8px; }
-
-    .btn-cyber-ghost {
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid var(--border-cyan);
-      color: #cbd5e1;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.25s;
-    }
-    .btn-cyber-ghost:hover {
-      background: rgba(6, 182, 212, 0.2);
-      border-color: var(--cyan-neon);
-      color: #ffffff;
-      box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
-    }
-
-    /* メイン: Viewport固定 & 独立スクロールレイアウト */
+    /* メイン: モバイルファーストの1カラム */
     main {
-      flex: 1;
-      max-width: 1440px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 12px 16px;
-      display: grid;
-      grid-template-columns: 310px 1fr 360px;
-      gap: 16px;
-      height: calc(100vh - 65px);
-      max-height: calc(100vh - 65px);
-      min-height: 0;
-      overflow: hidden;
-      box-sizing: border-box;
+      flex: 1; width: 100%; max-width: 720px; margin: 0 auto;
+      padding: 20px 16px 48px;
+      display: flex; flex-direction: column; gap: 20px;
     }
+    .step-label {
+      font-size: 0.78rem; font-weight: 900; letter-spacing: 0.08em;
+      color: var(--accent-ink); text-transform: uppercase; margin-bottom: 8px;
+    }
+    .step-label .step-no {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--accent); color: #fff; font-size: 0.75rem; margin-right: 6px;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius-lg); padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .card h2 { font-size: 1.05rem; font-weight: 900; line-height: 1.5; margin-bottom: 4px; }
+    .card .lead { font-size: 0.92rem; color: var(--muted); margin-bottom: 14px; }
 
-    @media (max-width: 1150px) {
-      main {
-        grid-template-columns: 1fr;
-        max-width: 760px;
-        height: auto;
-        max-height: none;
-        overflow-y: auto;
-      }
-      .chat-scroll-view, .diag-scroll-view {
-        max-height: 420px;
-      }
+    /* パートナー表示 */
+    .stage-viewport {
+      position: relative; width: 100%; aspect-ratio: 4 / 3;
+      border-radius: var(--radius-lg); overflow: hidden;
+      background: #e9e4dd; border: 1px solid var(--line);
     }
-
-    .cyber-panel {
-      background: var(--bg-panel);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid var(--border-cyan);
-      border-radius: 14px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 10px 36px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(6, 182, 212, 0.05);
-      position: relative;
-      height: 100%;
-      min-height: 0;
-      overflow: hidden;
-    }
-
-    .panel-left-scroll {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      padding-right: 4px;
-    }
-    .panel-left-scroll::-webkit-scrollbar { width: 4px; }
-    .panel-left-scroll::-webkit-scrollbar-thumb { background: rgba(6, 182, 212, 0.3); border-radius: 2px; }
-
-    .cyber-panel::before {
-      content: ''; position: absolute; top: -1px; left: 12px; width: 24px; height: 2px;
-      background: var(--cyan-neon); box-shadow: 0 0 8px var(--cyan-neon);
-    }
-    .cyber-panel::after {
-      content: ''; position: absolute; bottom: -1px; right: 12px; width: 24px; height: 2px;
-      background: var(--cyan-neon); box-shadow: 0 0 8px var(--cyan-neon);
-    }
-
-    .panel-headline {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(6, 182, 212, 0.2);
-      padding-bottom: 6px;
-    }
-
-    .panel-tag {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 800;
-      letter-spacing: 1px;
-      color: var(--cyan-neon);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .char-card-selector {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-
-    .char-select-btn {
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 8px 4px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-      color: var(--text-dim);
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 700;
-      transition: all 0.25s;
-    }
-    .char-select-btn .c-icon { font-size: 1.3rem; }
-    .char-select-btn:hover { border-color: rgba(6, 182, 212, 0.5); color: #ffffff; }
-    .char-select-btn.active {
-      border-color: var(--cyan-neon);
-      background: rgba(6, 182, 212, 0.15);
-      color: #ffffff;
-      box-shadow: 0 0 16px rgba(6, 182, 212, 0.4);
-    }
-
-    .emotion-hud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-    .emo-hud-btn {
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #e2e8f0;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
-    }
-    .emo-hud-btn:hover { transform: translateY(-1px); }
-    .emo-hud-btn.active-joy {
-      border-color: var(--joy-color);
-      background: rgba(251, 191, 36, 0.18);
-      color: #fef08a;
-      box-shadow: 0 0 14px var(--joy-glow);
-    }
-    .emo-hud-btn.active-anger {
-      border-color: var(--anger-color);
-      background: rgba(239, 68, 68, 0.18);
-      color: #fca5a5;
-      box-shadow: 0 0 14px var(--anger-glow);
-    }
-    .emo-hud-btn.active-sadness {
-      border-color: var(--sadness-color);
-      background: rgba(56, 189, 248, 0.18);
-      color: #bae6fd;
-      box-shadow: 0 0 14px var(--sadness-glow);
-    }
-    .emo-hud-btn.active-fun {
-      border-color: var(--fun-color);
-      background: rgba(192, 132, 252, 0.18);
-      color: #f3e8ff;
-      box-shadow: 0 0 14px var(--fun-glow);
-    }
-
-    .param-box { display: flex; flex-direction: column; gap: 4px; }
-    .param-label-row { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700; color: var(--text-dim); }
-    .param-val { font-family: 'Orbitron', monospace; color: var(--cyan-neon); font-weight: 800; }
-
-    input[type="range"] {
-      -webkit-appearance: none; width: 100%; height: 5px; border-radius: 3px;
-      background: rgba(255, 255, 255, 0.1); outline: none; cursor: pointer;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%;
-      background: var(--cyan-neon); cursor: pointer; box-shadow: 0 0 10px var(--cyan-neon);
-      border: 2px solid #ffffff; transition: transform 0.1s;
-    }
-
-    .speed-btn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-    .spd-btn {
-      background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 6px; padding: 6px 0; font-family: 'Orbitron', sans-serif;
-      font-size: 0.8rem; font-weight: 700; color: var(--text-dim); cursor: pointer;
-    }
-    .spd-btn.active {
-      background: var(--blue-neon); border-color: #93c5fd; color: #ffffff;
-      box-shadow: 0 0 14px rgba(59, 130, 246, 0.6);
-    }
-
-    /* 中央HUD */
-    .cyber-stage {
-      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-      gap: 12px; position: relative;
-    }
-
-    .hologram-hud-viewport {
-      position: relative; width: 100%; max-width: 520px; aspect-ratio: 1 / 1;
-      border-radius: 20px; background: #000000; border: 2px solid var(--border-cyan);
-      box-shadow: 0 0 40px rgba(6, 182, 212, 0.25), inset 0 0 60px rgba(0, 0, 0, 0.9);
-      overflow: hidden; display: flex; align-items: center; justify-content: center;
-    }
-
+    .stage-viewport.speaking { border-color: var(--accent); }
     #avatar-image {
-      width: 100%; height: 100%; object-fit: cover;
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.4));
+      width: 100%; height: 100%; object-fit: cover; object-position: center 20%;
+      display: block; transition: opacity 0.3s ease;
     }
-
-    .scanlines-overlay {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0, 0, 0, 0.35) 50%, rgba(0, 0, 0, 0.35));
-      background-size: 100% 4px; pointer-events: none; z-index: 5;
+    /* 口の動き: AIの音声振幅に連動するだけの簡易表示。実測ベースで、口パクのふりはしない */
+    .mouth {
+      position: absolute; left: 50%; bottom: 13%; transform: translateX(-50%) scaleY(0.25);
+      width: 54px; height: 12px; border-radius: 999px;
+      background: rgba(30, 28, 26, 0.55);
+      transform-origin: center; pointer-events: none; z-index: 4;
+      transition: transform 0.07s linear;
     }
-
-    .hud-corner {
-      position: absolute; width: 32px; height: 32px; border: 3px solid var(--cyan-neon);
-      pointer-events: none; z-index: 10; box-shadow: 0 0 10px var(--cyan-neon);
-    }
-    .hud-corner.tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
-    .hud-corner.tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
-    .hud-corner.bl { bottom: 12px; left: 12px; border-right: none; border-top: none; }
-    .hud-corner.br { bottom: 12px; right: 12px; border-left: none; border-top: none; }
-
-    .hud-ring-reticle {
-      position: absolute; width: 78%; height: 78%; border-radius: 50%;
-      border: 1px dashed rgba(34, 211, 238, 0.35); animation: spin-reticle 28s linear infinite;
-      pointer-events: none; z-index: 6;
-    }
-    @keyframes spin-reticle { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
     #spectrum-canvas {
-      position: absolute; bottom: 0; left: 0; width: 100%; height: 140px;
-      z-index: 8; pointer-events: none;
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 56px;
+      z-index: 3; pointer-events: none;
     }
-
-    /* マイクVUメーター */
-    .mic-vu-container {
-      width: 100%; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-cyan);
-      border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;
+    .stage-caption {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+      padding: 14px 4px 0;
     }
-
-    .mic-vu-header {
-      display: flex; justify-content: space-between; font-size: 0.75rem;
-      font-family: 'Orbitron', monospace; font-weight: 700; color: var(--cyan-neon);
-    }
-
-    .mic-vu-bar-track {
-      width: 100%; height: 10px; background: rgba(255, 255, 255, 0.08);
-      border-radius: 5px; overflow: hidden; display: flex;
-    }
-
-    .mic-vu-bar-fill {
-      height: 100%; width: 0%;
-      background: linear-gradient(90deg, #10b981 0%, #fbbf24 70%, #ef4444 100%);
-      transition: width 0.06s ease-out; box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
-    }
-
-    /* 感情メーター */
-    .emotion-hud-panel {
-      width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-cyan);
-      border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px;
-    }
-
-    .emo-meter-line {
-      display: grid; grid-template-columns: 60px 1fr 40px; align-items: center;
-      gap: 8px; font-size: 0.8rem; font-weight: 700;
-    }
-
-    .emo-track { height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 3px; overflow: hidden; }
-    .emo-fill { height: 100%; border-radius: 3px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .emo-fill.joy { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-    .emo-fill.fun { background: linear-gradient(90deg, #9333ea, #c084fc); }
-    .emo-fill.sadness { background: linear-gradient(90deg, #0284c7, #38bdf8); }
-    .emo-fill.anger { background: linear-gradient(90deg, #dc2626, #ef4444); }
+    .stage-caption .who { font-size: 1.05rem; font-weight: 900; }
+    .stage-caption .who small { font-size: 0.85rem; font-weight: 500; color: var(--muted); margin-left: 6px; }
+    .stage-caption .state { font-size: 0.85rem; color: var(--muted); font-weight: 700; }
 
     /* 操作ボタン */
-    .action-hud-bar { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-
-    .btn-action-main {
-      padding: 11px 18px; border-radius: 10px; font-family: 'Orbitron', sans-serif;
-      font-size: 0.88rem; font-weight: 800; letter-spacing: 0.5px; border: none;
-      cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.25s;
+    .action-bar { display: flex; flex-direction: column; gap: 10px; }
+    .btn-primary {
+      width: 100%; min-height: 56px; border: none; border-radius: 999px;
+      background: var(--accent); color: #fff;
+      font-size: 1.05rem; font-weight: 900; letter-spacing: 0.02em;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: var(--shadow-md);
     }
-
-    .btn-connect {
-      background: linear-gradient(135deg, #06b6d4, #3b82f6); color: #ffffff;
-      box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+    .btn-primary:hover { background: var(--accent-ink); }
+    .btn-primary:disabled { background: #b9b2aa; cursor: not-allowed; box-shadow: none; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn-secondary {
+      flex: 1 1 auto; min-height: 48px; padding: 10px 16px; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--line-strong); color: var(--ink);
+      font-size: 0.92rem; font-weight: 700; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     }
-    .btn-connect:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(6, 182, 212, 0.8); }
+    .btn-secondary:hover { border-color: var(--ink-soft); }
+    .btn-secondary.danger { color: var(--danger); border-color: #e5b8b4; background: var(--danger-soft); }
+    .btn-secondary[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
 
-    .btn-disconnect {
-      background: linear-gradient(135deg, #ef4444, #b91c1c); color: #ffffff;
-      box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
-    }
+    /* マイクレベル */
+    .mic-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+    .mic-row .mic-label { font-size: 0.85rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+    .mic-vu-bar-track { flex: 1; height: 8px; background: var(--surface-soft); border-radius: 999px; overflow: hidden; }
+    .mic-vu-bar-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 999px; transition: width 0.06s ease-out; }
+    .mic-vu-bar-fill.hot { background: #c77f2a; }
+    #vu-val { font-size: 0.82rem; font-weight: 700; color: var(--muted); min-width: 52px; text-align: right; }
 
-    .btn-talk-done {
-      background: linear-gradient(135deg, #10b981, #059669); color: #ffffff;
-      box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
+    /* パートナー選択カード */
+    .char-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .char-card {
+      background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius-md);
+      padding: 0 0 12px; cursor: pointer; text-align: left; overflow: hidden;
+      display: flex; flex-direction: column; gap: 0; color: var(--ink);
     }
+    .char-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: center 18%; display: block; background: #e9e4dd; }
+    .char-card .char-name { font-size: 1rem; font-weight: 900; padding: 10px 12px 0; }
+    .char-card .char-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; padding: 2px 12px 0; }
+    .char-card:hover { border-color: var(--ink-soft); }
+    .char-card.active { border-color: var(--accent); background: var(--accent-soft); }
+    .char-card.active .char-name::after {
+      content: '選択中'; display: inline-block; margin-left: 6px; vertical-align: 2px;
+      font-size: 0.68rem; font-weight: 900; color: #fff; background: var(--accent);
+      border-radius: 999px; padding: 2px 8px;
+    }
+    .char-card.soon { cursor: default; opacity: 0.75; }
+    .char-card.soon .char-photo { aspect-ratio: 1 / 1; background: var(--surface-soft); display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.85rem; font-weight: 700; }
+    .char-card.soon:hover { border-color: var(--line); }
+    .char-soon-note { font-size: 0.82rem; color: var(--muted); margin-top: 10px; }
 
-    .btn-interrupt-hud {
-      background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff;
-      box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+    /* 気分・設定 */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      min-height: 44px; padding: 8px 16px; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--line-strong);
+      font-size: 0.92rem; font-weight: 700; color: var(--ink-soft); cursor: pointer;
     }
+    .chip:hover { border-color: var(--ink-soft); color: var(--ink); }
+    .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+    .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+    .field { margin-top: 16px; }
+    .field label { display: block; font-size: 0.88rem; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; }
+    .field label output { float: right; color: var(--accent-ink); font-weight: 900; }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px;
+      background: var(--line); outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%;
+      background: var(--accent); border: 3px solid #fff; box-shadow: var(--shadow-sm); cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent); border: 3px solid #fff; cursor: pointer;
+    }
+    .seg-row { display: flex; gap: 8px; }
+    .seg-row .chip { flex: 1; text-align: center; }
+    details.advanced { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 12px; }
+    details.advanced summary { cursor: pointer; font-weight: 700; font-size: 0.92rem; color: var(--ink-soft); min-height: 44px; display: flex; align-items: center; }
+    .setting-note { font-size: 0.82rem; color: var(--muted); margin-top: 8px; }
 
-    .btn-sub-hud {
-      background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-cyan);
-      color: #e2e8f0; padding: 9px 12px; border-radius: 10px;
-      font-family: 'Orbitron', sans-serif; font-size: 0.78rem; font-weight: 700; cursor: pointer;
-    }
-
-    .text-chat-input-bar { width: 100%; display: flex; gap: 6px; margin-top: 4px; }
-    .text-chat-input {
-      flex: 1; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-cyan);
-      border-radius: 8px; padding: 8px 12px; color: #ffffff; font-size: 0.85rem; outline: none;
-    }
-    .btn-send-text {
-      background: rgba(6, 182, 212, 0.2); border: 1px solid var(--border-cyan);
-      color: var(--cyan-neon); border-radius: 8px; padding: 0 14px;
-      font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 700; cursor: pointer;
-    }
-
-    /* チャット & ログ */
-    .chat-tab-nav { display: flex; gap: 8px; border-bottom: 1px solid rgba(6, 182, 212, 0.2); padding-bottom: 6px; }
+    /* 会話ログ */
+    .log-tabs { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
     .tab-pill {
-      background: transparent; border: none; color: var(--text-dim);
-      font-family: 'Orbitron', sans-serif; font-size: 0.78rem; font-weight: 700;
-      padding: 5px 10px; border-radius: 6px; cursor: pointer;
+      background: transparent; border: none; color: var(--muted);
+      font-size: 0.92rem; font-weight: 700; padding: 8px 12px; min-height: 44px;
+      border-radius: 999px; cursor: pointer;
     }
-    .tab-pill.active { color: #ffffff; background: rgba(6, 182, 212, 0.2); border-bottom: 2px solid var(--cyan-neon); }
-
+    .tab-pill.active { color: var(--accent-ink); background: var(--accent-soft); }
+    .tab-pill:hover { color: var(--ink); }
+    .log-actions { margin-left: auto; display: flex; gap: 8px; }
     .chat-scroll-view {
-      flex: 1;
-      height: 100%;
-      min-height: 0;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding-right: 6px;
-      scroll-behavior: smooth;
+      display: flex; flex-direction: column; gap: 10px;
+      max-height: 420px; overflow-y: auto; padding: 2px; scroll-behavior: smooth;
     }
-    .chat-scroll-view::-webkit-scrollbar { width: 5px; }
-    .chat-scroll-view::-webkit-scrollbar-track { background: rgba(8, 14, 30, 0.4); border-radius: 3px; }
-    .chat-scroll-view::-webkit-scrollbar-thumb { background: rgba(6, 182, 212, 0.5); border-radius: 3px; }
-    .chat-scroll-view::-webkit-scrollbar-thumb:hover { background: var(--cyan-neon); }
-
     .chat-bubble {
-      padding: 10px 12px; border-radius: 10px; font-size: 0.88rem; line-height: 1.4;
-      display: flex; flex-direction: column; gap: 4px; animation: msg-in 0.2s ease;
-      word-break: break-word;
+      padding: 12px 14px; border-radius: var(--radius-md); font-size: 0.95rem; line-height: 1.65;
+      max-width: 88%; word-break: break-word; animation: msg-in 0.2s ease;
     }
     @keyframes msg-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-
-    .chat-bubble.user {
-      align-self: flex-end; background: rgba(6, 182, 212, 0.2);
-      border: 1px solid rgba(6, 182, 212, 0.5); max-width: 85%;
-    }
-    .chat-bubble.ai {
-      align-self: flex-start; background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.15); max-width: 90%;
-    }
-
+    .chat-bubble.user { align-self: flex-end; background: var(--accent-soft); color: var(--ink); border-bottom-right-radius: 4px; }
+    .chat-bubble.ai { align-self: flex-start; background: var(--surface-soft); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
     .bubble-meta {
-      display: flex; align-items: center; justify-content: space-between;
-      font-size: 0.7rem; font-family: 'Orbitron', monospace; color: var(--text-dim);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      font-size: 0.75rem; font-weight: 700; color: var(--muted); margin-bottom: 4px;
     }
-    .emo-chip { font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); }
-
+    .emo-chip { font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(30, 28, 26, 0.08); font-weight: 700; }
     .diag-scroll-view {
-      flex: 1;
-      height: 100%;
-      min-height: 0;
-      overflow-y: auto;
-      background: rgba(3, 7, 18, 0.95);
-      border: 1px solid rgba(6, 182, 212, 0.3);
-      border-radius: 6px;
-      padding: 8px;
-      font-family: 'Consolas', monospace;
-      font-size: 0.72rem;
-      color: #94a3b8;
-      display: none;
-      flex-direction: column;
-      gap: 3px;
+      display: none; flex-direction: column; gap: 4px;
+      max-height: 420px; overflow-y: auto;
+      background: #26221f; border-radius: var(--radius-sm); padding: 12px;
+      font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+      font-size: 0.78rem; line-height: 1.6; color: #cfc8bf;
     }
-    .diag-scroll-view::-webkit-scrollbar { width: 5px; }
-    .diag-scroll-view::-webkit-scrollbar-thumb { background: rgba(6, 182, 212, 0.4); border-radius: 3px; }
-    .d-line.info { color: #38bdf8; }
-    .d-line.success { color: #34d399; }
-    .d-line.warn { color: #fbbf24; }
-    .d-line.error { color: #f87171; }
+    .d-line.info { color: #9ecfe8; }
+    .d-line.success { color: #8fd6a8; }
+    .d-line.warn { color: #f0c46a; }
+    .d-line.error { color: #f0a49e; }
+
+    /* テキスト入力 */
+    .text-chat-input-bar { display: flex; gap: 8px; }
+    .text-chat-input {
+      flex: 1; min-height: 52px; background: var(--surface); border: 1px solid var(--line-strong);
+      border-radius: 999px; padding: 12px 18px; color: var(--ink); font-size: 1rem; outline: none;
+      font-family: inherit;
+    }
+    .text-chat-input::placeholder { color: #a39d95; }
+    .text-chat-input:focus { border-color: var(--accent); box-shadow: var(--focus); }
+    .btn-send-text {
+      min-height: 52px; min-width: 76px; background: var(--accent); border: none;
+      color: #fff; border-radius: 999px; padding: 0 20px;
+      font-size: 0.95rem; font-weight: 900; cursor: pointer;
+    }
+    .btn-send-text:hover { background: var(--accent-ink); }
 
     /* モーダル */
     .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px); display: none; align-items: center;
-      justify-content: center; z-index: 1000; padding: 16px;
+      position: fixed; inset: 0; background: rgba(30, 28, 26, 0.5);
+      display: none; align-items: center; justify-content: center; z-index: 1000; padding: 16px;
     }
-
-    .cyber-modal {
-      background: var(--bg-panel-solid); border: 2px solid var(--border-cyan);
-      border-radius: 16px; width: 100%; max-width: 520px; padding: 24px;
-      display: flex; flex-direction: column; gap: 16px; box-shadow: 0 0 40px rgba(6, 182, 212, 0.3);
+    .modal-card {
+      background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: 520px;
+      padding: 24px; display: flex; flex-direction: column; gap: 16px;
+      box-shadow: var(--shadow-md); max-height: 90vh; overflow-y: auto;
     }
-
-    .modal-header-row {
-      display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid rgba(6, 182, 212, 0.3); padding-bottom: 10px;
-    }
-
-    .modal-title {
-      font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 800;
-      color: var(--cyan-neon); letter-spacing: 1px;
-    }
-
+    .modal-header-row { display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-size: 1.1rem; font-weight: 900; }
     .form-item { display: flex; flex-direction: column; gap: 6px; }
-    .form-item label { font-size: 0.85rem; font-weight: 700; color: #e2e8f0; }
-
+    .form-item label { font-size: 0.88rem; font-weight: 700; color: var(--ink-soft); }
     .form-ctrl {
-      background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-cyan);
-      border-radius: 8px; padding: 9px 12px; color: #ffffff;
-      font-family: 'Rajdhani', sans-serif; font-size: 0.95rem; outline: none;
+      background: var(--surface); border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm); padding: 12px; color: var(--ink);
+      font-size: 0.95rem; outline: none; font-family: inherit; min-height: 48px;
     }
+    .form-ctrl:focus { border-color: var(--accent); box-shadow: var(--focus); }
+    .check-row { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 0.92rem; line-height: 1.6; }
+    .check-row input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent); flex: 0 0 20px; }
 
     .toast-shelf {
-      position: fixed; bottom: 20px; right: 20px; z-index: 2000;
-      display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 2000; display: flex; flex-direction: column; gap: 8px;
+      width: min(480px, calc(100vw - 32px)); pointer-events: none;
     }
-
     .toast-card {
-      background: rgba(8, 14, 30, 0.95); backdrop-filter: blur(14px);
-      border: 1px solid var(--border-cyan); border-left: 4px solid var(--cyan-neon);
-      border-radius: 8px; padding: 10px 16px; font-size: 0.85rem; color: #ffffff;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6); animation: slide-toast 0.25s ease;
-      pointer-events: auto; max-width: 360px;
+      background: var(--ink); color: #fff; border-radius: var(--radius-sm);
+      padding: 12px 16px; font-size: 0.9rem; box-shadow: var(--shadow-md);
+      animation: slide-toast 0.25s ease; pointer-events: auto;
     }
-    @keyframes slide-toast { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slide-toast { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .fineprint { font-size: 0.8rem; color: var(--muted); text-align: center; }
+    .fineprint a { color: var(--accent-ink); }
+
+    @media (max-width: 560px) {
+      header { padding: 10px 14px; flex-wrap: wrap; }
+      .brand-sub { display: none; }
+      .latency-chip { display: none; }
+      main { padding: 16px 12px 40px; gap: 16px; }
+      .card { padding: 16px; }
+      .char-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .char-card .char-desc { display: none; }
+      .char-card .char-name { font-size: 0.9rem; padding: 8px 8px 0; }
+      .btn-ghost span.btn-label { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
   </style>
 </head>
 <body>
 
   <header>
     <div class="brand">
-      <div class="brand-logo-hex">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
-      </div>
+      <div class="brand-mark" aria-hidden="true">話</div>
       <div>
-        <div class="brand-title">EMOTION AI // LIVE HUD</div>
-        <div style="font-size: 0.68rem; font-family: 'Orbitron', monospace; color: var(--cyan-neon);">
-          BIDI-STREAM // ULTRA-FAST LOW-LATENCY & NOISE-GUARD (v2.9)
-        </div>
+        <div class="brand-title">AIボイス</div>
+        <div class="brand-sub">話すだけ。日常の会話パートナー</div>
       </div>
     </div>
-
-    <div class="hud-telemetry">
-      <div class="telemetry-item">
-        <span id="stat-indicator" class="status-indicator"></span>
-        <span id="stat-label">STANDBY</span>
-      </div>
-      <div class="telemetry-item" title="マイク音声の送信パケット数">
-        <span>TX:</span>
-        <span id="stat-tx" style="color: #22d3ee;">0</span>
-      </div>
-      <div class="telemetry-item" title="AI音声の受信パケット数">
-        <span>RX:</span>
-        <span id="stat-rx" style="color: #f43f5e;">0</span>
-      </div>
-      <div class="telemetry-item" title="発話終了からAI初回音声までの実測遅延">
-        <span>LAT:</span>
-        <span id="stat-latency" style="color: #34d399;">—</span>
-      </div>
+    <div class="header-status">
+      <span class="status-pill"><span id="stat-indicator" class="status-indicator"></span><span id="stat-label">待機中</span></span>
+      <span class="latency-chip" title="発話終了からAI初回音声までの実測遅延">応答 <strong id="stat-latency">—</strong></span>
+      <span class="latency-chip" id="stat-tx-wrap" hidden>送信 <strong id="stat-tx">0</strong></span>
+      <span class="latency-chip" id="stat-rx-wrap" hidden>受信 <strong id="stat-rx">0</strong></span>
     </div>
-
     <div class="header-actions">
-      <button id="btn-open-settings" class="btn-cyber-ghost"><span>⚙️</span> CONFIG</button>
-      <button id="btn-save-log" class="btn-cyber-ghost"><span>💾</span> EXPORT</button>
+      <button id="btn-open-settings" class="btn-ghost" aria-label="設定を開く">設定</button>
+      <button id="btn-save-log" class="btn-ghost" aria-label="会話ログを保存する">保存</button>
     </div>
   </header>
 
   <main>
-    <section class="cyber-panel">
-      <div class="panel-left-scroll">
-        <div class="panel-headline"><div class="panel-tag"><span>[01]</span> CHARACTER MODEL</div></div>
-        <div class="char-card-selector">
-          <button id="btn-char-holo" class="char-select-btn active" data-char="holo">
-            <span class="c-icon">🌐</span><span>HOLO-AI</span><span style="font-size: 0.65rem; opacity: 0.7;">ホログラム</span>
-          </button>
-          <button id="btn-char-luna" class="char-select-btn" data-char="luna">
-            <span class="c-icon">👩</span><span>LUNA</span><span style="font-size: 0.65rem; opacity: 0.7;">サイバーヒロイン</span>
-          </button>
-          <button id="btn-char-ren" class="char-select-btn" data-char="ren">
-            <span class="c-icon">👨</span><span>REN</span><span style="font-size: 0.65rem; opacity: 0.7;">青年エージェント</span>
-          </button>
+    <!-- ステップ1: パートナーを見る -->
+    <section class="card" aria-label="パートナー">
+      <p class="step-label"><span class="step-no">1</span>パートナー</p>
+      <div class="stage-viewport" id="viewport">
+        <img id="avatar-image" src="./assets/cyber_holo_face.jpg" alt="会話パートナーの写真" fetchpriority="high" decoding="async">
+        <div class="mouth" id="mouth" aria-hidden="true"></div>
+        <canvas id="spectrum-canvas" aria-hidden="true"></canvas>
+      </div>
+      <div class="stage-caption">
+        <div class="who"><span id="stage-char-name">ハル</span><small id="stage-char-desc">20代・男性・穏やかで聞き上手</small></div>
+        <div class="state" id="stage-state">まだ話していません</div>
+      </div>
+      <div class="mic-row">
+        <span class="mic-label">マイクの音量</span>
+        <div class="mic-vu-bar-track"><div id="mic-vu-fill" class="mic-vu-bar-fill"></div></div>
+        <span id="vu-val">0 dB</span>
+      </div>
+    </section>
+
+    <!-- ステップ2: 会話を始める -->
+    <section class="card" aria-label="会話の操作">
+      <p class="step-label"><span class="step-no">2</span>会話をはじめる</p>
+      <h2>大きなボタンひとつで、すぐ話せます</h2>
+      <p class="lead">マイクを許可して「会話をはじめる」を押してください。話し終われば、相手がすぐに応えます。</p>
+      <div class="action-bar">
+        <button id="btn-start-session" class="btn-primary">会話をはじめる</button>
+        <button id="btn-stop-session" class="btn-primary" style="display: none; background: var(--danger);">会話を終える</button>
+        <div class="btn-row">
+          <button id="btn-talk-done" class="btn-secondary" style="display: none;">話し終わった</button>
+          <button id="btn-interrupt" class="btn-secondary">割り込む</button>
+          <button id="btn-mute" class="btn-secondary" aria-pressed="false"><span id="mute-icon">マイク</span> <span id="mute-txt">オン</span></button>
+          <button id="btn-pause" class="btn-secondary" style="display: none;">一時停止</button>
         </div>
+      </div>
+      <p class="setting-note">話している途中で声を出せば、相手の話をさえぎってあなたの話を聞きます。応答までの時間は、右上の「応答」に表示されます。</p>
+    </section>
 
-        <div class="panel-headline" style="margin-top: 4px;"><div class="panel-tag"><span>[02]</span> EMOTION PRESETS</div></div>
-        <div class="emotion-hud-grid">
-          <button id="emo-joy" class="emo-hud-btn active-joy" data-emotion="joy"><span>😊</span> 喜び (JOY)</button>
-          <button id="emo-anger" class="emo-hud-btn" data-emotion="anger"><span>💢</span> 怒り (ANGER)</button>
-          <button id="emo-sadness" class="emo-hud-btn" data-emotion="sadness"><span>😢</span> 悲しみ (SAD)</button>
-          <button id="emo-fun" class="emo-hud-btn" data-emotion="fun"><span>✨</span> 楽しさ (FUN)</button>
+    <!-- ステップ3: パートナーを選ぶ -->
+    <section class="card" aria-label="パートナーを選ぶ">
+      <p class="step-label"><span class="step-no">3</span>パートナーを選ぶ</p>
+      <h2>話し相手を選ぶ</h2>
+      <p class="lead">写真と紹介で選べます。会話中でも切り替えられます。</p>
+      <div class="char-grid">
+        <button id="btn-char-holo" class="char-card active" data-char="holo" aria-pressed="true">
+          <img src="./assets/cyber_holo_face.jpg" alt="ハルの写真" loading="lazy" decoding="async">
+          <span class="char-name">ハル</span>
+          <span class="char-desc">20代・男性<br>穏やかで聞き上手</span>
+        </button>
+        <button id="btn-char-luna" class="char-card" data-char="luna" aria-pressed="false">
+          <img src="./assets/cyber_luna_female.jpg" alt="ルナの写真" loading="lazy" decoding="async">
+          <span class="char-name">ルナ</span>
+          <span class="char-desc">20代・女性<br>明るく元気</span>
+        </button>
+        <button id="btn-char-ren" class="char-card" data-char="ren" aria-pressed="false">
+          <img src="./assets/cyber_ren_male.jpg" alt="レンの写真" loading="lazy" decoding="async">
+          <span class="char-name">レン</span>
+          <span class="char-desc">30代・男性<br>落ち着いて頼れる</span>
+        </button>
+        <button class="char-card soon" disabled aria-disabled="true">
+          <span class="char-photo">写真準備中</span>
+          <span class="char-name">ミサキ</span>
+          <span class="char-desc">40代・女性<br>やさしく丁寧</span>
+        </button>
+        <button class="char-card soon" disabled aria-disabled="true">
+          <span class="char-photo">写真準備中</span>
+          <span class="char-name">ケンジ</span>
+          <span class="char-desc">50代・男性<br>ユーモアのある先輩</span>
+        </button>
+        <button class="char-card soon" disabled aria-disabled="true">
+          <span class="char-photo">写真準備中</span>
+          <span class="char-name">サトコ</span>
+          <span class="char-desc">60代・女性<br>人生経験豊かな相談相手</span>
+        </button>
+      </div>
+      <p class="char-soon-note">下の3人は写真の差し替え準備中です。写真が用意できしだい、同じ並びで使えるようになります。</p>
+    </section>
+
+    <!-- ステップ4: 文字で見る -->
+    <section class="card" aria-label="会話の文字起こし">
+      <p class="step-label"><span class="step-no">4</span>文字で見る</p>
+      <h2>会話の記録</h2>
+      <p class="lead">話した内容は文字でも残ります。あとから読み返せます。</p>
+      <div class="log-tabs">
+        <button id="tab-chat" class="tab-pill active" aria-pressed="true">会話</button>
+        <button id="tab-diag" class="tab-pill" aria-pressed="false">診断ログ</button>
+        <span class="log-actions">
+          <button id="btn-clear-chat" class="btn-ghost">消去</button>
+        </span>
+      </div>
+      <div id="chat-view" class="chat-scroll-view" role="log" aria-live="polite">
+        <div class="chat-bubble ai">
+          <div class="bubble-meta"><span>ハル</span><span class="emo-chip">はじめまして</span></div>
+          <div>こんにちは、ハルです。「会話をはじめる」を押して、気軽に話しかけてください。今日はどんな話をしましょうか。</div>
         </div>
+      </div>
+      <div id="diag-view" class="diag-scroll-view" role="log">
+        <div class="d-line info">[INIT] 準備ができました。</div>
+      </div>
+      <div class="text-chat-input-bar" style="margin-top: 14px;">
+        <input type="text" id="text-chat-input" class="text-chat-input" placeholder="文字で話しかけることもできます" aria-label="文字で話しかける" autocomplete="off">
+        <button id="btn-send-text" class="btn-send-text">送信</button>
+      </div>
+    </section>
 
-        <div class="param-box">
-          <div class="param-label-row"><span>EMOTION INTENSITY</span><span id="intensity-val" class="param-val">80%</span></div>
-          <input type="range" id="intensity-slider" min="0" max="100" value="80">
-        </div>
-
-        <div class="panel-headline" style="margin-top: 4px;"><div class="panel-tag"><span>[03]</span> SPEECH PARAMETERS</div></div>
-
-        <div class="param-box">
-          <div class="param-label-row"><span>MIC GAIN BOOST (感度増幅)</span><span id="gain-val" class="param-val">2.2x</span></div>
+    <!-- 詳細設定（ふだんは閉じておく） -->
+    <section class="card" aria-label="気分と詳細設定">
+      <h2>気分と話し方</h2>
+      <p class="lead">相手の気分や話す速さを調整できます。設定しなくても、そのまま話せます。</p>
+      <div class="chip-row" role="group" aria-label="気分">
+        <button id="emo-joy" class="chip" data-emotion="joy" aria-pressed="true">よろこび</button>
+        <button id="emo-anger" class="chip" data-emotion="anger" aria-pressed="false">おこり</button>
+        <button id="emo-sadness" class="chip" data-emotion="sadness" aria-pressed="false">かなしみ</button>
+        <button id="emo-fun" class="chip" data-emotion="fun" aria-pressed="false">たのしさ</button>
+      </div>
+      <div class="field">
+        <label for="intensity-slider">気分の強さ <output id="intensity-val">80%</output></label>
+        <input type="range" id="intensity-slider" min="0" max="100" value="80">
+      </div>
+      <p class="setting-note">「気分」はあなたの設定です。音声から感情を読み取っているわけではありません。</p>
+      <details class="advanced">
+        <summary>音声の詳細設定を開く</summary>
+        <div class="field">
+          <label for="gain-slider">マイクの感度 <output id="gain-val">2.2x</output></label>
           <input type="range" id="gain-slider" min="1.0" max="5.0" step="0.2" value="2.2">
         </div>
-
-        <div class="param-box">
-          <div class="param-label-row"><span>PLAYBACK SPEED</span><span id="speed-val" class="param-val">1.0x</span></div>
-          <div class="speed-btn-row">
-            <button class="spd-btn active" data-speed="1.0">1.0x</button>
-            <button class="spd-btn" data-speed="2.0">2.0x</button>
-            <button class="spd-btn" data-speed="3.0">3.0x</button>
+        <div class="field">
+          <label>話す速さ <output id="speed-val">1.0x</output></label>
+          <div class="seg-row" role="group" aria-label="話す速さ">
+            <button class="chip spd-btn active" data-speed="1.0" aria-pressed="true">1.0倍</button>
+            <button class="chip spd-btn" data-speed="2.0" aria-pressed="false">2.0倍</button>
+            <button class="chip spd-btn" data-speed="3.0" aria-pressed="false">3.0倍</button>
           </div>
-          <input type="range" id="speed-slider" min="0.5" max="3.0" step="0.1" value="1.0" style="margin-top: 4px;">
+          <input type="range" id="speed-slider" min="0.5" max="3.0" step="0.1" value="1.0" style="margin-top: 10px;" aria-label="話す速さの微調整">
         </div>
-
-        <div class="param-box">
-          <div class="param-label-row"><span>VOICE PITCH / TONE</span><span id="pitch-val" class="param-val">±0 cents</span></div>
+        <div class="field">
+          <label for="pitch-slider">声の高さ <output id="pitch-val">±0 cents</output></label>
           <input type="range" id="pitch-slider" min="-600" max="600" step="50" value="0">
         </div>
-      </div>
+      </details>
     </section>
 
-    <!-- 中央HUD -->
-    <section class="cyber-panel cyber-stage">
-      <div class="hologram-hud-viewport" id="viewport">
-        <div class="hud-corner tl"></div><div class="hud-corner tr"></div>
-        <div class="hud-corner bl"></div><div class="hud-corner br"></div>
-        <div class="scanlines-overlay"></div>
-        <div class="hud-ring-reticle"></div>
-        <img id="avatar-image" src="./assets/cyber_holo_face.jpg" alt="Cyber Holo Avatar">
-        <canvas id="spectrum-canvas"></canvas>
-      </div>
-
-      <div class="mic-vu-container">
-        <div class="mic-vu-header">
-          <span>🎙️ MIC INPUT LEVEL (VU METER)</span>
-          <span id="vu-val">0 dB</span>
-        </div>
-        <div class="mic-vu-bar-track">
-          <div id="mic-vu-fill" class="mic-vu-bar-fill"></div>
-        </div>
-      </div>
-
-      <div class="emotion-hud-panel">
-        <div style="font-size: 0.78rem; font-family: 'Orbitron', monospace; font-weight: 700; color: var(--cyan-neon); display: flex; justify-content: space-between;">
-          <span>EMOTION SETTING（設定値・検出ではありません）</span>
-          <span id="top-emotion-label" style="color: #67e8f9;">設定: 喜び (80%)</span>
-        </div>
-        <div class="emo-meter-line">
-          <span style="color: var(--joy-color);">😊 喜び</span>
-          <div class="emo-track"><div id="meter-joy" class="emo-fill joy" style="width: 30%;"></div></div>
-          <span id="txt-meter-joy" class="param-val">30%</span>
-        </div>
-        <div class="emo-meter-line">
-          <span style="color: var(--fun-color);">✨ 楽しさ</span>
-          <div class="emo-track"><div id="meter-fun" class="emo-fill fun" style="width: 25%;"></div></div>
-          <span id="txt-meter-fun" class="param-val">25%</span>
-        </div>
-        <div class="emo-meter-line">
-          <span style="color: var(--sadness-color);">😢 悲しみ</span>
-          <div class="emo-track"><div id="meter-sadness" class="emo-fill sadness" style="width: 10%;"></div></div>
-          <span id="txt-meter-sadness" class="param-val">10%</span>
-        </div>
-        <div class="emo-meter-line">
-          <span style="color: var(--anger-color);">💢 怒り</span>
-          <div class="emo-track"><div id="meter-anger" class="emo-fill anger" style="width: 5%;"></div></div>
-          <span id="txt-meter-anger" class="param-val">5%</span>
-        </div>
-      </div>
-
-      <!-- 操作ボタン -->
-      <div class="action-hud-bar">
-        <button id="btn-start-session" class="btn-action-main btn-connect"><span>🎙️</span> 会話開始 (CONNECT)</button>
-        <button id="btn-stop-session" class="btn-action-main btn-disconnect" style="display: none;"><span>⏹️</span> 終了 (DISCONNECT)</button>
-        <button id="btn-talk-done" class="btn-action-main btn-talk-done" style="display: none;"><span>💬</span> 発話完了 / 応答を促す</button>
-        <button id="btn-interrupt" class="btn-action-main btn-interrupt-hud"><span>⚡</span> 割り込み (BARGE-IN)</button>
-        <button id="btn-mute" class="btn-sub-hud"><span id="mute-icon">🎤</span> <span id="mute-txt">マイクON</span></button>
-        <button id="btn-pause" class="btn-sub-hud" style="display: none;"><span>⏸️</span> 一時停止</button>
-      </div>
-
-      <!-- テキスト簡易チャット入力欄 -->
-      <div class="text-chat-input-bar">
-        <input type="text" id="text-chat-input" class="text-chat-input" placeholder="テキストで話しかけることも可能です（Enterで送信）...">
-        <button id="btn-send-text" class="btn-send-text">SEND</button>
-      </div>
-    </section>
-
-    <!-- 右パネル -->
-    <section class="cyber-panel">
-      <div class="chat-tab-nav">
-        <button id="tab-chat" class="tab-pill active">💬 CONVERSATION</button>
-        <button id="tab-diag" class="tab-pill">🛠️ DIAGNOSTICS</button>
-        <button id="btn-clear-chat" class="btn-cyber-ghost" style="margin-left: auto; padding: 2px 8px; font-size: 0.7rem;">CLEAR</button>
-      </div>
-
-      <div id="chat-view" class="chat-scroll-view">
-        <div class="chat-bubble ai">
-          <div class="bubble-meta"><span>HOLO-AI</span><span class="emo-chip" style="color: #fbbf24;">喜び 80%</span></div>
-          <div>システムオンライン。マイクを接続して「会話開始」を押してください！リアルタイムにお話ししましょう！</div>
-        </div>
-      </div>
-
-      <div id="diag-view" class="diag-scroll-view">
-        <div class="d-line info">[INIT] システム初期化完了。</div>
-      </div>
-    </section>
+    <p class="fineprint">AIボイス v3.0 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 設定モーダル -->
-  <div id="settings-modal" class="modal-overlay">
-    <div class="cyber-modal">
+  <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="設定">
+    <div class="modal-card">
       <div class="modal-header-row">
-        <div class="modal-title">⚙️ SYSTEM CONFIGURATION</div>
-        <button id="btn-close-modal" class="btn-cyber-ghost">✕</button>
+        <div class="modal-title">設定</div>
+        <button id="btn-close-modal" class="btn-ghost" aria-label="設定を閉じる">閉じる</button>
       </div>
       <div class="form-item">
-        <label>Vercel サーバーAPI連携 / キー取得状態</label>
-        <div id="env-badge" style="padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-family: 'Orbitron', monospace; background: rgba(6, 182, 212, 0.15); border: 1px solid var(--border-cyan); color: #22d3ee;">バックエンドAPI接続中...</div>
+        <label>接続の状態</label>
+        <div id="env-badge" style="padding: 10px 12px; border-radius: 10px; font-size: 0.88rem; background: var(--accent-soft); border: 1px solid var(--line); color: var(--accent-ink);">接続を確認しています…</div>
       </div>
       <div class="form-item">
-        <label for="cfg-api-key">Gemini API Key</label>
-        <input type="password" id="cfg-api-key" class="form-ctrl" placeholder="AIzaSy...">
+        <label for="cfg-api-key">Gemini APIキー</label>
+        <input type="password" id="cfg-api-key" class="form-ctrl" placeholder="AIzaSy..." autocomplete="off">
+        <p class="setting-note">キーはこの端末にだけ保存されます。共有しないでください。</p>
       </div>
       <div class="form-item">
-        <label for="cfg-mic">マイク入力デバイス</label>
-        <select id="cfg-mic" class="form-ctrl"><option value="default">既定のマイク (Default)</option></select>
+        <label for="cfg-mic">マイク</label>
+        <select id="cfg-mic" class="form-ctrl"><option value="default">既定のマイク</option></select>
       </div>
       <div class="form-item">
-        <label for="cfg-bargein-sens">割り込み感度 (BARGE-IN SENSITIVITY)</label>
+        <label for="cfg-bargein-sens">割り込みの感度</label>
         <select id="cfg-bargein-sens" class="form-ctrl">
-          <option value="strict">生活音ガード (ノイズ誤認識を強力防止・推奨)</option>
-          <option value="normal" selected>標準 (バランス型)</option>
-          <option value="sensitive">高感度 (ささやき声でも割り込み)</option>
+          <option value="strict">生活音を拾いにくくする（推奨）</option>
+          <option value="normal" selected>標準</option>
+          <option value="sensitive">高感度（小声でも割り込む）</option>
         </select>
       </div>
       <div class="form-item">
-        <label for="cfg-noise-filter" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-          <input type="checkbox" id="cfg-noise-filter" checked style="width: 18px; height: 18px;">
-          <span>声帯域バンドパスフィルター (人間の声帯 180Hz〜3600Hz 以外を自動カット)</span>
+        <label class="check-row" for="cfg-noise-filter">
+          <input type="checkbox" id="cfg-noise-filter" checked>
+          <span>声の帯域だけを通すノイズフィルター（180Hz〜3600Hz以外をカット）</span>
         </label>
       </div>
       <div class="form-item">
-        <label for="cfg-fallback" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-          <input type="checkbox" id="cfg-fallback" checked style="width: 18px; height: 18px;">
-          <span>Live API切断時のスマート・フォールバック (自動でREST音声対話に切替)</span>
+        <label class="check-row" for="cfg-fallback">
+          <input type="checkbox" id="cfg-fallback" checked>
+          <span>接続が切れたとき、自動で予備の対話方式に切り替える</span>
         </label>
       </div>
       <div class="form-item">
-        <label for="cfg-mock" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-          <input type="checkbox" id="cfg-mock" style="width: 18px; height: 18px;">
-          <span>テスト体験モード (APIキー不要でUIと音声合成を体験)</span>
+        <label class="check-row" for="cfg-mock">
+          <input type="checkbox" id="cfg-mock">
+          <span>お試しモード（APIキーなしで画面と音声合成を試す）</span>
         </label>
       </div>
-      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
-        <button id="btn-save-cfg" class="btn-action-main btn-connect" style="padding: 8px 18px; font-size: 0.85rem;">保存して閉じる</button>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;">
+        <button id="btn-save-cfg" class="btn-primary" style="width: auto; min-height: 48px; padding: 0 22px; font-size: 0.95rem;">保存して閉じる</button>
       </div>
     </div>
   </div>
 
-  <div id="toast-shelf" class="toast-shelf"></div>
-
-  <script>
+  <div id="toast-shelf" class="toast-shelf" aria-live="polite"></div>
+<script>
     /**
-     * 天才プロゲームプロダクター & プログラマ設計
-     * 感情AIボイス - v2.9 (遅延計測・AudioWorklet・ターン短縮・再生キュー上限・正確性修正版)
+     * AIボイス - v3.0 Everyday Pro
+     * AIボイス - v3.0 Everyday Pro (v2.9の速度改善を継承し、画面を日常系プロ仕様に刷新)
      */
     const LIVE_MODEL_NAME = 'models/gemini-2.5-flash-native-audio-latest';
     const REST_MODEL_NAME = 'models/gemini-2.5-flash';
@@ -849,25 +600,25 @@
       selectedChar: 'holo',
       characters: {
         holo: {
-          name: 'HOLO-AI',
+          name: 'ハル',
           image: './assets/cyber_holo_face.jpg',
           voice: 'Aoede',
-          personality: '高度な知性と感情を備えたサイバーホログラムAI。理知的かつ共感豊かに日本語でテンポよく話す。',
-          systemPrompt: 'あなたは高度な知性と豊かな感情を備えたサイバーホログラムAI「HOLO-AI」です。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短くテンポ良い日本語で生き生きと返答してください。長文を避け、自然な会話のラリーを高速に楽しんでください。'
+          personality: '20代の男性。穏やかで聞き上手な、日常の会話パートナー。',
+          systemPrompt: 'あなたは20代の男性「ハル」です。日常の会話パートナーとして、穏やかに、聞き上手に日本語で話します。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短く自然な日本語で返答してください。長文は避け、自然な会話のやりとりを楽しんでください。'
         },
         luna: {
-          name: 'LUNA',
+          name: 'ルナ',
           image: './assets/cyber_luna_female.jpg',
           voice: 'Kore',
-          personality: '明るく元気で感情豊かなサイバーヒロイン。親しみやすいタメ口口調（「〜だよ！」「〜ね！」）でテンポよく話す。',
-          systemPrompt: 'あなたは明るく元気なサイバーヒロイン「ルナ」です。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短いタメ口でテンポよく返答してね！長文は避けてポンポン会話を弾ませて！'
+          personality: '20代の女性。明るく元気で、親しみやすい日常の会話パートナー。',
+          systemPrompt: 'あなたは20代の女性「ルナ」です。日常の会話パートナーとして、明るく親しみやすく話します。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短い自然な日本語でテンポよく返答してね！長文は避けて、会話を弾ませて！'
         },
         ren: {
-          name: 'REN',
+          name: 'レン',
           image: './assets/cyber_ren_male.jpg',
           voice: 'Fenrir',
-          personality: '知的でクール、頼れる青年エージェント。自然な口調（「〜だよ」「〜だな」「任せてくれ」）で誠実に応対する。',
-          systemPrompt: 'あなたは知的で頼れるサイバーエージェント「レン」です。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短い自然な日本語でテンポよく返答してください。簡潔かつ的確にリズムよく応対してください。'
+          personality: '30代の男性。落ち着いていて頼れる、日常の会話パートナー。',
+          systemPrompt: 'あなたは30代の男性「レン」です。日常の会話パートナーとして、落ち着いた自然な日本語で話します。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短い自然な日本語でテンポよく返答してください。簡潔に、リズムよく応対してください。'
         }
       },
 
@@ -920,7 +671,7 @@
       avatarImage: document.getElementById('avatar-image'),
       spectrumCanvas: document.getElementById('spectrum-canvas'),
       
-      emoBtns: document.querySelectorAll('.emo-hud-btn'),
+      emoBtns: document.querySelectorAll('.chip[data-emotion]'),
       intensitySlider: document.getElementById('intensity-slider'),
       intensityVal: document.getElementById('intensity-val'),
       gainSlider: document.getElementById('gain-slider'),
@@ -934,15 +685,11 @@
       micVuFill: document.getElementById('mic-vu-fill'),
       vuVal: document.getElementById('vu-val'),
       
-      topEmotionLabel: document.getElementById('top-emotion-label'),
-      meterJoy: document.getElementById('meter-joy'),
-      meterFun: document.getElementById('meter-fun'),
-      meterSadness: document.getElementById('meter-sadness'),
-      meterAnger: document.getElementById('meter-anger'),
-      txtJoy: document.getElementById('txt-meter-joy'),
-      txtFun: document.getElementById('txt-meter-fun'),
-      txtSadness: document.getElementById('txt-meter-sadness'),
-      txtAnger: document.getElementById('txt-meter-anger'),
+      stageCharName: document.getElementById('stage-char-name'),
+      stageCharDesc: document.getElementById('stage-char-desc'),
+      stageState: document.getElementById('stage-state'),
+      stageViewport: document.getElementById('viewport'),
+      mouth: document.getElementById('mouth'),
       
       btnStart: document.getElementById('btn-start-session'),
       btnStop: document.getElementById('btn-stop-session'),
@@ -1065,30 +812,44 @@
     function selectCharacter(charKey) {
       appState.selectedChar = charKey;
       const char = appState.characters[charKey];
+      const descs = {
+        holo: '20代・男性・穏やかで聞き上手',
+        luna: '20代・女性・明るく元気',
+        ren: '30代・男性・落ち着いて頼れる'
+      };
       [UI.btnCharHolo, UI.btnCharLuna, UI.btnCharRen].forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.char === charKey);
+        const on = btn.dataset.char === charKey;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
+      if (UI.stageCharName) UI.stageCharName.textContent = char.name;
+      if (UI.stageCharDesc) UI.stageCharDesc.textContent = descs[charKey] || '';
       UI.avatarImage.style.opacity = '0';
       setTimeout(() => {
         UI.avatarImage.src = char.image;
+        UI.avatarImage.alt = char.name + 'の写真';
         UI.avatarImage.style.opacity = '1';
       }, 200);
-      popToast(`キャラクター: ${char.name}`);
-      if (appState.isConnected && appState.isSessionReady) sendSetupUpdate('キャラクター切替');
+      popToast(`パートナー: ${char.name}`);
+      if (appState.isConnected && appState.isSessionReady) sendSetupUpdate('パートナー切替');
     }
 
     function setEmotion(emoKey) {
       appState.emotion = emoKey;
       UI.emoBtns.forEach(btn => {
-        btn.className = `emo-hud-btn ${btn.dataset.emotion === emoKey ? `active-${emoKey}` : ''}`;
+        const on = btn.dataset.emotion === emoKey;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
       updateEmotionMeters(emoKey);
-      popToast(`感情: ${emoKey.toUpperCase()} (${appState.intensity}%)`);
-      if (appState.isConnected && appState.isSessionReady) sendSetupUpdate('感情設定');
+      const names = { joy: 'よろこび', anger: 'おこり', sadness: 'かなしみ', fun: 'たのしさ' };
+      popToast(`気分: ${names[emoKey]} (${appState.intensity}%)`);
+      if (appState.isConnected && appState.isSessionReady) sendSetupUpdate('気分設定');
     }
 
     function updateEmotionMeters(targetEmo) {
-      // v2.9: これは「設定値」の表示であり、音声からの感情検出ではない。
+      // v3.0: これは「設定値」であり、音声からの感情検出ではない。
+      // 旧バージョンのメーター表示は廃止し、状態は設定値としてだけ保持する。
       const peak = appState.intensity;
       const rem = Math.max(0, 100 - peak);
       appState.detectedEmotions = {
@@ -1097,18 +858,6 @@
         sadness: targetEmo === 'sadness' ? peak : Math.round(rem * 0.2),
         anger: targetEmo === 'anger' ? peak : Math.round(rem * 0.1)
       };
-
-      UI.meterJoy.style.width = `${appState.detectedEmotions.joy}%`;
-      UI.txtJoy.textContent = `${appState.detectedEmotions.joy}%`;
-      UI.meterFun.style.width = `${appState.detectedEmotions.fun}%`;
-      UI.txtFun.textContent = `${appState.detectedEmotions.fun}%`;
-      UI.meterSadness.style.width = `${appState.detectedEmotions.sadness}%`;
-      UI.txtSadness.textContent = `${appState.detectedEmotions.sadness}%`;
-      UI.meterAnger.style.width = `${appState.detectedEmotions.anger}%`;
-      UI.txtAnger.textContent = `${appState.detectedEmotions.anger}%`;
-
-      const names = { joy: '喜び (JOY)', fun: '楽しさ (FUN)', sadness: '悲しみ (SAD)', anger: '怒り (ANGER)' };
-      UI.topEmotionLabel.textContent = `設定: ${names[targetEmo]} (${peak}%)`;
     }
 
     function startSpectrumVisualizer() {
@@ -1136,6 +885,16 @@
           }
         }
 
+        // v3.0: 口の動きはAIの音声振幅に連動させるだけの簡易表示。音声がないときは動かさない。
+        let levelSum = 0;
+        for (let i = 0; i < freqData.length; i++) levelSum += freqData[i];
+        const level = levelSum / freqData.length / 255;
+        if (UI.mouth) {
+          const open = appState.isAiSpeaking ? Math.min(1, level * 2.2) : 0;
+          UI.mouth.style.transform = `translateX(-50%) scaleY(${0.25 + open * 1.6})`;
+        }
+        if (UI.stageViewport) UI.stageViewport.classList.toggle('speaking', !!appState.isAiSpeaking);
+
         const barCount = 36;
         const barWidth = (canvas.width / barCount) * 0.65;
         const gap = (canvas.width / barCount) * 0.35;
@@ -1150,13 +909,10 @@
           const y = canvas.height - barHeight;
 
           const grad = ctx.createLinearGradient(0, y, 0, canvas.height);
-          grad.addColorStop(0, '#22d3ee');
-          grad.addColorStop(0.6, '#0284c7');
-          grad.addColorStop(1, 'rgba(6, 182, 212, 0.1)');
+          grad.addColorStop(0, '#0f6b5c');
+          grad.addColorStop(1, 'rgba(15, 107, 92, 0.25)');
 
           ctx.fillStyle = grad;
-          ctx.shadowColor = '#22d3ee';
-          ctx.shadowBlur = barHeight > 30 ? 12 : 4;
           
           ctx.beginPath();
           ctx.roundRect(x, y, barWidth, barHeight, [3, 3, 0, 0]);
@@ -1334,7 +1090,7 @@
           if (voiceSustainedFrames >= 2) {
             appState.isUserSpeaking = true;
             appState.lastVoiceTimestamp = performance.now();
-            setTelemetryStatus('transmitting', 'VOICE DETECTED');
+            setTelemetryStatus('transmitting', '話しています');
 
             // AIが話している最中の割り込み (Barge-in): 人間が確実に声を出した時のみ発動！
             if (appState.isAiSpeaking && voiceSustainedFrames >= 2) {
@@ -1349,7 +1105,7 @@
           if (appState.isUserSpeaking && performance.now() - appState.lastVoiceTimestamp > appState.silenceMs) {
             appState.isUserSpeaking = false;
             voiceSustainedFrames = 0;
-            setTelemetryStatus('transmitting', 'AI RESPONDING...');
+            setTelemetryStatus('transmitting', 'AIが考えています');
             logMessage(`⚡ 人間の発話完了を高速検知 (${appState.silenceMs}ms無音) -> 即時ターンコミット送信`, 'info');
 
             // v2.9 遅延計測の起点
@@ -1465,7 +1221,7 @@
       }
 
       try {
-        setTelemetryStatus('transmitting', 'INITIALIZING...');
+        setTelemetryStatus('transmitting', '準備しています…');
         logMessage('マイク＆オーディオエンジン起動中...', 'info');
         await startMicrophoneEngine();
 
@@ -1532,9 +1288,9 @@
     function handleServerMessage(data) {
       if (data.setupComplete) {
         appState.isSessionReady = true;
-        setTelemetryStatus('ready', 'SESSION READY');
-        popToast('Gemini Live セッション確立！会話可能です', 'success');
-        logMessage('🚀 setupComplete 受信！音声ストリーミングを開始します', 'success');
+        setTelemetryStatus('ready', '話せます');
+        popToast('会話の準備ができました', 'success');
+        logMessage('接続が確立しました。音声で話しかけてください', 'success');
         
         UI.btnStart.style.display = 'none';
         UI.btnStop.style.display = 'inline-flex';
@@ -1639,7 +1395,7 @@
 
       appState.scheduledSources.push(source);
       appState.isAiSpeaking = true;
-      setTelemetryStatus('receiving', 'AI SPEAKING');
+      setTelemetryStatus('receiving', 'AIが話しています');
 
       source.onended = () => {
         const i = appState.scheduledSources.indexOf(source);
@@ -1647,7 +1403,7 @@
         if (appState.scheduledSources.length === 0) {
           appState.isAiSpeaking = false;
           if (appState.isConnected) {
-            setTelemetryStatus('ready', 'READY');
+            setTelemetryStatus('ready', '話せます');
           }
         }
       };
@@ -1709,7 +1465,7 @@
           }
         };
         appState.ws.send(JSON.stringify(msg));
-        setTelemetryStatus('transmitting', 'SENDING TEXT');
+        setTelemetryStatus('transmitting', '送信中');
       } else {
         queryGeminiRest(text);
       }
@@ -1860,7 +1616,7 @@
       UI.btnStop.style.display = 'none';
       UI.btnTalkDone.style.display = 'none';
       UI.btnPause.style.display = 'none';
-      setTelemetryStatus('standby', 'STANDBY');
+      setTelemetryStatus('standby', '待機中');
       logMessage('セッション終了', 'info');
     }
 
@@ -1877,7 +1633,7 @@
       UI.btnStop.style.display = 'inline-flex';
       UI.btnTalkDone.style.display = 'inline-flex';
       UI.btnPause.style.display = 'inline-flex';
-      setTelemetryStatus('ready', 'REST FALLBACK');
+      setTelemetryStatus('ready', '予備の方式で接続中');
       popToast('REST音声対話モードで接続しました！マイクで話しかけてください', 'success');
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1906,7 +1662,7 @@
 
     async function queryGeminiRest(userPrompt) {
       try {
-        setTelemetryStatus('transmitting', 'AI GENERATING');
+        setTelemetryStatus('transmitting', 'AIが考えています');
         const char = appState.characters[appState.selectedChar];
         const emoNames = { joy: '喜び', anger: '怒り', sadness: '悲しみ', fun: '楽しさ' };
 
@@ -1941,11 +1697,11 @@
       UI.btnStop.style.display = 'inline-flex';
       UI.btnTalkDone.style.display = 'inline-flex';
       UI.btnPause.style.display = 'inline-flex';
-      setTelemetryStatus('ready', 'MOCK MODE');
+      setTelemetryStatus('ready', 'お試しモード');
       popToast('テスト体験モードを開始しました！', 'success');
 
       const char = appState.characters[appState.selectedChar];
-      const intro = `やあ！${char.name} だよ！テスト体験モードが有効です。どんな機能でも自由に試してみてね！`;
+      const intro = `こんにちは、${char.name}です。お試しモードです。気軽に話しかけてみてください。`;
       appendChat('ai', intro, appState.emotion);
       speakWithBrowserSynthesis(intro);
     }
@@ -1964,7 +1720,7 @@
       };
       utter.onend = () => {
         appState.isAiSpeaking = false;
-        if (appState.isConnected) setTelemetryStatus('ready', 'READY');
+        if (appState.isConnected) setTelemetryStatus('ready', '話せます');
       };
       window.speechSynthesis.speak(utter);
     }
@@ -1982,7 +1738,7 @@
 
       const div = document.createElement('div');
       div.className = `chat-bubble ${role === 'user' ? 'user' : 'ai'}`;
-      const name = role === 'user' ? 'YOU (YOU)' : char.name;
+      const name = role === 'user' ? 'あなた' : char.name;
       const emoChip = role === 'user' ? 'INPUT' : `${(emo || appState.emotion).toUpperCase()} ${appState.intensity}%`;
 
       div.innerHTML = `
@@ -2062,13 +1818,14 @@
 
     UI.btnMute.addEventListener('click', () => {
       appState.isMuted = !appState.isMuted;
+      UI.btnMute.setAttribute('aria-pressed', appState.isMuted ? 'true' : 'false');
       if (appState.isMuted) {
-        UI.muteIcon.textContent = '🔇';
-        UI.muteTxt.textContent = 'ミュート中';
+        UI.muteIcon.textContent = 'ミュート';
+        UI.muteTxt.textContent = '中';
         popToast('マイクをミュートしました');
       } else {
-        UI.muteIcon.textContent = '🎤';
-        UI.muteTxt.textContent = 'マイクON';
+        UI.muteIcon.textContent = 'マイク';
+        UI.muteTxt.textContent = 'オン';
         popToast('マイクミュートを解除しました');
       }
     });
@@ -2076,12 +1833,12 @@
     UI.btnPause.addEventListener('click', () => {
       appState.isPaused = !appState.isPaused;
       if (appState.isPaused) {
-        UI.btnPause.innerHTML = '<span>▶️</span> 再開';
-        setTelemetryStatus('standby', 'PAUSED');
+        UI.btnPause.textContent = '再開する';
+        setTelemetryStatus('standby', '一時停止中');
         popToast('対話を一時停止しました');
       } else {
-        UI.btnPause.innerHTML = '<span>⏸️</span> 一時停止';
-        setTelemetryStatus('ready', 'READY');
+        UI.btnPause.textContent = '一時停止';
+        setTelemetryStatus('ready', '話せます');
         popToast('対話を再開しました');
       }
     });
@@ -2112,7 +1869,7 @@
         return;
       }
       const lines = [
-        `# EMOTION AI LIVE HUD - CONVERSATION LOG`,
+        `# AIボイス - 会話ログ`,
         `Exported: ${new Date().toLocaleString()}`,
         `Character: ${appState.characters[appState.selectedChar].name}`,
         `----------------------------------------\n`
@@ -2125,7 +1882,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `cyber_voice_chat_${Date.now()}.md`;
+      a.download = `voice_chat_${Date.now()}.md`;
       a.click();
       URL.revokeObjectURL(url);
       popToast('会話ログを保存しました (Markdown)', 'success');
@@ -2162,7 +1919,7 @@
     });
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('🚀 ネオ・サイバーAIホログラムHUD 起動 (v2.9 Speed & Accuracy)', 'info');
+      logMessage('AIボイス v3.0 を起動しました', 'info');
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
       await initEnvConfig();
