@@ -87,6 +87,25 @@
       background: var(--tm-blue);
       box-shadow: 0 0 8px rgba(56, 152, 255, 0.75);
     }
+    input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--tm-orange);
+      cursor: pointer;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 8px rgba(255, 98, 26, 0.75);
+    }
+    input[type="range"].blue-slider::-moz-range-thumb {
+      background: var(--tm-blue);
+      box-shadow: 0 0 8px rgba(56, 152, 255, 0.75);
+    }
+    /* Touch devices: 22px+ thumb and taller hit area */
+    @media (pointer: coarse) {
+      input[type="range"] { height: 24px; }
+      input[type="range"]::-webkit-slider-thumb { width: 22px; height: 22px; }
+      input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; }
+    }
     /* Inline numeric editor */
     .inline-num-input {
       background: #14151a;
@@ -146,6 +165,14 @@
     .tm-orange-btn:hover {
       background: linear-gradient(180deg, #ff854d 0%, #f25b16 100%);
     }
+
+    /* Face dial, step buttons (>=44px) and preset chips */
+    .step-btn { min-width: 44px; min-height: 44px; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+    #face-dial { touch-action: none; cursor: grab; border-radius: 50%; background: #14151a; border: 1px solid #353945; }
+    #face-dial:active { cursor: grabbing; }
+    #face-dial:focus-visible { outline: 2px solid #ff7a33; outline-offset: 2px; }
+    .face-chip { min-height: 44px; padding: 6px 10px; border-radius: 8px; background: #18191c; border: 1px solid #383b43; color: #e5e7eb; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .face-chip:hover { background: #32353c; }
 
     /* ---- Mobile (<=768px): drawer sidebar, scrollable metrics, 44px tap targets ---- */
     @media (max-width: 768px) {
@@ -340,9 +367,9 @@
               </div>
             </div>
             <div class="flex items-center gap-1.5">
-              <button data-step="impactOffset,-0.5" aria-label="オフセットをヒール側へ0.5mm移動" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <button data-step="impactOffset,-0.5" aria-label="オフセットをヒール側へ0.5mm移動" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
               <input id="inp-imp-x" type="range" min="-24" max="24" step="0.5" value="-3.0" />
-              <button data-step="impactOffset,0.5" aria-label="オフセットをトゥ側へ0.5mm移動" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+              <button data-step="impactOffset,0.5" aria-label="オフセットをトゥ側へ0.5mm移動" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
             </div>
           </div>
 
@@ -356,9 +383,9 @@
               </div>
             </div>
             <div class="flex items-center gap-1.5">
-              <button data-step="impactHeight,-0.5" aria-label="ハイトを下へ0.5mm移動" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <button data-step="impactHeight,-0.5" aria-label="ハイトを下へ0.5mm移動" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
               <input id="inp-imp-y" type="range" min="-18" max="18" step="0.5" value="-6.0" />
-              <button data-step="impactHeight,0.5" aria-label="ハイトを上へ0.5mm移動" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+              <button data-step="impactHeight,0.5" aria-label="ハイトを上へ0.5mm移動" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
             </div>
           </div>
 
@@ -395,9 +422,9 @@
               </div>
             </div>
             <div class="flex items-center gap-1.5">
-              <button data-step="chs,-0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <button data-step="chs,-0.2" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
               <input id="inp-chs" type="range" min="25" max="58" step="0.1" value="44.4" />
-              <button data-step="chs,0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+              <button data-step="chs,0.2" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
             </div>
           </div>
 
@@ -411,9 +438,9 @@
               </div>
             </div>
             <div class="flex items-center gap-1.5">
-              <button data-step="aoa,-0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <button data-step="aoa,-0.2" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
               <input id="inp-aoa" type="range" class="blue-slider" min="-10" max="10" step="0.1" value="0.4" />
-              <button data-step="aoa,0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+              <button data-step="aoa,0.2" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
             </div>
           </div>
 
@@ -427,9 +454,9 @@
               </div>
             </div>
             <div class="flex items-center gap-1.5">
-              <button data-step="dynamicLoft,-0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <button data-step="dynamicLoft,-0.2" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
               <input id="inp-dyn-loft" type="range" min="5" max="48" step="0.1" value="12.9" />
-              <button data-step="dynamicLoft,0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+              <button data-step="dynamicLoft,0.2" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
             </div>
           </div>
 
@@ -443,9 +470,9 @@
               </div>
             </div>
             <div class="flex items-center gap-1.5">
-              <button data-step="clubPath,-0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <button data-step="clubPath,-0.2" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
               <input id="inp-path" type="range" class="blue-slider" min="-15" max="15" step="0.1" value="-9.8" />
-              <button data-step="clubPath,0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+              <button data-step="clubPath,0.2" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
             </div>
           </div>
 
@@ -459,10 +486,41 @@
               </div>
             </div>
             <div class="flex items-center gap-1.5">
-              <button data-step="faceAngle,-0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <button data-step="faceAngle,-0.2" aria-label="フェイスを0.2度閉じる" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
               <input id="inp-face" type="range" min="-15" max="15" step="0.1" value="-8.4" />
-              <button data-step="faceAngle,0.2" class="px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+              <button data-step="faceAngle,0.2" aria-label="フェイスを0.2度開く" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
             </div>
+            <!-- Face dial: drag to rotate, double-click resets to 0 -->
+            <div class="flex items-center gap-2.5 pt-1.5">
+              <canvas id="face-dial" width="168" height="168" style="width:84px;height:84px;flex:none" tabindex="0" role="slider" aria-label="フェイスダイヤル" aria-valuemin="-15" aria-valuemax="15" aria-valuenow="-8.4" aria-valuetext="-8.4度 クローズ" title="ドラッグでフェースを回す・ダブルクリックで0°に戻す"></canvas>
+              <div class="min-w-0">
+                <div id="face-dial-value" class="font-num text-xl font-extrabold text-rose-300 leading-none">-8.4°</div>
+                <div class="text-[10px] text-gray-400 mt-1 leading-snug">ダイヤルをドラッグで回す<br>ダブルクリックで 0° に戻す<br>左＝クローズ／右＝オープン</div>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-1.5 pt-1.5">
+              <button type="button" class="face-chip" data-face-preset="square">スクエア 0°</button>
+              <button type="button" class="face-chip" data-face-preset="closed">クローズ -2°</button>
+              <button type="button" class="face-chip" data-face-preset="open">オープン +2°</button>
+              <button type="button" class="face-chip" data-face-preset="ftp0">FTP 0°</button>
+            </div>
+          </div>
+
+          <!-- Face-to-Path (direct) -->
+          <div id="box-face-to-path" class="rounded p-1 transition">
+            <div class="flex items-center justify-between text-xs mb-0.5">
+              <span class="text-gray-200">フェイストゥパス <span id="lbl-ftp-tag" class="text-[10px] text-rose-300 font-bold">(クローズ)</span></span>
+              <div class="flex items-center gap-1">
+                <input id="num-ftp" type="number" min="-15" max="15" step="0.1" value="1.4" class="inline-num-input text-rose-300" aria-label="フェイストゥパス数値入力" />
+                <span class="text-[10px] text-gray-300 w-6">deg</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button data-step="faceToPath,-0.5" aria-label="フェイストゥパスを0.5度閉じる" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
+              <input id="inp-ftp" type="range" min="-15" max="15" step="0.1" value="1.4" />
+              <button data-step="faceToPath,0.5" aria-label="フェイストゥパスを0.5度開く" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
+            </div>
+            <p class="text-[10px] text-gray-400 mt-0.5">フェース − パスを直接指定。パスは固定のままフェースだけ動きます。</p>
           </div>
 
           <!-- Wind Speed & Direction Sliders -->
@@ -840,13 +898,16 @@
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">弾道アニメーション再生</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">Space</kbd></div>
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">ショット計測＆履歴追加</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">R</kbd></div>
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">打点の微調整 (0.5mm)</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">↑ ↓ ← →</kbd></div>
+        <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">フェースダイヤルで回す</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">ドラッグ / Wクリックで0°</kbd></div>
+        <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">フェース微調整 ±0.5°（Shiftで±2°）</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">← →</kbd></div>
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">打点を芯(0,0)へリセット</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">Esc</kbd></div>
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">3Dカメラ視点切替</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">1 / 2 / 3 / 4</kbd></div>
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">左サイドバー開閉</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">H</kbd></div>
       </div>
       <p class="text-[11px] text-gray-300 leading-relaxed">
         ・右側の3Dドライビングレンジはマウスドラッグで回転、ホイールでズーム可能です。<br>
-        ・左サイドバーの数値ボックスはクリックして直接キーボードから数値を入力できます。
+        ・左サイドバーの数値ボックスはクリックして直接キーボードから数値を入力できます。<br>
+        ・フェイスダイヤルはドラッグで回せます。フェイストゥパスを直接指定すると、パスを固定したままフェースが連動します。+/-ボタンは長押しで連続変化します。
       </p>
     </div>
   </div>
@@ -2143,6 +2204,144 @@
       return `${start}${curve}`;
     }
 
+    // ============================================================================
+    // 10.4b FACE DIAL / FACE-TO-PATH / LIGHT REFRESH (operability)
+    // Pure helpers (clamp/snap/dial/ftp) are intentionally DOM-free so they can
+    // be unit-tested in Node. Physics (calculateShotPhysics) is untouched.
+    // ============================================================================
+    const FACE_MIN = -15, FACE_MAX = 15;
+    function clampFaceAngle(deg) {
+      if (isNaN(deg)) return 0;
+      return Math.max(FACE_MIN, Math.min(FACE_MAX, +deg.toFixed(1)));
+    }
+    function snapFaceAngle(deg) {
+      return clampFaceAngle(Math.round(deg / 0.5) * 0.5);
+    }
+    // Pointer angle on the dial (0 deg = top/target, + = clockwise/open) -> face angle, snapped to 0.5 deg.
+    function dialAngleToFace(deg) {
+      return snapFaceAngle(deg);
+    }
+    // Face-to-Path -> face angle with the club path held fixed.
+    function faceAngleFromFtp(ftp, path) {
+      return clampFaceAngle(path + ftp);
+    }
+    function ftpFromFace(face, path) {
+      return +(face - path).toFixed(1);
+    }
+
+    // During a drag, refresh numbers + D-plane via rAF and skip the heavy
+    // 3D trajectory rebuild; the rebuild runs once on drag end (commitRefresh).
+    let pendingLightRaf = 0;
+    function scheduleLightRefresh() {
+      if (pendingLightRaf) return;
+      pendingLightRaf = requestAnimationFrame(() => {
+        pendingLightRaf = 0;
+        recalculateAndRefreshUI(false);
+      });
+    }
+    function commitRefresh() {
+      if (pendingLightRaf) { cancelAnimationFrame(pendingLightRaf); pendingLightRaf = 0; }
+      recalculateAndRefreshUI(true);
+    }
+    function setFaceAngle(deg, opts = {}) {
+      state.faceAngle = clampFaceAngle(deg);
+      drawFaceDial();
+      if (opts.light) scheduleLightRefresh(); else commitRefresh();
+    }
+    function setFaceToPath(ftp, opts = {}) {
+      setFaceAngle(faceAngleFromFtp(ftp, state.clubPath), opts);
+    }
+
+    function drawFaceDial() {
+      const cv = document.getElementById('face-dial');
+      if (!cv) return;
+      const ctx = cv.getContext('2d');
+      if (!ctx) return;
+      const W = cv.width, H = cv.height, cx = W / 2, cy = H / 2, R = W / 2 - 10;
+      ctx.clearRect(0, 0, W, H);
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = '#14151a'; ctx.fill();
+      ctx.strokeStyle = '#353945'; ctx.lineWidth = 2; ctx.stroke();
+      for (let d = -15; d <= 15; d += 5) {
+        const a = d * Math.PI / 180;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.sin(a) * (R - 6), cy - Math.cos(a) * (R - 6));
+        ctx.lineTo(cx + Math.sin(a) * R, cy - Math.cos(a) * R);
+        ctx.strokeStyle = d === 0 ? '#22c55e' : '#6b7280';
+        ctx.lineWidth = d === 0 ? 3 : 2; ctx.stroke();
+      }
+      const fa = state.faceAngle * Math.PI / 180;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R - 16, -Math.PI / 2, -Math.PI / 2 + fa, fa < 0);
+      ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 5; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy - (R - 10));
+      ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.sin(fa) * (R - 10), cy - Math.cos(fa) * (R - 10));
+      ctx.strokeStyle = '#fb7185'; ctx.lineWidth = 4; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fillStyle = '#ffffff'; ctx.fill();
+      ctx.fillStyle = '#9ca3af'; ctx.font = 'bold 13px Inter, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('閉', cx - R + 12, cy + 5);
+      ctx.fillText('開', cx + R - 12, cy + 5);
+      cv.setAttribute('aria-valuenow', state.faceAngle.toFixed(1));
+      cv.setAttribute('aria-valuetext', `${state.faceAngle.toFixed(1)}度 ${state.faceAngle < -0.2 ? 'クローズ' : state.faceAngle > 0.2 ? 'オープン' : 'スクエア'}`);
+    }
+
+    function initFaceDial() {
+      const cv = document.getElementById('face-dial');
+      if (!cv) return;
+      let dragging = false;
+      const angleFromEvent = (e) => {
+        const r = cv.getBoundingClientRect();
+        const dx = e.clientX - (r.left + r.width / 2);
+        const dy = e.clientY - (r.top + r.height / 2);
+        return Math.atan2(dx, -dy) * 180 / Math.PI;
+      };
+      cv.addEventListener('pointerdown', (e) => {
+        if (e.button !== undefined && e.button !== 0) return;
+        e.preventDefault();
+        dragging = true;
+        try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+        cv.focus({ preventScroll: true });
+        setFaceAngle(dialAngleToFace(angleFromEvent(e)), { light: true });
+      });
+      cv.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        setFaceAngle(dialAngleToFace(angleFromEvent(e)), { light: true });
+      });
+      const endDrag = () => { if (!dragging) return; dragging = false; commitRefresh(); };
+      cv.addEventListener('pointerup', endDrag);
+      cv.addEventListener('pointercancel', endDrag);
+      cv.addEventListener('dblclick', () => setFaceAngle(0, {}));
+      // Arrow keys on the dial and on the face / face-to-path inputs adjust
+      // the face angle (Shift = +/-2 deg). stopPropagation keeps the global
+      // handler from moving the impact point instead.
+      ['face-dial', 'inp-face', 'num-face', 'inp-ftp', 'num-ftp'].forEach((id) => {
+        document.getElementById(id)?.addEventListener('keydown', (e) => {
+          if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+          e.preventDefault();
+          e.stopPropagation();
+          const step = e.shiftKey ? 2.0 : 0.5;
+          setFaceAngle(state.faceAngle + (e.key === 'ArrowRight' ? step : -step), {});
+        });
+      });
+    }
+
+    function initFacePresets() {
+      document.querySelectorAll('[data-face-preset]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const preset = btn.dataset.facePreset;
+          if (preset === 'square') setFaceAngle(0, {});
+          else if (preset === 'closed') setFaceAngle(-2, {});
+          else if (preset === 'open') setFaceAngle(2, {});
+          else if (preset === 'ftp0') setFaceToPath(0, {});
+        });
+      });
+    }
+
+    initFaceDial();
+    initFacePresets();
+
     function recalculateAndRefreshUI(rebuild3DTrail = false) {
       if (state.autoCoupleLoft) {
         const spec = CLUBS[state.club] || CLUBS['1W'];
@@ -2188,6 +2387,13 @@
       document.getElementById('num-face').value = state.faceAngle.toFixed(1);
       const faceTag = state.faceAngle < -0.2 ? '(クローズ)' : state.faceAngle > 0.2 ? '(オープン)' : '(スクエア)';
       document.getElementById('lbl-face-tag').textContent = faceTag;
+      const dialVal = document.getElementById('face-dial-value');
+      if (dialVal) dialVal.textContent = `${state.faceAngle >= 0 ? '+' : ''}${state.faceAngle.toFixed(1)}°`;
+      document.getElementById('inp-ftp').value = shot.faceToPath.toFixed(1);
+      document.getElementById('num-ftp').value = shot.faceToPath.toFixed(1);
+      const ftpTag = shot.faceToPath < -0.2 ? '(クローズ)' : shot.faceToPath > 0.2 ? '(オープン)' : '(スクエア)';
+      document.getElementById('lbl-ftp-tag').textContent = ftpTag;
+      drawFaceDial();
 
       // Update Bottom 11-Metric Strip
       document.getElementById('m-chs').textContent = shot.chs.toFixed(1);
@@ -2688,7 +2894,10 @@
       const nEl = document.getElementById(numId);
       sEl.addEventListener('input', () => {
         state[key] = parseFloat(sEl.value);
-        recalculateAndRefreshUI(true);
+        scheduleLightRefresh();
+      });
+      sEl.addEventListener('change', () => {
+        commitRefresh();
       });
       nEl.addEventListener('change', () => {
         const val = parseFloat(nEl.value);
@@ -2699,20 +2908,66 @@
       });
     });
 
+    // Face-to-Path direct input: path stays fixed, face follows.
+    const ftpSlider = document.getElementById('inp-ftp');
+    const ftpNum = document.getElementById('num-ftp');
+    ftpSlider.addEventListener('input', () => {
+      setFaceToPath(parseFloat(ftpSlider.value), { light: true });
+    });
+    ftpSlider.addEventListener('change', () => { commitRefresh(); });
+    ftpNum.addEventListener('change', () => {
+      const v = parseFloat(ftpNum.value);
+      if (!isNaN(v)) setFaceToPath(v, {});
+    });
+
     ['inp-wind-spd', 'inp-wind-dir'].forEach((id, idx) => {
       const key = idx === 0 ? 'windSpeedMs' : 'windDirDeg';
       document.getElementById(id).addEventListener('input', (e) => {
         state[key] = parseFloat(e.target.value);
         updateWeatherBadges();
-        recalculateAndRefreshUI(true);
+        scheduleLightRefresh();
+      });
+      document.getElementById(id).addEventListener('change', () => {
+        commitRefresh();
       });
     });
 
+    const STEP_RANGES = { impactOffset: [-24, 24], impactHeight: [-18, 18], chs: [25, 58], aoa: [-10, 10], dynamicLoft: [5, 48], clubPath: [-15, 15], faceAngle: [-15, 15] };
+    function applyStep(key, delta) {
+      if (key === 'faceToPath') {
+        setFaceToPath(+(state.faceAngle - state.clubPath + delta).toFixed(1), {});
+        return;
+      }
+      const range = STEP_RANGES[key];
+      if (!range) return;
+      state[key] = Math.max(range[0], Math.min(range[1], +(state[key] + delta).toFixed(1)));
+      recalculateAndRefreshUI(true);
+    }
     document.querySelectorAll('[data-step]').forEach(btn => {
+      const [key, deltaStr] = btn.dataset.step.split(',');
+      const delta = parseFloat(deltaStr);
+      // Long-press repeat: face steps 0.5 deg per repeat, others repeat their own delta.
+      const repeatDelta = key === 'faceAngle' ? Math.sign(delta) * 0.5 : delta;
+      let holdTimer = null, holdInterval = null, held = false;
+      const stopHold = () => {
+        if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+        if (holdInterval) { clearInterval(holdInterval); holdInterval = null; }
+      };
+      btn.addEventListener('pointerdown', (e) => {
+        if (e.button !== undefined && e.button !== 0) return;
+        held = false;
+        stopHold();
+        holdTimer = setTimeout(() => {
+          held = true;
+          holdInterval = setInterval(() => applyStep(key, repeatDelta), 80);
+        }, 400);
+      });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => btn.addEventListener(ev, stopHold));
+      btn.addEventListener('contextmenu', (e) => e.preventDefault());
       btn.addEventListener('click', () => {
-        const [key, deltaStr] = btn.dataset.step.split(',');
-        state[key] = +(state[key] + parseFloat(deltaStr)).toFixed(1);
-        recalculateAndRefreshUI(true);
+        stopHold();
+        if (held) { held = false; return; }
+        applyStep(key, delta);
       });
     });
 
