@@ -1,0 +1,28 @@
+{
+  "background_color": "#f7f5f2",
+  "description": "話すだけの、日常の会話パートナー。マイクで話しかけると、選んだパートナーがすぐに応えます。",
+  "display": "standalone",
+  "icons": [
+    {
+      "purpose": "any",
+      "src": "./assets/cyber_holo_face.jpg",
+      "type": "image/jpeg"
+    },
+    {
+      "purpose": "any",
+      "src": "./assets/cyber_luna_female.jpg",
+      "type": "image/jpeg"
+    },
+    {
+      "purpose": "any",
+      "src": "./assets/cyber_ren_male.jpg",
+      "type": "image/jpeg"
+    }
+  ],
+  "lang": "ja",
+  "name": "AIボイス — 日常ではなす相棒",
+  "scope": ".",
+  "short_name": "AIボイス",
+  "start_url": ".",
+  "theme_color": "#f7f5f2"
+}
