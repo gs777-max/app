@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Serif+JP:wght@600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ============ FIT LAB v2.3 — paper x deep green x brass editorial, mobile-first ============ */
+/* ============ FIT LAB v2.4 — paper x deep green x brass editorial, mobile-first ============ */
 :root{
   --paper:#F6F1E7; --card:#FFFDF8; --ink:#14201B; --ink2:#2E3B34; --muted:#4A5A51;
   --green:#0B352A; --green2:#072A20; --green-soft:#E4EFE7; --green-line:#7FA98C;
@@ -79,7 +79,7 @@ img,svg{max-width:100%}
 .progress-steps span.cur{color:var(--green)}
 
 /* ---- wizard steps ---- */
-.wiz{display:none;padding:30px 0 8px}
+.wiz{display:none;padding:30px 0 8px;scroll-margin-top:96px}
 .wiz.on{display:block}
 .step-kicker{font-size:13px;font-weight:700;letter-spacing:.2em;color:var(--brass-dark);text-transform:uppercase}
 .wiz h2{font-size:clamp(28px,6.4vw,36px);line-height:1.35;margin:10px 0 8px;font-weight:600}
@@ -130,6 +130,7 @@ img,svg{max-width:100%}
 .selectable-card .t{font-weight:700;display:block;font-size:16px}
 .selectable-card .s{color:var(--muted);font-size:13px;display:block;margin-top:2px}
 .svg-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:16px}
+.face-cap{font-size:13px;color:var(--ink2);text-align:center;margin:-6px 0 16px}
 .svg-box svg{width:100%;height:auto;display:block}
 .svg-box text{paint-order:stroke;stroke:#FFFDF8;stroke-width:3px;stroke-linejoin:round}
 .face-zone{transition:fill .15s;cursor:pointer}
@@ -721,8 +722,8 @@ footer b{color:var(--ink2)}
                 <path d="M 25 30 Q 140 12 245 32 Q 268 78 242 128 Q 140 144 35 125 Q 12 80 25 30 Z" fill="#1e293b" stroke="#64748b" stroke-width="2" />
                 <!-- Hosel -->
                 <rect x="246" y="8" width="14" height="36" rx="4" transform="rotate(-12 246 8)" fill="#475569" stroke="#94a3b8" stroke-width="1.5" />
-                <text x="35" y="20" fill="#94a3b8" font-size="12">◀ トゥ側 (Toe: 先)</text>
-                <text x="235" y="20" text-anchor="end" fill="#94a3b8" font-size="12">ヒール側 (Heel: 根元) ▶</text>
+                <text x="6" y="20" fill="#94a3b8" font-size="11">◀ トゥ側</text>
+                <text x="274" y="20" text-anchor="end" fill="#94a3b8" font-size="11">ヒール側 ▶</text>
 
                 <!-- 5 Clickable Zones -->
                 <!-- High-Toe -->
@@ -745,6 +746,7 @@ footer b{color:var(--ink2)}
                 <ellipse data-impact="center" class="face-zone" cx="140" cy="77" rx="34" ry="22" fill="rgba(30,41,59,0.92)" stroke="#94a3b8" stroke-width="1.5" />
                 <text x="140" y="81" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="bold" pointer-events="none">センター(芯)</text>
               </svg></div>
+<p class="face-cap">トゥ側 (Toe: 先端) ・ ヒール側 (Heel: 根元)</p>
 <div id="impact-buttons">
               <button type="button" data-impact="low_heel" class="selectable-card active w-full text-left px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 font-semibold text-white">
                 ● ロー・ヒール (下・根元)
@@ -883,7 +885,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Fitting v2.3</b><br>
+<b>FIT LAB — Driver Fitting v2.4</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
@@ -2061,7 +2063,7 @@ footer b{color:var(--ink2)}
 </script>
 
 <script>
-/* ================= FIT LAB v2.3 UI ================= */
+/* ================= FIT LAB v2.4 UI ================= */
 (function(){
 'use strict';
 var STEP_NAMES = {1:'あなたについて', 2:'球の高さと飛距離', 3:'球筋と打点', 4:'診断結果'};
@@ -2074,7 +2076,9 @@ b.className = k < n? 'on': (k === n? 'now': '');
 });
 document.getElementById('progress-text').textContent = 'ステップ ' + n + ' / 4 — ' + STEP_NAMES[n];
 document.querySelectorAll('.progress-steps span').forEach(function(sp){ sp.classList.toggle('cur', +sp.dataset.ps === n);});
-window.scrollTo({top: document.getElementById('progress').offsetTop - 8, behavior:'smooth'});
+var sec = document.querySelector('.wiz[data-step="' + n + '"]');
+if (sec && sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth', block:'start'});
+else window.scrollTo({top: document.getElementById('progress').offsetTop - 8, behavior:'smooth'});
 if (n === 4) { try { runPhysicsEngine();} catch(e){ console.error(e);}}
 }
 document.querySelectorAll('[data-next]').forEach(function(b){
