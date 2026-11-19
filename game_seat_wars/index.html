@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   SEAT WARS ― 満員電車椅子取合戦 (単一ファイル版)
-  Version: 1.4.2
+  Version: 1.4.3
   Created: 20261107
   Three.js (CDN) によるブラウザ3D FPS。音楽は Internet Archive API から情景に合うクラシックをランダム再生。
   v1.1.0 (20261107): 路線・乗車駅セレクト、十字キー/Enter操作、スマホのタッチ操作（ジョイスティック/視点ドラッグ/ボタン）を復活。
@@ -14,6 +14,7 @@
   v1.4.0 (20261108): 没入感と操作性の品質向上ラウンド1 — 歩行カメラボブ (速度連動)、車両の揺れとレール継ぎ目の衝撃 (フェーズ3/4走行中)、加速時のFOVキック、窓の外を流れるトンネル/駅の光景 (実開口+スクロール世界)、走行音の合成 (レール騒音+48Hz低音、揺れ連動) と発車チャイム、乗客の呼吸と接触時のよろめき、開始画面にマウス感度設定 (localStorage保存)。ゲームバランス・収録データ・BGM選曲ロジックは不変。
   v1.4.1 (20261114): 日次品質改善ラウンド1 — デッドキー指示の修正（譲席・パリィのプロンプトを十字キー/決定に統一、降車はドアへ向かって歩く操作に）、感度スライダーのキーボード矢印キー操作を修正、スキルボタンのフォーカス外し、開始の二重起動ガード、クールダウン表示に「秒」、毎フレームDOM書き込みのキャッシュ、駅名標の実名表示と車内・ホームの天井照明、屋根の影を外して車内・ホームを明るく。ゲームバランス・収録データ・BGM選曲ロジックは不変。
   v1.4.2 (20261117): 日次品質改善ラウンド2 — フェーズ①ホームの見た目改善（駅名標の中央を隠していた柱を外して駅名が読めるように、ホーム床にタイル質感のキャンバステクスチャ、線路側にバラスト＋レール＋明るめのトンネル壁で真っ黒な虚空を解消）。操作・ゲームバランス・収録データ・BGM選曲ロジックは不変。
+  v1.4.3 (20261119): UI大刷新（ゼロベース）— ガラスモーフィズムを全廃し、鉄道運行ボード風のフラット＆ソリッドなデザインシステムに。信号イエローを主アクセントに、スタート画面をセクション型レイアウトに再設計、HUD（駅名ボード・目的ストリップ・警告プロンプト・スキルバー・ボタン群）を刷新。操作ルール・ゲームロジック・3Dシーンは不変。
 -->
 <html lang="ja">
 <head>
@@ -21,8 +22,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SEAT WARS ― 満員電車椅子取合戦</title>
 <style>
-  :root{--ink:rgba(12,15,20,.68);--ink2:rgba(20,25,34,.72);--line:rgba(255,255,255,.13);--paper:#f4f1ea;--sub:rgba(244,241,234,.62);--accent:#ff4b2c;--brass:#e6c887;}
-  html,body{margin:0;padding:0;overflow:hidden;background:#07090d;font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic UI","Yu Gothic",sans-serif;color:var(--paper);-webkit-font-smoothing:antialiased;}
+  /* ============ SEAT WARS v1.4.3 — RUSH HOUR OPS ============
+     ゼロベース刷新。旧ガラスモーフィズムを全廃し、東京の鉄道運行ボードを
+     モチーフにしたフラット＆ソリッドなUIに。半透明・ぼかし・グラデーション
+     は使わない。面は不透明、角は小さく、影はハードなオフセット。
+     アクセントは信号イエロー #FFC800、危険はバーミリオン #FF3B30。 */
+  :root{
+    --bg:#0a0e14; --panel:#12161e; --panel2:#181e28;
+    --line:#2b3340; --line2:#3d4757;
+    --paper:#f2efe7; --muted:#a7aebb; --dim:#6e7787;
+    --yel:#ffc800; --yel-dk:#7a5c00; --red:#ff3b30; --focus:#ffc800;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;overflow:hidden;background:var(--bg);font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic UI","Yu Gothic",system-ui,sans-serif;color:var(--paper);-webkit-font-smoothing:antialiased;}
   #app{position:fixed;inset:0;}
   canvas{display:block;}
   /* ---- diegetic overlays (no gauges) ---- */
@@ -32,53 +44,119 @@
   #eyelidT{top:0;} #eyelidB{bottom:0;}
   #halo{position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;background:radial-gradient(circle at 50% 42%,rgba(255,244,200,.85),rgba(255,244,200,0) 55%);transition:opacity 1.2s;}
   #hud{position:fixed;inset:0;pointer-events:none;z-index:10;}
-  #station{position:absolute;top:8px;left:50%;transform:translateX(-50%);text-align:center;max-width:46vw;background:var(--ink);border:1px solid var(--line);border-radius:16px;padding:7px 18px 8px;backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);box-shadow:0 10px 30px rgba(0,0,0,.35);}
-  #station .line{display:inline-block;padding:1px 9px;border-radius:999px;font-weight:700;font-size:11px;letter-spacing:.08em;}
-  #station .name{font-size:21px;font-weight:700;letter-spacing:.18em;margin-top:2px;}
-  #station .next{font-size:11.5px;color:var(--sub);margin-top:1px;}
-  #objective{position:absolute;top:98px;left:50%;transform:translateX(-50%);font-size:14.5px;font-weight:500;letter-spacing:.04em;text-align:center;text-shadow:0 1px 10px rgba(0,0,0,.85),0 0 3px rgba(0,0,0,.9);white-space:pre-line;max-width:92vw;}
-  #announce{position:absolute;bottom:64px;left:50%;transform:translateX(-50%);font-size:13px;color:#f7cf9b;text-align:center;text-shadow:0 1px 8px rgba(0,0,0,.85);white-space:pre-line;max-width:88vw;}
-  #prompt{position:absolute;top:36%;left:50%;transform:translate(-50%,0);font-size:19px;font-weight:700;letter-spacing:.05em;color:var(--paper);background:var(--ink);border:1px solid var(--line);padding:8px 20px;border-radius:999px;display:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(0,0,0,.4);text-shadow:0 1px 3px rgba(0,0,0,.6);}
-  #skillbar{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:11.5px;letter-spacing:.03em;color:var(--paper);background:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 16px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);text-align:center;white-space:normal;line-height:1.55;width:auto;max-width:96vw;}
-  #omikuji{position:absolute;top:8px;left:8px;font-size:11px;color:var(--paper);background:var(--ink);border:1px solid var(--line);padding:5px 9px;border-radius:12px;line-height:1.45;max-width:30vw;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
-  #weather{position:absolute;top:8px;right:8px;font-size:11px;color:var(--paper);background:var(--ink);border:1px solid var(--line);padding:5px 9px;border-radius:12px;text-align:right;line-height:1.45;max-width:30vw;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
-  #crosshair{position:absolute;top:50%;left:50%;width:7px;height:7px;margin:-3.5px;border-radius:50%;background:transparent;border:1.5px solid rgba(244,241,234,.9);box-shadow:0 0 6px rgba(0,0,0,.55);}
-  @media (max-width:640px){
-    #station{top:6px;max-width:44vw;padding:5px 10px 6px;}
-    #station .name{font-size:16px;}
-    #station .next{font-size:10px;}
-    #objective{top:130px;font-size:12.5px;}
-    #prompt{top:33%;font-size:16px;padding:6px 14px;}
-    #announce{font-size:12px;bottom:262px;}
-    #omikuji{font-size:9.5px;max-width:22vw;padding:4px 6px;}
-    #weather{font-size:9.5px;max-width:22vw;padding:4px 6px;}
-    #skillbar{font-size:10.5px;bottom:6px;}
-    .screen h1{font-size:34px;}
-  }
-  /* ---- screens ---- */
-  .screen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(60% 42% at 50% 16%,rgba(255,75,44,.10),rgba(255,75,44,0) 70%),radial-gradient(120% 90% at 50% 0%,#18202e 0%,#0a0d13 55%,#06080c 100%);text-align:center;padding:20px;box-sizing:border-box;overflow:auto;}
-  .screen h1{font-family:"Avenir Next","Helvetica Neue",Arial,sans-serif;font-size:52px;margin:6px 0 2px;font-weight:700;letter-spacing:.34em;text-indent:.34em;color:var(--paper);}
-  .screen h1::after{content:"";display:block;width:72px;height:2px;background:var(--accent);margin:16px auto 4px;border-radius:2px;}
-  .screen h2{font-size:24px;margin:4px 0;font-weight:700;letter-spacing:.14em;color:var(--paper);}
-  .screen p{max-width:760px;line-height:1.8;font-size:14.5px;color:var(--sub);}
-  #start>div.small{color:var(--brass);letter-spacing:.42em;text-indent:.42em;font-size:11px;font-weight:600;}
-  .screen label{letter-spacing:.1em;color:rgba(244,241,234,.72);}
-  .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:8px 0;}
-  button{pointer-events:auto;cursor:pointer;background:var(--ink2);color:var(--paper);border:1px solid var(--line);border-radius:999px;padding:10px 20px;font-size:14.5px;letter-spacing:.05em;font-family:inherit;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:background .18s,border-color .18s,transform .1s;}
-  button:hover{background:rgba(42,50,66,.88);border-color:rgba(255,255,255,.3);}
-  button:active{transform:scale(.97);}
-  button.sel{background:rgba(255,75,44,.16);border-color:var(--accent);color:#ffb4a3;font-weight:700;}
-  #btnFortune{border-color:rgba(230,200,135,.55);color:var(--brass);}
-  #touchBtns button{padding:10px 6px;font-size:14.5px;min-height:48px;border-radius:14px;}
-  #touchBtns #tbWake,#touchBtns #tbYield{min-height:42px;font-size:13px;opacity:.94;}
+  /* ---- station board: 運行ボード風の現在駅 ---- */
+  #station{position:absolute;top:10px;left:10px;text-align:left;background:var(--bg);border:1px solid var(--line2);border-left:4px solid var(--yel);padding:7px 12px 8px;min-width:176px;box-shadow:4px 4px 0 rgba(0,0,0,.45);}
+  #station::before{content:"STATION — 現在駅";display:block;font-size:9px;font-weight:800;letter-spacing:.28em;color:var(--dim);margin-bottom:3px;}
+  #station .line{display:inline-block;padding:2px 8px;border-radius:3px;font-weight:800;font-size:11px;letter-spacing:.06em;color:#fff;}
+  #station .name{font-size:20px;font-weight:800;letter-spacing:.06em;line-height:1.2;margin-top:4px;}
+  #station .next{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.03em;}
+  /* ---- mission strip: 目的 ---- */
+  #objective{position:absolute;top:124px;left:50%;transform:translateX(-50%);width:min(680px,calc(100vw - 20px));background:var(--panel);border:1px solid var(--line2);border-left:4px solid var(--yel);padding:9px 14px;font-size:13.5px;font-weight:600;letter-spacing:.02em;line-height:1.55;text-align:left;box-shadow:4px 4px 0 rgba(0,0,0,.45);}
+  #objective:empty{display:none;}
+  /* ---- announce: 実況 ---- */
+  #announce{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line2);padding:7px 14px;font-size:13px;font-weight:600;color:var(--paper);text-align:center;white-space:pre-line;line-height:1.5;max-width:88vw;box-shadow:4px 4px 0 rgba(0,0,0,.45);}
+  #announce:empty{display:none;}
+  /* ---- prompt: 中央アラート（信号イエローの警告板） ---- */
+  #prompt{position:absolute;top:36%;left:50%;transform:translate(-50%,0);font-size:19px;font-weight:800;letter-spacing:.03em;color:#111;background:var(--yel);border:2px solid #000;padding:10px 22px;display:none;box-shadow:6px 6px 0 rgba(0,0,0,.55);text-align:center;line-height:1.4;max-width:94vw;}
+  /* ---- skill strip: 左下の通勤武術バー ---- */
+  #skillbar{position:absolute;bottom:10px;left:12px;width:min(760px,calc(100vw - 360px));background:var(--bg);border:1px solid var(--line2);border-top:3px solid var(--yel);padding:8px 14px;font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--paper);text-align:left;line-height:1.6;box-shadow:4px 4px 0 rgba(0,0,0,.45);}
+  #skillbar:empty{display:none;}
+  /* ---- omikuji / weather: 右上の小チップ ---- */
+  #omikuji{position:absolute;top:66px;right:10px;font-size:11.5px;font-weight:600;color:var(--paper);background:var(--panel);border:1px solid var(--line2);padding:7px 10px;line-height:1.5;max-width:300px;text-align:left;box-shadow:4px 4px 0 rgba(0,0,0,.45);}
+  #weather{position:absolute;top:10px;right:10px;font-size:11.5px;font-weight:600;color:var(--paper);background:var(--panel);border:1px solid var(--line2);padding:7px 10px;text-align:right;line-height:1.5;max-width:300px;box-shadow:4px 4px 0 rgba(0,0,0,.45);}
+  #crosshair{position:absolute;top:50%;left:50%;width:10px;height:10px;margin:-5px;border-radius:50%;border:2px solid rgba(242,239,231,.9);box-shadow:0 0 0 1px rgba(0,0,0,.6);}
+  #crosshair::after{content:"";position:absolute;left:50%;top:50%;width:2px;height:2px;margin:-1px;background:var(--yel);border-radius:50%;}
+  /* ---- touch cluster: キーキャップ風のソリッドボタン ---- */
+  #touchBtns{position:fixed;right:10px;bottom:72px;z-index:30;display:none;flex-direction:column;gap:8px;width:min(302px,74vw);}
+  #touchBtns button{pointer-events:auto;cursor:pointer;background:var(--panel2);color:var(--paper);border:1px solid var(--line2);border-bottom:3px solid #000;border-radius:8px;padding:10px 6px;font-size:14.5px;font-weight:700;min-height:48px;font-family:inherit;}
+  #touchBtns button:active{transform:translateY(2px);border-bottom-width:1px;}
+  #touchBtns button:focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  #touchBtns #tbWake,#touchBtns #tbYield{min-height:48px;font-size:13px;background:transparent;}
   #touchBtns #tbL,#touchBtns #tbR{min-height:56px;font-size:13.5px;padding:10px 2px;}
   #touchBtns #tbQ,#touchBtns #tbE,#touchBtns #tbF,#touchBtns #tbR2{font-size:13.5px;padding:10px 2px;white-space:nowrap;}
-  #touchBtns #tbAction{min-height:56px;}
-  .small{font-size:12px;color:var(--sub);}
-  #gameover,#win{display:none;}
-  .fortune{font-size:30px;color:var(--brass);font-weight:700;letter-spacing:.2em;}
-  kbd{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-bottom-width:2px;border-radius:5px;padding:0 6px;font-size:11.5px;color:var(--paper);}
+  #touchBtns #tbAction{min-height:56px;background:var(--yel);color:#111;border:1px solid #000;border-bottom:3px solid var(--yel-dk);font-weight:900;font-size:17px;padding:12px 8px;box-shadow:4px 4px 0 rgba(0,0,0,.5);}
+  @media (max-width:640px){
+    #station{top:8px;left:8px;padding:6px 10px 7px;min-width:0;max-width:44vw;}
+    #station::before{font-size:8px;}
+    #station .name{font-size:17px;}
+    #station .next{font-size:10px;}
+    #objective{top:112px;font-size:12.5px;padding:8px 12px;}
+    #prompt{top:33%;font-size:16px;padding:8px 16px;}
+    #announce{font-size:12px;bottom:262px;}
+    #omikuji{font-size:10px;max-width:46vw;padding:6px 8px;top:54px;}
+    #weather{font-size:9.5px;max-width:46vw;padding:6px 8px;}
+    #skillbar{font-size:11px;bottom:6px;left:8px;right:8px;width:auto;padding:7px 10px;}
+    #touchBtns{bottom:64px;}
+  }
+  /* ---- screens ---- */
+  .screen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;background-color:var(--bg);background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);background-size:48px 48px;color:var(--paper);overflow-y:auto;}
+  .hazard{height:6px;flex:none;background:repeating-linear-gradient(-45deg,var(--yel) 0 14px,#0a0e14 14px 28px);}
+  .hazard.bottom{margin-top:auto;}
+  #start{align-items:stretch;justify-content:flex-start;}
+  .start-wrap{width:100%;max-width:880px;margin:0 auto;padding:0 20px 56px;text-align:left;}
+  .mast{padding-top:34px;}
+  .eyebrow{font-size:11px;font-weight:800;letter-spacing:.34em;color:var(--yel);}
+  .eyebrow-ja{color:var(--dim);letter-spacing:.2em;margin-left:10px;}
+  .screen h1{font-size:64px;line-height:.95;font-weight:900;letter-spacing:.02em;margin:14px 0 0;color:var(--paper);}
+  .mast-sub{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap;}
+  .jp-title{font-size:16px;font-weight:800;letter-spacing:.24em;}
+  .ver-chip{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--yel);border:1px solid var(--yel);padding:3px 8px;border-radius:3px;}
+  .lede{font-size:15px;line-height:1.9;color:#d8d3c6;max-width:660px;margin:16px 0 0;}
+  .sec-label{font-size:11px;font-weight:800;letter-spacing:.3em;color:var(--muted);margin:28px 0 10px;display:flex;align-items:baseline;gap:10px;}
+  .sec-label .sec-no{color:var(--yel);letter-spacing:.14em;flex:none;}
+  .sec-label::after{content:"";flex:1;height:1px;background:var(--line2);}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .step{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--yel);padding:14px 14px 12px;}
+  .step-no{font-size:22px;font-weight:900;color:var(--yel);letter-spacing:.02em;line-height:1;}
+  .step-t{font-size:14px;font-weight:800;margin-top:6px;}
+  .step-d{font-size:12px;color:var(--muted);line-height:1.6;margin-top:4px;}
+  .shrine{background:var(--panel);border:1px solid var(--line);padding:16px;text-align:center;}
+  .shrine-head{font-size:11px;font-weight:800;letter-spacing:.3em;color:var(--muted);}
+  .fortune{font-size:44px;color:var(--yel);font-weight:900;letter-spacing:.1em;margin:6px 0 12px;min-height:54px;line-height:1.2;}
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:800;letter-spacing:.2em;color:var(--muted);}
+  .field select{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:15px;font-weight:600;padding:12px 36px 12px 12px;border-radius:8px;background-color:var(--panel2);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffc800' stroke-width='2' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;color:var(--paper);border:1px solid var(--line2);min-width:0;width:100%;letter-spacing:0;}
+  .field select:focus{outline:2px solid var(--focus);outline-offset:1px;border-color:var(--yel);}
+  #buildBtns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  #buildBtns button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 8px;font-size:14.5px;}
+  #buildBtns button small{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0;}
+  .sens-row{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:700;color:var(--muted);background:var(--panel);border:1px solid var(--line);padding:12px 14px;}
+  .sens-row input[type=range]{flex:1;accent-color:var(--yel);height:28px;min-width:0;}
+  .sens-val{color:var(--paper);font-weight:800;min-width:3em;text-align:right;font-variant-numeric:tabular-nums;}
+  .screen button{pointer-events:auto;cursor:pointer;background:var(--panel2);color:var(--paper);border:1px solid var(--line2);border-bottom:3px solid #000;border-radius:8px;padding:12px 20px;font-size:15px;font-weight:700;letter-spacing:.03em;font-family:inherit;transition:background .15s,border-color .15s,transform .08s;}
+  .screen button:hover{background:#202835;border-color:var(--yel);}
+  .screen button:active{transform:translateY(2px);border-bottom-width:1px;}
+  .screen button:focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  .screen button:disabled{opacity:.45;cursor:default;}
+  #buildBtns button.sel{background:var(--yel);border-color:var(--yel);color:#111;}
+  #buildBtns button.sel small{color:rgba(0,0,0,.65);}
+  #btnFortune{border-color:var(--yel);color:var(--yel);}
+  #btnStart{display:block;width:100%;max-width:560px;margin:28px auto 0;background:var(--yel);color:#111;border:1px solid #000;border-bottom:4px solid var(--yel-dk);border-radius:10px;padding:18px 24px 16px;font-size:20px;font-weight:900;letter-spacing:.1em;box-shadow:6px 6px 0 rgba(0,0,0,.5);}
+  #btnStart:hover{background:#ffd21f;}
+  #btnStart .btn-sub{display:block;font-size:11px;font-weight:700;letter-spacing:.22em;color:rgba(0,0,0,.6);margin-top:5px;}
+  .ctl-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:10px;}
+  .ctl-card{background:var(--panel);border:1px solid var(--line);padding:14px 16px;}
+  .ctl-h{font-size:11px;font-weight:900;letter-spacing:.3em;color:var(--yel);margin-bottom:8px;}
+  .ctl-card p{font-size:13px;line-height:1.75;color:var(--muted);margin:0 0 8px;}
+  .ctl-card p:last-child{margin-bottom:0;}
+  .fineprint{font-size:11.5px;color:var(--dim);line-height:1.7;margin:26px 0 0;}
+  #gameover,#win{display:none;align-items:center;justify-content:center;text-align:center;padding:24px;}
+  #gameover h2,#win h2{font-size:32px;font-weight:900;letter-spacing:.04em;margin:0 0 10px;color:var(--paper);}
+  #gameover h2{color:var(--red);}
+  #win h2{color:var(--yel);}
+  #gameover p,#win p{max-width:640px;line-height:1.8;font-size:14.5px;color:var(--muted);white-space:pre-line;}
+  kbd{background:#0a0e14;border:1px solid var(--line2);border-bottom:2px solid #000;border-radius:4px;padding:1px 7px;font-size:12px;font-weight:700;color:var(--yel);font-family:inherit;}
   select{font-family:inherit;}
+  @media (max-width:640px){
+    .screen h1{font-size:42px;}
+    .mast{padding-top:24px;}
+    .steps{grid-template-columns:1fr;}
+    .field-grid{grid-template-columns:1fr;}
+    #buildBtns{grid-template-columns:1fr;}
+    .ctl-grid{grid-template-columns:1fr;}
+    #btnStart{font-size:18px;}
+    .fortune{font-size:36px;}
+  }
 </style>
 </head>
 <body>
@@ -91,44 +169,76 @@
   <div id="crosshair"></div>
   <div id="objective" aria-live="polite"></div><div id="announce" aria-live="polite"></div><div id="prompt" aria-live="polite"></div>
   <div id="skillbar"></div>
-  <div id="touchBtns" style="display:none;position:fixed;right:10px;bottom:54px;z-index:30;flex-direction:column;gap:8px;width:min(302px,74vw)">
+  <div id="touchBtns" style="display:none">
     <div style="display:flex;gap:8px"><button id="tbWake" style="flex:1">起きる</button><button id="tbYield" style="flex:1">席を譲る</button></div>
     <div style="display:flex;gap:8px"><button id="tbQ" style="flex:1">すり抜け</button><button id="tbE" style="flex:1">加速</button><button id="tbF" style="flex:1">結界</button><button id="tbR2" style="flex:1">心眼</button></div>
-    <div style="display:flex;gap:8px"><button id="tbL" style="width:74px">◀ 避ける</button><button id="tbAction" style="flex:1;background:linear-gradient(180deg,#ff5a36,#e83a1e);border:1px solid rgba(255,255,255,.25);color:#fff;font-weight:700;font-size:17px;padding:12px 8px;border-radius:14px;box-shadow:0 8px 20px rgba(232,58,30,.35)">決定</button><button id="tbR" style="width:74px">避ける ▶</button></div>
+    <div style="display:flex;gap:8px"><button id="tbL" style="width:74px">◀ 避ける</button><button id="tbAction" style="flex:1">決定</button><button id="tbR" style="width:74px">避ける ▶</button></div>
   </div>
-  <div id="joyBase" style="display:none;position:fixed;width:112px;height:112px;border:1.5px solid rgba(244,241,234,.45);border-radius:50%;z-index:24;pointer-events:none;transform:translate(-50%,-50%);background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 7px rgba(255,255,255,.03)"></div>
-  <div id="joyKnob" style="display:none;position:fixed;width:50px;height:50px;border-radius:50%;background:rgba(244,241,234,.92);z-index:25;pointer-events:none;transform:translate(-50%,-50%);box-shadow:0 2px 12px rgba(0,0,0,.4)"></div>
+  <div id="joyBase" style="display:none;position:fixed;width:112px;height:112px;border:2px solid rgba(255,200,0,.55);border-radius:50%;z-index:24;pointer-events:none;transform:translate(-50%,-50%);background:rgba(255,200,0,.05);box-shadow:0 0 0 6px rgba(255,200,0,.06)"></div>
+  <div id="joyKnob" style="display:none;position:fixed;width:50px;height:50px;border-radius:50%;background:#f2efe7;border:2px solid rgba(0,0,0,.35);z-index:25;pointer-events:none;transform:translate(-50%,-50%);box-shadow:0 2px 12px rgba(0,0,0,.5)"></div>
 </div>
 <div class="screen" id="start">
-  <div class="small">満員電車椅子取合戦</div>
-  <h1>SEAT WARS</h1>
-  <div class="small" id="verLabel" style="letter-spacing:.34em;text-indent:.34em">ver 1.4.2</div>
-  <p>朝の首都圏。座席は、戦場だ。一人称視点でホームの陣取りから乗車ダッシュ、下車予測の心理戦、
-  そして着席防衛戦を戦い抜き、目的地まで生き延びろ。画面にゲージはない。
-  視界の揺れ・心音・赤い視界が、あなたの状態を物語る。</p>
-  <div id="shrineBox"><p>― 駅前神社 ― まずはおみくじを引く ―</p><div class="fortune" id="fortuneTxt">？</div>
-  <button id="btnFortune">おみくじを引く</button></div>
-  <div class="row" style="gap:16px;justify-content:center;flex-wrap:wrap">
-    <label style="display:flex;flex-direction:column;gap:4px;font-size:13px;text-align:left">路線を選ぶ
-      <select id="sel-line" style="font-size:15px;padding:10px 12px;border-radius:10px;background:rgba(13,16,22,.88);color:#f4f1ea;border:1px solid rgba(255,255,255,.18);min-width:210px"></select></label>
-    <label style="display:flex;flex-direction:column;gap:4px;font-size:13px;text-align:left">乗車駅を選ぶ
-      <select id="sel-station" style="font-size:15px;padding:10px 12px;border-radius:10px;background:rgba(13,16,22,.88);color:#f4f1ea;border:1px solid rgba(255,255,255,.18);min-width:150px"></select></label>
+  <div class="hazard"></div>
+  <div class="start-wrap">
+    <header class="mast">
+      <div class="eyebrow">TOKYO COMMUTER BATTLE<span class="eyebrow-ja">通勤サバイバル</span></div>
+      <h1>SEAT WARS</h1>
+      <div class="mast-sub"><span class="jp-title">満員電車椅子取合戦</span><span class="ver-chip" id="verLabel">ver 1.4.3</span></div>
+      <p class="lede">朝の首都圏。座席は、戦場だ。一人称視点でホームの陣取りから乗車ダッシュ、下車予測の心理戦、そして着席防衛戦を戦い抜き、目的地まで生き延びろ。画面にゲージはない。視界の揺れ・心音・赤い視界が、あなたの状態を物語る。</p>
+    </header>
+    <section class="howto">
+      <div class="sec-label"><span class="sec-no">HOW TO PLAY</span>遊び方 — 3つの戦い</div>
+      <div class="steps">
+        <div class="step"><div class="step-no">01</div><div class="step-t">ホームの陣取り</div><div class="step-d">黄色い輪（乗車口）に立ち、ドア正面を確保せよ</div></div>
+        <div class="step"><div class="step-no">02</div><div class="step-t">乗車ダッシュ</div><div class="step-d">走っていないフリの競歩で空席へ。近づくと自動で座る</div></div>
+        <div class="step"><div class="step-no">03</div><div class="step-t">着席防衛戦</div><div class="step-d">寄りかかりをパリィ、眠気は連打で覚醒。目的地まで守り抜け</div></div>
+      </div>
+    </section>
+    <section class="setup">
+      <div class="sec-label"><span class="sec-no">01</span>おみくじ — 今日の運勢</div>
+      <div id="shrineBox" class="shrine"><div class="shrine-head">⛩ 駅前神社</div><div class="fortune" id="fortuneTxt">？</div>
+      <button id="btnFortune">おみくじを引く</button></div>
+    </section>
+    <section class="setup">
+      <div class="sec-label"><span class="sec-no">02</span>路線と乗車駅</div>
+      <div class="field-grid">
+        <label class="field">路線を選ぶ
+          <select id="sel-line"></select></label>
+        <label class="field">乗車駅を選ぶ
+          <select id="sel-station"></select></label>
+      </div>
+    </section>
+    <section class="setup">
+      <div class="sec-label"><span class="sec-no">03</span>通勤武術の型 — 育成パラメータ</div>
+      <div id="buildBtns">
+        <button data-build="leg">脚力型<small>移動速度・ダッシュ強化</small></button>
+        <button data-build="core">体幹型<small>接触・圧迫に強い</small></button>
+        <button data-build="eye">慧眼型<small>下車予測・見破り強化</small></button>
+      </div>
+    </section>
+    <section class="setup">
+      <div class="sec-label"><span class="sec-no">04</span>マウス感度</div>
+      <label class="sens-row">マウス感度
+        <input type="range" id="sensRange" min="0.5" max="1.5" step="0.05" value="1">
+        <span id="sensVal" class="sens-val">1.00</span></label>
+    </section>
+    <button id="btnStart">出勤する<span class="btn-sub">クリックまたは ENTER で開始</span></button>
+    <section class="controls">
+      <div class="sec-label"><span class="sec-no">CONTROLS</span>操作方法</div>
+      <div class="ctl-grid">
+        <div class="ctl-card"><div class="ctl-h">WINDOWS</div>
+          <p>移動 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> ／ 視点 マウス ／ スキル選択 マウスホイール ／ 決定・スキル発動 <kbd>Enter</kbd> または左クリック</p>
+          <p>スキル: 流体すり抜け・紙一重 ／ 残像フェイント・二段加速 ／ 鞄結界・ボックスアウト ／ 心眼・足首ロックオン（ホイールで選んで Enter）</p>
+          <p>着席中: 寄りかかりは <kbd>←</kbd>/<kbd>→</kbd> で肩すかしパリィ、眠気は <kbd>Enter</kbd> 連打で覚醒。お年寄りには決定キーで席を譲ります。着席は座席に近づくと自動です。降車は、ドアが開いている時にドアへ向かって歩く（<kbd>↑</kbd>）とできます。</p>
+        </div>
+        <div class="ctl-card"><div class="ctl-h">SMARTPHONE</div>
+          <p>左側スティックで移動 ／ 右側ドラッグで視点 ／ 画面のボタン（決定・スキル・避ける）で操作します。</p>
+        </div>
+      </div>
+    </section>
+    <p class="fineprint">BGMは Internet Archive の公開音源APIから動的に取得します（失敗時はWebAudio生成音に切替）。天気は Open-Meteo API から実取得します。</p>
   </div>
-  <p style="margin-bottom:2px">通勤武術の型（育成パラメータ）</p>
-  <div class="row" id="buildBtns">
-    <button data-build="leg">脚力型（移動速度・ダッシュ強化）</button>
-    <button data-build="core">体幹型（接触・圧迫に強い）</button>
-    <button data-build="eye">慧眼型（下車予測・見破り強化）</button>
-  </div>
-  <div class="row"><label style="display:flex;align-items:center;gap:10px;font-size:13px">マウス感度
-    <input type="range" id="sensRange" min="0.5" max="1.5" step="0.05" value="1" style="width:170px;accent-color:#ff4b2c">
-    <span id="sensVal" style="color:var(--paper);min-width:2.8em;text-align:left">1.00</span></label></div>
-  <button id="btnStart" style="font-size:17px;padding:14px 44px;background:linear-gradient(180deg,#ff5a36,#e83a1e);border:1px solid rgba(255,255,255,.25);color:#fff;font-weight:700;letter-spacing:.12em;border-radius:999px;box-shadow:0 12px 28px rgba(232,58,30,.35);">出勤する（クリックで開始）</button>
-  <p class="small">【Windows】移動: <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / 視点: マウス / スキル選択: マウスホイール / 決定・スキル発動: <kbd>Enter</kbd> または左クリック<br>
-  スキル: 流体すり抜け・紙一重 / 残像フェイント・二段加速 / 鞄結界・ボックスアウト / 心眼・足首ロックオン（ホイールで選んで Enter）<br>
-  着席中: 寄りかかりは <kbd>←</kbd>/<kbd>→</kbd> で肩すかしパリィ、眠気は <kbd>Enter</kbd> 連打で覚醒。お年寄りには決定キーで席を譲ります。着席は座席に近づくと自動です。降車は、ドアが開いている時にドアへ向かって歩く（<kbd>↑</kbd>）とできます。<br>
-  【スマホ】左側スティックで移動 / 右側ドラッグで視点 / 画面のボタン（決定・スキル・避ける）で操作します。</p>
-  <p class="small">BGMは Internet Archive の公開音源APIから動的に取得します（失敗時はWebAudio生成音に切替）。天気は Open-Meteo API から実取得します。</p>
+  <div class="hazard bottom"></div>
 </div>
 <div class="screen" id="gameover">
   <h2 id="goTitle">貧血ブラックアウト</h2><p id="goText"></p>
