@@ -2,22 +2,27 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="AIボイス — 話すだけの、日常の会話パートナー。マイクで話しかけると、選んだパートナーがすぐに応えます。">
   <meta property="og:title" content="AIボイス — 日常ではなす相棒">
   <meta property="og:description" content="話すだけの、日常の会話パートナー。マイクで話しかけると、選んだパートナーがすぐに応えます。">
   <meta property="og:type" content="website">
   <meta name="theme-color" content="#f7f5f2">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="AIボイス">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
-  <title>AIボイス — 日常ではなす相棒 (v3.0)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.2)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
-    /* v3.0 Everyday Pro — デザインシステム
-       方針: 明るい日常系。白と暖かいグレー、アクセントは深い緑1色のみ。
+    /* v3.2 スマホ没入 — デザインシステム
+       方針: 明るい日常系を維持。白と暖かいグレー、アクセントは深い緑1色のみ。
        グラデーション・グロー・走査線・レティクル等のSF装飾は使わない。
-       フォントは Zen Kaku Gothic New 1ファミリーに統一。 */
+       フォントは Zen Kaku Gothic New 1ファミリー。基本文字は17px。
+       会話中は100dvhの1画面（スクロールなし）、操作は親指ドックに集約する。 */
     :root {
       --bg: #f7f5f2;
       --surface: #ffffff;
@@ -39,224 +44,346 @@
       --radius-sm: 10px;
       --shadow-sm: 0 1px 2px rgba(30, 28, 26, 0.06);
       --shadow-md: 0 8px 24px rgba(30, 28, 26, 0.07);
+      --shadow-lg: 0 -8px 32px rgba(30, 28, 26, 0.16);
       --focus: 0 0 0 3px rgba(15, 107, 92, 0.35);
+      --dock-h: 248px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html { -webkit-text-size-adjust: 100%; }
+    html { -webkit-text-size-adjust: 100%; height: 100%; }
     body {
       background: var(--bg);
       color: var(--ink);
       font-family: 'Zen Kaku Gothic New', -apple-system, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
-      font-size: 16px;
+      font-size: 17px;
       line-height: 1.7;
-      min-height: 100vh;
+      height: 100dvh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
-    button { font-family: inherit; }
+    button { font-family: inherit; touch-action: manipulation; cursor: pointer; }
     button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visible {
       outline: none; box-shadow: var(--focus); border-radius: 8px;
     }
     img { max-width: 100%; }
 
-    /* ヘッダー */
+    /* スリムヘッダー（ブランド＋状態＋設定のみ） */
     header {
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      padding: 12px 20px;
-      background: rgba(255, 255, 255, 0.92);
+      flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px;
+      padding-left: calc(16px + env(safe-area-inset-left, 0px));
+      padding-right: calc(16px + env(safe-area-inset-right, 0px));
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--line);
-      position: sticky; top: 0; z-index: 100;
+      z-index: 100;
     }
-    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .brand-mark {
-      width: 40px; height: 40px; flex: 0 0 40px; border-radius: 12px;
+      width: 36px; height: 36px; flex: 0 0 36px; border-radius: 10px;
       background: var(--accent); color: #fff;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.25rem; font-weight: 900;
+      font-size: 1.1rem; font-weight: 900;
     }
-    .brand-title { font-size: 1.15rem; font-weight: 900; letter-spacing: 0.02em; line-height: 1.3; }
-    .brand-sub { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+    .brand-title { font-size: 1.1rem; font-weight: 900; letter-spacing: 0.02em; line-height: 1.3; }
+    .brand-sub { font-size: 0.75rem; color: var(--muted); line-height: 1.4; }
     .header-status { display: flex; align-items: center; gap: 8px; min-width: 0; }
     .status-pill {
       display: inline-flex; align-items: center; gap: 7px;
       background: var(--surface-soft); border: 1px solid var(--line);
       border-radius: 999px; padding: 6px 12px;
-      font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap;
+      font-size: 0.85rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap;
     }
     .status-indicator { width: 9px; height: 9px; border-radius: 50%; background: #9a938b; flex: 0 0 9px; }
     .status-indicator.ready { background: var(--ok); }
     .status-indicator.transmitting { background: var(--accent); }
     .status-indicator.receiving { background: #c77f2a; }
-    .latency-chip {
-      font-size: 0.78rem; font-weight: 700; color: var(--muted);
-      background: var(--surface); border: 1px solid var(--line);
-      border-radius: 999px; padding: 6px 10px; white-space: nowrap;
-    }
-    .latency-chip strong { color: var(--accent-ink); font-weight: 900; }
     .header-actions { display: flex; gap: 8px; }
     .btn-ghost {
       background: var(--surface); border: 1px solid var(--line-strong); color: var(--ink-soft);
-      padding: 9px 14px; border-radius: 999px; font-size: 0.88rem; font-weight: 700;
-      min-height: 44px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 14px; border-radius: 999px; font-size: 0.9rem; font-weight: 700;
+      min-height: 44px; display: inline-flex; align-items: center; gap: 6px;
     }
     .btn-ghost:hover { border-color: var(--ink-soft); color: var(--ink); }
 
-    /* メイン: モバイルファーストの1カラム */
-    main {
-      flex: 1; width: 100%; max-width: 720px; margin: 0 auto;
-      padding: 20px 16px 48px;
-      display: flex; flex-direction: column; gap: 20px;
+    /* 無料お試しバー（マネタイズ導線・UIのみ） */
+    .plan-bar {
+      flex: 0 0 auto;
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      font-size: 0.88rem;
     }
-    .step-label {
-      font-size: 0.78rem; font-weight: 900; letter-spacing: 0.08em;
-      color: var(--accent-ink); text-transform: uppercase; margin-bottom: 8px;
+    .plan-badge {
+      background: var(--accent-soft); color: var(--accent-ink);
+      border: 1px solid var(--accent); border-radius: 999px;
+      padding: 4px 12px; font-weight: 900; white-space: nowrap;
     }
-    .step-label .step-no {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--accent); color: #fff; font-size: 0.75rem; margin-right: 6px;
+    .session-timer { color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .plan-bar .spacer { flex: 1; }
+    .btn-plan {
+      background: var(--ink); color: #fff; border: none; border-radius: 999px;
+      padding: 8px 16px; font-size: 0.9rem; font-weight: 900; min-height: 44px;
     }
-    .card {
-      background: var(--surface); border: 1px solid var(--line);
-      border-radius: var(--radius-lg); padding: 20px;
-      box-shadow: var(--shadow-sm);
-    }
-    .card h2 { font-size: 1.05rem; font-weight: 900; line-height: 1.5; margin-bottom: 4px; }
-    .card .lead { font-size: 0.92rem; color: var(--muted); margin-bottom: 14px; }
 
-    /* パートナー表示 */
+    /* メインスクロール領域（会話中はスクロール停止） */
+    main {
+      flex: 1 1 auto; min-height: 0;
+      width: 100%; max-width: 720px; margin: 0 auto;
+      padding: 14px 14px calc(var(--dock-h) + env(safe-area-inset-bottom, 0px) + 16px);
+      display: flex; flex-direction: column; gap: 16px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    body.in-session main { overflow: hidden; padding-bottom: calc(var(--dock-h) + env(safe-area-inset-bottom, 0px) + 8px); }
+    body.in-session .partners-section, body.in-session .fineprint { display: none; }
+    body.in-session .stage-viewport { flex: 1 1 auto; aspect-ratio: auto; min-height: 0; }
+
+    .section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .section-head h2 { font-size: 1.1rem; font-weight: 900; line-height: 1.5; }
+    .section-head .lead { font-size: 0.9rem; color: var(--muted); }
+
+    /* ステージヒーロー（没入の核） */
     .stage-viewport {
-      position: relative; width: 100%; aspect-ratio: 4 / 3;
+      position: relative; width: 100%; aspect-ratio: 3 / 4;
       border-radius: var(--radius-lg); overflow: hidden;
       background: #e9e4dd; border: 1px solid var(--line);
+      box-shadow: var(--shadow-md);
     }
     .stage-viewport.speaking { border-color: var(--accent); }
     #avatar-image {
+      position: absolute; inset: 0;
       width: 100%; height: 100%; object-fit: cover; object-position: center 20%;
       display: block; transition: opacity 0.3s ease;
+      animation: breathe 6s ease-in-out infinite;
+      transform-origin: center 30%;
+    }
+    @keyframes breathe { 0%, 100% { transform: scale(1.0); } 50% { transform: scale(1.015); } }
+    .stage-scrim {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 52%;
+      background: linear-gradient(to top, rgba(20, 18, 16, 0.72) 0%, rgba(20, 18, 16, 0.42) 55%, rgba(20, 18, 16, 0) 100%);
+      z-index: 2; pointer-events: none;
+    }
+    .pulse-ring {
+      position: absolute; left: 50%; top: 34%; width: 180px; height: 180px;
+      transform: translate(-50%, -50%); border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 0 0 6px rgba(15, 107, 92, 0.25);
+      z-index: 3; pointer-events: none; opacity: 0;
+    }
+    .stage-viewport[data-hero-state="listening"] .pulse-ring { animation: pulse-ring 1.8s ease-out infinite; }
+    @keyframes pulse-ring {
+      0% { opacity: 0.9; transform: translate(-50%, -50%) scale(0.72); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.25); }
     }
     /* 口の動き: AIの音声振幅に連動するだけの簡易表示。実測ベースで、口パクのふりはしない */
     .mouth {
-      position: absolute; left: 50%; bottom: 13%; transform: translateX(-50%) scaleY(0.25);
-      width: 54px; height: 12px; border-radius: 999px;
-      background: rgba(30, 28, 26, 0.55);
+      position: absolute; left: 50%; bottom: 30%; transform: translateX(-50%) scaleY(0.25);
+      width: 44px; height: 10px; border-radius: 999px;
+      background: rgba(30, 28, 26, 0.4);
       transform-origin: center; pointer-events: none; z-index: 4;
       transition: transform 0.07s linear;
     }
     #spectrum-canvas {
-      position: absolute; bottom: 0; left: 0; width: 100%; height: 56px;
-      z-index: 3; pointer-events: none;
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 72px;
+      z-index: 3; pointer-events: none; opacity: 0.95;
     }
-    .stage-caption {
-      display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
-      padding: 14px 4px 0;
+    .hero-overlay {
+      position: absolute; left: 0; right: 0; bottom: 0; z-index: 5;
+      padding: 18px 18px 84px;
+      color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55), 0 2px 10px rgba(0, 0, 0, 0.35);
+      pointer-events: none;
     }
-    .stage-caption .who { font-size: 1.05rem; font-weight: 900; }
-    .stage-caption .who small { font-size: 0.85rem; font-weight: 500; color: var(--muted); margin-left: 6px; }
-    .stage-caption .state { font-size: 0.85rem; color: var(--muted); font-weight: 700; }
+    .hero-name-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .hero-name { font-size: 2rem; font-weight: 900; line-height: 1.2; letter-spacing: 0.01em; }
+    .hero-desc { font-size: 0.95rem; font-weight: 700; color: rgba(255, 255, 255, 0.92); }
+    .hero-state-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 10px;
+      background: rgba(255, 255, 255, 0.94); color: var(--ink);
+      border-radius: 999px; padding: 8px 16px;
+      font-size: 1.05rem; font-weight: 900; line-height: 1.4;
+      text-shadow: none;
+    }
+    .hero-state-dot { width: 11px; height: 11px; border-radius: 50%; background: #9a938b; flex: 0 0 11px; }
+    .stage-viewport[data-hero-state="listening"] .hero-state-dot { background: var(--ok); }
+    .stage-viewport[data-hero-state="thinking"] .hero-state-dot { background: #c77f2a; }
+    .stage-viewport[data-hero-state="speaking"] .hero-state-dot { background: var(--accent); }
+    .thinking-dots { display: none; align-items: center; gap: 5px; margin-left: 4px; }
+    .thinking-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-soft); animation: dot-bounce 1.2s ease-in-out infinite; }
+    .thinking-dots span:nth-child(2) { animation-delay: 0.15s; }
+    .thinking-dots span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes dot-bounce { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-5px); opacity: 1; } }
+    .stage-viewport[data-hero-state="thinking"] .thinking-dots { display: inline-flex; }
+    .live-subtitle {
+      margin-top: 12px;
+      font-size: 1.3rem; font-weight: 700; line-height: 1.55;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      min-height: calc(1.3rem * 1.55);
+    }
+    .hero-voice-btn {
+      position: absolute; top: 14px; right: 14px; z-index: 6;
+      background: rgba(255, 255, 255, 0.94); color: var(--ink);
+      border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 999px;
+      padding: 10px 18px; font-size: 0.95rem; font-weight: 900; min-height: 48px;
+      box-shadow: var(--shadow-sm);
+    }
 
-    /* 操作ボタン */
-    .action-bar { display: flex; flex-direction: column; gap: 10px; }
+    /* 親指ドック（操作性の核） */
+    .thumb-dock {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
+      background: rgba(255, 255, 255, 0.97);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line);
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+      padding-left: calc(14px + env(safe-area-inset-left, 0px));
+      padding-right: calc(14px + env(safe-area-inset-right, 0px));
+      box-shadow: var(--shadow-lg);
+    }
+    .thumb-dock-inner { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+    .dock-meters { display: flex; align-items: center; gap: 10px; }
+    .mic-row { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .mic-row .mic-label { font-size: 0.85rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+    .mic-vu-bar-track { flex: 1; height: 10px; background: var(--surface-soft); border-radius: 999px; overflow: hidden; }
+    .mic-vu-bar-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 999px; transition: width 0.06s ease-out; }
+    .mic-vu-bar-fill.hot { background: #c77f2a; }
+    #vu-val { font-size: 0.82rem; font-weight: 700; color: var(--muted); min-width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+    .latency-chip {
+      font-size: 0.85rem; font-weight: 700; color: var(--muted);
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 999px; padding: 6px 12px; white-space: nowrap;
+    }
+    .latency-chip strong { color: var(--accent-ink); font-weight: 900; }
     .btn-primary {
-      width: 100%; min-height: 56px; border: none; border-radius: 999px;
+      width: 100%; height: 68px; min-height: 68px; border: none; border-radius: 999px;
       background: var(--accent); color: #fff;
-      font-size: 1.05rem; font-weight: 900; letter-spacing: 0.02em;
-      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: 1.2rem; font-weight: 900; letter-spacing: 0.02em;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
       box-shadow: var(--shadow-md);
     }
     .btn-primary:hover { background: var(--accent-ink); }
     .btn-primary:disabled { background: #b9b2aa; cursor: not-allowed; box-shadow: none; }
-    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .btn-secondary {
-      flex: 1 1 auto; min-height: 48px; padding: 10px 16px; border-radius: 999px;
-      background: var(--surface); border: 1px solid var(--line-strong); color: var(--ink);
-      font-size: 0.92rem; font-weight: 700; cursor: pointer;
-      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    .btn-primary.stop { background: var(--danger); }
+    .btn-talkdone {
+      width: 100%; min-height: 52px; border-radius: 999px;
+      background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent-ink);
+      font-size: 1rem; font-weight: 900;
+      display: none; align-items: center; justify-content: center;
     }
-    .btn-secondary:hover { border-color: var(--ink-soft); }
-    .btn-secondary.danger { color: var(--danger); border-color: #e5b8b4; background: var(--danger-soft); }
-    .btn-secondary[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+    .dock-secondary { display: flex; flex-wrap: nowrap; gap: 10px; justify-content: space-between; }
+    .dock-btn {
+      flex: 1 1 0; min-width: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+      background: transparent; border: none; color: var(--ink);
+      font-size: 0.8rem; font-weight: 700; padding: 2px 0;
+    }
+    .dock-btn .dock-icon {
+      width: 56px; height: 56px; min-width: 56px; min-height: 56px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--line-strong);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.05rem; font-weight: 900; color: var(--ink-soft);
+    }
+    .dock-btn:hover .dock-icon { border-color: var(--ink-soft); }
+    .dock-btn[aria-pressed="true"] .dock-icon { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+    .dock-btn .dock-label { line-height: 1.3; white-space: nowrap; }
+    .dock-btn .dock-sub { font-size: 0.72rem; color: var(--muted); font-weight: 700; line-height: 1.2; }
+    .dock-btn.danger .dock-icon { color: var(--danger); border-color: #e5b8b4; background: var(--danger-soft); }
 
-    /* マイクレベル */
-    .mic-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
-    .mic-row .mic-label { font-size: 0.85rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
-    .mic-vu-bar-track { flex: 1; height: 8px; background: var(--surface-soft); border-radius: 999px; overflow: hidden; }
-    .mic-vu-bar-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 999px; transition: width 0.06s ease-out; }
-    .mic-vu-bar-fill.hot { background: #c77f2a; }
-    #vu-val { font-size: 0.82rem; font-weight: 700; color: var(--muted); min-width: 52px; text-align: right; }
-
-    /* パートナー選択カード */
-    .char-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    /* パートナー選択（横スナップスクロール） */
+    .partners-section { background: transparent; }
+    .partner-rail {
+      display: flex; gap: 12px; overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding: 4px 2px 12px;
+      scrollbar-width: none;
+    }
+    .partner-rail::-webkit-scrollbar { display: none; }
     .char-card {
-      background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius-md);
-      padding: 0 0 12px; cursor: pointer; text-align: left; overflow: hidden;
-      display: flex; flex-direction: column; gap: 0; color: var(--ink);
+      scroll-snap-align: start;
+      flex: 0 0 220px; max-width: 220px;
+      background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius-lg);
+      padding: 0 0 14px; text-align: left; overflow: hidden;
+      display: flex; flex-direction: column; color: var(--ink);
+      box-shadow: var(--shadow-sm);
     }
-    .char-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: center 18%; display: block; background: #e9e4dd; }
-    .char-card .char-name { font-size: 1rem; font-weight: 900; padding: 10px 12px 0; }
-    .char-card .char-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; padding: 2px 12px 0; }
+    .char-card .char-photo-wrap { position: relative; }
+    .char-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: center 18%; display: block; background: #e9e4dd; }
+    .char-card .char-name { font-size: 1.15rem; font-weight: 900; padding: 12px 14px 0; line-height: 1.4; }
+    .char-card .char-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.55; padding: 2px 14px 0; display: block; }
+    .char-card .char-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px 0; }
+    .voice-tag { font-size: 0.75rem; font-weight: 900; background: var(--surface-soft); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; color: var(--ink-soft); }
+    .premium-badge { font-size: 0.75rem; font-weight: 900; background: #fdf3d7; border: 1px solid #e3c766; color: #7a5c00; border-radius: 999px; padding: 3px 10px; }
+    .selected-badge {
+      position: absolute; top: 10px; left: 10px;
+      background: var(--accent); color: #fff; font-size: 0.78rem; font-weight: 900;
+      border-radius: 999px; padding: 4px 12px; display: none;
+    }
     .char-card:hover { border-color: var(--ink-soft); }
     .char-card.active { border-color: var(--accent); background: var(--accent-soft); }
-    .char-card.active .char-name::after {
-      content: '選択中'; display: inline-block; margin-left: 6px; vertical-align: 2px;
-      font-size: 0.68rem; font-weight: 900; color: #fff; background: var(--accent);
-      border-radius: 999px; padding: 2px 8px;
-    }
-    .char-card.soon { cursor: default; opacity: 0.75; }
-    .char-card.soon .char-photo { aspect-ratio: 1 / 1; background: var(--surface-soft); display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.85rem; font-weight: 700; }
+    .char-card.active .selected-badge { display: inline-block; }
+    .char-card.soon { cursor: default; }
     .char-card.soon:hover { border-color: var(--line); }
-    .char-soon-note { font-size: 0.82rem; color: var(--muted); margin-top: 10px; }
+    .char-card.soon .char-photo {
+      aspect-ratio: 4 / 3; background: var(--surface-soft);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+      color: var(--muted); font-weight: 700; position: relative; overflow: hidden;
+    }
+    .char-card.soon .char-photo .soon-blur {
+      position: absolute; inset: 0;
+      background: #d9d2c7; filter: blur(2px); opacity: 0.7;
+    }
+    .lock-badge {
+      position: relative; z-index: 1;
+      background: var(--ink); color: #fff; font-size: 0.82rem; font-weight: 900;
+      border-radius: 999px; padding: 6px 14px;
+    }
+    .soon-label { position: relative; z-index: 1; font-size: 0.9rem; font-weight: 900; color: var(--ink-soft); }
+    .char-soon-note { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
 
-    /* 気分・設定 */
-    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip {
-      min-height: 44px; padding: 8px 16px; border-radius: 999px;
-      background: var(--surface); border: 1px solid var(--line-strong);
-      font-size: 0.92rem; font-weight: 700; color: var(--ink-soft); cursor: pointer;
+    /* ボトムシート共通 */
+    .sheet-overlay {
+      position: fixed; inset: 0; background: rgba(30, 28, 26, 0.5);
+      display: none; align-items: flex-end; justify-content: center; z-index: 1000;
     }
-    .chip:hover { border-color: var(--ink-soft); color: var(--ink); }
-    .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
-    .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
-    .field { margin-top: 16px; }
-    .field label { display: block; font-size: 0.88rem; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; }
-    .field label output { float: right; color: var(--accent-ink); font-weight: 900; }
-    input[type="range"] {
-      -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px;
-      background: var(--line); outline: none; cursor: pointer;
+    .sheet-overlay.open { display: flex; }
+    .sheet-card {
+      background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-width: 720px;
+      max-height: 70dvh; display: flex; flex-direction: column;
+      box-shadow: var(--shadow-lg);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      animation: sheet-in 0.25s ease;
     }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%;
-      background: var(--accent); border: 3px solid #fff; box-shadow: var(--shadow-sm); cursor: pointer;
-    }
-    input[type="range"]::-moz-range-thumb {
-      width: 18px; height: 18px; border-radius: 50%;
-      background: var(--accent); border: 3px solid #fff; cursor: pointer;
-    }
-    .seg-row { display: flex; gap: 8px; }
-    .seg-row .chip { flex: 1; text-align: center; }
-    details.advanced { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 12px; }
-    details.advanced summary { cursor: pointer; font-weight: 700; font-size: 0.92rem; color: var(--ink-soft); min-height: 44px; display: flex; align-items: center; }
-    .setting-note { font-size: 0.82rem; color: var(--muted); margin-top: 8px; }
+    .sheet-card.tall { max-height: 86dvh; }
+    @keyframes sheet-in { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .sheet-handle { width: 48px; height: 5px; border-radius: 999px; background: var(--line-strong); margin: 10px auto 4px; flex: 0 0 auto; }
+    .sheet-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 18px 10px; flex: 0 0 auto; }
+    .sheet-title { font-size: 1.15rem; font-weight: 900; }
+    .sheet-body { overflow-y: auto; padding: 4px 18px 20px; -webkit-overflow-scrolling: touch; }
+    .sheet-footer { flex: 0 0 auto; padding: 12px 18px calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); }
 
-    /* 会話ログ */
-    .log-tabs { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+    /* 会話記録シート */
+    .log-tabs { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
     .tab-pill {
       background: transparent; border: none; color: var(--muted);
-      font-size: 0.92rem; font-weight: 700; padding: 8px 12px; min-height: 44px;
-      border-radius: 999px; cursor: pointer;
+      font-size: 0.95rem; font-weight: 700; padding: 8px 14px; min-height: 48px;
+      border-radius: 999px;
     }
     .tab-pill.active { color: var(--accent-ink); background: var(--accent-soft); }
     .tab-pill:hover { color: var(--ink); }
     .log-actions { margin-left: auto; display: flex; gap: 8px; }
     .chat-scroll-view {
       display: flex; flex-direction: column; gap: 10px;
-      max-height: 420px; overflow-y: auto; padding: 2px; scroll-behavior: smooth;
+      padding: 2px; scroll-behavior: smooth;
     }
     .chat-bubble {
-      padding: 12px 14px; border-radius: var(--radius-md); font-size: 0.95rem; line-height: 1.65;
+      padding: 12px 14px; border-radius: var(--radius-md); font-size: 17px; line-height: 1.65;
       max-width: 88%; word-break: break-word; animation: msg-in 0.2s ease;
     }
     @keyframes msg-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -264,88 +391,146 @@
     .chat-bubble.ai { align-self: flex-start; background: var(--surface-soft); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
     .bubble-meta {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
-      font-size: 0.75rem; font-weight: 700; color: var(--muted); margin-bottom: 4px;
+      font-size: 0.78rem; font-weight: 700; color: var(--muted); margin-bottom: 4px;
     }
-    .emo-chip { font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(30, 28, 26, 0.08); font-weight: 700; }
+    .emo-chip { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: rgba(30, 28, 26, 0.08); font-weight: 700; }
     .diag-scroll-view {
       display: none; flex-direction: column; gap: 4px;
-      max-height: 420px; overflow-y: auto;
       background: #26221f; border-radius: var(--radius-sm); padding: 12px;
       font-family: ui-monospace, 'SF Mono', Consolas, monospace;
-      font-size: 0.78rem; line-height: 1.6; color: #cfc8bf;
+      font-size: 0.8rem; line-height: 1.6; color: #cfc8bf;
+      max-height: 40dvh; overflow-y: auto;
     }
     .d-line.info { color: #9ecfe8; }
     .d-line.success { color: #8fd6a8; }
     .d-line.warn { color: #f0c46a; }
     .d-line.error { color: #f0a49e; }
-
-    /* テキスト入力 */
     .text-chat-input-bar { display: flex; gap: 8px; }
     .text-chat-input {
-      flex: 1; min-height: 52px; background: var(--surface); border: 1px solid var(--line-strong);
-      border-radius: 999px; padding: 12px 18px; color: var(--ink); font-size: 1rem; outline: none;
-      font-family: inherit;
+      flex: 1; min-height: 56px; background: var(--surface); border: 1px solid var(--line-strong);
+      border-radius: 999px; padding: 12px 18px; color: var(--ink); font-size: 16px; outline: none;
+      font-family: inherit; min-width: 0;
     }
     .text-chat-input::placeholder { color: #a39d95; }
     .text-chat-input:focus { border-color: var(--accent); box-shadow: var(--focus); }
     .btn-send-text {
-      min-height: 52px; min-width: 76px; background: var(--accent); border: none;
+      min-height: 56px; min-width: 80px; background: var(--accent); border: none;
       color: #fff; border-radius: 999px; padding: 0 20px;
-      font-size: 0.95rem; font-weight: 900; cursor: pointer;
+      font-size: 1rem; font-weight: 900;
     }
     .btn-send-text:hover { background: var(--accent-ink); }
 
-    /* モーダル */
+    /* 話し方シート */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      min-height: 52px; padding: 10px 20px; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--line-strong);
+      font-size: 1rem; font-weight: 700; color: var(--ink-soft);
+    }
+    .chip:hover { border-color: var(--ink-soft); color: var(--ink); }
+    .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+    .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+    .field { margin-top: 18px; }
+    .field label { display: block; font-size: 0.95rem; font-weight: 700; color: var(--ink-soft); margin-bottom: 8px; }
+    .field label output { float: right; color: var(--accent-ink); font-weight: 900; }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 8px; border-radius: 999px;
+      background: var(--line); outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 32px; height: 32px; border-radius: 50%;
+      background: var(--accent); border: 3px solid #fff; box-shadow: var(--shadow-sm); cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--accent); border: 3px solid #fff; cursor: pointer;
+    }
+    .seg-row { display: flex; gap: 8px; }
+    .seg-row .chip { flex: 1; text-align: center; }
+    details.advanced { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 12px; }
+    details.advanced summary { cursor: pointer; font-weight: 700; font-size: 0.95rem; color: var(--ink-soft); min-height: 48px; display: flex; align-items: center; }
+    .setting-note { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+
+    /* 設定シート（旧モーダルをボトムシート化。JSの display:flex 切替と両立） */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(30, 28, 26, 0.5);
-      display: none; align-items: center; justify-content: center; z-index: 1000; padding: 16px;
+      display: none; align-items: flex-end; justify-content: center; z-index: 1000;
     }
     .modal-card {
-      background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: 520px;
-      padding: 24px; display: flex; flex-direction: column; gap: 16px;
-      box-shadow: var(--shadow-md); max-height: 90vh; overflow-y: auto;
+      background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-width: 720px;
+      padding: 8px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+      display: flex; flex-direction: column; gap: 14px;
+      box-shadow: var(--shadow-lg); max-height: 86dvh; overflow-y: auto;
     }
     .modal-header-row { display: flex; align-items: center; justify-content: space-between; }
-    .modal-title { font-size: 1.1rem; font-weight: 900; }
+    .modal-title { font-size: 1.15rem; font-weight: 900; }
     .form-item { display: flex; flex-direction: column; gap: 6px; }
-    .form-item label { font-size: 0.88rem; font-weight: 700; color: var(--ink-soft); }
+    .form-item label { font-size: 0.92rem; font-weight: 700; color: var(--ink-soft); }
     .form-ctrl {
       background: var(--surface); border: 1px solid var(--line-strong);
       border-radius: var(--radius-sm); padding: 12px; color: var(--ink);
-      font-size: 0.95rem; outline: none; font-family: inherit; min-height: 48px;
+      font-size: 16px; outline: none; font-family: inherit; min-height: 52px; width: 100%;
     }
     .form-ctrl:focus { border-color: var(--accent); box-shadow: var(--focus); }
-    .check-row { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 0.92rem; line-height: 1.6; }
-    .check-row input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent); flex: 0 0 20px; }
+    .check-row { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 0.95rem; line-height: 1.6; }
+    .check-row input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--accent); flex: 0 0 22px; }
+    .env-badge-big {
+      padding: 14px; border-radius: var(--radius-md); font-size: 1rem; font-weight: 900;
+      background: var(--accent-soft); border: 2px solid var(--accent); color: var(--accent-ink);
+    }
+
+    /* プランシート */
+    .plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .plan-card { border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px; background: var(--surface); }
+    .plan-card.plus { border: 2px solid var(--accent); background: var(--accent-soft); }
+    .plan-card h3 { font-size: 1.1rem; font-weight: 900; margin-bottom: 6px; }
+    .plan-card ul { list-style: none; font-size: 0.9rem; line-height: 1.9; color: var(--ink-soft); }
+    .plan-card ul li::before { content: '・'; }
+    .btn-buy {
+      width: 100%; min-height: 56px; border-radius: 999px; border: none;
+      background: #b9b2aa; color: #fff; font-size: 1rem; font-weight: 900; cursor: not-allowed;
+    }
+
+    /* セッション要約シート */
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0 6px; }
+    .summary-stat { background: var(--surface-soft); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px 8px; text-align: center; }
+    .summary-stat .num { font-size: 1.4rem; font-weight: 900; color: var(--accent-ink); line-height: 1.3; }
+    .summary-stat .lbl { font-size: 0.8rem; font-weight: 700; color: var(--muted); }
 
     .toast-shelf {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      position: fixed; bottom: calc(var(--dock-h) + env(safe-area-inset-bottom, 0px) + 12px); left: 50%; transform: translateX(-50%);
       z-index: 2000; display: flex; flex-direction: column; gap: 8px;
       width: min(480px, calc(100vw - 32px)); pointer-events: none;
     }
     .toast-card {
       background: var(--ink); color: #fff; border-radius: var(--radius-sm);
-      padding: 12px 16px; font-size: 0.9rem; box-shadow: var(--shadow-md);
+      padding: 12px 16px; font-size: 0.92rem; box-shadow: var(--shadow-md);
       animation: slide-toast 0.25s ease; pointer-events: auto;
     }
     @keyframes slide-toast { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    .fineprint { font-size: 0.8rem; color: var(--muted); text-align: center; }
+    .fineprint { font-size: 0.82rem; color: var(--muted); text-align: center; }
     .fineprint a { color: var(--accent-ink); }
 
+    @media (min-width: 720px) {
+      .stage-viewport { aspect-ratio: 16 / 10; }
+      body.in-session .stage-viewport { aspect-ratio: auto; }
+      .hero-name { font-size: 2.4rem; }
+      .live-subtitle { font-size: 1.45rem; }
+    }
     @media (max-width: 560px) {
-      header { padding: 10px 14px; flex-wrap: wrap; }
       .brand-sub { display: none; }
-      .latency-chip { display: none; }
-      main { padding: 16px 12px 40px; gap: 16px; }
-      .card { padding: 16px; }
-      .char-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-      .char-card .char-desc { display: none; }
-      .char-card .char-name { font-size: 0.9rem; padding: 8px 8px 0; }
-      .btn-ghost span.btn-label { display: none; }
+      main { padding-left: 12px; padding-right: 12px; }
+      .char-card { flex-basis: 200px; max-width: 200px; }
+      .plan-grid { grid-template-columns: 1fr; }
+      .hero-overlay { padding: 14px 14px 80px; }
+      .hero-name { font-size: 1.8rem; }
     }
     @media (prefers-reduced-motion: reduce) {
-      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+      * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      #avatar-image { animation: none !important; }
+      .pulse-ring { animation: none !important; opacity: 0 !important; }
+      .thinking-dots span { animation: none !important; }
     }
   </style>
 </head>
@@ -361,176 +546,301 @@
     </div>
     <div class="header-status">
       <span class="status-pill"><span id="stat-indicator" class="status-indicator"></span><span id="stat-label">待機中</span></span>
-      <span class="latency-chip" title="発話終了からAI初回音声までの実測遅延">応答 <strong id="stat-latency">—</strong></span>
-      <span class="latency-chip" id="stat-tx-wrap" hidden>送信 <strong id="stat-tx">0</strong></span>
-      <span class="latency-chip" id="stat-rx-wrap" hidden>受信 <strong id="stat-rx">0</strong></span>
     </div>
     <div class="header-actions">
       <button id="btn-open-settings" class="btn-ghost" aria-label="設定を開く">設定</button>
-      <button id="btn-save-log" class="btn-ghost" aria-label="会話ログを保存する">保存</button>
     </div>
   </header>
 
+  <div class="plan-bar">
+    <span class="plan-badge">無料でお試し中</span>
+    <span class="session-timer">経過 <span id="session-elapsed">00:00</span></span>
+    <span class="spacer"></span>
+    <button id="btn-open-plan" class="btn-plan">プランを見る</button>
+  </div>
+
   <main>
-    <!-- ステップ1: パートナーを見る -->
-    <section class="card" aria-label="パートナー">
-      <p class="step-label"><span class="step-no">1</span>パートナー</p>
-      <div class="stage-viewport" id="viewport">
+    <!-- ステージヒーロー -->
+    <section aria-label="パートナー">
+      <div class="stage-viewport" id="viewport" data-hero-state="idle">
         <img id="avatar-image" src="./assets/cyber_holo_face.jpg" alt="会話パートナーの写真" fetchpriority="high" decoding="async">
+        <div class="stage-scrim" aria-hidden="true"></div>
+        <div class="pulse-ring" aria-hidden="true"></div>
         <div class="mouth" id="mouth" aria-hidden="true"></div>
         <canvas id="spectrum-canvas" aria-hidden="true"></canvas>
-      </div>
-      <div class="stage-caption">
-        <div class="who"><span id="stage-char-name">ハル</span><small id="stage-char-desc">20代・男性・穏やかで聞き上手</small></div>
-        <div class="state" id="stage-state">まだ話していません</div>
-      </div>
-      <div class="mic-row">
-        <span class="mic-label">マイクの音量</span>
-        <div class="mic-vu-bar-track"><div id="mic-vu-fill" class="mic-vu-bar-fill"></div></div>
-        <span id="vu-val">0 dB</span>
-      </div>
-    </section>
-
-    <!-- ステップ2: 会話を始める -->
-    <section class="card" aria-label="会話の操作">
-      <p class="step-label"><span class="step-no">2</span>会話をはじめる</p>
-      <h2>大きなボタンひとつで、すぐ話せます</h2>
-      <p class="lead">マイクを許可して「会話をはじめる」を押してください。話し終われば、相手がすぐに応えます。</p>
-      <div class="action-bar">
-        <button id="btn-start-session" class="btn-primary">会話をはじめる</button>
-        <button id="btn-stop-session" class="btn-primary" style="display: none; background: var(--danger);">会話を終える</button>
-        <div class="btn-row">
-          <button id="btn-talk-done" class="btn-secondary" style="display: none;">話し終わった</button>
-          <button id="btn-interrupt" class="btn-secondary">割り込む</button>
-          <button id="btn-mute" class="btn-secondary" aria-pressed="false"><span id="mute-icon">マイク</span> <span id="mute-txt">オン</span></button>
-          <button id="btn-pause" class="btn-secondary" style="display: none;">一時停止</button>
+        <button id="btn-open-voice" class="hero-voice-btn">話し方</button>
+        <div class="hero-overlay">
+          <div class="hero-name-row">
+            <span class="hero-name" id="stage-char-name">ハル</span>
+            <span class="hero-desc" id="stage-char-desc">20代・男性・穏やかで聞き上手</span>
+          </div>
+          <div class="hero-state-pill">
+            <span class="hero-state-dot" aria-hidden="true"></span>
+            <span id="stage-state">まだ話していません</span>
+            <span class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+          </div>
+          <div class="live-subtitle" id="live-subtitle">「会話をはじめる」を押して、気軽に話しかけてください。</div>
         </div>
       </div>
-      <p class="setting-note">話している途中で声を出せば、相手の話をさえぎってあなたの話を聞きます。応答までの時間は、右上の「応答」に表示されます。</p>
     </section>
 
-    <!-- ステップ3: パートナーを選ぶ -->
-    <section class="card" aria-label="パートナーを選ぶ">
-      <p class="step-label"><span class="step-no">3</span>パートナーを選ぶ</p>
-      <h2>話し相手を選ぶ</h2>
-      <p class="lead">写真と紹介で選べます。会話中でも切り替えられます。</p>
-      <div class="char-grid">
+    <!-- パートナー選択 -->
+    <section class="partners-section" aria-label="パートナーを選ぶ">
+      <div class="section-head">
+        <div>
+          <h2>話し相手を選ぶ</h2>
+          <p class="lead">横にスワイプして選べます。会話中でも切り替えられます。</p>
+        </div>
+      </div>
+      <div class="partner-rail">
         <button id="btn-char-holo" class="char-card active" data-char="holo" aria-pressed="true">
-          <img src="./assets/cyber_holo_face.jpg" alt="ハルの写真" loading="lazy" decoding="async">
+          <span class="char-photo-wrap">
+            <img src="./assets/cyber_holo_face.jpg" alt="ハルの写真" loading="lazy" decoding="async">
+            <span class="selected-badge">選択中</span>
+          </span>
           <span class="char-name">ハル</span>
           <span class="char-desc">20代・男性<br>穏やかで聞き上手</span>
+          <span class="char-tags"><span class="voice-tag">声: Aoede</span></span>
         </button>
         <button id="btn-char-luna" class="char-card" data-char="luna" aria-pressed="false">
-          <img src="./assets/cyber_luna_female.jpg" alt="ルナの写真" loading="lazy" decoding="async">
+          <span class="char-photo-wrap">
+            <img src="./assets/cyber_luna_female.jpg" alt="ルナの写真" loading="lazy" decoding="async">
+            <span class="selected-badge">選択中</span>
+          </span>
           <span class="char-name">ルナ</span>
           <span class="char-desc">20代・女性<br>明るく元気</span>
+          <span class="char-tags"><span class="voice-tag">声: Kore</span></span>
         </button>
         <button id="btn-char-ren" class="char-card" data-char="ren" aria-pressed="false">
-          <img src="./assets/cyber_ren_male.jpg" alt="レンの写真" loading="lazy" decoding="async">
+          <span class="char-photo-wrap">
+            <img src="./assets/cyber_ren_male.jpg" alt="レンの写真" loading="lazy" decoding="async">
+            <span class="selected-badge">選択中</span>
+          </span>
           <span class="char-name">レン</span>
           <span class="char-desc">30代・男性<br>落ち着いて頼れる</span>
+          <span class="char-tags"><span class="voice-tag">声: Fenrir</span><span class="premium-badge">プレミアム</span></span>
         </button>
         <button class="char-card soon" disabled aria-disabled="true">
-          <span class="char-photo">写真準備中</span>
+          <span class="char-photo">
+            <span class="soon-blur" aria-hidden="true"></span>
+            <span class="lock-badge">近日公開</span>
+            <span class="soon-label">写真準備中</span>
+          </span>
           <span class="char-name">ミサキ</span>
           <span class="char-desc">40代・女性<br>やさしく丁寧</span>
+          <span class="char-tags"><span class="premium-badge">プレミアム</span></span>
         </button>
         <button class="char-card soon" disabled aria-disabled="true">
-          <span class="char-photo">写真準備中</span>
+          <span class="char-photo">
+            <span class="soon-blur" aria-hidden="true"></span>
+            <span class="lock-badge">近日公開</span>
+            <span class="soon-label">写真準備中</span>
+          </span>
           <span class="char-name">ケンジ</span>
           <span class="char-desc">50代・男性<br>ユーモアのある先輩</span>
+          <span class="char-tags"><span class="premium-badge">プレミアム</span></span>
         </button>
         <button class="char-card soon" disabled aria-disabled="true">
-          <span class="char-photo">写真準備中</span>
+          <span class="char-photo">
+            <span class="soon-blur" aria-hidden="true"></span>
+            <span class="lock-badge">近日公開</span>
+            <span class="soon-label">写真準備中</span>
+          </span>
           <span class="char-name">サトコ</span>
           <span class="char-desc">60代・女性<br>人生経験豊かな相談相手</span>
+          <span class="char-tags"><span class="premium-badge">プレミアム</span></span>
         </button>
       </div>
-      <p class="char-soon-note">下の3人は写真の差し替え準備中です。写真が用意できしだい、同じ並びで使えるようになります。</p>
+      <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい、同じ並びで使えるようになります。</p>
     </section>
 
-    <!-- ステップ4: 文字で見る -->
-    <section class="card" aria-label="会話の文字起こし">
-      <p class="step-label"><span class="step-no">4</span>文字で見る</p>
-      <h2>会話の記録</h2>
-      <p class="lead">話した内容は文字でも残ります。あとから読み返せます。</p>
-      <div class="log-tabs">
-        <button id="tab-chat" class="tab-pill active" aria-pressed="true">会話</button>
-        <button id="tab-diag" class="tab-pill" aria-pressed="false">診断ログ</button>
-        <span class="log-actions">
-          <button id="btn-clear-chat" class="btn-ghost">消去</button>
-        </span>
-      </div>
-      <div id="chat-view" class="chat-scroll-view" role="log" aria-live="polite">
-        <div class="chat-bubble ai">
-          <div class="bubble-meta"><span>ハル</span><span class="emo-chip">はじめまして</span></div>
-          <div>こんにちは、ハルです。「会話をはじめる」を押して、気軽に話しかけてください。今日はどんな話をしましょうか。</div>
-        </div>
-      </div>
-      <div id="diag-view" class="diag-scroll-view" role="log">
-        <div class="d-line info">[INIT] 準備ができました。</div>
-      </div>
-      <div class="text-chat-input-bar" style="margin-top: 14px;">
-        <input type="text" id="text-chat-input" class="text-chat-input" placeholder="文字で話しかけることもできます" aria-label="文字で話しかける" autocomplete="off">
-        <button id="btn-send-text" class="btn-send-text">送信</button>
-      </div>
-    </section>
-
-    <!-- 詳細設定（ふだんは閉じておく） -->
-    <section class="card" aria-label="気分と詳細設定">
-      <h2>気分と話し方</h2>
-      <p class="lead">相手の気分や話す速さを調整できます。設定しなくても、そのまま話せます。</p>
-      <div class="chip-row" role="group" aria-label="気分">
-        <button id="emo-joy" class="chip" data-emotion="joy" aria-pressed="true">よろこび</button>
-        <button id="emo-anger" class="chip" data-emotion="anger" aria-pressed="false">おこり</button>
-        <button id="emo-sadness" class="chip" data-emotion="sadness" aria-pressed="false">かなしみ</button>
-        <button id="emo-fun" class="chip" data-emotion="fun" aria-pressed="false">たのしさ</button>
-      </div>
-      <div class="field">
-        <label for="intensity-slider">気分の強さ <output id="intensity-val">80%</output></label>
-        <input type="range" id="intensity-slider" min="0" max="100" value="80">
-      </div>
-      <p class="setting-note">「気分」はあなたの設定です。音声から感情を読み取っているわけではありません。</p>
-      <details class="advanced">
-        <summary>音声の詳細設定を開く</summary>
-        <div class="field">
-          <label for="gain-slider">マイクの感度 <output id="gain-val">2.2x</output></label>
-          <input type="range" id="gain-slider" min="1.0" max="5.0" step="0.2" value="2.2">
-        </div>
-        <div class="field">
-          <label>話す速さ <output id="speed-val">1.0x</output></label>
-          <div class="seg-row" role="group" aria-label="話す速さ">
-            <button class="chip spd-btn active" data-speed="1.0" aria-pressed="true">1.0倍</button>
-            <button class="chip spd-btn" data-speed="2.0" aria-pressed="false">2.0倍</button>
-            <button class="chip spd-btn" data-speed="3.0" aria-pressed="false">3.0倍</button>
-          </div>
-          <input type="range" id="speed-slider" min="0.5" max="3.0" step="0.1" value="1.0" style="margin-top: 10px;" aria-label="話す速さの微調整">
-        </div>
-        <div class="field">
-          <label for="pitch-slider">声の高さ <output id="pitch-val">±0 cents</output></label>
-          <input type="range" id="pitch-slider" min="-600" max="600" step="50" value="0">
-        </div>
-      </details>
-    </section>
-
-    <p class="fineprint">AIボイス v3.0 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.2 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
-  <!-- 設定モーダル -->
+  <!-- 親指ドック -->
+  <div class="thumb-dock">
+    <div class="thumb-dock-inner">
+      <div class="dock-meters">
+        <div class="mic-row">
+          <span class="mic-label">マイク</span>
+          <div class="mic-vu-bar-track"><div id="mic-vu-fill" class="mic-vu-bar-fill"></div></div>
+          <span id="vu-val">0 dB</span>
+        </div>
+        <span class="latency-chip" title="発話終了からAI初回音声までの実測遅延">応答 <strong id="stat-latency">—</strong></span>
+        <span class="latency-chip" id="stat-tx-wrap" hidden>送信 <strong id="stat-tx">0</strong></span>
+        <span class="latency-chip" id="stat-rx-wrap" hidden>受信 <strong id="stat-rx">0</strong></span>
+      </div>
+      <button id="btn-talk-done" class="btn-talkdone">話し終わった</button>
+      <button id="btn-start-session" class="btn-primary">会話をはじめる</button>
+      <button id="btn-stop-session" class="btn-primary stop" style="display: none;">会話を終える</button>
+      <div class="dock-secondary">
+        <button id="btn-interrupt" class="dock-btn danger">
+          <span class="dock-icon" aria-hidden="true">✋</span>
+          <span class="dock-label">割り込む</span>
+        </button>
+        <button id="btn-mute" class="dock-btn" aria-pressed="false">
+          <span class="dock-icon" aria-hidden="true">🎙</span>
+          <span class="dock-label"><span id="mute-icon">マイク</span></span>
+          <span class="dock-sub" id="mute-txt">オン</span>
+        </button>
+        <button id="btn-pause" class="dock-btn" style="display: none;">
+          <span class="dock-icon" aria-hidden="true">⏸</span>
+          <span class="dock-label">一時停止</span>
+        </button>
+        <button id="btn-open-chat" class="dock-btn">
+          <span class="dock-icon" aria-hidden="true">💬</span>
+          <span class="dock-label">文字</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 会話記録シート -->
+  <div id="sheet-chat" class="sheet-overlay" role="dialog" aria-modal="true" aria-label="会話の記録">
+    <div class="sheet-card tall">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="sheet-header">
+        <div class="sheet-title">会話の記録</div>
+        <button id="btn-close-chat" class="btn-ghost" aria-label="会話の記録を閉じる">閉じる</button>
+      </div>
+      <div class="sheet-body">
+        <div class="log-tabs">
+          <button id="tab-chat" class="tab-pill active" aria-pressed="true">会話</button>
+          <button id="tab-diag" class="tab-pill" aria-pressed="false">診断ログ</button>
+          <span class="log-actions">
+            <button id="btn-save-log" class="btn-ghost">保存</button>
+            <button id="btn-clear-chat" class="btn-ghost">消去</button>
+          </span>
+        </div>
+        <div id="chat-view" class="chat-scroll-view" role="log" aria-live="polite">
+          <div class="chat-bubble ai">
+            <div class="bubble-meta"><span>ハル</span><span class="emo-chip">はじめまして</span></div>
+            <div>こんにちは、ハルです。「会話をはじめる」を押して、気軽に話しかけてください。今日はどんな話をしましょうか。</div>
+          </div>
+        </div>
+        <div id="diag-view" class="diag-scroll-view" role="log">
+          <div class="d-line info">[INIT] 準備ができました。</div>
+        </div>
+      </div>
+      <div class="sheet-footer">
+        <div class="text-chat-input-bar">
+          <input type="text" id="text-chat-input" class="text-chat-input" placeholder="文字で話しかけることもできます" aria-label="文字で話しかける" autocomplete="off">
+          <button id="btn-send-text" class="btn-send-text">送信</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 話し方シート -->
+  <div id="sheet-voice" class="sheet-overlay" role="dialog" aria-modal="true" aria-label="気分と話し方">
+    <div class="sheet-card">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="sheet-header">
+        <div class="sheet-title">気分と話し方</div>
+        <button id="btn-close-voice" class="btn-ghost" aria-label="話し方を閉じる">閉じる</button>
+      </div>
+      <div class="sheet-body">
+        <p class="setting-note" style="margin-top: 0;">相手の気分や話す速さを調整できます。設定しなくても、そのまま話せます。</p>
+        <div class="chip-row" role="group" aria-label="気分" style="margin-top: 12px;">
+          <button id="emo-joy" class="chip" data-emotion="joy" aria-pressed="true">よろこび</button>
+          <button id="emo-anger" class="chip" data-emotion="anger" aria-pressed="false">おこり</button>
+          <button id="emo-sadness" class="chip" data-emotion="sadness" aria-pressed="false">かなしみ</button>
+          <button id="emo-fun" class="chip" data-emotion="fun" aria-pressed="false">たのしさ</button>
+        </div>
+        <div class="field">
+          <label for="intensity-slider">気分の強さ <output id="intensity-val">80%</output></label>
+          <input type="range" id="intensity-slider" min="0" max="100" value="80">
+        </div>
+        <p class="setting-note">「気分」はあなたの設定です。音声から感情を読み取っているわけではありません。</p>
+        <details class="advanced">
+          <summary>音声の詳細設定を開く</summary>
+          <div class="field">
+            <label for="gain-slider">マイクの感度 <output id="gain-val">2.2x</output></label>
+            <input type="range" id="gain-slider" min="1.0" max="5.0" step="0.2" value="2.2">
+          </div>
+          <div class="field">
+            <label>話す速さ <output id="speed-val">1.0x</output></label>
+            <div class="seg-row" role="group" aria-label="話す速さ">
+              <button class="chip spd-btn active" data-speed="1.0" aria-pressed="true">1.0倍</button>
+              <button class="chip spd-btn" data-speed="2.0" aria-pressed="false">2.0倍</button>
+              <button class="chip spd-btn" data-speed="3.0" aria-pressed="false">3.0倍</button>
+            </div>
+            <input type="range" id="speed-slider" min="0.5" max="3.0" step="0.1" value="1.0" style="margin-top: 10px;" aria-label="話す速さの微調整">
+          </div>
+          <div class="field">
+            <label for="pitch-slider">声の高さ <output id="pitch-val">±0 cents</output></label>
+            <input type="range" id="pitch-slider" min="-600" max="600" step="50" value="0">
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- プランシート -->
+  <div id="sheet-plan" class="sheet-overlay" role="dialog" aria-modal="true" aria-label="プラン">
+    <div class="sheet-card">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="sheet-header">
+        <div class="sheet-title">プラン</div>
+        <button id="btn-close-plan" class="btn-ghost" aria-label="プランを閉じる">閉じる</button>
+      </div>
+      <div class="sheet-body">
+        <p class="setting-note" style="margin-top: 0;">現在は無料でお試し中です。決済は準備中のため、まだ購入はできません。</p>
+        <div class="plan-grid" style="margin-top: 14px;">
+          <div class="plan-card">
+            <h3>Free</h3>
+            <ul>
+              <li>基本パートナー3人</li>
+              <li>音声会話・文字起こし</li>
+              <li>会話ログの保存</li>
+            </ul>
+          </div>
+          <div class="plan-card plus">
+            <h3>Plus（準備中）</h3>
+            <ul>
+              <li>プレミアムパートナー</li>
+              <li>長時間の会話</li>
+              <li>優先接続</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top: 16px;">
+          <button class="btn-buy" disabled aria-disabled="true">Plus は準備中（購入はまだできません）</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- セッション要約シート -->
+  <div id="sheet-summary" class="sheet-overlay" role="dialog" aria-modal="true" aria-label="今回の会話のまとめ">
+    <div class="sheet-card">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="sheet-header">
+        <div class="sheet-title">今回の会話のまとめ</div>
+        <button id="btn-close-summary" class="btn-ghost" aria-label="まとめを閉じる">閉じる</button>
+      </div>
+      <div class="sheet-body">
+        <div class="summary-grid">
+          <div class="summary-stat"><div class="num" id="summary-duration">0:00</div><div class="lbl">会話時間</div></div>
+          <div class="summary-stat"><div class="num" id="summary-turns">0</div><div class="lbl">やりとり</div></div>
+          <div class="summary-stat"><div class="num" id="summary-avg">—</div><div class="lbl">平均応答</div></div>
+        </div>
+        <p class="setting-note">平均応答は、発話終了からAI初回音声までの実測平均です。測れなかった場合は「—」と表示します。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 設定シート -->
   <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="設定">
     <div class="modal-card">
+      <div class="sheet-handle" aria-hidden="true"></div>
       <div class="modal-header-row">
         <div class="modal-title">設定</div>
         <button id="btn-close-modal" class="btn-ghost" aria-label="設定を閉じる">閉じる</button>
       </div>
       <div class="form-item">
         <label>接続の状態</label>
-        <div id="env-badge" style="padding: 10px 12px; border-radius: 10px; font-size: 0.88rem; background: var(--accent-soft); border: 1px solid var(--line); color: var(--accent-ink);">接続を確認しています…</div>
-      </div>
-      <div class="form-item">
-        <label for="cfg-api-key">Gemini APIキー</label>
-        <input type="password" id="cfg-api-key" class="form-ctrl" placeholder="AIzaSy..." autocomplete="off">
-        <p class="setting-note">キーはこの端末にだけ保存されます。共有しないでください。</p>
+        <div id="env-badge" class="env-badge-big">接続を確認しています…</div>
       </div>
       <div class="form-item">
         <label for="cfg-mic">マイク</label>
@@ -539,8 +849,8 @@
       <div class="form-item">
         <label for="cfg-bargein-sens">割り込みの感度</label>
         <select id="cfg-bargein-sens" class="form-ctrl">
-          <option value="strict">生活音を拾いにくくする（推奨）</option>
-          <option value="normal" selected>標準</option>
+          <option value="strict">生活音を拾いにくくする</option>
+          <option value="normal" selected>標準（既定）</option>
           <option value="sensitive">高感度（小声でも割り込む）</option>
         </select>
       </div>
@@ -562,8 +872,16 @@
           <span>お試しモード（APIキーなしで画面と音声合成を試す）</span>
         </label>
       </div>
+      <details class="advanced">
+        <summary>上級者向け（APIキー）</summary>
+        <div class="form-item" style="margin-top: 10px;">
+          <label for="cfg-api-key">Gemini APIキー</label>
+          <input type="password" id="cfg-api-key" class="form-ctrl" placeholder="AIzaSy..." autocomplete="off">
+          <p class="setting-note">キーはこの端末にだけ保存されます。共有しないでください。</p>
+        </div>
+      </details>
       <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;">
-        <button id="btn-save-cfg" class="btn-primary" style="width: auto; min-height: 48px; padding: 0 22px; font-size: 0.95rem;">保存して閉じる</button>
+        <button id="btn-save-cfg" class="btn-primary" style="width: auto; height: 56px; min-height: 56px; padding: 0 22px; font-size: 1rem;">保存して閉じる</button>
       </div>
     </div>
   </div>
@@ -571,8 +889,12 @@
   <div id="toast-shelf" class="toast-shelf" aria-live="polite"></div>
 <script>
     /**
-     * AIボイス - v3.0 Everyday Pro
-     * AIボイス - v3.0 Everyday Pro (v2.9の速度改善を継承し、画面を日常系プロ仕様に刷新)
+     * AIボイス - v3.2 スマホ没入 (v3.0 Everyday Pro + v3.1 会話流暢化を継承し、画面をモバイル没入仕様に刷新)
+     * v3.1 会話流暢化 (2026-11-19, improve/conversation-fluency-20261119):
+     *  setup仕様修正（AUDIOのみ＋文字起こし）、ターン判定600/500ms、VADしきい値暴走防止、
+     *  割り込みのサーバー中断＋音声抑制、切断・自動再接続。実機ライブ音声は未検証。
+     * v3.2 (2026-11-19): 会話エンジンは無変更。UIを100dvh1画面＋親指ドック＋ボトムシートに刷新し、
+     *  字幕・状態ピル・セッションタイマー・WakeLock・触覚フィードバック・要約表示の配線を追加。
      */
     const LIVE_MODEL_NAME = 'models/gemini-2.5-flash-native-audio-latest';
     const REST_MODEL_NAME = 'models/gemini-2.5-flash';
@@ -582,9 +904,16 @@
       isMockMode: false,
       enableSmartFallback: true,
       enableNoiseFilter: true,
-      bargeInSensitivity: 'strict', // strict: 生活音ガード, normal: 標準, sensitive: 高感度
+      bargeInSensitivity: 'normal', // normal: 標準（既定。画面の選択肢と一致させる）
       noiseFloor: 0.015,
       consecutiveVoiceFrames: 0,
+      // v3.1 会話流暢化: バージイン後のAI音声抑制、再接続制御
+      suppressAiAudio: false, // trueの間、AIの新規音声チャンクを再生キューに入れない
+      isConnecting: false, // startLiveSession() の二重接続ガード
+      reconnectAttempts: 0,
+      reconnectTimer: null,
+      expectClose: false, // 意図的な切断（ユーザー操作・再接続時の切断）なら自動再接続しない
+      sessionResumptionHandle: null, // setupComplete後の sessionResumptionUpdate で受け取る再開ハンドル
       
       isConnected: false,
       isSessionReady: false,
@@ -645,7 +974,9 @@
       nextStartTime: 0,
 
       // v2.9 遅延計測・AudioWorklet・AIテキスト蓄積
-      silenceMs: 220, // 無音でターン確定とみなす時間（旧380ms）
+      // v3.1: 無音600msでターン確定。サーバー側 silenceDurationMs 500ms と二重で切らないよう、
+      // クライアント側は少し長めに取り、途切れやすい発話（言いよどみ・間）を切らない。
+      silenceMs: 600, // 無音でターン確定とみなす時間（v2.9: 220ms → v3.1: 600ms）
       latency: { turnCommittedAt: 0, firstAudioAt: 0, firstPlaybackAt: 0, lastMs: null, samples: [] },
       droppedChunks: 0,
       workletNode: null,
@@ -753,11 +1084,21 @@
       // v2.9: 3エンドポイントを並列に試し、最初に成功したものを使う（直列待ちをやめる）
       const endpoints = ['/api/key', '/api/server', '/api/get-key'];
       const tryEndpoint = async (ep) => {
-        const res = await fetch(ep);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        if (data && data.success && data.apiKey) return { ep, data };
-        throw new Error(data && data.error ? data.error : 'no key');
+        // v3.1: 1エンドポイントあたり5秒でタイムアウト。サーバーが応答しないとき無限に待たない。
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 5000);
+        try {
+          const res = await fetch(ep, { signal: controller.signal });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          if (data && data.success && data.apiKey) return { ep, data };
+          throw new Error(data && data.error ? data.error : 'no key');
+        } catch (err) {
+          if (err && err.name === 'AbortError') throw new Error(`${ep} timeout (5s)`);
+          throw err;
+        } finally {
+          clearTimeout(timer);
+        }
       };
       try {
         const first = await Promise.any(endpoints.map(tryEndpoint));
@@ -831,7 +1172,8 @@
         UI.avatarImage.style.opacity = '1';
       }, 200);
       popToast(`パートナー: ${char.name}`);
-      if (appState.isConnected && appState.isSessionReady) sendSetupUpdate('パートナー切替');
+      // v3.1: 声は setup に含まれるため、パートナー切替は再接続で新しい setup を送る。
+      if (appState.isConnected && appState.isSessionReady) reconnectLiveSession('パートナー切替');
     }
 
     function setEmotion(emoKey) {
@@ -844,7 +1186,7 @@
       updateEmotionMeters(emoKey);
       const names = { joy: 'よろこび', anger: 'おこり', sadness: 'かなしみ', fun: 'たのしさ' };
       popToast(`気分: ${names[emoKey]} (${appState.intensity}%)`);
-      if (appState.isConnected && appState.isSessionReady) sendSetupUpdate('気分設定');
+      if (appState.isConnected && appState.isSessionReady) updateConversationInstruction('気分設定');
     }
 
     function updateEmotionMeters(targetEmo) {
@@ -1055,9 +1397,6 @@
         const rms = Math.sqrt(sum / inputBuffer.length);
         const amplifiedRms = rms * appState.micGain;
 
-        // ノイズフロア（環境の暗騒音レベル）を緩やかに自動追従 (EMA)
-        appState.noiseFloor = appState.noiseFloor * 0.95 + rms * 0.05;
-
         const vuPercent = Math.min(100, Math.round(amplifiedRms * 350));
         UI.micVuFill.style.width = `${vuPercent}%`;
         const db = rms > 0 ? (20 * Math.log10(rms)).toFixed(1) : '-∞';
@@ -1073,6 +1412,12 @@
         } else {
           // normal
           threshold = Math.max(0.055, appState.noiseFloor * appState.micGain * 2.0);
+        }
+
+        // v3.1: ノイズフロア（環境の暗騒音レベル）のEMA更新は無音フレームのときだけ。
+        // 発話中に更新すると自分の声でしきい値が上がり続け、発話の後半を拾えなくなる（しきい値暴走）。
+        if (amplifiedRms <= threshold) {
+          appState.noiseFloor = appState.noiseFloor * 0.95 + rms * 0.05;
         }
 
         // AI発話中はスピーカーからの回り込み音を考慮してしきい値を1.5倍に引き上げ
@@ -1096,15 +1441,20 @@
             if (appState.isAiSpeaking && voiceSustainedFrames >= 2) {
               logMessage(`⚡ 人間の発話を検知して割り込み (RMS: ${amplifiedRms.toFixed(3)}, 閾値: ${threshold.toFixed(3)})`, 'warn');
               interruptAudio();
+              // v3.1: バージイン後、ユーザー発話が終わるまでAIの新規音声チャンクを再生キューに入れない。
+              // 解除はターン確定時（下の無音判定）で行う。
+              appState.suppressAiAudio = true;
             }
           }
         } else {
           voiceSustainedFrames = Math.max(0, voiceSustainedFrames - 1);
 
-          // v2.9: 発話完了自動コミット（無音 220ms でターン終了を送信。旧380ms）
+          // v3.1: 発話完了自動コミット（無音 600ms でターン終了を送信。v2.9: 220ms）
           if (appState.isUserSpeaking && performance.now() - appState.lastVoiceTimestamp > appState.silenceMs) {
             appState.isUserSpeaking = false;
             voiceSustainedFrames = 0;
+            // v3.1: ユーザー発話が終わったので、バージイン後のAI音声抑制を解除する。
+            appState.suppressAiAudio = false;
             setTelemetryStatus('transmitting', 'AIが考えています');
             logMessage(`⚡ 人間の発話完了を高速検知 (${appState.silenceMs}ms無音) -> 即時ターンコミット送信`, 'info');
 
@@ -1211,6 +1561,20 @@
         return;
       }
 
+      // v3.1: 連打による二重接続ガード。接続中は2回目以降の呼び出しを無視する。
+      if (appState.isConnecting) {
+        logMessage('接続処理中のため、開始の二重呼び出しを無視します', 'warn');
+        return;
+      }
+      if (appState.isConnected && appState.ws && appState.ws.readyState === WebSocket.OPEN) {
+        logMessage('すでに接続済みのため、開始の二重呼び出しを無視します', 'warn');
+        return;
+      }
+      appState.isConnecting = true;
+      // v3.1: 前回の意図的切断フラグが残っていると、新しい接続の onclose が誤って再接続を止めるため開始時に消す。
+      appState.expectClose = false;
+      // v3.1: 前セッションのバージイン抑制が残っていると、再接続直後のAI音声が捨てられるため消す。
+      appState.suppressAiAudio = false;
       if (!appState.apiKey) {
         const loaded = await initEnvConfig();
         if (!loaded || !appState.apiKey) {
@@ -1233,6 +1597,9 @@
         appState.isSessionReady = false;
 
         appState.ws.onopen = () => {
+          // v3.1: 接続確立でガードと再接続回数をリセットする。
+          appState.isConnecting = false;
+          appState.reconnectAttempts = 0;
           logMessage('WebSocket 接続確立！ setup 送信中...', 'success');
           appState.ws.send(JSON.stringify(buildSetupMessage()));
         };
@@ -1252,6 +1619,7 @@
         };
 
         appState.ws.onerror = (err) => {
+          appState.isConnecting = false;
           logMessage(`WebSocket 通信エラー (${err.message || '接続遮断'})`, 'error');
 
           if (appState.enableSmartFallback && !appState.isSessionReady) {
@@ -1264,8 +1632,38 @@
         };
 
         appState.ws.onclose = (e) => {
+          appState.isConnecting = false;
           logMessage(`WebSocket 切断 (コード: ${e.code}, 理由: ${e.reason || 'None'})`, 'warn');
-          if ((e.code === 1006 || e.code === 1008 || e.code === 1005) && appState.enableSmartFallback && !appState.isSessionReady) {
+          // v3.1: 意図的な切断（「会話を終える」・再接続のための切断）の場合は何もしない。
+          if (appState.expectClose) {
+            appState.expectClose = false;
+            return;
+          }
+          // v3.1: 1007 は setup 不正（設定エラー）。再接続しても同じエラーになるので再接続しない。
+          if (e.code === 1007) {
+            const msg = '設定エラーで切断されました（コード1007：setupが仕様外の可能性）。再接続しません。設定を確認してください。';
+            logMessage(msg, 'error');
+            popToast(msg, 'error');
+            setTelemetryStatus('standby', '設定エラー');
+            disconnectSession();
+            return;
+          }
+          // v3.1: 1006（異常切断）等は指数バックオフで自動再接続する（最大3回）。
+          // 従来は切断直後にRESTフォールバックへ逃げていたため、会話が途切れていた。
+          if (appState.reconnectAttempts < 3) {
+            const delayMs = Math.min(30000, 1000 * Math.pow(2, appState.reconnectAttempts));
+            appState.reconnectAttempts++;
+            logMessage(`🔄 自動再接続します（${appState.reconnectAttempts}回目、${delayMs}ms後）`, 'warn');
+            popToast(`接続が切れました。${delayMs / 1000}秒後に再接続します…`, 'warn');
+            setTelemetryStatus('transmitting', '再接続中…');
+            if (appState.reconnectTimer) clearTimeout(appState.reconnectTimer);
+            appState.reconnectTimer = setTimeout(() => {
+              appState.reconnectTimer = null;
+              if (!appState.expectClose) startLiveSession();
+            }, delayMs);
+            return;
+          }
+          if (appState.enableSmartFallback && !appState.isSessionReady) {
             logMessage('🔄 RESTフォールバック対話モードに自動切替して再開します', 'warn');
             popToast('REST対話モードに切り替えました。マイクで話しかけてください！', 'success');
             startSmartFallbackMode();
@@ -1275,6 +1673,7 @@
         };
 
       } catch (err) {
+        appState.isConnecting = false;
         logMessage(`セッション起動エラー: ${err.name} - ${err.message}`, 'error');
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
           popToast('マイクの使用許可がブロックされています。ブラウザの鍵アイコンから許可してください', 'error');
@@ -1286,8 +1685,36 @@
     }
 
     function handleServerMessage(data) {
+      // v3.1: サーバーからのエラー・切断予告・再開ハンドルを画面に出す。黙って切れないようにする。
+      if (data.error) {
+        const code = data.error.code || data.error.status || 'unknown';
+        const msg = data.error.message || 'サーバーエラー';
+        const text = `サーバーエラー（${code}）：${msg}`;
+        logMessage(text, 'error');
+        popToast(text, 'error');
+        setTelemetryStatus('standby', 'サーバーエラー');
+        return;
+      }
+      if (data.goAway) {
+        const left = data.goAway.timeLeft;
+        const text = left ? `サーバーが切断予告を送りました（残り ${left}）。まもなく再接続します。` : 'サーバーが切断予告を送りました。まもなく再接続します。';
+        logMessage(text, 'warn');
+        popToast(text, 'warn');
+        return;
+      }
+      if (data.sessionResumptionUpdate) {
+        const upd = data.sessionResumptionUpdate;
+        if (upd.newHandle) {
+          appState.sessionResumptionHandle = upd.newHandle;
+          logMessage(`セッション再開ハンドルを受け取りました（再開可: ${upd.resumable ? 'はい' : '不明'}）`, 'info');
+        }
+        return;
+      }
+
       if (data.setupComplete) {
         appState.isSessionReady = true;
+        // v3.1: setup完了で再接続回数をリセットする。
+        appState.reconnectAttempts = 0;
         setTelemetryStatus('ready', '話せます');
         popToast('会話の準備ができました', 'success');
         logMessage('接続が確立しました。音声で話しかけてください', 'success');
@@ -1296,6 +1723,8 @@
         UI.btnStop.style.display = 'inline-flex';
         UI.btnTalkDone.style.display = 'inline-flex';
         UI.btnPause.style.display = 'inline-flex';
+        // v3.2: セッションタイマーと WakeLock を開始する。
+        if (typeof onSessionStarted === 'function') onSessionStarted();
         return;
       }
 
@@ -1328,6 +1757,12 @@
     function enqueueAudio(base64Pcm24k) {
       if (!appState.audioCtx) return;
 
+      // v3.1: バージイン後、ユーザー発話が終わるまでAIの新規音声チャンクを再生キューに入れない。
+      // （割り込み直後に届いた遅延チャンクが、ユーザーの声に被って再生されるのを防ぐ）
+      if (appState.suppressAiAudio || appState.isUserSpeaking) {
+        appState.droppedChunks++;
+        return;
+      }
       // v2.9 遅延計測：発話終了→AI初回音声
       if (appState.latency.turnCommittedAt && !appState.latency.firstAudioAt) {
         appState.latency.firstAudioAt = performance.now();
@@ -1419,6 +1854,18 @@
         appState.nextStartTime = appState.audioCtx.currentTime;
       }
       appState.isAiSpeaking = false;
+      // v3.1: バージイン中はAIの新規音声を再生キューに入れない（解除はターン確定時）。
+      appState.suppressAiAudio = true;
+      // v3.1: ローカル停止に加え、サーバーへ生成中断を送る。
+      // activityStart は「ユーザーが話し始めた」合図で、サーバー側がモデル生成を止める。
+      if (appState.ws && appState.ws.readyState === WebSocket.OPEN && appState.isSessionReady) {
+        try {
+          appState.ws.send(JSON.stringify({ realtimeInput: { activityStart: {} } }));
+          logMessage('サーバーへ生成中断を送信（activityStart）', 'info');
+        } catch (err) {
+          logMessage(`生成中断の送信に失敗: ${err.message}`, 'warn');
+        }
+      }
       popToast('割り込みました (発話を中断)', 'info');
       logMessage('オーディオ再生キューを強制クリア (割り込み)', 'info');
     }
@@ -1435,6 +1882,8 @@
       popToast('AIに応答をリクエストしました');
 
       // v2.9: ダミーのユーザー発言を送らない。turnComplete だけを送る。
+      // v3.1: 手動ターン確定でも、バージイン後のAI音声抑制を解除する。
+      appState.suppressAiAudio = false;
       appState.latency.turnCommittedAt = performance.now();
       appState.latency.firstAudioAt = 0;
       appState.latency.firstPlaybackAt = 0;
@@ -1448,6 +1897,8 @@
 
     function sendTextPrompt(text) {
       if (!text.trim()) return;
+      // v3.1: 文字で話しかけるときは、バージイン後のAI音声抑制を解除する。
+      appState.suppressAiAudio = false;
       appendChat('user', text);
       UI.textChatInput.value = '';
 
@@ -1471,55 +1922,104 @@
       }
     }
 
-    // v2.9: Live API の setup メッセージを組み立てる（音声・感情・システム指示）。
-    // キャラ／感情の変更はこの setup の送り直しで行い、user ロールのターンとしては送らない
-    // （従来は指示文を role:user で送って会話履歴を汚染していた）。
-    function buildSetupMessage() {
+    // v3.1: Live API の setup メッセージを組み立てる（音声・感情・システム指示）。
+    // setup はセッション開始時に1回だけ送るもの。2回目の setup 送信は仕様外で
+    // サーバーが接続を切る（1007）原因になるため、キャラ／感情の変更では再送しない。
+    function buildSystemInstructionText() {
       const char = appState.characters[appState.selectedChar];
       const emoNames = { joy: '喜び', anger: '怒り', sadness: '悲しみ', fun: '楽しさ' };
-      return {
-        setup: {
-          model: LIVE_MODEL_NAME,
-          generationConfig: {
-            // v2.9: TEXT も返すことで、音声のみ応答でも会話ログに残るようにする
-            responseModalities: ['AUDIO', 'TEXT'],
-            speechConfig: {
-              voiceConfig: {
-                prebuiltVoiceConfig: {
-                  voiceName: char.voice
-                }
-              }
-            }
-          },
-          // v2.9: サーバー側VADを明示（無音200msでターン終了とみなす）
-          realtimeInputConfig: {
-            automaticActivityDetection: {
-              disabled: false,
-              startOfSpeechSensitivity: 'START_OF_SPEECH_SENSITIVITY_HIGH',
-              endOfSpeechSensitivity: 'END_OF_SPEECH_SENSITIVITY_HIGH',
-              prefixPaddingMs: 20,
-              silenceDurationMs: 200
-            }
-          },
-          systemInstruction: {
-            parts: [
-              {
-                text: `${char.systemPrompt}\n【現在の感情設定】: ${emoNames[appState.emotion]} (強度: ${appState.intensity}%)\nユーザーの発話に対して、1〜2文で短くテンポよく生き生きと日本語で返答してください。`
-              }
-            ]
-          }
-        }
-      };
+      return `${char.systemPrompt}\n【現在の感情設定】: ${emoNames[appState.emotion]} (強度: ${appState.intensity}%)\nユーザーの発話に対して、1〜2文で短くテンポよく生き生きと日本語で返答してください。`;
     }
 
-    function sendSetupUpdate(reason) {
-      if (!appState.ws || appState.ws.readyState !== WebSocket.OPEN) return;
-      try {
-        appState.ws.send(JSON.stringify(buildSetupMessage()));
-        logMessage(`設定更新を送信 (${reason})`, 'info');
-      } catch (err) {
-        logMessage(`設定更新の送信に失敗 (${reason}): ${err.message}`, 'warn');
+    function buildSetupMessage() {
+      const char = appState.characters[appState.selectedChar];
+      const setup = {
+        model: LIVE_MODEL_NAME,
+        generationConfig: {
+          // v3.1: responseModalities は1つだけ指定できる。音声のみ（'AUDIO'）にする。
+          // 従来の ['AUDIO', 'TEXT'] は仕様外で setup が拒否される原因だった。
+          // 文字起こしは input/outputAudioTranscription で受ける。
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: char.voice
+              }
+            }
+          }
+        },
+        // v3.1: 音声の文字起こしを有効化（言語は日本語を明示）。
+        inputAudioTranscription: { languageCode: 'ja-JP' },
+        outputAudioTranscription: { languageCode: 'ja-JP' },
+        // v3.1: サーバー側VADを明示（無音500msでターン終了とみなす）。
+        // クライアント側 silenceMs 600ms と二重で切らないよう、サーバー側は500msに統一。
+        realtimeInputConfig: {
+          automaticActivityDetection: {
+            disabled: false,
+            startOfSpeechSensitivity: 'START_SENSITIVITY_HIGH',
+            endOfSpeechSensitivity: 'END_SENSITIVITY_HIGH',
+            prefixPaddingMs: 20,
+            silenceDurationMs: 500
+          }
+        },
+        systemInstruction: {
+          parts: [
+            {
+              text: buildSystemInstructionText()
+            }
+          ]
+        }
+      };
+      // v3.1: セッション再開ハンドルがある場合は setup に入れる。
+      if (appState.sessionResumptionHandle) {
+        setup.sessionResumption = { handle: appState.sessionResumptionHandle };
+      } else {
+        setup.sessionResumption = {};
       }
+      return { setup };
+    }
+
+    // v3.1: setup の再送はしない。代わりに clientContent でシステム指示の更新を送る。
+    // （setup は1回限り。2回送るとサーバーが 1007 で切断する）
+    function updateConversationInstruction(reason) {
+      if (!appState.ws || appState.ws.readyState !== WebSocket.OPEN || !appState.isSessionReady) return;
+      try {
+        appState.ws.send(JSON.stringify({
+          clientContent: {
+            turns: [
+              {
+                role: 'user',
+                parts: [{ text: `【システム指示の更新】${buildSystemInstructionText()}` }]
+              }
+            ],
+            turnComplete: true
+          }
+        }));
+        logMessage(`システム指示の更新を送信 (${reason})`, 'info');
+      } catch (err) {
+        logMessage(`システム指示の更新送信に失敗 (${reason}): ${err.message}`, 'warn');
+      }
+    }
+
+    // v3.1: パートナー（声）の変更は setup に含まれるため、clientContent では変えられない。
+    // 接続中は一度切断して再接続し、新しい setup で開始し直す。
+    async function reconnectLiveSession(reason) {
+      if (appState.isConnecting) return;
+      // v3.2: 再接続のための切断ではセッション要約を出さない。
+      appState._internalReconnect = true;
+      logMessage(`パートナー切替のため再接続します (${reason})`, 'info');
+      popToast('パートナーを切り替えるため、再接続します…', 'info');
+      disconnectSession();
+      // disconnectSession が立てた expectClose フラグは、開始時に startLiveSession が消す。
+      appState._internalReconnect = false;
+      await startLiveSession();
+    }
+
+    // 旧 sendSetupUpdate は廃止。setup再送は仕様外のため、呼び出し側は
+    // updateConversationInstruction（感情・強さ）か reconnectLiveSession（パートナー）を使うこと。
+    function sendSetupUpdate(reason) {
+      logMessage(`設定更新は setup再送ではなく clientContent で送ります (${reason})`, 'info');
+      updateConversationInstruction(reason);
     }
 
     // v2.9: AIのテキスト応答を1つの吹き出しに蓄積し、会話ログに残す
@@ -1549,6 +2049,8 @@
       appState.aiTextAccum += text;
       appState.aiTextBubbleBody.textContent = appState.aiTextAccum;
       UI.chatView.scrollTop = UI.chatView.scrollHeight;
+      // v3.2: ライブ字幕にAIの最新発話を流す（既存の蓄積テキストをそのまま使う）。
+      if (typeof updateLiveSubtitle === 'function') updateLiveSubtitle(appState.aiTextAccum);
     }
 
     function finalizeAiText() {
@@ -1567,6 +2069,12 @@
     }
 
     function disconnectSession() {
+      // v3.1: 意図的な切断であることを onclose に伝え、自動再接続させない。
+      // ただし再接続のための切断では、呼び出し元が expectClose を false に戻してから開始する。
+      appState.expectClose = true;
+      appState.isConnecting = false;
+      appState.suppressAiAudio = false;
+      if (appState.reconnectTimer) { clearTimeout(appState.reconnectTimer); appState.reconnectTimer = null; }
       finalizeAiText();
       if (speechRecognition) {
         try { speechRecognition.stop(); } catch (e) {}
@@ -1618,11 +2126,15 @@
       UI.btnPause.style.display = 'none';
       setTelemetryStatus('standby', '待機中');
       logMessage('セッション終了', 'info');
+      // v3.2: WakeLock解除とセッション要約（意図的な終了時のみ。内部再接続では出さない）。
+      if (typeof onSessionEnded === 'function') onSessionEnded();
     }
 
     function setTelemetryStatus(type, label) {
       UI.statIndicator.className = `status-indicator ${type}`;
       UI.statLabel.textContent = label;
+      // v3.2: ヒーローの状態ピル（聞いています／考えています／話しています）と1画面表示を同期する。
+      if (typeof syncHeroState === 'function') syncHeroState(label);
     }
 
     let speechRecognition = null;
@@ -1634,6 +2146,7 @@
       UI.btnTalkDone.style.display = 'inline-flex';
       UI.btnPause.style.display = 'inline-flex';
       setTelemetryStatus('ready', '予備の方式で接続中');
+      if (typeof onSessionStarted === 'function') onSessionStarted();
       popToast('REST音声対話モードで接続しました！マイクで話しかけてください', 'success');
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1698,6 +2211,7 @@
       UI.btnTalkDone.style.display = 'inline-flex';
       UI.btnPause.style.display = 'inline-flex';
       setTelemetryStatus('ready', 'お試しモード');
+      if (typeof onSessionStarted === 'function') onSessionStarted();
       popToast('テスト体験モードを開始しました！', 'success');
 
       const char = appState.characters[appState.selectedChar];
@@ -1750,6 +2264,8 @@
       `;
       UI.chatView.appendChild(div);
       UI.chatView.scrollTop = UI.chatView.scrollHeight;
+      // v3.2: 予備方式（REST／お試し）でも字幕に最新発話を出す。
+      if (role === 'ai' && typeof updateLiveSubtitle === 'function') updateLiveSubtitle(text);
     }
 
     function escapeHtml(s) {
@@ -1772,7 +2288,7 @@
       updateEmotionMeters(appState.emotion);
     });
     UI.intensitySlider.addEventListener('change', () => {
-      if (appState.isConnected && appState.isSessionReady) sendSetupUpdate('感情強度');
+      if (appState.isConnected && appState.isSessionReady) updateConversationInstruction('感情強度');
     });
 
     UI.gainSlider.addEventListener('input', (e) => {
@@ -1833,11 +2349,12 @@
     UI.btnPause.addEventListener('click', () => {
       appState.isPaused = !appState.isPaused;
       if (appState.isPaused) {
-        UI.btnPause.textContent = '再開する';
+        // v3.2: ドックのアイコンを消さないよう、ラベル部分だけを書き換える。
+        { const lbl = UI.btnPause.querySelector('.dock-label'); if (lbl) lbl.textContent = '再開する'; else UI.btnPause.textContent = '再開する'; }
         setTelemetryStatus('standby', '一時停止中');
         popToast('対話を一時停止しました');
       } else {
-        UI.btnPause.textContent = '一時停止';
+        { const lbl = UI.btnPause.querySelector('.dock-label'); if (lbl) lbl.textContent = '一時停止'; else UI.btnPause.textContent = '一時停止'; }
         setTelemetryStatus('ready', '話せます');
         popToast('対話を再開しました');
       }
@@ -1911,7 +2428,7 @@
       appState.enableNoiseFilter = UI.cfgNoiseFilter.checked;
       appState.bargeInSensitivity = UI.cfgBargeInSens.value;
       
-      const sensLabel = { strict: '生活音ガード (推奨)', normal: '標準', sensitive: '高感度' }[appState.bargeInSensitivity];
+      const sensLabel = { strict: '生活音ガード', normal: '標準（既定）', sensitive: '高感度' }[appState.bargeInSensitivity];
       logMessage(`設定更新: ノイズフィルター [${appState.enableNoiseFilter ? 'ON' : 'OFF'}], 割り込み感度 [${sensLabel}]`, 'info');
 
       UI.settingsModal.style.display = 'none';
@@ -1919,12 +2436,159 @@
     });
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.0 を起動しました', 'info');
+      logMessage('AIボイス v3.2 を起動しました', 'info');
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
       await initEnvConfig();
       await fetchAudioDevices();
     });
+
+    // ===== v3.2 スマホ没入 UI配線（追加分。会話エンジンは無変更） =====
+    // 字幕・状態ピル・シート開閉・セッションタイマー・WakeLock・触覚・要約。
+    // 音声処理は新規に作らず、既存の aiTextAccum / history / latency を使う。
+
+    function updateLiveSubtitle(text) {
+      const el = document.getElementById('live-subtitle');
+      if (!el || !text) return;
+      const t = String(text).trim();
+      if (t) el.textContent = t;
+    }
+
+    function syncHeroState(label) {
+      const vp = UI.stageViewport;
+      if (!vp) return;
+      const lbl = label || (UI.statLabel ? UI.statLabel.textContent : '') || '';
+      let state = 'idle';
+      let pill = '待機中';
+      if (appState.isAiSpeaking || lbl.indexOf('AIが話しています') !== -1 || lbl === 'AI SPEAKING') {
+        state = 'speaking'; pill = '話しています';
+      } else if (lbl.indexOf('考え') !== -1 || lbl.indexOf('準備しています') !== -1 || lbl.indexOf('再接続中') !== -1 || lbl.indexOf('送信中') !== -1) {
+        state = 'thinking'; pill = '考えています';
+      } else if (appState.isUserSpeaking) {
+        state = 'listening'; pill = '聞いています';
+      } else if (appState.isConnected && appState.isSessionReady) {
+        state = 'listening'; pill = '聞いています';
+      } else if (lbl && lbl !== '待機中') {
+        pill = lbl;
+      }
+      vp.setAttribute('data-hero-state', state);
+      if (UI.stageState) UI.stageState.textContent = pill;
+      document.body.classList.toggle('in-session', !!(appState.isConnected || appState.isSessionReady));
+    }
+
+    // --- セッションタイマー・要約 ---
+    let sessionTimerId = null;
+    function formatElapsed(ms) {
+      const sec = Math.max(0, Math.floor(ms / 1000));
+      const m = Math.floor(sec / 60);
+      const s2 = sec % 60;
+      return String(m).padStart(2, '0') + ':' + String(s2).padStart(2, '0');
+    }
+    function tickSessionTimer() {
+      const el = document.getElementById('session-elapsed');
+      if (!el || !appState._sessionStartedAt) return;
+      el.textContent = formatElapsed(Date.now() - appState._sessionStartedAt);
+    }
+    function onSessionStarted() {
+      if (!appState._sessionStartedAt) appState._sessionStartedAt = Date.now();
+      tickSessionTimer();
+      if (!sessionTimerId) sessionTimerId = setInterval(tickSessionTimer, 1000);
+      requestWakeLock();
+      syncHeroState(UI.statLabel ? UI.statLabel.textContent : '');
+    }
+    function onSessionEnded() {
+      releaseWakeLock();
+      if (sessionTimerId) { clearInterval(sessionTimerId); sessionTimerId = null; }
+      const startedAt = appState._sessionStartedAt;
+      appState._sessionStartedAt = null;
+      const elapsedEl = document.getElementById('session-elapsed');
+      if (elapsedEl) elapsedEl.textContent = '00:00';
+      syncHeroState('待機中');
+      // パートナー切替などの内部再接続では要約を出さない。短すぎる接続失敗でも出さない。
+      if (appState._internalReconnect || !startedAt) return;
+      const durMs = Date.now() - startedAt;
+      if (durMs < 3000) return;
+      const dEl = document.getElementById('summary-duration');
+      const tEl = document.getElementById('summary-turns');
+      const aEl = document.getElementById('summary-avg');
+      if (dEl) dEl.textContent = formatElapsed(durMs);
+      if (tEl) tEl.textContent = String(appState.history ? appState.history.length : 0);
+      if (aEl) {
+        const samples = (appState.latency && appState.latency.samples) || [];
+        aEl.textContent = samples.length
+          ? Math.round(samples.reduce((a, b) => a + b, 0) / samples.length) + 'ms'
+          : '—';
+      }
+      openSheet('sheet-summary');
+    }
+
+    // --- WakeLock（会話中は画面を消さない） ---
+    let wakeLockSentinel = null;
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator && !wakeLockSentinel) {
+          wakeLockSentinel = await navigator.wakeLock.request('screen');
+          wakeLockSentinel.addEventListener('release', () => { wakeLockSentinel = null; });
+        }
+      } catch (e) { /* 非対応・拒否時は無視（会話自体は継続） */ }
+    }
+    function releaseWakeLock() {
+      try { if (wakeLockSentinel) { wakeLockSentinel.release(); wakeLockSentinel = null; } } catch (e) {}
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && (appState.isConnected || appState.isSessionReady)) requestWakeLock();
+    });
+
+    // --- 触覚フィードバック（開始・終了・割り込みで短く） ---
+    function haptic(ms) {
+      try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
+    }
+    UI.btnStart.addEventListener('click', () => haptic(15));
+    UI.btnStop.addEventListener('click', () => haptic(15));
+    UI.btnInterrupt.addEventListener('click', () => haptic(10));
+
+    // --- ボトムシート開閉 ---
+    function openSheet(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('open');
+      if (id === 'sheet-chat' && UI.chatView) {
+        requestAnimationFrame(() => { UI.chatView.scrollTop = UI.chatView.scrollHeight; });
+      }
+    }
+    function closeSheet(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('open');
+    }
+    function closeAllSheets() {
+      ['sheet-chat', 'sheet-voice', 'sheet-plan', 'sheet-summary'].forEach(closeSheet);
+    }
+    const btnOpenChat = document.getElementById('btn-open-chat');
+    if (btnOpenChat) btnOpenChat.addEventListener('click', () => openSheet('sheet-chat'));
+    const btnCloseChat = document.getElementById('btn-close-chat');
+    if (btnCloseChat) btnCloseChat.addEventListener('click', () => closeSheet('sheet-chat'));
+    const btnOpenVoice = document.getElementById('btn-open-voice');
+    if (btnOpenVoice) btnOpenVoice.addEventListener('click', () => openSheet('sheet-voice'));
+    const btnCloseVoice = document.getElementById('btn-close-voice');
+    if (btnCloseVoice) btnCloseVoice.addEventListener('click', () => closeSheet('sheet-voice'));
+    const btnOpenPlan = document.getElementById('btn-open-plan');
+    if (btnOpenPlan) btnOpenPlan.addEventListener('click', () => openSheet('sheet-plan'));
+    const btnClosePlan = document.getElementById('btn-close-plan');
+    if (btnClosePlan) btnClosePlan.addEventListener('click', () => closeSheet('sheet-plan'));
+    const btnCloseSummary = document.getElementById('btn-close-summary');
+    if (btnCloseSummary) btnCloseSummary.addEventListener('click', () => closeSheet('sheet-summary'));
+    ['sheet-chat', 'sheet-voice', 'sheet-plan', 'sheet-summary'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('click', (e) => { if (e.target === el) closeSheet(id); });
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAllSheets();
+        if (UI.settingsModal) UI.settingsModal.style.display = 'none';
+      }
+    });
+    // 字幕の初期同期（ヒーロー状態）
+    syncHeroState('待機中');
   </script>
 </body>
 </html>
