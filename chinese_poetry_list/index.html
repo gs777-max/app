@@ -2,8 +2,14 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>爛柯の盤 — 囲碁漢詩と宇宙観のギャラリー</title>
+<meta name="description" content="囲碁を詠んだ漢詩498首のギャラリー。解説付き35首には書き下し・現代語訳・解説つき。碁盤と宇宙観、クイズ、作詩工房も楽しめる『爛柯の盤』。">
+<meta property="og:title" content="爛柯の盤 — 囲碁漢詩と宇宙観のギャラリー">
+<meta property="og:description" content="黒白の石に、千年の詩を聴く。囲碁漢詩498首、解説付き35首は書き下し・現代語訳・解説つき。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#f2ecdd">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Shippori+Mincho:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -92,6 +98,45 @@ mark{background:#f0d48a;color:var(--ink);padding:0 1px}
 .edok{color:#2f6b3a;font-size:.85rem}.edng{color:var(--red);font-size:.85rem}
 .mbox .btn.on,.btn.on{background:var(--ink);color:var(--paper2)}
 @media(max-width:640px){.hero img{width:100%;opacity:.3}.hero .in{padding:34px 0 30px}.tab{padding:8px 10px;font-size:.88rem}.tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}.tab{white-space:nowrap}.btn{padding:8px 11px}.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}.card{min-height:232px;padding:14px}.mbox{padding:22px 18px}}
+
+/* ===== Step E: モバイルUX・没入感 ===== */
+.hero{background-image:linear-gradient(180deg,#f7f2e4,#f0e9d6),repeating-linear-gradient(0deg,transparent,transparent 35px,#211f1a0d 35px,#211f1a0d 36px),repeating-linear-gradient(90deg,transparent,transparent 35px,#211f1a0d 35px,#211f1a0d 36px)}
+.card{animation:fd .45s both}
+.card:nth-child(2){animation-delay:.04s}.card:nth-child(3){animation-delay:.08s}.card:nth-child(4){animation-delay:.12s}.card:nth-child(5){animation-delay:.16s}.card:nth-child(6){animation-delay:.2s}.card:nth-child(7){animation-delay:.24s}.card:nth-child(8){animation-delay:.28s}
+.daily{position:relative;background:var(--card);border:1px solid var(--line);border-top:3px solid var(--red);border-radius:4px;padding:20px 22px;margin:18px 0 6px;cursor:pointer;box-shadow:0 1px 2px #211f1a0d,0 12px 28px #211f1a12;overflow:hidden}
+.daily .dl{display:inline-block;background:var(--red);color:#fff;font-size:.85rem;font-weight:700;letter-spacing:.14em;padding:3px 12px;border-radius:2px;margin-bottom:10px}
+.daily h3{font-size:1.35rem;letter-spacing:.05em;line-height:1.5}
+.daily .au{font-size:.92rem;color:var(--mute);margin:2px 0 8px}
+.daily .dp{font-size:1.18rem;line-height:2;color:#2c2a24}
+.daily .note{margin-top:8px}
+.themes{margin:14px 0 4px}
+.thh{font-size:1.05rem;letter-spacing:.1em;border-left:3px solid var(--red);padding-left:9px;margin-bottom:4px}
+.thchip{font-size:.95rem;padding:8px 14px;min-height:40px}
+.mbox p{font-size:1.02rem}
+@media(max-width:900px){.grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}}
+@media(max-width:640px){
+body{font-size:17px}
+.grid{grid-template-columns:1fr;gap:14px}
+.card{min-height:0;padding:18px}
+.card h3{font-size:1.2rem}
+.card .au{font-size:.92rem}
+.pv{height:auto;font-size:1.12rem;line-height:2.05}
+.btn{min-height:44px;padding:10px 14px}
+.tab{min-height:44px;display:inline-flex;align-items:center}
+.chip{min-height:40px;display:inline-flex;align-items:center}
+input,select{font-size:16px;min-height:44px}
+#q{flex:1 1 150px}
+.modal{padding:0}
+.mbox{border:0;border-radius:0;min-height:100%;padding:26px 20px calc(30px + env(safe-area-inset-bottom))}
+.mbox h2{font-size:1.45rem;padding-right:52px}
+.mbox p{font-size:1.06rem;line-height:2.05}
+.mbox .x{width:48px;height:48px;font-size:1.9rem;background:var(--paper2);border:1px solid var(--line2);border-radius:50%;right:12px;top:12px;line-height:1}
+.note{font-size:.94rem}
+#toast{bottom:calc(70px + env(safe-area-inset-bottom))}
+.totop{bottom:calc(16px + env(safe-area-inset-bottom))}
+.daily{padding:18px}
+.daily .dp{font-size:1.12rem}
+}
 </style>
 </head>
 <body>
@@ -116,6 +161,8 @@ mark{background:#f0d48a;color:var(--ink);padding:0 1px}
 </div>
 <div class="bar" id="layerbar"><button class="btn on" id="layermain">正規コレクション（解説付き）</button><button class="btn" id="layershiryo">資料編（原文のみ）</button><span id="layernote" style="font-size:.85rem;color:#6b6458">書き下し・現代語訳・解説のある首だけを表示しています</span></div>
 <div class="bar">飛花令の候補：<span id="hkc"></span></div>
+<div id="daily"></div>
+<div class="themes"><h3 class="thh">特集で読む</h3><div class="bar" id="themes" style="margin:6px 0"></div></div>
 <div id="stat" style="color:#6b6458;font-size:.85rem"></div>
 <div class="grid" id="grid"></div>
 </section>
@@ -288,13 +335,13 @@ const TAGS={'b58':'囲碁以外の遊戯（彈棋）の詩','b71':'囲碁以外�
 const GORE=/[棋碁弈枰柯]/;
 const autoNote=p=>(p.id&&p.id[0]==='b'&&(p.era||'').includes('唐詩')&&p.lines.length%2===1)?'底本未確認：句数が通常の詩型（偶数句）と異なるため、欠句の可能性があります。原典照合が済むまで、補わずに収録しています。':'';
 const noteHTML=p=>[NOTES[p.id]||'',autoNote(p)].filter(Boolean).map(n=>`<br><span style="color:#b8322a">${esc(n)}</span>`).join('');
-const tagHTML=p=>TAGS[p.id]?`<div style="font-size:.78rem;color:#b8322a;margin-top:4px">${esc(TAGS[p.id])}</div>`:'';
+const tagHTML=p=>TAGS[p.id]?`<div style="font-size:.88rem;color:#b8322a;margin-top:4px">${esc(TAGS[p.id])}</div>`:'';
 const goLine=p=>{if(p.kundoku&&p.kundoku.length)return'';if(!p.lines||p.lines.length<=4)return'';const ix=p.lines.findIndex(l=>GORE.test(l));if(ix<4)return'';return`<div style="font-size:.8rem;color:#6b6458;margin-top:4px">碁の句：「${esc(p.lines[ix])}」</div>`};
 function sourceOf(p){if(!p.id)return'底本未確認';if(p.id[0]==='x')return'外部API（詩泉）';if(p.id[0]==='b')return(p.era||'').includes('詞')?'『全宋詞』系の公開データ（底本・巻は未確認）':'『全唐詩』系の公開データ（底本・巻は未確認）';return'底本未確認'}
 
 function renderGrid(list,ch){shown=list;lastCh=ch;let L=list.filter(inLayer);if(favOnly)L=L.filter(p=>favs.includes(p.id));if(comOnly)L=L.filter(p=>p.kundoku.length);if(eraSel)L=L.filter(p=>(p.era||'').includes(eraSel));if(formSel)L=L.filter(p=>formOf(p)===formSel);filteredList=L;updStat();const tot=L.length;L=L.slice(0,lim);
 $('#grid').innerHTML=L.length?L.map(p=>`<div class="card" onclick="openPoem('${p.id}')"><h3>${esc(p.title)}</h3><div class="au">${esc(p.au)}　${esc(p.era||'')}</div>
-<div class="pv ${vert?'v':''}">${p.lines.slice(0,vert?4:3).map(l=>`<div>${hl(l,ch)}</div>`).join('')}</div>${p.kundoku.length?`<span class="seal">${p.ai?'AI解':'解説'}</span>`:'<div style="font-size:.78rem;color:#b8322a;margin-top:4px">資料編：原文のみ・解説未整備</div>'}${tagHTML(p)}${goLine(p)}${favs.includes(p.id)?'<span style="position:absolute;right:10px;top:6px;color:#c93a2b">★</span>':''}</div>`).join('')+(tot>lim?`<div style="grid-column:1/-1;text-align:center"><button class="btn" onclick="lim+=60;renderGrid(shown,lastCh)">もっと見る（${lim}/${tot}首）</button></div>`:''):'<p>該当する詩がありません。</p>'}
+<div class="pv ${vert?'v':''}">${p.lines.slice(0,vert?4:3).map(l=>`<div>${hl(l,ch)}</div>`).join('')}</div>${p.kundoku.length?`<span class="seal">${p.ai?'AI解':'解説'}</span>`:'<div style="font-size:.88rem;color:#b8322a;margin-top:4px">資料編：原文のみ・解説未整備</div>'}${tagHTML(p)}${goLine(p)}${favs.includes(p.id)?'<span style="position:absolute;right:10px;top:6px;color:#c93a2b">★</span>':''}</div>`).join('')+(tot>lim?`<div style="grid-column:1/-1;text-align:center"><button class="btn" onclick="lim+=60;renderGrid(shown,lastCh)">もっと見る（${lim}/${tot}首）</button></div>`:''):'<p>該当する詩がありません。</p>'}
 function localSearch(q){q=q.trim();if(!q)return POEMS.slice();const nq=norm(q);return POEMS.filter(p=>norm(p.title+p.au+p.lines.join('')+p.kundoku.join('')+p.terms.join('')+p.kai).includes(nq))}
 async function extSearch(q){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),3000);
 try{const r=await fetch('https://poetry.palemoky.com/api/v1/poems/search?q='+encodeURIComponent(q),{signal:ac.signal});if(!r.ok)throw 0;const d=await r.json();
@@ -333,12 +380,12 @@ function openPoem(id){cur=find(id);if(!cur)return;drawModal();$('#modal').classL
 function drawModal0(){const p=cur,f=favs.includes(p.id);
 $('#mb').innerHTML=`<button class="x" onclick="$('#modal').classList.remove('on')">×</button>
 <h2>${esc(p.title)} <span class="seal" style="width:24px;height:38px">${esc(p.au.slice(0,2))}</span></h2><div style="color:#6b6458">${esc(p.au)}　${esc(p.era||'')}</div><div style="color:#6b6458;font-size:.85rem">出典：${esc(sourceOf(p))}</div>
-${p.ai?'<div class="note">※ 書き下し・現代語訳・解説はAIが生成したものです。内容は参考とし、原典でご確認ください。</div>':''}<div class="fl" style="margin:8px 0"><button class="btn" onclick="mvert=!mvert;drawModal()">縦/横切替</button><button class="btn" onclick="togFav('${p.id}')">${f?'★ 解除':'☆ お気に入り'}</button><button class="btn" onclick="openCard(cur)">書画カード作成</button><button class="btn" onclick="aiPrompt()">AI訳プロンプト</button><button class="btn" onclick="navPoem(-1)">← 前</button><button class="btn" onclick="navPoem(1)">次 →</button>${structOf(p.lines.length)?`<button class="btn ${study?'on':''}" onclick="study=!study;drawModal()">構成・押韻</button>`:''}${'speechSynthesis' in window?`<button class="btn" onclick="say('ja')">🔊 訓読を聴く</button><button class="btn" onclick="say('zh')">🔊 原文を聴く</button><button class="btn" onclick="speechSynthesis.cancel()">■ 停止</button>`:''}${SMP&&(!p.kundoku.length||p.ai)?`<button class="btn red" onclick="genAI()">${p.ai?'AI解説を再生成':'AIで解説を生成'}</button>`:''}</div><div id="aist" class="note"></div>
+${p.ai?'<div class="note">※ 書き下し・現代語訳・解説はAIが生成したものです。内容は参考とし、原典でご確認ください。</div>':''}<div class="fl" style="margin:8px 0"><button class="btn" onclick="mvert=!mvert;drawModal()">縦/横切替</button><button class="btn" onclick="togFav('${p.id}')">${f?'★ 解除':'☆ お気に入り'}</button><button class="btn" onclick="openCard(cur)">書画カード作成</button><button class="btn" onclick="aiPrompt()">AI訳プロンプト</button><button class="btn" onclick="sharePoem()">共有</button><button class="btn" onclick="navPoem(-1)">← 前</button><button class="btn" onclick="navPoem(1)">次 →</button>${structOf(p.lines.length)?`<button class="btn ${study?'on':''}" onclick="study=!study;drawModal()">構成・押韻</button>`:''}${'speechSynthesis' in window?`<button class="btn" onclick="say('ja')">🔊 訓読を聴く</button><button class="btn" onclick="say('zh')">🔊 原文を聴く</button><button class="btn" onclick="speechSynthesis.cancel()">■ 停止</button>`:''}${SMP&&(!p.kundoku.length||p.ai)?`<button class="btn red" onclick="genAI()">${p.ai?'AI解説を再生成':'AIで解説を生成'}</button>`:''}</div><div id="aist" class="note"></div>
 <h4>① 原文${study&&structOf(p.lines.length)?' <span class="note">（朱●＝押韻字／○＝第1句末は踏む場合あり）</span>':''}${p.id&&p.id[0]==='b'?'<span class="note">（薄紅色＝碁に触れた句）</span>':''}</h4><div class="vbox"><div class="${mvert?'v':''}" style="${mvert?'font-size:1.5rem;line-height:2.2;letter-spacing:.12em;max-height:400px':'font-size:1.2rem;line-height:2'}">${origHTML(p)}</div></div>
 <h4>② 書き下し文</h4>${p.kundoku.length?p.kundoku.map((l,i)=>`<p data-i="${i}">${esc(l)}</p>`).join(''):'<p class="note">この詩は原文のみ収録です。「AIで解説を生成」（公開ページ）か、「AI訳プロンプト」をAIに貼って、書き下し・現代語訳・解説を得られます。</p>'}
 <h4>③ 現代語訳</h4><p>${esc(p.gendai)||'（未収録）'}</p>
 <h4>④ 背景・鑑賞</h4><p>${esc(p.kai)}${noteHTML(p)}</p>
-<h4>⑤ 囲碁用語・宇宙観タグ</h4>${p.terms.length?p.terms.map(t=>`<span class="chip" onclick="openTerm('${t}')">${rb(t,TM[t].r)}</span>`).join(''):'—'}`}
+${AUTHORS[p.au]?`<h4>作者について</h4><p>${esc(AUTHORS[p.au]).replace(/\n/g,'<br>')}</p>`:''}<h4>この詩をもっと読む</h4><p class="note">原典・訳注にあたるための外部検索へのリンクです。</p><div class="fl"><a class="btn" target="_blank" rel="noopener" href="https://ndlsearch.ndl.go.jp/search?cs=bib&q=${encodeURIComponent(p.title+' '+p.au)}">国立国会図書館で探す</a><a class="btn" target="_blank" rel="noopener" href="https://www.google.com/search?tbm=bks&q=${encodeURIComponent(p.title+' '+p.au+' 漢詩')}">Googleブックスで探す</a><button class="btn" onclick="$('#modal').classList.remove('on')">閉じる</button></div><h4>⑤ 囲碁用語・宇宙観タグ</h4>${p.terms.length?p.terms.map(t=>`<span class="chip" onclick="openTerm('${t}')">${rb(t,TM[t].r)}</span>`).join(''):'—'}`}
 const AIK='rk_ai';let AIC=ST.g(AIK,{});
 const pkey=p=>p.title+'|'+p.au+'|'+p.lines[0];
 function setAI(p,c){p.kundoku=(c.kundoku||[]).map(String);p.gendai=String(c.gendai||'');p.kai=String(c.kai||p.kai||'');p.terms=(c.terms||[]).filter(t=>TM[t]);p.ai=1}
@@ -619,6 +666,26 @@ const tt=document.createElement('button');tt.className='btn totop';tt.textConten
 addEventListener('scroll',()=>tt.classList.toggle('on',scrollY>500));
 POEMS.forEach(p=>{const c=AIC[pkey(p)];if(c&&!p.kundoku.length)setAI(p,c)});
 dexUpd();syncLayerUI();renderGrid(POEMS);$('#stat').textContent=layerMsg();
+
+/* ===== Step E: 作者紹介・特集・今日の一首・共有 ===== */
+const AUTHORS={
+'白居易':"772〜846。字は楽天。中唐を代表する詩人で、若い頃は社会を諷する諷諭詩、官を退いてからは日常を味わう閑適詩で知られる。晩年は洛陽に居を構え、酒と詩と友との時間を愛した。\nこのサイトには4首を収録。『池上二首 其一』は、竹陰で碁を打つ僧の姿と、静寂の中に響く石の音だけを詠んだ名品。雪の夜に友を招く『問劉十九』、友との同宿を詠む『劉十九同宿』など、碁は勝敗を競う道具ではなく、友と過ごす静かな時間の象徴として置かれている。杜甫の「乱世の中の碁」と並べると好対照になる。",
+'杜甫':"712〜770。字は子美。「詩聖」と仰がれる盛唐の大詩人。安史の乱に翻弄され、家族とともに各地を漂泊しながら、社会と人の世を詠み続けた。\nこのサイトには3首を収録。成都の草堂でのどかに暮らした時期の『江村』では、老いた妻が紙に碁盤を描き、幼い子が針を打ち鳴らして釣り針を作る――貧しくも温かい日常の中に碁がある。一方『秋興八首 其四』では、都・長安の政局の行方を碁の対局にたとえた。碁は杜甫にとって、日常の安らぎでもあり、乱世を見る物差しでもあった。",
+'王建':"約767〜約830。字は仲初。中唐の詩人で、宮廷の内側を詠んだ「宮詞」の名手として知られる。高い官には恵まれず、宮廷をやや外れた位置から眺める目が、作に独特の距離感を与えている。\nこのサイトには2首を収録。『看棋』は対局を見守る側の緊張を、『夜看美人宮棋』は夜の宮中で碁を打つ美人たちを詠み、碁盤を天の川と織女星に重ねた。打つ人ではなく「観る人」の詩人である点が、他の作者と違う読みどころ。",
+'劉禹錫':"772〜842。字は夢得。「詩豪」と呼ばれる中唐の詩人。若くして政治改革に加わるが挫折し、23年にわたって地方へ左遷され続けた。それでも筆は衰えず、左遷先から都の友人たちと詩を交わし続けた。\nこのサイトには2首を収録。『酬楽天揚州初逢席上見贈』は、左遷帰りの再会の席で白居易に贈った返歌で、沈んだ船のわきを千の帆が過ぎていくという一節で知られる。『海陽十詠：蒙池』は左遷地の池を詠んだ作。碁と詩は、彼にとって都と自分をつなぐ友情の回路だった。",
+'司空圖':"837〜908。字は表聖。晩唐の詩人で、詩の味わいを論じた『詩品』（二十四詩品）の著者とされる。唐王朝が崩れゆく乱世に官を辞し、中条山の王官谷に隠棲して、静かな暮らしの中で詩と碁と釣りを楽しんだ。\nこのサイトには2首を収録。『雜題二首 其一』は釣り船に碁盤を携える隠者の姿を、『戊午三月晦二首 其二』は碁の腕前（棋品）をめぐる批評的な目を詠む。勝敗から最も遠い場所で碁を愛した詩人。"
+};
+const THEMES=[
+{name:'宮廷の碁',desc:'宮中の対局と、それを見守る目。',ids:['yakan','ouken','kanki','kankyushun']},
+{name:'隠者と山水の碁',desc:'山水に帰り、勝敗を離れて打つ。',ids:['zadai1','shoshi','shoyu','chunyuan','sokikaku']},
+{name:'友と打つ碁',desc:'友を招き、友を想い、友と過ごす一局。',ids:['mon','ryujukyu','yakukyaku','suitei','kojin']},
+{name:'碁盤は宇宙',desc:'十九路の盤面に、時間と天と人の世を見る。',ids:['rankaseki','ki','ki_kankyu','shakoten','hajinshi']}
+];
+function showTheme(i){const th=THEMES[i];setLayer('main');const list=th.ids.map(id=>find(id)).filter(Boolean);renderGrid(list);$('#stat').textContent='特集「'+th.name+'」'+th.desc+'（'+list.length+'首）';const g=$('#grid');window.scrollTo({top:g.getBoundingClientRect().top+window.scrollY-70,behavior:'smooth'})}
+async function sharePoem(){const t=cur.title+'（'+cur.au+'）｜爛柯の盤';const url=location.href.split('#')[0];if(navigator.share){try{await navigator.share({title:t,text:t,url})}catch(e){}}else{copyText(t+' '+url);toast('タイトルとリンクをコピーしました')}}
+(function(){const cur35=POEMS.filter(p=>p.kundoku.length);const day=Math.floor(Date.now()/86400000);const p=cur35[day%cur35.length];
+$('#daily').innerHTML='<div class="daily" onclick="openPoem(\''+p.id+'\')"><span class="dl">今日の一首</span><h3>'+esc(p.title)+'</h3><div class="au">'+esc(p.au)+'　'+esc(p.era||'')+'</div><div class="dp">'+p.lines.slice(0,2).map(l=>'<div>'+esc(l)+'</div>').join('')+'</div><p class="note">'+esc(p.kai).slice(0,90)+'…</p><span class="btn red">読みに行く</span></div>';
+$('#themes').innerHTML=THEMES.map((t,i)=>'<button class="chip thchip" onclick="showTheme('+i+')">'+t.name+'</button>').join('');})();
 </script>
 </body>
 </html>
