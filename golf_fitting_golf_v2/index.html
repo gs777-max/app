@@ -9,105 +9,127 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Serif+JP:wght@600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ============ FIT LAB v2.2 — paper × deep green × brass editorial ============ */
+/* ============ FIT LAB v2.3 — paper x deep green x brass editorial, mobile-first ============ */
 :root{
-  --paper:#F6F1E7; --card:#FFFDF8; --ink:#1A2420; --ink2:#3D4A43; --muted:#66756C;
-  --green:#0E3B2E; --green2:#0A2E23; --green-soft:#EAF2EC; --green-line:#9DBFA9;
-  --brass:#B9975B; --brass-dark:#8A6D2B; --brass-soft:#F3E9CF;
-  --line:#DDD3BC; --line-soft:#E8DFCB;
-  --red:#A63D2F; --blue:#2F5D7A; --purple:#5B4A7A;
+  --paper:#F6F1E7; --card:#FFFDF8; --ink:#14201B; --ink2:#2E3B34; --muted:#4A5A51;
+  --green:#0B352A; --green2:#072A20; --green-soft:#E4EFE7; --green-line:#7FA98C;
+  --brass:#B9975B; --brass-dark:#7A5F22; --brass-soft:#F3E9CF;
+  --line:#D5C9A8; --line-soft:#E8DFCB;
+  --red:#9E3524; --blue:#2F5D7A; --purple:#5B4A7A;
 }
 *{box-sizing:border-box}
+html,body{overflow-x:clip}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);
-  font-family:'Inter','Noto Sans JP',sans-serif;font-size:16px;line-height:1.7;}
+  font-family:'Inter','Noto Sans JP',sans-serif;font-size:17px;line-height:1.75;}
 h1,h2,h3,.serif{font-family:'Fraunces','Noto Serif JP',serif;}
 a{color:var(--green)}
-button{font-family:inherit;cursor:pointer}
-input,select{font-family:inherit;font-size:16px;color:var(--ink)}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+input,select{font-family:inherit;font-size:17px;color:var(--ink)}
 img,svg{max-width:100%}
-.wrap{max-width:880px;margin:0 auto;padding:0 20px}
+.wrap{max-width:680px;margin:0 auto;padding:0 16px}
 .rule{border:0;border-top:1px solid var(--line);margin:0}
 .rule-heavy{border:0;border-top:2px solid var(--ink);margin:0}
 
 /* ---- masthead ---- */
-.masthead{border-bottom:2px solid var(--ink);padding:14px 0 12px}
-.masthead-in{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
-.brand{font-family:'Fraunces','Noto Serif JP',serif;font-weight:700;font-size:26px;letter-spacing:.04em;color:var(--ink)}
+.masthead{border-bottom:2px solid var(--ink);padding:12px 0}
+.masthead-in{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{font-family:'Fraunces','Noto Serif JP',serif;font-weight:700;font-size:24px;letter-spacing:.04em;color:var(--ink)}
 .brand span{color:var(--brass-dark)}
-.masthead-note{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.masthead-note{font-size:12px;color:var(--muted);letter-spacing:.04em}
 .masthead-note b{color:var(--green)}
+.masthead-pill{display:inline-block;background:var(--green);color:#F6F1E7;font-size:12px;font-weight:700;border-radius:999px;padding:6px 12px;letter-spacing:.06em}
 
-/* ---- hero ---- */
-.hero{padding:44px 0 8px;text-align:left}
-.kicker{font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--brass-dark)}
-.hero h1{font-size:clamp(34px,7.2vw,56px);line-height:1.25;margin:12px 0 10px;font-weight:600}
-.hero h1 em{font-style:normal;color:var(--green)}
-.hero .lede{font-size:17px;line-height:1.9;color:var(--ink2);max-width:640px;margin:0 0 6px}
-.hero .lede b{color:var(--ink)}
-.hero-meta{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 4px}
-.chip{display:inline-block;font-size:12px;font-weight:600;border:1px solid var(--line);border-radius:999px;
-  padding:6px 12px;background:var(--card);color:var(--ink2)}
-.chip b{color:var(--green)}
-.preset-block{margin:26px 0 8px;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
-.preset-block h2{font-size:19px;margin:0 0 4px}
-.preset-block p{margin:0 0 14px;font-size:14px;color:var(--ink2)}
+/* ---- hero (deep-green band) ---- */
+.hero{margin:0 -16px;padding:42px 20px 28px;background:var(--green);color:#F6F1E7;border-bottom:4px solid var(--brass)}
+.kicker{font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#D9BC7A}
+.hero h1{font-size:clamp(36px,9.5vw,58px);line-height:1.28;margin:14px 0 12px;font-weight:600;color:#F6F1E7}
+.hero h1 em{font-style:normal;color:#E9CE8E}
+.hero .lede{font-size:17px;line-height:1.9;color:#DCE8DF;max-width:600px;margin:0}
+.hero .lede b{color:#F6F1E7}
+.hero-stats{display:flex;margin:24px 0 0;border-top:1px solid rgba(246,241,231,.28);padding-top:18px}
+.hero-stats div{flex:1;min-width:0}
+.hero-stats b{display:block;font-family:'Fraunces','Noto Serif JP',serif;font-size:30px;line-height:1.1;color:#F6F1E7}
+.hero-stats span{font-size:12px;color:#B9CDBF}
+.preset-block{margin:26px 0 0;padding:20px;border-radius:16px;background:var(--card);color:var(--ink)}
+.preset-block h2{font-size:20px;margin:0 0 4px}
+.preset-block p{margin:0 0 14px;font-size:14.5px;color:var(--ink2)}
 .preset-row{display:grid;grid-template-columns:1fr;gap:10px}
 @media(min-width:640px){.preset-row{grid-template-columns:repeat(3,1fr)}}
-.preset-btn{min-height:64px;text-align:left;border:1.5px solid var(--line);border-radius:12px;background:#fff;
-  padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.preset-btn{min-height:96px;text-align:left;border:1.5px solid var(--line);border-radius:14px;background:#fff;
+  padding:14px 16px;display:flex;flex-direction:column;gap:2px}
 .preset-btn:hover{border-color:var(--green)}
 .preset-btn .p-no{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--brass-dark)}
-.preset-btn .p-name{font-weight:700;font-size:15px;line-height:1.4}
-.preset-btn .p-sub{font-size:12px;color:var(--muted);line-height:1.5}
-.free-note{font-size:13px;color:var(--muted);margin:12px 0 0}
+.preset-btn .p-name{font-weight:700;font-size:17px;line-height:1.4}
+.preset-btn .p-sub{font-size:13px;color:var(--muted);line-height:1.55}
+.preset-btn .p-go{font-size:13px;font-weight:700;color:var(--green);margin-top:8px}
+.free-note{font-size:13.5px;color:var(--muted);margin:14px 0 0}
 .free-note b{color:var(--green)}
 
 /* ---- progress ---- */
-.progress{position:sticky;top:0;z-index:20;background:var(--paper);padding:14px 0 10px;border-bottom:1px solid var(--line)}
-.progress-label{display:flex;justify-content:space-between;font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--ink2);margin-bottom:8px}
+.progress{position:sticky;top:0;z-index:20;background:var(--paper);padding:12px 0 10px;border-bottom:1px solid var(--line)}
+.progress-label{display:flex;justify-content:space-between;font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--ink2);margin-bottom:8px}
 .progress-label .cur{color:var(--green)}
 .progress-bar{display:flex;gap:6px}
-.progress-bar i{flex:1;height:4px;border-radius:2px;background:var(--line);display:block}
+.progress-bar i{flex:1;height:6px;border-radius:3px;background:var(--line);display:block}
 .progress-bar i.on{background:var(--green)}
 .progress-bar i.now{background:var(--brass)}
+.progress-steps{display:flex;gap:4px;margin-top:8px}
+.progress-steps span{flex:1;min-width:0;font-size:10.5px;font-weight:700;color:var(--muted);text-align:center;white-space:nowrap}
+.progress-steps span.cur{color:var(--green)}
 
 /* ---- wizard steps ---- */
-.wiz{display:none;padding:28px 0 8px}
+.wiz{display:none;padding:30px 0 8px}
 .wiz.on{display:block}
-.step-kicker{font-size:12px;font-weight:700;letter-spacing:.2em;color:var(--brass-dark);text-transform:uppercase}
-.wiz h2{font-size:clamp(26px,5.4vw,34px);line-height:1.35;margin:8px 0 6px;font-weight:600}
-.wiz .why{font-size:15px;color:var(--ink2);margin:0 0 4px;max-width:640px}
+.step-kicker{font-size:13px;font-weight:700;letter-spacing:.2em;color:var(--brass-dark);text-transform:uppercase}
+.wiz h2{font-size:clamp(28px,6.4vw,36px);line-height:1.35;margin:10px 0 8px;font-weight:600}
+.wiz .why{font-size:16px;color:var(--ink2);margin:0 0 4px;max-width:600px}
 .wiz .why b{color:var(--ink)}
-.wiz .dontknow{font-size:13px;color:var(--muted);background:var(--brass-soft);border-radius:10px;padding:10px 12px;margin:14px 0 20px;max-width:640px}
-.field-grid{display:grid;grid-template-columns:1fr;gap:16px}
-@media(min-width:640px){.field-grid{grid-template-columns:1fr 1fr}.field-grid .span2{grid-column:span 2}}
-.field label{display:block;font-size:14px;font-weight:700;margin-bottom:6px}
-.field .help{display:block;font-size:12.5px;font-weight:400;color:var(--muted);margin-top:2px;line-height:1.6}
-.field select,.field input[type=number],.field input[type=text]{width:100%;min-height:52px;border:1.5px solid var(--line);
-  border-radius:10px;background:#fff;padding:10px 12px}
+.wiz .dontknow{font-size:14px;color:var(--ink2);background:var(--brass-soft);border-radius:12px;padding:12px 14px;margin:16px 0 22px;max-width:600px}
+.q-group{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:18px;margin-bottom:18px}
+.q-group .q-label{font-size:12px;font-weight:700;letter-spacing:.18em;color:var(--brass-dark);text-transform:uppercase;margin-bottom:14px}
+.q-group .field{margin-bottom:18px}
+.q-group .field:last-child{margin-bottom:0}
+.field-grid{display:grid;grid-template-columns:1fr;gap:0}
+.field label{display:block;font-size:15px;font-weight:700;margin-bottom:8px}
+.field .help{display:block;font-size:13.5px;font-weight:400;color:var(--muted);margin-top:4px;line-height:1.65}
+.field select,.field input[type=number],.field input[type=text]{width:100%;min-height:56px;border:1.5px solid var(--line);
+  border-radius:12px;background:#fff;padding:12px 14px}
 .field select:focus,.field input:focus{outline:2px solid var(--green);outline-offset:1px;border-color:var(--green)}
 .field input:disabled{background:#EFEAE0;color:var(--muted)}
-.unk{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13.5px;color:var(--ink2);min-height:28px}
-.unk input{width:20px;height:20px;accent-color:var(--green);flex:none}
+.visually-hidden-select{position:absolute!important;width:1px;height:1px;opacity:0;pointer-events:none}
+
+/* segmented controls */
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg-btn{flex:1 1 0;min-width:0;min-height:56px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-weight:700;font-size:15px;line-height:1.35;padding:10px 8px;color:var(--ink2)}
+.seg-btn.active{border-color:var(--green);background:var(--green);color:#F6F1E7}
+.seg-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.seg-scroll .seg-btn{flex:0 0 auto;min-width:78px;scroll-snap-align:start}
+.opt-cards{display:grid;gap:10px}
+.opt-card{min-height:68px;text-align:left;border:1.5px solid var(--line);border-radius:14px;background:#fff;padding:14px 16px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.opt-card .t{font-weight:700;font-size:16px;line-height:1.4}
+.opt-card .s{font-size:13px;color:var(--muted);line-height:1.5}
+.opt-card.active{border:2px solid var(--green);background:var(--green-soft)}
+
+.unk{display:inline-flex;align-items:center;gap:10px;margin-top:10px;font-size:14px;font-weight:700;color:var(--green);background:var(--brass-soft);border:1.5px solid #D9C08A;border-radius:999px;padding:10px 16px;min-height:48px;cursor:pointer}
+.unk input{width:22px;height:22px;accent-color:var(--green);flex:none;margin:0}
 .num-row{display:grid;grid-template-columns:1fr;gap:16px}
 @media(min-width:640px){.num-row{grid-template-columns:1fr 1fr}}
-.mini-btn{min-height:48px;border:1.5px solid var(--green);background:#fff;color:var(--green);border-radius:10px;
-  font-weight:700;font-size:14px;padding:10px 14px}
+.mini-btn{min-height:52px;border:1.5px solid var(--green);background:#fff;color:var(--green);border-radius:12px;
+  font-weight:700;font-size:15px;padding:10px 16px}
 .mini-btn:hover{background:var(--green-soft)}
 .converter{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
-.converter input{width:110px;min-height:48px;border:1.5px solid var(--line);border-radius:10px;background:#fff;padding:8px 10px}
+.converter input{width:110px;min-height:52px;border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:8px 10px}
 
 /* ---- selectable cards / svg ---- */
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(min-width:640px){.cards.cols3{grid-template-columns:repeat(3,1fr)}}
-.selectable-card{min-height:64px;border:1.5px solid var(--line);border-radius:12px;background:#fff;
-  padding:12px 14px;cursor:pointer;text-align:left;font-size:14px;line-height:1.5}
+.selectable-card{min-height:76px;border:1.5px solid var(--line);border-radius:14px;background:#fff;
+  padding:14px 16px;cursor:pointer;text-align:left;font-size:15px;line-height:1.55}
 .selectable-card:hover{border-color:var(--green)}
 .selectable-card.active{border:2px solid var(--green);background:var(--green-soft);box-shadow:0 0 0 1px var(--green)}
-.selectable-card .t{font-weight:700;display:block;font-size:14.5px}
-.selectable-card .s{color:var(--muted);font-size:12.5px;display:block;margin-top:2px}
-.svg-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.selectable-card .t{font-weight:700;display:block;font-size:16px}
+.selectable-card .s{color:var(--muted);font-size:13px;display:block;margin-top:2px}
+.svg-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:16px}
 .svg-box svg{width:100%;height:auto;display:block}
 .svg-box text{paint-order:stroke;stroke:#FFFDF8;stroke-width:3px;stroke-linejoin:round}
 .face-zone{transition:fill .15s;cursor:pointer}
@@ -116,14 +138,15 @@ img,svg{max-width:100%}
 .flight-path{transition:stroke-width .2s;cursor:pointer}
 .flight-path:hover{stroke-width:4.5px}
 .flight-path.active{stroke-width:5px}
-.readout{border:1px solid var(--green-line);background:var(--green-soft);border-radius:12px;
-  padding:12px 14px;font-size:14px;line-height:1.7}
+.readout{border:1px solid var(--green-line);background:var(--green-soft);border-radius:14px;
+  padding:14px 16px;font-size:15px;line-height:1.7}
 .readout b{color:var(--green)}
-.sub-h{font-size:16px;font-weight:700;margin:26px 0 10px;border-left:4px solid var(--brass);padding-left:10px}
+.sub-h{font-size:18px;font-weight:700;margin:28px 0 12px;border-left:4px solid var(--brass);padding-left:10px}
+#impact-buttons button{margin-bottom:10px;min-height:56px;width:100%}
 
-/* ---- step nav ---- */
-.step-nav{display:flex;gap:10px;margin:28px 0 8px;flex-wrap:wrap}
-.btn{min-height:52px;border-radius:12px;font-weight:700;font-size:16px;padding:12px 22px;border:1.5px solid var(--green)}
+/* ---- step nav (sticky bottom bar) ---- */
+.step-nav{position:sticky;bottom:0;z-index:30;display:flex;gap:10px;margin:32px -16px 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(246,241,231,0),var(--paper) 30%);border-top:1px solid var(--line)}
+.btn{min-height:56px;border-radius:14px;font-weight:700;font-size:17px;padding:12px 22px;border:1.5px solid var(--green)}
 .btn-primary{background:var(--green);color:#F6F1E7;flex:1}
 .btn-primary:hover{background:var(--green2)}
 .btn-ghost{background:#fff;color:var(--green)}
@@ -132,75 +155,112 @@ img,svg{max-width:100%}
 .btn-brass:hover{background:#C8A96B}
 
 /* ---- season tabs ---- */
-.season-row{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 18px}
-.season-tab{min-height:48px;border:1.5px solid var(--line);background:#fff;border-radius:999px;
-  padding:10px 16px;font-weight:700;font-size:14px;color:var(--ink2)}
+.season-row{display:grid;grid-template-columns:1fr;gap:8px;margin:6px 0 18px}
+@media(min-width:640px){.season-row{grid-template-columns:repeat(3,1fr)}}
+.season-tab{min-height:56px;border:1.5px solid var(--line);background:#fff;border-radius:12px;
+  padding:10px 14px;font-weight:700;font-size:14.5px;color:var(--ink2);text-align:left}
 .season-tab.active{background:var(--green);border-color:var(--green);color:#F6F1E7}
 
 /* ---- results ---- */
-.badge{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:5px 10px;border:1px solid var(--green-line);background:var(--green-soft);color:var(--green)}
+.badge{display:inline-block;font-size:13px;font-weight:700;border-radius:999px;padding:7px 12px;border:1px solid var(--green-line);background:var(--green-soft);color:var(--green)}
 .badge.warn{background:var(--brass-soft);border-color:#D9C08A;color:var(--brass-dark)}
-.sec-head{margin:30px 0 12px}
+.sec-head{margin:34px 0 14px}
 .sec-head .kicker{font-size:11px}
-.sec-head h2{font-size:clamp(24px,5vw,30px);margin:6px 0 4px}
-.sec-head p{margin:0;font-size:14px;color:var(--ink2)}
+.sec-head h2{font-size:clamp(26px,5.6vw,32px);margin:6px 0 4px}
+.sec-head p{margin:0;font-size:15px;color:var(--ink2)}
+#physics-summary-cards>div{border-radius:16px!important;padding:18px!important}
+#physics-summary-cards .text-lg{font-size:28px}
+#physics-summary-cards .text-sm{font-size:17px}
+#physics-summary-cards .text-xs{font-size:14px}
+#physics-summary-cards .text-\[11px\]{font-size:13px}
 .sum-grid{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:640px){.sum-grid{grid-template-columns:1fr 1fr}}
 .sens-grid{grid-template-columns:1fr}
 @media(min-width:640px){.sens-grid{grid-template-columns:repeat(3,1fr)}}
+#sensitivity-container>div{border-radius:16px!important;padding:18px!important;font-size:14.5px!important}
+#sensitivity-container .text-sm{font-size:15px}
 .sum-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
-.rank-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px;position:relative}
-.rank-card.top1{border:2px solid var(--brass);box-shadow:0 12px 32px rgba(138,109,43,.14)}
+#top10-container .rank-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px;position:relative}
+#top10-container .rank-card.top1{border:2px solid var(--brass);background:var(--green);color:#F6F1E7;box-shadow:0 16px 40px rgba(11,53,42,.28)}
 .rank-card.locked .lockable{filter:blur(7px);pointer-events:none;user-select:none}
 .rank-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .rank-no{font-family:'Fraunces','Noto Serif JP',serif;font-size:30px;font-weight:700;line-height:1;color:var(--green)}
 .rank-no small{font-size:13px;font-family:'Inter','Noto Sans JP',sans-serif;font-weight:700;color:var(--muted);letter-spacing:.1em}
-.rank-card.top1 .rank-no{color:var(--brass-dark)}
+#top10-container .rank-card.top1 .rank-no{color:#E9CE8E}
+#top10-container .rank-card.top1 .rank-no small{color:#B9CDBF}
 .rank-title{font-size:18px;font-weight:700;line-height:1.5;margin:2px 0 0}
 .score{font-size:13px;color:var(--muted);text-align:right}
 .score b{font-size:26px;color:var(--green);font-family:'Fraunces',serif}
 .lock-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  text-align:center;padding:20px;background:rgba(246,241,231,.55);border-radius:16px}
-.lock-overlay .lock-t{font-weight:700;font-size:17px}
-.lock-overlay .lock-s{font-size:13.5px;color:var(--ink2);max-width:420px}
+  text-align:center;padding:20px;background:rgba(11,53,42,.86);border-radius:18px}
+.lock-overlay .lock-t{font-weight:700;font-size:18px;color:#E9CE8E}
+.lock-overlay .lock-s{font-size:14px;color:#DCE8DF;max-width:420px}
 .score-bar{height:6px;background:var(--line-soft);border-radius:3px;overflow:hidden;margin-top:6px}
 .score-bar i{display:block;height:100%;background:var(--green)}
-.pro-panel{border:2px solid var(--brass);border-radius:16px;background:#fff;padding:22px;margin:22px 0}
-.pro-panel h3{margin:0 0 6px;font-size:21px}
-.pro-panel p{margin:0 0 12px;font-size:14.5px;color:var(--ink2)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+#top10-container>article{animation:rise .5s ease both}
+@media (prefers-reduced-motion:reduce){#top10-container>article{animation:none}}
+.score-dial{display:flex;align-items:center;gap:12px}
+.score-dial .dial-num{font-family:'Fraunces','Noto Serif JP',serif;font-size:36px;font-weight:700;line-height:1;color:var(--green)}
+#top10-container .rank-card.top1 .score-dial .dial-num{color:#E9CE8E}
+.score-dial .dial-of{font-size:13px;color:var(--muted);font-weight:700}
+#top10-container .rank-card.top1 .score-dial .dial-of{color:#B9CDBF}
+.top3-compare{background:var(--green);color:#F6F1E7;border-radius:18px;padding:22px;margin-bottom:18px}
+.top3-compare h3{color:#F6F1E7;margin:0 0 4px;font-size:21px}
+.top3-compare p{color:#B9CDBF;font-size:13.5px;margin:0 0 8px}
+.top3-row{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-top:1px solid rgba(246,241,231,.22)}
+.top3-row .r{font-family:'Fraunces','Noto Serif JP',serif;font-size:24px;color:#E9CE8E;line-height:1}
+.top3-row .m{font-weight:700;font-size:15px;line-height:1.5}
+.top3-row .m small{display:block;font-weight:400;font-size:12.5px;color:#B9CDBF}
+.top3-row .s{font-family:'Fraunces','Noto Serif JP',serif;font-size:24px;font-weight:700;white-space:nowrap}
+.traj{margin-top:18px;background:rgba(246,241,231,.08);border:1px solid rgba(246,241,231,.28);border-radius:14px;padding:16px}
+.traj h4{margin:0 0 8px;font-size:16px;color:#F6F1E7}
+.traj p{margin:8px 0 0;font-size:14px;color:#DCE8DF;line-height:1.7}
+.pro-panel{border:2px solid var(--brass);border-radius:18px;background:#fff;padding:24px;margin:24px 0}
+.pro-panel h3{margin:0 0 6px;font-size:24px}
+.pro-panel p{margin:0 0 12px;font-size:15px;color:var(--ink2)}
 .price-row{display:grid;grid-template-columns:1fr;gap:12px;margin:16px 0}
 @media(min-width:640px){.price-row{grid-template-columns:1fr 1fr}}
-.price-card{border:1px solid var(--line);border-radius:14px;padding:18px;background:var(--card)}
-.price-card.pro{border:2px solid var(--green);background:var(--green-soft)}
+.price-card{border:1px solid var(--line);border-radius:14px;padding:20px;background:var(--card)}
+.price-card.pro{border:2px solid var(--green);background:var(--green);color:#F6F1E7}
+.price-card.pro ul{color:#DCE8DF}
+.price-card.pro .plan{color:#E9CE8E}
 .price-card .plan{font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--brass-dark)}
-.price-card .yen{font-family:'Fraunces',serif;font-size:30px;font-weight:700;margin:6px 0 2px}
-.price-card ul{margin:10px 0 0;padding-left:18px;font-size:14px;color:var(--ink2)}
+.price-card .yen{font-family:'Fraunces',serif;font-size:36px;font-weight:700;margin:6px 0 2px}
+.price-card .plan-sub{font-size:13px;color:var(--muted)}
+.price-card.pro .plan-sub{color:#B9CDBF}
+.price-card ul{margin:10px 0 0;padding-left:18px;font-size:14.5px;color:var(--ink2)}
 .price-card ul li{margin-bottom:4px}
 .action-row{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
-.demo-note{font-size:12.5px;color:var(--muted)}
+.action-row .btn{flex:1;min-width:200px}
+.demo-note{font-size:13px;color:var(--muted)}
 
 /* ---- catalog ---- */
 .cat-tools{display:grid;grid-template-columns:1fr;gap:10px;margin:12px 0}
 @media(min-width:640px){.cat-tools{grid-template-columns:2fr 1fr 1fr}}
-.cat-tools input,.cat-tools select{min-height:48px;border:1.5px solid var(--line);border-radius:10px;background:#fff;padding:10px 12px;width:100%}
+.cat-tools input,.cat-tools select{min-height:52px;border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:10px 12px;width:100%}
 .cat-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
-table.cat{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
+table.cat{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
 table.cat th{text-align:left;font-size:12px;letter-spacing:.06em;color:var(--muted);border-bottom:2px solid var(--ink);padding:10px 12px;white-space:nowrap}
-table.cat td{border-bottom:1px solid var(--line-soft);padding:9px 12px;vertical-align:top}
+table.cat td{border-bottom:1px solid var(--line-soft);padding:10px 12px;vertical-align:top}
 table.cat tr:last-child td{border-bottom:0}
-.cat-note{font-size:12.5px;color:var(--muted);margin-top:10px}
+.cat-note{font-size:13px;color:var(--muted);margin-top:10px}
 
 /* ---- method / footer ---- */
 .method{counter-reset:stage}
-.method-step{display:flex;gap:14px;margin-bottom:16px}
-.method-step .n{flex:none;width:40px;height:40px;border-radius:50%;background:var(--green);color:#F6F1E7;
+.method-step{display:flex;gap:14px;margin-bottom:18px}
+.method-step .n{flex:none;width:42px;height:42px;border-radius:50%;background:var(--green);color:#F6F1E7;
   display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:18px}
 .method-step h3{margin:2px 0 4px;font-size:17px}
-.method-step p{margin:0;font-size:14.5px;color:var(--ink2)}
+.method-step p{margin:0;font-size:15px;color:var(--ink2)}
 .method-step code{background:#EFE7D3;border-radius:6px;padding:1px 6px;font-size:13px}
-footer{border-top:2px solid var(--ink);margin-top:44px;padding:22px 0 40px;font-size:13px;color:var(--muted);line-height:1.9}
+footer{border-top:2px solid var(--ink);margin-top:44px;padding:22px 0 40px;font-size:13.5px;color:var(--muted);line-height:1.9}
 footer b{color:var(--ink2)}
-
+@media print{
+  .no-print,.progress,.step-nav,.masthead,.hero,.preset-block{display:none!important}
+  body{background:#fff}
+  .wiz{display:block!important}
+}
 /* ---- utility layer: classes emitted by the preserved v1 engine ---- */
 .flex{display:flex}.grid{display:grid}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-between{justify-content:space-between}
 .grid-cols-1{grid-template-columns:1fr}
@@ -256,6 +316,7 @@ footer b{color:var(--ink2)}
   <div class="wrap masthead-in">
     <div class="brand">FIT LAB <span>— Driver Fitting</span></div>
     <div class="masthead-note">2026.11 最新モデル対応 ・ <b>ヘッド14モデル / シャフト115本</b>を収録</div>
+    <span class="masthead-pill">診断は無料</span>
   </div>
 </header>
 
@@ -266,11 +327,11 @@ footer b{color:var(--ink2)}
     <div class="kicker">Driver Fitting · 3-Stage Physics Engine</div>
     <h1>絵を選ぶだけ。<br>あなたの振りに合う<em>ドライバー</em>を、物理で選ぶ。</h1>
     <p class="lede">計測器の数値がなくても大丈夫です。普段の球の高さと球筋を絵で選ぶだけで、<b>振れる重さ・曲がりを直す重心・飛距離を伸ばすロフト</b>の3段階で絞り込み、あなたに合うセッティングをベスト10でお渡しします。所要時間は約2分です。</p>
-    <div class="hero-meta">
-      <span class="chip">診断は <b>無料</b></span>
-      <span class="chip">Top 3 まで無料公開</span>
-      <span class="chip">Top 4〜10・感度分析は <b>Pro</b></span>
-      <span class="chip">登録不要・保存できます</span>
+    <div class="hero-stats">
+      <div><b>14</b><span>ヘッドモデル</span></div>
+      <div><b>115</b><span>シャフト</span></div>
+      <div><b>2分</b><span>診断時間</span></div>
+      <div><b>無料</b><span>Top 3 まで</span></div>
     </div>
 
     <div class="preset-block">
@@ -281,16 +342,19 @@ footer b{color:var(--ink2)}
           <span class="p-no">PRESET 01</span>
           <span class="p-name">ハードヒッター</span>
           <span class="p-sub">HS 47m/s・左ミス・ローヒールに悩む方</span>
+          <span class="p-go">この条件で診断する →</span>
         </button>
         <button type="button" id="preset-avg" class="preset-btn">
           <span class="p-no">PRESET 02</span>
           <span class="p-name">アベレージ・スライサー</span>
           <span class="p-sub">HS 40.5m/s・右へ吹ける球にお悩みの方</span>
+          <span class="p-go">この条件で診断する →</span>
         </button>
         <button type="button" id="preset-light" class="preset-btn">
           <span class="p-no">PRESET 03</span>
           <span class="p-name">シニア／女性・高弾道志向</span>
           <span class="p-sub">HS 35m/s・キャリーで飛ばしたい方</span>
+          <span class="p-go">この条件で診断する →</span>
         </button>
       </div>
       <p class="free-note">診断結果の <b>Top 3 は無料</b>でご覧いただけます。Top 4〜10と感度分析の全文は Pro（¥480/月・¥3,800/年、準備中）でご覧いただけます。</p>
@@ -301,6 +365,7 @@ footer b{color:var(--ink2)}
   <div class="progress no-print" id="progress">
     <div class="progress-label"><span class="cur" id="progress-text">ステップ 1 / 4 — あなたについて</span><span>約2分</span></div>
     <div class="progress-bar"><i class="now" data-bar="1"></i><i data-bar="2"></i><i data-bar="3"></i><i data-bar="4"></i></div>
+    <div class="progress-steps"><span data-ps="1" class="cur">1 あなたについて</span><span data-ps="2">2 球の高さ</span><span data-ps="3">3 球筋・打点</span><span data-ps="4">4 診断結果</span></div>
   </div>
 
   <!-- ================= STEP 1 ================= -->
@@ -311,80 +376,131 @@ footer b{color:var(--ink2)}
     <p class="dontknow">分からない項目は、そのままで大丈夫です。空欄のまま進むと、ほかの答えから自動で推計します。</p>
 
     <div class="field-grid">
-      <div class="field">
-        <label for="inp-gender">性別</label>
-        <select id="inp-gender">
-                <option value="male" selected>男性</option>
-                <option value="female">女性</option>
-                <option value="other">その他</option>
-              </select>
-      </div>
-      <div class="field">
-        <label for="inp-age">年代</label>
-        <select id="inp-age">
-                <option value="20">20代</option>
-                <option value="30">30代</option>
-                <option value="40">40代</option>
-                <option value="50" selected>50代</option>
-                <option value="60">60代</option>
-                <option value="70">70代以上</option>
-              </select>
-      </div>
-      <div class="field">
-        <label for="inp-height">身長 (cm)</label>
-        <input type="number" id="inp-height" value="172" min="140" max="205">
-      </div>
-      <div class="field">
-        <label for="inp-weight">体重 (kg)</label>
-        <input type="number" id="inp-weight" value="68" min="35" max="130">
-      </div>
       <div class="field span2">
-        <label for="inp-sport">これまでのスポーツ経験
-          <span class="help">手首を返すスポーツ（野球・テニス等）はフェースの開閉が大きいタイプ、体幹で振るスポーツは開閉が小さいタイプと判定し、ヘッドの重心設計に使います。</span>
-        </label>
-        <select id="inp-sport">
-                <option value="baseball" selected>野球・ソフトボール（リスト解放・強打撃系）</option>
-                <option value="tennis">テニス・卓球・バドミントン・ホッケー（フェース開閉・回旋系）</option>
-                <option value="kendo">剣道・柔道・武道（縦振り・手元減速系）</option>
-                <option value="swim">水泳・陸上・サッカー・バスケ（体幹ボディターン系）</option>
-                <option value="golf">ゴルフ専念・特になし（標準オンプレーン系）</option>
-              </select>
-      </div>
-      <div class="field span2">
-        <label for="inp-tempo">切り返しのテンポ・タメの強さ
-          <span class="help">トップから切り返すときの「間」の取り方です。タメが強いほど、手元がしなって先端が硬いシャフト（元調子）が合います。</span>
-        </label>
-        <select id="inp-tempo">
-                <option value="smooth">ゆったり・スムーズ（トップで間を待つ）</option>
-                <option value="standard">標準テンポ（平均的なリズム）</option>
-                <option value="fast" selected>速い・タメが強い（右踵ベタ足意識・強振タイプ）</option>
-              </select>
-      </div>
-      <div class="field span2">
-        <label for="inp-iron">今使っている7番アイアンの種類
-          <span class="help">アイアンの重さが分かると、ドライバーの目標総重量（約270〜335g）とシャフト重量を一意に決められます。分からなければ「分からない」を選んでください。</span>
-        </label>
-        <select id="inp-iron">
-                <option value="ultralight_carbon">超軽量カーボン (L/R2・40g台｜7I総重量 約352g)</option>
-                <option value="std_carbon">標準カーボン (R/SR・50〜60g台｜7I総重量 約378g)</option>
-                <option value="light_steel">軽量スチール (N.S.PRO 850/950GH neo等｜7I総重量 約405g)</option>
-                <option value="mid_steel" selected>中量スチール (MODUS3 105 / 115 / 120 S等｜7I総重量 約422g)</option>
-                <option value="heavy_steel">重量スチール (MODUS3 125 / DG S200・X100｜7I総重量 約438g)</option>
-                <option value="unknown">分からない（HSと体格から自動推計）</option>
-              </select>
-      </div>
-      <div class="field">
-        <label for="inp-glove">グローブサイズ (cm)</label>
-        <input type="number" id="inp-glove" value="23" min="18" max="28">
-        <span class="help">グリップの太さの目安に使います。</span>
-      </div>
-      <div class="field">
-        <label for="inp-sweat">手汗・好みのグリップ感</label>
-        <select id="inp-sweat">
-                  <option value="rubber" selected>しっとりラバー派</option>
-                  <option value="cord">手汗多め・コード派</option>
-                  <option value="thick_right">右手太め(引っかけ防止)</option>
-                </select>
+        <div class="q-group">
+          <div class="q-label">体格 — 体の大きさ</div>
+          <div class="field">
+            <label>性別</label>
+            <div class="seg" id="seg-gender" role="group" aria-label="性別">
+              <button type="button" class="seg-btn" data-value="male">男性</button>
+              <button type="button" class="seg-btn" data-value="female">女性</button>
+              <button type="button" class="seg-btn" data-value="other">その他</button>
+            </div>
+            <select id="inp-gender" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="male" selected>男性</option>
+              <option value="female">女性</option>
+              <option value="other">その他</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>年代</label>
+            <div class="seg-scroll" id="seg-age" role="group" aria-label="年代">
+              <button type="button" class="seg-btn" data-value="20">20代</button>
+              <button type="button" class="seg-btn" data-value="30">30代</button>
+              <button type="button" class="seg-btn" data-value="40">40代</button>
+              <button type="button" class="seg-btn" data-value="50">50代</button>
+              <button type="button" class="seg-btn" data-value="60">60代</button>
+              <button type="button" class="seg-btn" data-value="70">70代以上</button>
+            </div>
+            <select id="inp-age" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="20">20代</option>
+              <option value="30">30代</option>
+              <option value="40">40代</option>
+              <option value="50" selected>50代</option>
+              <option value="60">60代</option>
+              <option value="70">70代以上</option>
+            </select>
+          </div>
+          <div class="num-row">
+            <div class="field">
+              <label for="inp-height">身長 (cm)</label>
+              <input type="number" inputmode="decimal" inputmode="decimal" id="inp-height" value="172" min="140" max="205">
+            </div>
+            <div class="field">
+              <label for="inp-weight">体重 (kg)</label>
+              <input type="number" inputmode="decimal" inputmode="decimal" id="inp-weight" value="68" min="35" max="130">
+            </div>
+          </div>
+        </div>
+        <div class="q-group">
+          <div class="q-label">スイングのクセ — なぜ聞くか</div>
+          <div class="field">
+            <label>これまでのスポーツ経験</label>
+            <span class="help" style="margin-bottom:8px">手首を返すスポーツ（野球・テニス等）はフェースの開閉が大きいタイプ、体幹で振るスポーツは開閉が小さいタイプと判定し、ヘッドの重心設計に使います。</span>
+            <div class="opt-cards" id="seg-sport" role="group" aria-label="スポーツ経験">
+              <button type="button" class="opt-card" data-value="baseball"><span class="t">野球・ソフトボール</span><span class="s">リスト解放・強打撃系</span></button>
+              <button type="button" class="opt-card" data-value="tennis"><span class="t">テニス・卓球・バドミントン</span><span class="s">フェース開閉・回旋系</span></button>
+              <button type="button" class="opt-card" data-value="kendo"><span class="t">剣道・柔道・武道</span><span class="s">縦振り・手元減速系</span></button>
+              <button type="button" class="opt-card" data-value="swim"><span class="t">水泳・陸上・サッカー・バスケ</span><span class="s">体幹ボディターン系</span></button>
+              <button type="button" class="opt-card" data-value="golf"><span class="t">ゴルフ専念・特になし</span><span class="s">標準オンプレーン系</span></button>
+            </div>
+            <select id="inp-sport" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="baseball" selected>野球・ソフトボール（リスト解放・強打撃系）</option>
+              <option value="tennis">テニス・卓球・バドミントン・ホッケー（フェース開閉・回旋系）</option>
+              <option value="kendo">剣道・柔道・武道（縦振り・手元減速系）</option>
+              <option value="swim">水泳・陸上・サッカー・バスケ（体幹ボディターン系）</option>
+              <option value="golf">ゴルフ専念・特になし（標準オンプレーン系）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>切り返しのテンポ・タメの強さ</label>
+            <span class="help" style="margin-bottom:8px">トップから切り返すときの「間」の取り方です。タメが強いほど、手元がしなって先端が硬いシャフト（元調子）が合います。</span>
+            <div class="seg" id="seg-tempo" role="group" aria-label="切り返しのテンポ">
+              <button type="button" class="seg-btn" data-value="smooth">ゆったり</button>
+              <button type="button" class="seg-btn" data-value="standard">標準</button>
+              <button type="button" class="seg-btn" data-value="fast">速い・タメが強い</button>
+            </div>
+            <select id="inp-tempo" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="smooth">ゆったり・スムーズ（トップで間を待つ）</option>
+              <option value="standard">標準テンポ（平均的なリズム）</option>
+              <option value="fast" selected>速い・タメが強い（右踵ベタ足意識・強振タイプ）</option>
+            </select>
+          </div>
+        </div>
+        <div class="q-group">
+          <div class="q-label">今のアイアン — 重さの基準</div>
+          <div class="field">
+            <label>今使っている7番アイアンの種類</label>
+            <span class="help" style="margin-bottom:8px">アイアンの重さが分かると、ドライバーの目標総重量（約270〜335g）とシャフト重量を一意に決められます。分からなければ「分からない」を選んでください。</span>
+            <div class="opt-cards" id="seg-iron" role="group" aria-label="7番アイアンの種類">
+              <button type="button" class="opt-card" data-value="ultralight_carbon"><span class="t">超軽量カーボン</span><span class="s">L/R2・40g台 ｜ 7I総重量 約352g</span></button>
+              <button type="button" class="opt-card" data-value="std_carbon"><span class="t">標準カーボン</span><span class="s">R/SR・50〜60g台 ｜ 7I総重量 約378g</span></button>
+              <button type="button" class="opt-card" data-value="light_steel"><span class="t">軽量スチール</span><span class="s">N.S.PRO 850/950GH neo等 ｜ 7I総重量 約405g</span></button>
+              <button type="button" class="opt-card" data-value="mid_steel"><span class="t">中量スチール</span><span class="s">MODUS3 105 / 115 / 120 S等 ｜ 7I総重量 約422g</span></button>
+              <button type="button" class="opt-card" data-value="heavy_steel"><span class="t">重量スチール</span><span class="s">MODUS3 125 / DG S200・X100 ｜ 7I総重量 約438g</span></button>
+              <button type="button" class="opt-card" data-value="unknown"><span class="t">分からない</span><span class="s">HSと体格から自動推計します</span></button>
+            </div>
+            <select id="inp-iron" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="ultralight_carbon">超軽量カーボン (L/R2・40g台｜7I総重量 約352g)</option>
+              <option value="std_carbon">標準カーボン (R/SR・50〜60g台｜7I総重量 約378g)</option>
+              <option value="light_steel">軽量スチール (N.S.PRO 850/950GH neo等｜7I総重量 約405g)</option>
+              <option value="mid_steel" selected>中量スチール (MODUS3 105 / 115 / 120 S等｜7I総重量 約422g)</option>
+              <option value="heavy_steel">重量スチール (MODUS3 125 / DG S200・X100｜7I総重量 約438g)</option>
+              <option value="unknown">分からない（HSと体格から自動推計）</option>
+            </select>
+          </div>
+        </div>
+        <div class="q-group">
+          <div class="q-label">グリップ — 握りの太さと感触</div>
+          <div class="field">
+            <label for="inp-glove">グローブサイズ (cm)</label>
+            <input type="number" inputmode="decimal" inputmode="decimal" id="inp-glove" value="23" min="18" max="28">
+            <span class="help">グリップの太さの目安に使います。</span>
+          </div>
+          <div class="field">
+            <label>手汗・好みのグリップ感</label>
+            <div class="seg" id="seg-sweat" role="group" aria-label="グリップ感">
+              <button type="button" class="seg-btn" data-value="rubber">しっとりラバー派</button>
+              <button type="button" class="seg-btn" data-value="cord">手汗多め・コード派</button>
+              <button type="button" class="seg-btn" data-value="thick_right">右手太め</button>
+            </div>
+            <select id="inp-sweat" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="rubber" selected>しっとりラバー派</option>
+              <option value="cord">手汗多め・コード派</option>
+              <option value="thick_right">右手太め(引っかけ防止)</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -405,7 +521,7 @@ footer b{color:var(--ink2)}
                 <!-- Ground line -->
                 <line x1="20" y1="100" x2="480" y2="100" stroke="#334155" stroke-width="2" />
                 <circle cx="25" cy="100" r="4" fill="#10b981" />
-                <text x="18" y="112" fill="#94a3b8" font-size="9">Tee</text>
+                <text x="18" y="112" fill="#94a3b8" font-size="12">Tee</text>
                 <!-- 1: Low Liner -->
                 <path id="svg-h-low" d="M 25 100 Q 170 68 350 100" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="4 2" />
                 <!-- 2: Mid-Low Penetrating -->
@@ -416,9 +532,9 @@ footer b{color:var(--ink2)}
                 <path id="svg-h-high" d="M 25 100 Q 250 10 430 100" fill="none" stroke="#64748b" stroke-width="2" />
                 <!-- 5: Ballooning Hop -->
                 <path id="svg-h-balloon" d="M 25 100 C 140 55, 290 -5, 365 25 C 395 38, 405 75, 410 100" fill="none" stroke="#f43f5e" stroke-width="2" stroke-dasharray="3 3" />
-                <text x="305" y="14" fill="#f43f5e" font-size="9" font-weight="bold">⑤ 吹き上がり(ホップ失速)</text>
-                <text x="200" y="34" fill="#10b981" font-size="9" font-weight="bold">②〜③ 強弾道・適正放物線</text>
-                <text x="155" y="85" fill="#94a3b8" font-size="9">① 低弾道ドロップ</text>
+                <text x="305" y="14" fill="#f43f5e" font-size="12" font-weight="bold">⑤ 吹き上がり(ホップ失速)</text>
+                <text x="200" y="34" fill="#10b981" font-size="12" font-weight="bold">②〜③ 強弾道・適正放物線</text>
+                <text x="155" y="85" fill="#94a3b8" font-size="12">① 低弾道ドロップ</text>
               </svg></div>
     <div class="cards cols3" id="height-cards">
               <div data-height="low" class="selectable-card rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
@@ -451,39 +567,39 @@ footer b{color:var(--ink2)}
     <div class="num-row">
       <div class="field">
         <label for="inp-hs">ヘッドスピード HS (m/s)</label>
-        <input type="number" id="inp-hs" value="47.0" step="0.5" min="25" max="60">
+        <input type="number" inputmode="decimal" id="inp-hs" value="47.0" step="0.5" min="25" max="60">
         <label class="unk"><input type="checkbox" id="unk-hs"> わからない（7番アイアンか総飛距離から推計）</label>
         <div class="converter" style="margin-top:8px">
           <span style="font-size:13px;color:var(--muted)">7I飛距離</span>
-          <input type="number" id="inp-7i-dist" placeholder="155" aria-label="7番アイアンの飛距離（ヤード）">
+          <input type="number" inputmode="decimal" id="inp-7i-dist" placeholder="155" aria-label="7番アイアンの飛距離（ヤード）">
           <span style="font-size:13px;color:var(--muted)">yd →</span>
           <button type="button" id="btn-calc-hs" class="mini-btn">HSに換算する</button>
         </div>
       </div>
       <div class="field">
         <label for="inp-bs">ボールスピード BS (m/s) <span style="font-weight:400;color:var(--muted)">— 任意</span></label>
-        <input type="number" id="inp-bs" value="68.5" step="0.5" placeholder="未入力なら自動推計">
+        <input type="number" inputmode="decimal" id="inp-bs" value="68.5" step="0.5" placeholder="未入力なら自動推計">
         <label class="unk"><input type="checkbox" id="unk-bs"> わからない（自動推計する）</label>
       </div>
       <div class="field">
         <label for="inp-Carry">平均キャリー (yd) <span style="font-weight:400;color:var(--muted)">— 任意</span></label>
-        <input type="number" id="inp-Carry" value="258" step="1" placeholder="未入力なら自動推計">
+        <input type="number" inputmode="decimal" id="inp-Carry" value="258" step="1" placeholder="未入力なら自動推計">
         <label class="unk"><input type="checkbox" id="unk-carry"> わからない（自動推計する）</label>
       </div>
       <div class="field">
         <label for="inp-Total">総飛距離 (yd) <span style="font-weight:400;color:var(--muted)">— 任意</span></label>
-        <input type="number" id="inp-Total" value="276" step="1" placeholder="未入力なら自動推計">
+        <input type="number" inputmode="decimal" id="inp-Total" value="276" step="1" placeholder="未入力なら自動推計">
         <label class="unk"><input type="checkbox" id="unk-total"> わからない（自動推計する）</label>
       </div>
       <div class="field">
         <label for="inp-fw">18ホールの平均FWキープ数 (0〜14)</label>
-        <input type="number" id="inp-fw" value="6" min="0" max="14">
+        <input type="number" inputmode="decimal" id="inp-fw" value="6" min="0" max="14">
         <span class="help">フェアウェイを外すほど打点が散らばっていると判定し、高MOIヘッドを優先します。</span>
         <label class="unk"><input type="checkbox" id="unk-fw"> わからない（平均的な値で診断）</label>
       </div>
       <div class="field">
         <label for="inp-ob">18ホールの平均OB数 (発)</label>
-        <input type="number" id="inp-ob" value="1.8" step="0.5" min="0" max="15">
+        <input type="number" inputmode="decimal" id="inp-ob" value="1.8" step="0.5" min="0" max="15">
         <span class="help">OBが多いほど方向の安定性を最優先します。</span>
         <label class="unk"><input type="checkbox" id="unk-ob"> わからない（平均的な値で診断）</label>
       </div>
@@ -506,46 +622,46 @@ footer b{color:var(--ink2)}
               <!-- Fairway Center Line & Grid -->
               <polygon points="145,200 75,15 285,15 215,200" fill="rgba(16, 185, 129, 0.06)" />
               <line x1="180" y1="200" x2="180" y2="12" stroke="#475569" stroke-width="1.5" stroke-dasharray="4 4" />
-              <text x="180" y="10" text-anchor="middle" fill="#94a3b8" font-size="9">目標方向 (Target 0°)</text>
-              <text x="55" y="16" text-anchor="middle" fill="#f43f5e" font-size="9">◀ 左 (Left)</text>
-              <text x="305" y="16" text-anchor="middle" fill="#38bdf8" font-size="9">右 (Right) ▶</text>
+              <text x="180" y="10" text-anchor="middle" fill="#94a3b8" font-size="12">目標方向 (Target 0°)</text>
+              <text x="55" y="16" text-anchor="middle" fill="#f43f5e" font-size="12">◀ 左 (Left)</text>
+              <text x="305" y="16" text-anchor="middle" fill="#38bdf8" font-size="12">右 (Right) ▶</text>
 
               <!-- 9 Ball Flight Paths -->
               <!-- 1: Pull Hook -->
               <path data-flight="1" class="flight-path active" d="M 180 198 Q 130 110 42 28" fill="none" stroke="#f43f5e" stroke-width="3" />
-              <text x="35" y="25" fill="#fda4af" font-size="9" font-weight="bold">①プルフック</text>
+              <text x="35" y="25" fill="#fda4af" font-size="12" font-weight="bold">①プルフック</text>
 
               <!-- 2: Pull Straight -->
               <path data-flight="2" class="flight-path" d="M 180 198 L 95 22" fill="none" stroke="#fb923c" stroke-width="2.5" />
-              <text x="88" y="18" fill="#fdba74" font-size="9">②プル直進</text>
+              <text x="88" y="18" fill="#fdba74" font-size="12">②プル直進</text>
 
               <!-- 3: Pull Fade -->
               <path data-flight="3" class="flight-path" d="M 180 198 Q 115 95 162 24" fill="none" stroke="#facc15" stroke-width="2.5" />
-              <text x="142" y="22" fill="#fde047" font-size="8.5">③プルフェード</text>
+              <text x="142" y="22" fill="#fde047" font-size="11">③プルフェード</text>
 
               <!-- 4: Straight Draw -->
               <path data-flight="4" class="flight-path" d="M 180 198 Q 180 100 122 25" fill="none" stroke="#fb7185" stroke-width="2.5" />
-              <text x="115" y="36" fill="#fecdd3" font-size="8.5">④直進ドロー</text>
+              <text x="115" y="36" fill="#fecdd3" font-size="11">④直進ドロー</text>
 
               <!-- 5: Straight -->
               <path data-flight="5" class="flight-path" d="M 180 198 L 180 20" fill="none" stroke="#10b981" stroke-width="2.5" />
-              <text x="180" y="34" text-anchor="middle" fill="#6ee7b7" font-size="8.5">⑤ストレート</text>
+              <text x="180" y="34" text-anchor="middle" fill="#6ee7b7" font-size="11">⑤ストレート</text>
 
               <!-- 6: Straight Fade -->
               <path data-flight="6" class="flight-path" d="M 180 198 Q 180 100 238 25" fill="none" stroke="#38bdf8" stroke-width="2.5" />
-              <text x="235" y="36" fill="#bae6fd" font-size="8.5">⑥直進フェード</text>
+              <text x="235" y="36" fill="#bae6fd" font-size="11">⑥直進フェード</text>
 
               <!-- 7: Push Draw -->
               <path data-flight="7" class="flight-path" d="M 180 198 Q 245 95 198 24" fill="none" stroke="#a78bfa" stroke-width="2.5" />
-              <text x="208" y="22" fill="#ddd6fe" font-size="8.5">⑦プッシュドロー</text>
+              <text x="208" y="22" fill="#ddd6fe" font-size="11">⑦プッシュドロー</text>
 
               <!-- 8: Push Straight -->
               <path data-flight="8" class="flight-path" d="M 180 198 L 265 22" fill="none" stroke="#60a5fa" stroke-width="2.5" />
-              <text x="272" y="18" fill="#bfdbfe" font-size="9">⑧プッシュ直進</text>
+              <text x="272" y="18" fill="#bfdbfe" font-size="12">⑧プッシュ直進</text>
 
               <!-- 9: Push Slice -->
               <path data-flight="9" class="flight-path" d="M 180 198 Q 230 110 318 28" fill="none" stroke="#818cf8" stroke-width="2.5" />
-              <text x="315" y="25" text-anchor="end" fill="#c7d2fe" font-size="9">⑨プッシュスライス</text>
+              <text x="315" y="25" text-anchor="end" fill="#c7d2fe" font-size="12">⑨プッシュスライス</text>
 
               <!-- Tee Box -->
               <circle cx="180" cy="198" r="5" fill="#10b981" stroke="#0f172a" stroke-width="2" />
@@ -605,29 +721,29 @@ footer b{color:var(--ink2)}
                 <path d="M 25 30 Q 140 12 245 32 Q 268 78 242 128 Q 140 144 35 125 Q 12 80 25 30 Z" fill="#1e293b" stroke="#64748b" stroke-width="2" />
                 <!-- Hosel -->
                 <rect x="246" y="8" width="14" height="36" rx="4" transform="rotate(-12 246 8)" fill="#475569" stroke="#94a3b8" stroke-width="1.5" />
-                <text x="35" y="20" fill="#94a3b8" font-size="9">◀ トゥ側 (Toe: 先)</text>
-                <text x="235" y="20" text-anchor="end" fill="#94a3b8" font-size="9">ヒール側 (Heel: 根元) ▶</text>
+                <text x="35" y="20" fill="#94a3b8" font-size="12">◀ トゥ側 (Toe: 先)</text>
+                <text x="235" y="20" text-anchor="end" fill="#94a3b8" font-size="12">ヒール側 (Heel: 根元) ▶</text>
 
                 <!-- 5 Clickable Zones -->
                 <!-- High-Toe -->
                 <path data-impact="high_toe" class="face-zone" d="M 28 33 Q 85 22 138 22 L 138 75 L 22 75 Q 20 50 28 33 Z" fill="rgba(51,65,85,0.5)" stroke="#475569" />
-                <text x="78" y="53" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="bold" pointer-events="none">ハイ・トゥ</text>
+                <text x="78" y="53" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="bold" pointer-events="none">ハイ・トゥ</text>
 
                 <!-- High-Heel -->
                 <path data-impact="high_heel" class="face-zone" d="M 142 22 Q 195 22 243 33 Q 255 55 253 75 L 142 75 Z" fill="rgba(51,65,85,0.5)" stroke="#475569" />
-                <text x="195" y="53" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="bold" pointer-events="none">ハイ・ヒール</text>
+                <text x="195" y="53" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="bold" pointer-events="none">ハイ・ヒール</text>
 
                 <!-- Low-Toe -->
                 <path data-impact="low_toe" class="face-zone" d="M 22 79 L 138 79 L 138 134 Q 80 132 36 123 Q 20 105 22 79 Z" fill="rgba(51,65,85,0.5)" stroke="#475569" />
-                <text x="78" y="108" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="bold" pointer-events="none">ロー・トゥ</text>
+                <text x="78" y="108" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="bold" pointer-events="none">ロー・トゥ</text>
 
                 <!-- Low-Heel -->
                 <path data-impact="low_heel" class="face-zone active" d="M 142 79 L 253 79 Q 250 105 240 126 Q 195 135 142 134 Z" fill="rgba(51,65,85,0.5)" stroke="#475569" />
-                <text x="195" y="108" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="bold" pointer-events="none">ロー・ヒール</text>
+                <text x="195" y="108" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="bold" pointer-events="none">ロー・ヒール</text>
 
                 <!-- Center Sweet Spot -->
                 <ellipse data-impact="center" class="face-zone" cx="140" cy="77" rx="34" ry="22" fill="rgba(30,41,59,0.92)" stroke="#94a3b8" stroke-width="1.5" />
-                <text x="140" y="81" text-anchor="middle" fill="#38bdf8" font-size="10" font-weight="bold" pointer-events="none">センター(芯)</text>
+                <text x="140" y="81" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="bold" pointer-events="none">センター(芯)</text>
               </svg></div>
 <div id="impact-buttons">
               <button type="button" data-impact="low_heel" class="selectable-card active w-full text-left px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 font-semibold text-white">
@@ -659,8 +775,8 @@ footer b{color:var(--ink2)}
 <h2>診断結果</h2>
 <p class="why">3段階のフィルタを通して選んだ、あなたに合うセッティングです。条件を変えたくなったら、上のステップに戻って修正し、もう一度「診断する」を押してください。</p>
 
+<p style="font-size:14px;font-weight:700;color:var(--ink2);margin:0 0 8px">季節モード</p>
 <div class="season-row no-print" role="group" aria-label="季節モード">
-<span style="font-size:13px;font-weight:700;color:var(--ink2);align-self:center">季節モード：</span>
 <button type="button" data-season="all" class="season-tab active">通年・春秋ベース（15〜23℃）</button>
 <button type="button" data-season="summer" class="season-tab">夏場（28〜35℃・左ミス防止）</button>
 <button type="button" data-season="winter" class="season-tab">冬場（0〜10℃・キャリー補正）</button>
@@ -686,17 +802,20 @@ footer b{color:var(--ink2)}
 <div id="top10-container"></div>
 
 <div class="pro-panel" id="pro-panel">
+<div class="kicker">Pro — Full Access</div>
 <h3>Top 4〜10と感度分析の全文は、Proで。</h3>
-<p>無料では Top 3 までご覧いただけます。Proでは Top 10 の全文と「1つだけ変えたらどうなるか」の感度分析、季節別セッティングをご覧いただけます。</p>
+<p>無料では Top 3 まで。Proではベスト10の全文と「1つだけ変えたらどうなるか」の感度分析、季節別セッティングをすべてご覧いただけます。</p>
 <div class="price-row">
 <div class="price-card">
 <div class="plan">FREE — 無料</div>
 <div class="yen">¥0</div>
+<div class="plan-sub">ずっと無料</div>
 <ul><li>ベスト10のうち Top 3 を表示</li><li>3段階解析サマリー</li><li>診断結果の保存・コピー</li></ul>
 </div>
 <div class="price-card pro">
 <div class="plan">PRO — 準備中</div>
-<div class="yen">¥480<span style="font-size:15px">/月</span> <span style="font-size:14px;color:var(--muted)">または ¥3,800/年</span></div>
+<div class="yen">¥480<span style="font-size:15px">/月</span></div>
+<div class="plan-sub">または ¥3,800/年（月あたり約¥317・約34%お得）</div>
 <ul><li>ベスト10の全文表示</li><li>感度分析（A/Bテスト指針）の全文</li><li>季節別セッティング・カタログ全件表示</li></ul>
 </div>
 </div>
@@ -764,7 +883,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Fitting v2.2</b><br>
+<b>FIT LAB — Driver Fitting v2.3</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
@@ -1942,7 +2061,7 @@ footer b{color:var(--ink2)}
 </script>
 
 <script>
-/* ================= FIT LAB v2.2 UI ================= */
+/* ================= FIT LAB v2.3 UI ================= */
 (function(){
 'use strict';
 var STEP_NAMES = {1:'あなたについて', 2:'球の高さと飛距離', 3:'球筋と打点', 4:'診断結果'};
@@ -1954,6 +2073,7 @@ var k = +b.dataset.bar;
 b.className = k < n? 'on': (k === n? 'now': '');
 });
 document.getElementById('progress-text').textContent = 'ステップ ' + n + ' / 4 — ' + STEP_NAMES[n];
+document.querySelectorAll('.progress-steps span').forEach(function(sp){ sp.classList.toggle('cur', +sp.dataset.ps === n);});
 window.scrollTo({top: document.getElementById('progress').offsetTop - 8, behavior:'smooth'});
 if (n === 4) { try { runPhysicsEngine();} catch(e){ console.error(e);}}
 }
@@ -2005,6 +2125,76 @@ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click();}
 });
 });
 
+/* ---- v2.3: segmented controls drive the hidden native selects ---- */
+function wireSegment(groupId, selectId){
+var group = document.getElementById(groupId);
+var sel = document.getElementById(selectId);
+if (!group || !sel) return;
+function sync(){
+group.querySelectorAll('[data-value]').forEach(function(b){
+var on = b.dataset.value === sel.value;
+b.classList.toggle('active', on);
+b.setAttribute('aria-pressed', on ? 'true' : 'false');
+});
+}
+group.querySelectorAll('[data-value]').forEach(function(b){
+b.addEventListener('click', function(){
+sel.value = b.dataset.value;
+sync();
+try { runPhysicsEngine(); } catch(e){}
+});
+});
+sync();
+}
+wireSegment('seg-gender','inp-gender');
+wireSegment('seg-age','inp-age');
+wireSegment('seg-tempo','inp-tempo');
+wireSegment('seg-sport','inp-sport');
+wireSegment('seg-iron','inp-iron');
+wireSegment('seg-sweat','inp-sweat');
+
+/* ---- v2.3: keep the last summary so the #1 card can draw its trajectory ---- */
+var _renderSummary = renderSummary;
+renderSummary = function(data){ window.__fitSummary = data; _renderSummary(data); };
+
+/* ---- v2.3: result presentation — Top-3 compare, score dials, #1 trajectory arc ---- */
+function enhanceTop10(list){
+var box = document.getElementById('top10-container');
+if (!box || !list || !list.length) return;
+var old = document.getElementById('top3-compare');
+if (old) old.remove();
+var cmp = document.createElement('div');
+cmp.id = 'top3-compare';
+cmp.className = 'top3-compare';
+var rows = list.slice(0,3).map(function(it, i){
+return '<div class="top3-row"><div class="r">' + (i+1) + '</div><div class="m">' + it.head.brand + ' ' + it.head.model + ' ' + it.chosenLoft + '<small>' + it.shaft.brand + ' ' + it.shaft.model + ' [' + it.shaft.flex + '] ' + it.shaft.weight + 'g</small></div><div class="s">' + it.score + '<span style="font-size:12px">/100</span></div></div>';
+}).join('');
+cmp.innerHTML = '<h3>Top 3 をひと目で比べる</h3><p>無料で見られる上位3つの組み合わせです。スコアは重さ・振動数・球筋・打点・弾道の5要素から採点しています。</p>' + rows;
+box.insertBefore(cmp, box.firstChild);
+var cards = box.querySelectorAll('article');
+var sum = window.__fitSummary || null;
+cards.forEach(function(card, idx){
+card.style.animationDelay = (idx * 70) + 'ms';
+var scoreEl = card.querySelector('.flex.items-center.gap-2');
+if (scoreEl && !scoreEl.querySelector('.score-dial')) {
+var sc = list[idx] ? list[idx].score : 0;
+var C = 163.36, off = (C * (1 - sc / 100)).toFixed(1);
+scoreEl.innerHTML = '<div class="score-dial"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--line)" stroke-width="6"/><circle cx="32" cy="32" r="26" fill="none" stroke="' + (idx === 0 ? '#B9975B' : '#0B352A') + '" stroke-width="6" stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off + '" transform="rotate(-90 32 32)"/></svg><span><span class="dial-num">' + sc + '</span><span class="dial-of">/100点</span><br><span style="font-size:12px;color:var(--muted)">物理適合スコア</span></span></div>';
+}
+});
+if (sum && cards[0] && !cards[0].querySelector('.traj')) {
+var launch = Math.round(sum.optLaunch);
+var peak = Math.max(18, Math.min(72, launch * 4.4));
+var arc = document.createElement('div');
+arc.className = 'traj';
+arc.id = 'top1-traj';
+arc.innerHTML = '<h4>この組み合わせの弾道イメージ</h4>' +
+'<svg viewBox="0 0 340 130" style="width:100%;height:auto;display:block" role="img" aria-label="理想の打ち出し角の弾道イメージ"><line x1="10" y1="112" x2="330" y2="112" stroke="rgba(246,241,231,.5)" stroke-width="2"/><circle cx="16" cy="112" r="4" fill="#B9975B"/><path d="M 16 112 Q 170 ' + (112 - 2 * peak) + ' 324 112" fill="none" stroke="#E9CE8E" stroke-width="3"/><text x="170" y="' + Math.max(14, 112 - 2 * peak - 8) + '" text-anchor="middle" fill="#F6F1E7" font-size="13" font-weight="bold">打ち出し ' + launch + '°</text><text x="330" y="126" text-anchor="end" fill="#B9CDBF" font-size="11">キャリー ' + sum.trueCarry + 'y</text></svg>' +
+'<p>理想ウィンドウは打ち出し ' + sum.optLaunch + '°・スピン ' + sum.optSpin + 'rpm。いまの球の高さと飛距離から、この組み合わせが最も近い弾道になります。</p>';
+cards[0].appendChild(arc);
+}
+}
+
 /* ---- Pro gate: wrap the preserved renderTop10 ---- */
 var lastTop10 = null, lastCtx = null;
 var _renderTop10 = renderTop10;
@@ -2012,6 +2202,7 @@ renderTop10 = function(list, ctx){
 lastTop10 = list; lastCtx = ctx;
 _renderTop10(list, ctx);
 applyProGate();
+enhanceTop10(list);
 renderCatalog();
 };
 function proUnlocked(){ try { return localStorage.getItem('pro_unlocked') === '1';} catch(e){ return false;}}
