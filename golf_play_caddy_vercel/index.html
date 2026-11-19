@@ -23,21 +23,26 @@
        1. 基本デザインシステム & サイバーダークUI
     ========================================================== */
     :root {
-      /* ★ STRATA テーマ: 墨 (sumi) を地に、朱 (shu) を唯一の主アクセントとする */
-      --bg-dark: #0d0f0a;
-      --bg-panel: rgba(19, 21, 14, 0.92);
-      --bg-card: #1a1d12;
-      --border-subtle: rgba(241, 237, 225, 0.14);
-      --border-highlight: rgba(228, 87, 46, 0.5);
+      /* ★ v16 ヤーデッジブック: 紙 (paper) を地に、墨 (ink) の文字、朱 (verm) を唯一の主アクセントとする */
+      --bg-dark: #10160f;
+      --bg-panel: #f1ede1;
+      --bg-card: #f1ede1;
+      --bg-card-2: #e7dfc8;
+      --border-subtle: rgba(23, 24, 15, 0.28);
+      --border-highlight: rgba(228, 87, 46, 0.55);
       --accent-green: #e4572e;
-      --accent-blue: #39c2d7;
-      --accent-amber: #ffb224;
-      --accent-red: #ff5d5d;
-      --accent-purple: #a855f7;
-      --accent-ip: #f59e0b;
-      --text-main: #f4f2e9;
-      --text-sub: #b9bba6;
-      --text-muted: #a3a892;
+      --accent-blue: #0e7490;
+      --accent-amber: #b45309;
+      --accent-red: #dc2626;
+      --accent-purple: #6d28d9;
+      --accent-ip: #b45309;
+      --text-main: #17180f;
+      --text-sub: #4a4a3c;
+      --text-muted: #6b6b58;
+      --paper: #f1ede1;
+      --ink: #17180f;
+      --verm: #e4572e;
+      --fairway: #1e7a4c;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
@@ -45,7 +50,7 @@
     /* サンライト高コントラスト白テーマ */
     body.sunlight-mode {
       --bg-dark: #f8fafc;
-      --bg-panel: rgba(255, 255, 255, 0.96);
+      --bg-panel: #ffffff;
       --bg-card: #ffffff;
       --border-subtle: rgba(0, 0, 0, 0.22);
       --border-highlight: #059669;
@@ -147,18 +152,18 @@
       transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
-    /* 上部ヘッダーバー */
+    /* 上部ヘッダーバー (v16: 地図を主役に — クロームは紙カード、スクリムなし) */
     .top-nav {
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
       z-index: 1000;
-      padding: calc(var(--safe-top) + 6px) 10px 6px 10px;
+      padding: calc(var(--safe-top) + 4px) 10px 4px 10px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
-      background: linear-gradient(180deg, rgba(8, 13, 26, 0.96) 0%, rgba(8, 13, 26, 0.82) 75%, rgba(8, 13, 26, 0) 100%);
+      gap: 4px;
+      background: none;
       pointer-events: none;
     }
 
@@ -175,12 +180,10 @@
       align-items: center;
       gap: 8px;
       background: var(--bg-panel);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border-subtle);
-      border-radius: 9999px;
-      padding: 4px 10px 4px 5px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      padding: 3px 10px 3px 4px;
+      box-shadow: 0 2px 10px rgba(23, 24, 15, 0.18);
       cursor: pointer;
       max-width: 50%;
       min-width: 0;
@@ -194,7 +197,7 @@
       width: 26px;
       height: 26px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      background: linear-gradient(135deg, #e4572e 0%, #c7431f 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -202,7 +205,7 @@
       color: #fff;
       font-weight: 900;
       flex-shrink: 0;
-      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+      box-shadow: 0 0 10px rgba(228, 87, 46, 0.45);
     }
 
     .course-title-wrap {
@@ -213,7 +216,7 @@
     .course-title {
       font-weight: 800;
       font-size: 11.5px;
-      color: #fff;
+      color: var(--ink);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -249,8 +252,6 @@
 
     .icon-btn {
       background: var(--bg-panel);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border-subtle);
       color: var(--text-main);
       width: 33px;
@@ -269,16 +270,16 @@
       transform: scale(0.92);
     }
     .icon-btn.active {
-      background: rgba(16, 185, 129, 0.25);
+      background: rgba(228, 87, 46, 0.16);
       border-color: var(--accent-green);
-      color: var(--accent-green);
-      box-shadow: 0 0 14px rgba(16, 185, 129, 0.5);
+      color: #b23a17;
+      box-shadow: 0 0 14px rgba(228, 87, 46, 0.35);
     }
     .icon-btn.active-amber {
-      background: rgba(245, 158, 11, 0.25);
+      background: rgba(180, 83, 9, 0.14);
       border-color: var(--accent-amber);
       color: var(--accent-amber);
-      box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
+      box-shadow: 0 0 14px rgba(180, 83, 9, 0.35);
     }
 
     /* ホールセレクターバー ＆ ティーバッジ ＆ 2グリーン(L/R) */
@@ -289,12 +290,10 @@
       gap: 4px;
       pointer-events: auto;
       background: var(--bg-panel);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 3px 6px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      padding: 2px 6px;
+      box-shadow: 0 2px 10px rgba(23, 24, 15, 0.18);
       flex-wrap: nowrap;
       overflow-x: auto;
       scrollbar-width: none;
@@ -306,9 +305,9 @@
     .db-import-btn {
       flex-shrink: 0;
       white-space: nowrap;
-      border: 1px solid rgba(56, 189, 248, 0.6);
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.35), rgba(37, 99, 235, 0.35));
-      color: #e0f2fe;
+      border: 1px solid rgba(14, 116, 144, 0.6);
+      background: rgba(14, 116, 144, 0.10);
+      color: #0e7490;
       font-size: 10px;
       font-weight: 800;
       padding: 2px 8px;
@@ -356,10 +355,10 @@
       font-size: 15px;
       font-weight: 900;
       color: #fff;
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      background: linear-gradient(135deg, #e4572e 0%, #c7431f 100%);
       padding: 1px 7px;
       border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+      box-shadow: 0 2px 8px rgba(228, 87, 46, 0.45);
     }
 
     .hole-spec-text {
@@ -374,12 +373,15 @@
       align-items: center;
       gap: 3px;
       padding: 2px 7px;
+      min-height: 44px;
       border-radius: 6px;
       font-size: 10px;
       font-weight: 800;
       cursor: pointer;
       transition: all 0.2s;
-      border: 1px solid rgba(255,255,255,0.3);
+      border: 1px solid rgba(23,24,15,0.35);
+      background: rgba(23,24,15,0.05);
+      color: var(--text-main);
       white-space: nowrap;
     }
     .tee-badge-chip:active {
@@ -390,7 +392,7 @@
     .green-side-toggle {
       display: flex;
       align-items: center;
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(23, 24, 15, 0.08);
       border-radius: 6px;
       padding: 1px;
       border: 1px solid var(--border-subtle);
@@ -402,6 +404,8 @@
       font-size: 10px;
       font-weight: 800;
       padding: 2px 5px;
+      min-height: 44px;
+      min-width: 44px;
       border-radius: 5px;
       cursor: pointer;
     }
@@ -411,7 +415,7 @@
     }
 
     .btn-ip-reset {
-      background: rgba(245, 158, 11, 0.15);
+      background: rgba(180, 83, 9, 0.12);
       border: 1px solid var(--accent-amber);
       color: var(--accent-amber);
       font-size: 9.5px;
@@ -422,7 +426,7 @@
     }
 
     .hole-quick-select {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(23, 24, 15, 0.06);
       border: 1px solid var(--border-subtle);
       color: var(--text-main);
       border-radius: 6px;
@@ -442,100 +446,110 @@
     .hole-nav-group { display: flex; gap: 5px; }
     .hole-nav-btn {
       min-width: 50px; min-height: 44px; font-size: 17px; padding: 8px 10px;
-      background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.5);
-      border-radius: 9px; justify-content: center;
+      background: rgba(228, 87, 46, 0.12); border: 1px solid rgba(228, 87, 46, 0.55);
+      border-radius: 9px; justify-content: center; color: #b23a17;
     }
     .hole-bar .hole-info-center { flex-shrink: 1; min-width: 0; }
     .hole-spec-text { overflow: hidden; text-overflow: ellipsis; }
     .hud-strip { display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
-    .hud-strip-main { gap: 4px; }
-    .hud-strip .hud-card { padding: 3px 5px; border-radius: 9px; }
+    .hud-strip-main { gap: 6px; }
+    .hud-strip .hud-card { padding: 3px 5px; border-radius: 12px; }
     .hud-strip .hud-label { font-size: 10px; }
     .hud-strip .hud-value { font-size: 15px; }
-    .hud-strip .hud-value.large { font-size: 27px; }
-    body.font-large .hud-strip .hud-value.large { font-size: 31px; }
-    body.font-xlarge .hud-strip .hud-value.large { font-size: 35px; }
+    .hud-strip .hud-value.large { font-size: 32px; }
+    body.font-large .hud-strip .hud-value.large { font-size: 36px; }
+    body.font-xlarge .hud-strip .hud-value.large { font-size: 40px; }
     .hud-strip .hud-sub { font-size: 10px; }
-    .hud-strip #hud-recommended-club { font-size: 11.5px !important; }
+    .hud-strip #hud-recommended-club { font-size: 11.5px !important; color: #b45309 !important; }
     .hud-strip #wind-fresh { font-size: 10px !important; }
-    .hud-strip-sub { flex-wrap: wrap; row-gap: 3px; padding: 3px 8px; pointer-events: auto; }
-    .hud-strip-sub .safety-banner-left, .hud-strip-sub .safety-banner-right { flex-wrap: wrap; row-gap: 3px; }
+    .hud-strip #wind-relative-detail { font-size: 11px !important; white-space: nowrap !important; }
+    .hud-strip-sub { padding: 3px 8px; pointer-events: auto; }
     /* ★ 案2: 情報帯の折りたたみ (1行ミニマム表示) */
-    .hud-mini { display: none; align-items: center; gap: 12px; background: rgba(15, 24, 43, 0.92); border: 1px solid rgba(255,255,255,0.10); border-radius: 10px; padding: 4px 6px 4px 10px; pointer-events: auto; }
+    .hud-mini { display: none; align-items: center; gap: 12px; background: #f1ede1; border: 1px solid rgba(23,24,15,0.28); border-radius: 12px; padding: 4px 6px 4px 10px; pointer-events: auto; }
     .hud-strip.collapsed .hud-strip-main, .hud-strip.collapsed .hud-strip-sub { display: none !important; }
     .hud-strip.collapsed .hud-mini { display: flex; }
     .hm-item { display: flex; align-items: baseline; gap: 4px; white-space: nowrap; }
-    .hm-label { font-size: 10px; font-weight: 700; color: #94a3b8; }
-    .hm-val { font-size: 19px; font-weight: 800; color: #fff; line-height: 1.15; }
-    .hm-val.cyan { color: #38bdf8; }
-    .hm-val.green { color: #4ade80; }
-    .hm-val.amber { color: #fbbf24; }
+    .hm-label { font-size: 10px; font-weight: 700; color: var(--text-muted); }
+    .hm-val { font-size: 19px; font-weight: 800; color: var(--text-main); line-height: 1.15; }
+    .hm-val.cyan { color: #0e7490; }
+    .hm-val.green { color: #1e7a4c; }
+    .hm-val.amber { color: #b45309; }
     .hm-dots { display: flex; flex-direction: column; gap: 5px; margin-left: auto; }
-    .hm-dot { width: 9px; height: 9px; border-radius: 50%; background: #64748b; display: block; }
-    .hm-dot.on { background: #22c55e; }
-    .hm-dot.kv.on { background: #38bdf8; }
-    .hm-expand { flex-shrink: 0; min-width: 54px; height: 42px; border-radius: 10px; border: none; background: #2563eb; color: #fff; font-size: 20px; font-weight: 800; cursor: pointer; }
-    .hud-collapse-btn { flex-shrink: 0; white-space: nowrap; border: 1px solid rgba(148, 163, 184, 0.55); background: rgba(30, 41, 59, 0.65); color: #cbd5e1; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; cursor: pointer; min-height: 24px; }
-    /* 下部ツールグリッド (デフォルト全表示 / 隠せる) */
+    .hm-dot { width: 9px; height: 9px; border-radius: 50%; background: #a8a58e; display: block; }
+    .hm-dot.on { background: #1e7a4c; }
+    .hm-dot.kv.on { background: #0e7490; }
+    .hm-expand { flex-shrink: 0; min-width: 54px; height: 42px; border-radius: 10px; border: none; background: #e4572e; color: #fff; font-size: 20px; font-weight: 800; cursor: pointer; }
+    .hud-collapse-btn { flex-shrink: 0; white-space: nowrap; border: 1px solid rgba(23,24,15,0.35); background: rgba(23,24,15,0.08); color: var(--text-main); font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; cursor: pointer; min-height: 44px; }
+    /* 下部ツールグリッド (デフォルト全表示 / 隠せる) — v16: 6列×3行で390pxに収める */
     #tool-grid-wrap { pointer-events: auto; display: flex; flex-direction: column; gap: 5px; }
     #tool-grid-toggle {
       align-self: center; background: var(--bg-panel); border: 1px solid var(--border-subtle);
-      color: var(--text-main); font-size: 10.5px; font-weight: 800; padding: 4px 18px;
-      border-radius: 999px; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      color: var(--text-main); font-size: 11px; font-weight: 800; padding: 4px 18px; min-height: 44px;
+      border-radius: 10px; cursor: pointer;
     }
-    #tool-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; }
+    #tool-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; }
     /* ツール表示中は右側FABと各パネルをドックの上へ逃がす */
     .floating-fab-group { transition: bottom 0.25s ease; }
-    body.tools-open .floating-fab-group { bottom: calc(var(--safe-bottom) + 208px); }
-    body.tools-open #green-contour-panel { bottom: calc(var(--safe-bottom) + 218px); }
-    body.tools-open #replay-panel, body.tools-open #plan-panel, body.tools-open #study-panel { bottom: calc(var(--safe-bottom) + 212px) !important; }
-    body.tools-open #btn-undo-shot { bottom: calc(var(--safe-bottom) + 276px) !important; }
+    body.tools-open .floating-fab-group { bottom: calc(var(--safe-bottom) + 258px); }
+    body.tools-open #green-contour-panel { bottom: calc(var(--safe-bottom) + 268px); }
+    body.tools-open #replay-panel, body.tools-open #plan-panel, body.tools-open #study-panel { bottom: calc(var(--safe-bottom) + 262px) !important; }
+    body.tools-open #btn-undo-shot { bottom: calc(var(--safe-bottom) + 326px) !important; }
     #tool-grid.closed { display: none; }
     .tool-btn { width: 100%; height: 48px; flex-direction: column; gap: 1px; border-radius: 10px; }
     .tool-label { font-size: 9px; font-weight: 700; line-height: 1.1; color: var(--text-sub); }
     .tool-cell {
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
       background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 10px;
-      height: 48px; padding: 2px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      height: 48px; padding: 2px;
+      min-width: 0;
     }
-    .tool-cell .hole-quick-select { max-width: 100%; font-size: 10px; padding: 2px; }
+    .tool-cell .hole-quick-select { max-width: 100%; width: 100%; min-width: 0; font-size: 10px; padding: 2px; text-overflow: ellipsis; }
     body.sunlight-mode #tool-grid-toggle, body.sunlight-mode .tool-cell {
       background: #ffffff; border-color: #cbd5e1; color: #0f172a;
     }
 
-    /* リアルタイムHUD情報バー */
+    /* リアルタイムHUD情報バー — v16: 2列 (上段=ピン/PlaysLikeの大数字、下段=高低差/風のコンパクト表示) */
     .hud-metrics-grid {
       position: static;
       width: 100%;
       box-sizing: border-box;
       z-index: 900;
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 5px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
       pointer-events: none;
     }
     .hud-metrics-grid .hud-card {
       pointer-events: auto;
+      min-width: 0;
     }
+    /* 上段2枚はヒーロー数字 */
+    .hud-metrics-grid .hud-card:nth-child(-n+2) { padding: 5px 8px; }
+    /* 下段2枚は1行コンパクト表示 (ラベル・数値・補足を横並び) */
+    .hud-metrics-grid .hud-card:nth-child(n+3) {
+      flex-direction: row; align-items: center; justify-content: flex-start;
+      gap: 6px; padding: 5px 8px; text-align: left;
+    }
+    .hud-metrics-grid .hud-card:nth-child(n+3) .hud-label { flex-shrink: 0; }
+    .hud-metrics-grid .hud-card:nth-child(n+3) .hud-value { font-size: 16px; flex-shrink: 0; }
+    .hud-metrics-grid .hud-card:nth-child(n+3) .hud-sub { font-size: 10px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
     .hud-card {
       background: var(--bg-panel);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--border-subtle);
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 5px 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 2px 10px rgba(23, 24, 15, 0.18);
       pointer-events: auto;
       text-align: center;
     }
     .hud-card.highlight {
       border-color: var(--border-highlight);
-      background: rgba(13, 23, 42, 0.94);
+      background: #fbf7ec;
     }
 
     .hud-label {
@@ -551,7 +565,7 @@
       font-variant-numeric: tabular-nums;
       font-size: 16px;
       font-weight: 900;
-      color: #fff;
+      color: var(--text-main);
       line-height: 1.1;
       margin: 1px 0;
     }
@@ -561,11 +575,10 @@
       letter-spacing: 0.01em;
     }
     .hud-value.green {
-      color: #34d399;
-      text-shadow: 0 0 10px rgba(52, 211, 153, 0.4);
+      color: #1e7a4c;
     }
     .hud-value.amber {
-      color: #fbbf24;
+      color: #b45309;
     }
 
     .hud-sub {
@@ -620,8 +633,8 @@
 
     /* ★ タップ対象の下限拡大 (操作性): 上部アイコンを大きくする */
     .icon-btn {
-      min-width: 40px;
-      min-height: 40px;
+      min-width: 44px;
+      min-height: 44px;
       font-size: 17px;
     }
 
@@ -634,37 +647,40 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 4px 10px;
-      background: rgba(8, 13, 26, 0.85);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      gap: 6px;
+      padding: 3px 8px;
+      background: var(--bg-panel);
       border: 1px solid var(--border-subtle);
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 10px;
       pointer-events: auto;
+      flex-wrap: nowrap;
     }
-    .safety-banner-left {
+    /* 安全バナー: 1行・横スクロール (中身の幅に依存せず高さを30px前後に保つ)。たたむボタンはスクロール外に固定 */
+    .safety-banner-scroll {
       display: flex;
       align-items: center;
       gap: 6px;
+      overflow-x: auto;
+      flex: 1 1 auto;
+      min-width: 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
-    .safety-banner-right {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .safety-banner-scroll::-webkit-scrollbar { display: none; }
+    .safety-banner-scroll > * { flex-shrink: 0; }
     .green-three-pts-badge {
       display: flex;
       align-items: center;
       gap: 4px;
-      background: rgba(16, 185, 129, 0.18);
-      border: 1px solid rgba(16, 185, 129, 0.4);
+      background: rgba(30, 122, 76, 0.12);
+      border: 1px solid rgba(30, 122, 76, 0.45);
       padding: 1px 6px;
       border-radius: 5px;
       font-family: 'Outfit', sans-serif;
       font-size: 10px;
       font-weight: 800;
-      color: #6ee7b7;
+      color: #14532d;
     }
 
     .sunset-tag {
@@ -698,16 +714,14 @@
       left: 10px;
       right: 10px;
       z-index: 1000;
-      background: rgba(8, 13, 26, 0.94);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(56, 189, 248, 0.4);
+      background: #f1ede1;
+      border: 1px solid rgba(14, 116, 144, 0.5);
       border-radius: 12px;
       padding: 8px 10px;
       display: none;
       flex-direction: column;
       gap: 6px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 8px 32px rgba(23, 24, 15, 0.3);
     }
 
     .green-panel-header {
@@ -718,7 +732,7 @@
     .green-title {
       font-size: 12px;
       font-weight: 800;
-      color: #38bdf8;
+      color: #0e7490;
       display: flex;
       align-items: center;
       gap: 4px;
@@ -754,12 +768,12 @@
       cursor: pointer;
     }
     .toggle-chip.active {
-      background: rgba(56, 189, 248, 0.25);
-      border-color: #38bdf8;
-      color: #38bdf8;
+      background: rgba(14, 116, 144, 0.12);
+      border-color: #0e7490;
+      color: #0e7490;
     }
 
-    /* 下部ボトムコントロールバー */
+    /* 下部ボトムコントロールバー (v16: スクリムなし、紙カードのみ) */
     .bottom-dock {
       position: absolute;
       bottom: 0;
@@ -767,7 +781,7 @@
       right: 0;
       z-index: 1000;
       padding: 6px 10px calc(var(--safe-bottom) + 6px) 10px;
-      background: linear-gradient(0deg, rgba(8, 13, 26, 0.98) 0%, rgba(8, 13, 26, 0.88) 75%, rgba(8, 13, 26, 0) 100%);
+      background: none;
       display: flex;
       flex-direction: column;
       gap: 5px;
@@ -784,13 +798,12 @@
 
     .dock-btn {
       flex: 1;
-      height: 42px;
+      height: 48px;
+      min-width: 0;
       border-radius: 10px;
       border: 1px solid var(--border-subtle);
       background: var(--bg-panel);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      color: #fff;
+      color: var(--text-main);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -799,7 +812,7 @@
       font-size: 10px;
       font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 2px 10px rgba(23, 24, 15, 0.18);
       transition: all 0.2s ease;
     }
     .dock-btn:active {
@@ -845,19 +858,17 @@
     }
 
     .fab-btn {
-      width: 40px;
-      height: 40px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       background: var(--bg-panel);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border-subtle);
-      color: #fff;
+      color: var(--text-main);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      font-size: 18px;
+      box-shadow: 0 2px 10px rgba(23, 24, 15, 0.25);
       cursor: pointer;
       transition: all 0.2s;
     }
@@ -898,7 +909,9 @@
     }
     .ip-pin-label {
       position: absolute;
-      bottom: 34px;
+      right: 40px;
+      top: 50%;
+      transform: translateY(-50%);
       background: rgba(8, 13, 26, 0.94);
       border: 1.5px solid #f59e0b;
       border-radius: 6px;
@@ -1028,22 +1041,20 @@
       bottom: 0;
       z-index: 2000;
       background: rgba(4, 8, 18, 0.85);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
       display: none;
       align-items: center;
       justify-content: center;
       padding: 12px;
     }
     .modal-card {
-      background: #0f1a2e;
+      background: #f1ede1;
       border: 1px solid var(--border-subtle);
       border-radius: 16px;
       width: 100%;
       max-width: 480px;
       max-height: 88vh;
       overflow-y: auto;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
       display: flex;
       flex-direction: column;
     }
@@ -1054,7 +1065,7 @@
       align-items: center;
       justify-content: space-between;
     }
-    .modal-title { font-weight: 800; font-size: 14px; color: #fff; }
+    .modal-title { font-weight: 800; font-size: 14px; color: var(--text-main); }
     .modal-close { background: transparent; border: none; color: var(--text-sub); font-size: 20px; cursor: pointer; }
     .modal-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
 
@@ -1081,7 +1092,7 @@
       gap: 6px;
       padding: 4px 10px;
       border-radius: 20px;
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(23, 24, 15, 0.06);
       border: 1px solid var(--border-subtle);
       font-size: 11px;
       font-weight: 700;
@@ -1090,21 +1101,21 @@
       transition: all 0.2s;
     }
     .wizard-step-node.active {
-      background: rgba(16, 185, 129, 0.2);
+      background: rgba(228, 87, 46, 0.14);
       border-color: var(--accent-green);
-      color: #34d399;
-      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+      color: #b23a17;
+      box-shadow: 0 0 12px rgba(228, 87, 46, 0.3);
     }
     .wizard-step-node.completed {
-      background: rgba(56, 189, 248, 0.15);
+      background: rgba(14, 116, 144, 0.10);
       border-color: var(--accent-blue);
-      color: #38bdf8;
+      color: #0e7490;
     }
     .step-num {
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(23, 24, 15, 0.12);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -1113,7 +1124,7 @@
     }
     .wizard-step-node.active .step-num {
       background: var(--accent-green);
-      color: #000;
+      color: #fff;
     }
     .wizard-step-arrow {
       color: var(--text-muted);
@@ -1137,7 +1148,7 @@
 
     /* サブコース選択カード */
     .subcourse-card {
-      background: #132238;
+      background: #fbf7ec;
       border: 1.5px solid var(--border-subtle);
       border-radius: 12px;
       padding: 12px 14px;
@@ -1149,13 +1160,13 @@
     }
     .subcourse-card:hover, .subcourse-card.selected {
       border-color: var(--accent-green);
-      background: rgba(16, 185, 129, 0.12);
-      box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
+      background: rgba(228, 87, 46, 0.10);
+      box-shadow: 0 0 16px rgba(228, 87, 46, 0.25);
     }
     .subcourse-card-title {
       font-weight: 800;
       font-size: 13px;
-      color: #fff;
+      color: var(--text-main);
     }
     .subcourse-card-desc {
       font-size: 11px;
@@ -1173,15 +1184,15 @@
       cursor: pointer;
       transition: all 0.2s;
       border: 1.5px solid var(--border-subtle);
-      background: #132238;
+      background: #fbf7ec;
     }
     .tee-option-card:hover, .tee-option-card.selected {
-      box-shadow: 0 0 16px rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 16px rgba(23, 24, 15, 0.25);
       transform: translateY(-1px);
     }
     .tee-option-card.tee-black.selected { border-color: #94a3b8; background: rgba(30, 41, 59, 0.85); }
     .tee-option-card.tee-blue.selected { border-color: #60a5fa; background: rgba(37, 99, 235, 0.25); }
-    .tee-option-card.tee-white.selected { border-color: #ffffff; background: rgba(255, 255, 255, 0.2); }
+    .tee-option-card.tee-white.selected { border-color: #17180f; background: rgba(23, 24, 15, 0.08); }
     .tee-option-card.tee-gold.selected { border-color: #fbbf24; background: rgba(217, 119, 6, 0.25); }
     .tee-option-card.tee-red.selected { border-color: #f87171; background: rgba(220, 38, 38, 0.25); }
 
@@ -1199,7 +1210,7 @@
     }
 
     .btn-main {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      background: linear-gradient(135deg, #e4572e 0%, #c7431f 100%);
       color: #fff;
       border: none;
       border-radius: 8px;
@@ -1207,12 +1218,12 @@
       font-weight: 700;
       font-size: 12px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+      box-shadow: 0 4px 12px rgba(228, 87, 46, 0.4);
     }
     .btn-sub {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(23, 24, 15, 0.06);
       border: 1px solid var(--border-subtle);
-      color: #fff;
+      color: var(--text-main);
       border-radius: 8px;
       padding: 8px 12px;
       font-weight: 600;
@@ -1220,7 +1231,7 @@
       cursor: pointer;
     }
     .btn-danger {
-      background: #ef4444;
+      background: #dc2626;
       color: #fff;
       border: none;
       border-radius: 8px;
@@ -1233,14 +1244,14 @@
     /* 4人対応スコアカード表 */
     .score-table { width: 100%; border-collapse: collapse; font-size: 10.5px; text-align: center; }
     .score-table th, .score-table td { border: 1px solid var(--border-subtle); padding: 3px 2px; }
-    .score-table th { background: #111e33; color: var(--text-sub); }
-    .score-input-cell { width: 44px; height: 40px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 6px; color: #fff; text-align: center; font-weight: 800; font-size: 15px; outline: none; }
+    .score-table th { background: #e7dfc8; color: var(--text-sub); }
+    .score-input-cell { width: 44px; height: 40px; background: rgba(23,24,15,0.05); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-main); text-align: center; font-weight: 800; font-size: 15px; outline: none; }
 
     /* ポケットタッチロック全画面オーバーレイ */
     #touch-lock-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 3000;
       background: rgba(4, 8, 18, 0.92); display: none; flex-direction: column;
-      align-items: center; justify-content: center; gap: 16px; backdrop-filter: blur(10px);
+      align-items: center; justify-content: center; gap: 16px;
     }
     .lock-box {
       background: var(--bg-card); border: 1.5px solid var(--accent-amber);
@@ -1248,13 +1259,13 @@
       flex-direction: column; align-items: center; gap: 12px; max-width: 280px;
     }
 
-    /* トースト通知 */
+    /* トースト通知 — v16: ドックの上に表示し、操作ボタンを覆わない */
     #calibration-toast {
-      position: fixed; bottom: calc(var(--safe-bottom) + 70px); left: 50%;
+      position: fixed; bottom: calc(var(--safe-bottom) + 276px); left: 50%;
       transform: translateX(-50%); background: rgba(16, 185, 129, 0.96);
       color: #000; font-weight: 800; padding: 6px 14px; border-radius: 20px;
       font-size: 11.5px; z-index: 2500; display: none; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-      pointer-events: none;
+      pointer-events: none; max-width: calc(100% - 40px); text-align: center;
     }
   
     /* Vercel KV クラウド同期用スタイル (旧Gistスタイル統合) */
@@ -1311,20 +1322,19 @@
       border-radius: 9999px;
       font-size: 10px;
       font-weight: 800;
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(23, 24, 15, 0.06);
       border: 1px solid var(--border-subtle);
-      color: #94a3b8;
-      backdrop-filter: blur(8px);
+      color: var(--text-sub);
       transition: all 0.25s ease;
     }
     .gps-badge-chip.active {
-      border-color: #10b981;
-      color: #34d399;
-      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+      border-color: #1e7a4c;
+      color: #14532d;
+      box-shadow: 0 0 8px rgba(30, 122, 76, 0.35);
     }
     .gps-badge-chip.searching {
-      border-color: #f59e0b;
-      color: #fbbf24;
+      border-color: #b45309;
+      color: #b45309;
       animation: pulse-gps 1.5s infinite;
     }
     @keyframes pulse-gps {
@@ -1339,15 +1349,14 @@
       z-index: 1400;
       width: calc(100% - 20px);
       max-width: 480px;
-      background: linear-gradient(135deg, rgba(8, 13, 26, 0.98) 0%, rgba(15, 23, 42, 0.95) 100%);
-      border: 1.5px solid #38bdf8;
+      background: #f1ede1;
+      border: 1.5px solid #0e7490;
       border-radius: 14px;
       padding: 10px 14px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.35);
+      box-shadow: 0 10px 30px rgba(23, 24, 15, 0.3), 0 0 20px rgba(14, 116, 144, 0.3);
       display: none;
       flex-direction: column;
       gap: 8px;
-      backdrop-filter: blur(14px);
     }
     .shot-banner-row {
       display: flex;
@@ -1376,7 +1385,7 @@
       transform: translate(-50%, -50%);
     }
     .shot-history-item {
-      background: #132238;
+      background: #fbf7ec;
       border: 1px solid var(--border-subtle);
       border-radius: 8px;
       padding: 8px 10px;
@@ -1386,7 +1395,7 @@
       gap: 8px;
     }
     .shot-history-item:hover {
-      border-color: #38bdf8;
+      border-color: #0e7490;
     }
 
   
@@ -1429,7 +1438,7 @@
         <div class="course-title-wrap">
           <div class="course-title" id="current-course-display">
             戸田パブリックGC
-            <span style="font-size:9px; background:rgba(16,185,129,0.25); color:#34d399; padding:1px 4px; border-radius:4px;" id="current-subcourse-badge">OUT➔IN</span>
+            <span style="font-size:9px; background:rgba(30,122,76,0.12); color:#14532d; padding:1px 4px; border-radius:4px;" id="current-subcourse-badge">OUT➔IN</span>
           </div>
           <div class="course-sub" id="current-course-pref">埼玉県戸田市 (タップで変更)</div>
         </div>
@@ -1470,7 +1479,7 @@
       <div class="hud-label">⚡ PlaysLike</div>
       <div class="hud-value large green" id="hud-playslike-dist">-- y</div>
       <div class="hud-sub" id="hud-playslike-detail">風・高低差合成</div>
-      <div class="hud-sub" id="hud-recommended-club" style="color:#fbbf24; font-weight:800; font-size:12.5px;">推奨: —</div>
+      <div class="hud-sub" id="hud-recommended-club" style="color:#b45309; font-weight:800; font-size:12.5px;">推奨: —</div>
     </div>
     <div class="hud-card">
       <div class="hud-label">⛰️ 高低差</div>
@@ -1478,31 +1487,28 @@
       <div class="hud-sub" id="hud-elev-yards">(±0y)</div>
     </div>
     <div class="hud-card">
-      <div class="hud-label">💨 風向・風速</div>
-      <div class="hud-value amber" id="wind-spd-val" style="font-size:21px;">2.5m</div>
-      <div class="hud-sub" id="wind-relative-detail" style="font-size:12.5px; white-space:normal;">向かい風</div>
-      <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
-        <span id="wind-arrow" style="display:inline-block; font-size:20px; line-height:1; color:#fbbf24; transition:transform .3s;">⬆</span>
-        <span id="wind-fresh" style="font-size:11px; color:var(--text-muted);">未取得</span>
+      <div class="hud-label">💨 風</div>
+      <div class="hud-value amber" id="wind-spd-val" style="font-size:18px;">2.5m</div>
+      <div class="hud-sub" id="wind-relative-detail" style="font-size:11px; white-space:nowrap;">向かい風</div>
+      <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+        <span id="wind-arrow" style="display:inline-block; font-size:16px; line-height:1; color:#b45309; transition:transform .3s;">⬆</span>
+        <span id="wind-fresh" style="font-size:10px; color:var(--text-muted); white-space:nowrap;">未取得</span>
       </div>
     </div>
   </div>
   <div class="safety-banner hud-strip-sub">
-    <div class="safety-banner-left">
+    <div class="safety-banner-scroll">
       <div class="green-three-pts-badge" id="green-three-pts-display" title="打席進入角に沿った手前・中央・奥の3点ヤード">
         ⛳ F: <span id="g3-front">--</span> | C: <span id="g3-center">--</span> | B: <span id="g3-back">--</span>y
       </div>
       <span id="hud-gps-badge" class="gps-badge-chip" onclick="toggleGpsTracking()" title="タップでGPS追従ON/OFF">📍 GPS: 手動</span>
-      <span id="hud-db-sync-badge" class="gps-badge-chip" onclick="triggerManualVercelSync()" title="タップでVercel KVと即時再同期" style="cursor:pointer; background:rgba(56,189,248,0.2); color:#38bdf8;">☁️ KV同期済</span>
-      <button type="button" id="btn-db-import" class="db-import-btn" onclick="importFromVercelKvManual()" title="他端末で設定した情報をVercel KVから取込">📥 取込</button>
       <span id="sunset-countdown-display" class="sunset-tag">🌅 日没計算中...</span>
+      <span id="hud-db-sync-badge" class="gps-badge-chip" onclick="triggerManualVercelSync()" title="タップでVercel KVと即時再同期" style="cursor:pointer; background:rgba(14,116,144,0.12); color:#0e7490;">☁️ KV同期済</span>
+      <button type="button" id="btn-db-import" class="db-import-btn" onclick="importFromVercelKvManual()" title="他端末で設定した情報をVercel KVから取込">📥 取込</button>
+      <span style="color:var(--text-sub); white-space:nowrap;">標高: <strong id="user-elev-val" style="color:#17180f;">--</strong>m</span>
+      <span style="color:var(--text-sub); white-space:nowrap;">前回: <strong id="hud-last-shot-dist" style="color:#0e7490;">-- y</strong></span>
     </div>
-    <div class="safety-banner-right">
-      <span style="color:var(--text-sub);">標高: <strong id="user-elev-val" style="color:#fff;">--</strong>m</span>
-      <span style="color:var(--text-muted);">|</span>
-      <span style="color:var(--text-sub);">前回: <strong id="hud-last-shot-dist" style="color:#38bdf8;">-- y</strong></span>
-      <button type="button" class="hud-collapse-btn" onclick="setHudCollapsed(true)" title="情報帯を1行に折りたたむ">△ たたむ</button>
-    </div>
+    <button type="button" class="hud-collapse-btn" onclick="setHudCollapsed(true)" title="情報帯を1行に折りたたむ">△ たたむ</button>
   </div>
   <div class="hud-mini" id="hud-mini">
     <span class="hm-item"><span class="hm-label">ピン</span><span class="hm-val cyan" id="hm-pin">--y</span></span>
@@ -1519,17 +1525,17 @@
   <div id="shot-tracking-banner">
     <div class="shot-banner-row">
       <span id="shot-banner-title" style="font-weight:800; font-size:14px;">計測中</span>
-      <span class="shot-dist-badge-live" id="shot-banner-dist-live" style="font-weight:800; font-size:18px; color:#38bdf8;">0y</span>
+      <span class="shot-dist-badge-live" id="shot-banner-dist-live" style="font-weight:800; font-size:18px; color:#0e7490;">0y</span>
     </div>
     <div class="shot-banner-row">
-      <span id="shot-banner-quality" style="font-size:12px; color:#b9bba6;">精度 —</span>
-      <span style="font-size:11px; color:#a3a892;">ボールの横で数秒止まると精度が上がります</span>
+      <span id="shot-banner-quality" style="font-size:12px; color:#4a4a3c;">精度 —</span>
+      <span style="font-size:11px; color:#6b6b58;">ボールの横で数秒止まると精度が上がります</span>
     </div>
   </div>
-  <button id="btn-undo-shot" onclick="undoLastShot()" style="display:none; position:fixed; bottom:calc(var(--safe-bottom) + 132px); left:50%; transform:translateX(-50%); z-index:1500; background:#1a1d12; color:#f4f2e9; border:1px solid rgba(241,237,225,.35); border-radius:999px; padding:10px 18px; font-size:13px; font-weight:700; box-shadow:0 6px 20px rgba(0,0,0,.5); cursor:pointer;">↩ 直前のショットを取り消し</button>
+  <button id="btn-undo-shot" onclick="undoLastShot()" style="display:none; position:fixed; bottom:calc(var(--safe-bottom) + 132px); left:50%; transform:translateX(-50%); z-index:1500; background:#f1ede1; color:#17180f; border:1px solid rgba(23,24,15,0.35); border-radius:999px; padding:10px 18px; font-size:13px; font-weight:700; box-shadow:0 6px 20px rgba(23,24,15,0.35); cursor:pointer;">↩ 直前のショットを取り消し</button>
 
   <!-- ★ 軌跡リプレイパネル -->
-  <div id="replay-panel" style="display:none; position:fixed; bottom:calc(var(--safe-bottom) + 68px); left:50%; transform:translateX(-50%); z-index:1450; width:calc(100% - 20px); max-width:480px; background:rgba(19,21,14,.96); border:1.5px solid #38bdf8; border-radius:14px; padding:10px 14px; box-shadow:0 10px 30px rgba(0,0,0,.6);">
+  <div id="replay-panel" style="display:none; position:fixed; bottom:calc(var(--safe-bottom) + 68px); left:50%; transform:translateX(-50%); z-index:1450; width:calc(100% - 20px); max-width:480px; background:#f1ede1; border:1.5px solid #0e7490; border-radius:14px; padding:10px 14px; box-shadow:0 10px 30px rgba(23,24,15,0.3);">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <span id="replay-title" style="font-weight:800; font-size:14px;">🎬 軌跡リプレイ</span>
       <button class="btn-sub" style="padding:4px 10px;" onclick="stopTrajectoryReplay()">終了</button>
@@ -1542,12 +1548,12 @@
   </div>
 
   <!-- ★ 予習プロットパネル -->
-  <div id="plan-panel" style="display:none; position:fixed; bottom:calc(var(--safe-bottom) + 68px); left:50%; transform:translateX(-50%); z-index:1450; width:calc(100% - 20px); max-width:480px; background:rgba(19,21,14,.96); border:1.5px solid #e4572e; border-radius:14px; padding:10px 14px; box-shadow:0 10px 30px rgba(0,0,0,.6); max-height:46vh; overflow-y:auto;">
+  <div id="plan-panel" style="display:none; position:fixed; bottom:calc(var(--safe-bottom) + 68px); left:50%; transform:translateX(-50%); z-index:1450; width:calc(100% - 20px); max-width:480px; background:#f1ede1; border:1.5px solid #e4572e; border-radius:14px; padding:10px 14px; box-shadow:0 10px 30px rgba(23,24,15,0.3); max-height:46vh; overflow-y:auto;">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <span id="plan-title" style="font-weight:800; font-size:14px;">🎯 予習プロット</span>
       <button class="btn-sub" style="padding:4px 10px;" onclick="togglePlanMode()">終了</button>
     </div>
-    <div style="font-size:11.5px; color:#a3a892; margin-top:4px;">地図をタップして落下地点を順に置く。点はドラッグで調整できます。自動で保存されます。</div>
+    <div style="font-size:11.5px; color:#6b6b58; margin-top:4px;">地図をタップして落下地点を順に置く。点はドラッグで調整できます。自動で保存されます。</div>
     <div id="plan-list" style="margin-top:6px;"></div>
     <div style="display:flex; gap:8px; margin-top:8px;">
       <button class="btn-sub" style="flex:1; padding:9px;" onclick="planUndo()">↩ 1つ戻す</button>
@@ -1556,7 +1562,7 @@
   </div>
 
   <!-- 📚 予習モード パネル -->
-  <div id="study-panel" style="display:none; position:fixed; bottom:calc(var(--safe-bottom) + 68px); left:50%; transform:translateX(-50%); z-index:1450; width:calc(100% - 20px); max-width:480px; background:rgba(19,21,14,.96); border:1.5px solid #39c2d7; border-radius:14px; padding:10px 14px; box-shadow:0 10px 30px rgba(0,0,0,.6); max-height:52vh; overflow-y:auto;">
+  <div id="study-panel" style="display:none; position:fixed; bottom:calc(var(--safe-bottom) + 68px); left:50%; transform:translateX(-50%); z-index:1450; width:calc(100% - 20px); max-width:480px; background:#f1ede1; border:1.5px solid #0e7490; border-radius:14px; padding:10px 14px; box-shadow:0 10px 30px rgba(23,24,15,0.3); max-height:52vh; overflow-y:auto;">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <span id="study-title" style="font-weight:800; font-size:14px;">📚 予習モード</span>
       <span style="display:flex; gap:6px;">
@@ -1566,10 +1572,10 @@
       </span>
     </div>
     <div style="display:flex; gap:6px; align-items:center; margin-top:8px;">
-      <span style="font-size:11.5px; color:#a3a892;">想定クラブ:</span>
-      <select id="study-club-select" onchange="onStudyClubChange()" style="flex:1; background:#1e293b; border:1px solid var(--border-subtle); color:#fff; border-radius:8px; padding:7px 8px; font-size:12.5px; outline:none;"></select>
+      <span style="font-size:11.5px; color:#6b6b58;">想定クラブ:</span>
+      <select id="study-club-select" onchange="onStudyClubChange()" style="flex:1; background:#ffffff; border:1px solid var(--border-subtle); color:#17180f; border-radius:8px; padding:7px 8px; font-size:12.5px; outline:none;"></select>
     </div>
-    <div id="study-zone-info" style="font-size:12px; color:#f4f2e9; margin-top:5px; line-height:1.55;"></div>
+    <div id="study-zone-info" style="font-size:12px; color:#17180f; margin-top:5px; line-height:1.55;"></div>
     <div id="study-hazard-list" style="margin-top:6px;"></div>
     <div style="display:flex; gap:8px; margin-top:8px;">
       <button class="btn-sub" style="flex:1; padding:9px;" onclick="togglePlanMode()">🎯 プロットで設計</button>
@@ -1577,7 +1583,7 @@
       <button class="btn-sub" style="flex:1; padding:9px;" onclick="openStudySummary()">📋 全ホール一覧</button>
     </div>
     <textarea id="study-memo" rows="2" placeholder="攻略メモ（例: ティーショットは左バンカー右端狙い。2打目は花道から）" oninput="saveStudyMemo()"
-      style="width:100%; box-sizing:border-box; margin-top:8px; background:#1e293b; border:1px solid var(--border-subtle); color:#fff; border-radius:8px; padding:8px 10px; font-size:12.5px; outline:none; resize:vertical;"></textarea>
+      style="width:100%; box-sizing:border-box; margin-top:8px; background:#ffffff; border:1px solid var(--border-subtle); color:#17180f; border-radius:8px; padding:8px 10px; font-size:12.5px; outline:none; resize:vertical;"></textarea>
   </div>
 
   <!-- 📋 予習・全ホール一覧 モーダル -->
@@ -1689,7 +1695,7 @@
   <div id="touch-lock-overlay" onclick="handleTouchLockTap()">
     <div class="lock-box">
       <div style="font-size:36px;">🔒</div>
-      <div style="font-weight:900; font-size:16px; color:#fff;">ポケット・タッチロック中</div>
+      <div style="font-weight:900; font-size:16px; color:var(--text-main);">ポケット・タッチロック中</div>
       <div style="font-size:12px; color:var(--text-sub);">誤タップを防ぐため画面入力を制限しています。<br><strong style="color:var(--accent-amber);">画面をダブルタップ</strong>でロック解除します。</div>
       <button class="btn-main" onclick="toggleTouchLock()" style="margin-top:6px; width:100%;">🔓 タッチロック解除</button>
     </div>
@@ -1701,7 +1707,7 @@
   <div class="modal-overlay" id="round-wizard-modal">
     <div class="modal-card" style="max-width:480px;">
       <div class="wizard-header-top">
-        <div class="wizard-title" style="font-weight:900; font-size:14px; color:#fff;">⛳ ラウンド設定 (楽天ゴルフPlus仕様)</div>
+        <div class="wizard-title" style="font-weight:900; font-size:14px; color:#17180f;">⛳ ラウンド設定 (楽天ゴルフPlus仕様)</div>
         <button class="modal-close" onclick="closeRoundWizard()">&times;</button>
       </div>
 
@@ -1728,17 +1734,17 @@
         <div class="wizard-step-panel active" id="wizard-panel-1">
           <div style="display:flex; gap:6px;">
             <input type="text" id="course-search-input" placeholder="コース名・地域名（例: 宍戸, 太平台, 石岡, 川奈...）" 
-                   style="flex:1; background:#1e293b; border:1px solid var(--border-subtle); color:#fff; border-radius:8px; padding:9px 10px; font-size:12.5px; outline:none;"
+                   style="flex:1; background:#ffffff; border:1px solid var(--border-subtle); color:#17180f; border-radius:8px; padding:9px 10px; font-size:12.5px; outline:none;"
                    oninput="onCourseSearchInput(this.value)">
             <button class="btn-main" onclick="executeExternalCourseSearch()">Web検索</button>
           </div>
 
-          <button class="btn-sub" style="display:flex; align-items:center; justify-content:center; gap:6px; background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8; padding:8px;" onclick="locateNearestGolfCourse()">
+          <button class="btn-sub" style="display:flex; align-items:center; justify-content:center; gap:6px; background:rgba(14,116,144,0.10); border-color:#0e7490; color:#0e7490; padding:8px;" onclick="locateNearestGolfCourse()">
             📍 現在地の最寄りゴルフ場を自動検出 (GPS)
           </button>
 
           <div style="display:flex; gap:6px; align-items:center;">
-            <select id="course-pref-select" style="flex:1; background:#1e293b; border:1px solid var(--border-subtle); color:#fff; border-radius:8px; padding:9px 10px; font-size:12.5px; outline:none;">
+            <select id="course-pref-select" style="flex:1; background:#ffffff; border:1px solid var(--border-subtle); color:#17180f; border-radius:8px; padding:9px 10px; font-size:12.5px; outline:none;">
               <option value="">都道府県から探す（全ゴルフ場）</option>
             </select>
             <button class="btn-main" onclick="browseCoursesByPrefecture()">全て表示</button>
@@ -1753,10 +1759,10 @@
 
         <!-- STEP 2: サブコース選択 -->
         <div class="wizard-step-panel" id="wizard-panel-2">
-          <div style="background:#132238; border-radius:8px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+          <div style="background:#e7dfc8; border-radius:8px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
             <div>
               <div style="font-size:10px; color:var(--text-sub);">選択中のゴルフ場:</div>
-              <div style="font-size:13px; font-weight:800; color:#38bdf8;" id="wizard-selected-course-name">--</div>
+              <div style="font-size:13px; font-weight:800; color:#0e7490;" id="wizard-selected-course-name">--</div>
             </div>
             <button class="btn-sub" style="padding:3px 8px; font-size:10px;" onclick="gotoWizardStep(1)">変更</button>
           </div>
@@ -1769,10 +1775,10 @@
 
         <!-- STEP 3: ティー選択 -->
         <div class="wizard-step-panel" id="wizard-panel-3">
-          <div style="background:#132238; border-radius:8px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+          <div style="background:#e7dfc8; border-radius:8px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
             <div>
               <div style="font-size:10px; color:var(--text-sub);">コース構成:</div>
-              <div style="font-size:12px; font-weight:800; color:#fff;" id="wizard-summary-course-info">--</div>
+              <div style="font-size:12px; font-weight:800; color:#17180f;" id="wizard-summary-course-info">--</div>
             </div>
             <button class="btn-sub" style="padding:3px 8px; font-size:10px;" onclick="gotoWizardStep(2)">コース再選択</button>
           </div>
@@ -1806,7 +1812,7 @@
       <div class="modal-body">
         <div id="paywall-reason" style="display:none; font-size:12px; color:#ffb224; font-weight:700; margin-bottom:6px;"></div>
         <div style="font-size:12.5px; color:var(--text-main); line-height:1.7;">
-          現在のプラン: <strong id="paywall-current-plan" style="color:#fbbf24;">Free</strong>
+          現在のプラン: <strong id="paywall-current-plan" style="color:#b45309;">Free</strong>
         </div>
         <div style="font-size:12px; color:var(--text-sub); line-height:1.7; margin-top:4px;">
           Proで解放される機能:<br>
@@ -1885,7 +1891,7 @@
 
       <!-- KV未接続時のセットアップ手順 (未設定を検出したときだけ表示) -->
       <div id="kv-setup-guide" style="display:none; background:rgba(251,191,36,0.10); border:1px solid rgba(251,191,36,0.55); border-radius:12px; padding:12px; margin-bottom:14px;">
-        <div style="font-size:12px; font-weight:800; color:#fbbf24; margin-bottom:6px;">⚠️ KVデータベースが未接続です（同期できない原因はこれです）</div>
+        <div style="font-size:12px; font-weight:800; color:#b45309; margin-bottom:6px;">⚠️ KVデータベースが未接続です（同期できない原因はこれです）</div>
         <div style="font-size:11px; color:var(--text-main); line-height:1.75;">
           アプリとAPIは正常に動作していますが、保存先のデータベースが Vercel プロジェクトに接続されていません。PCで1回だけ設定してください（約3分）:<br>
           1. <a href="https://vercel.com/dashboard" target="_blank" rel="noopener" style="color:#7dd3fc;">Vercelダッシュボード</a>でこのアプリのプロジェクトを開く<br>
@@ -1906,7 +1912,7 @@
       <!-- 📲 他端末(スマホ)と同期・QRコード連携 -->
       <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.35); border-radius:12px; padding:12px; margin-bottom:14px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <div style="font-size:12px; font-weight:700; color:#34d399;">📲 他端末 (スマホ) と同期する</div>
+          <div style="font-size:12px; font-weight:700; color:#1e7a4c;">📲 他端末 (スマホ) と同期する</div>
           <span style="font-size:10px; color:var(--text-sub);" id="cloud-device-id-badge">端末ID: --</span>
         </div>
         <div style="font-size:10px; color:var(--text-sub); margin-bottom:8px; line-height:1.5;">
@@ -1941,7 +1947,7 @@
 
       <!-- ⚙️ Vercel KV 接続先・エンドポイント設定 (詳細アコーディオン) -->
       <details id="vkv-settings-details" style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:12px; padding:10px 12px; margin-bottom:14px; font-size:11px;">
-        <summary style="cursor:pointer; font-weight:700; color:#38bdf8; display:flex; align-items:center; justify-content:space-between; outline:none; user-select:none;">
+        <summary style="cursor:pointer; font-weight:700; color:#0e7490; display:flex; align-items:center; justify-content:space-between; outline:none; user-select:none;">
           <span>⚙️ Vercel KV 接続先設定 / 疎通診断</span>
           <span style="font-size:10px; color:var(--text-sub);" id="vkv-active-endpoint-badge">自動検出中</span>
         </summary>
@@ -1986,14 +1992,14 @@
         <button class="modal-close" onclick="closeShotHistoryModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <div style="display:flex; justify-content:space-between; align-items:center; background:#111e33; padding:8px 12px; border-radius:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#e7dfc8; padding:8px 12px; border-radius:8px;">
           <div>
             <div style="font-size:10px; color:var(--text-sub);">対象ホール</div>
-            <div style="font-size:15px; font-weight:800; color:#38bdf8;" id="shot-modal-hole-num">1H</div>
+            <div style="font-size:15px; font-weight:800; color:#0e7490;" id="shot-modal-hole-num">1H</div>
           </div>
           <div>
             <div style="font-size:10px; color:var(--text-sub);">総記録ショット数</div>
-            <div style="font-size:15px; font-weight:800; color:#10b981;" id="shot-modal-total-count">0 打</div>
+            <div style="font-size:15px; font-weight:800; color:#1e7a4c;" id="shot-modal-total-count">0 打</div>
           </div>
           <div>
             <button class="btn-main" style="padding:4px 8px; font-size:10px;" onclick="syncWithVercelKvManual()">
@@ -2031,7 +2037,7 @@
       <div class="modal-body">
         <div style="font-size:12px; color:var(--text-sub);">使用する番手を選択（弾道とキャリーサークルがIPルートに連動）:</div>
         <div style="display:flex; gap:8px;">
-          <select id="caddie-club-select" style="flex:1; background:#1e293b; color:#fff; border:1px solid var(--border-subtle); border-radius:8px; padding:8px; font-size:13px; font-weight:700;" onchange="onClubChange(this.value)">
+          <select id="caddie-club-select" style="flex:1; background:#ffffff; color:#17180f; border:1px solid var(--border-subtle); border-radius:8px; padding:8px; font-size:13px; font-weight:700;" onchange="onClubChange(this.value)">
           </select>
         </div>
         <div style="font-size:12px; color:var(--text-sub); margin-top:6px;">全番手標準キャリー設定 (ヤード):</div>
@@ -2049,7 +2055,7 @@
         <button class="modal-close" onclick="closeScoreModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <div style="display:flex; gap:4px; background:#111e33; padding:3px; border-radius:8px;">
+        <div style="display:flex; gap:4px; background:#e7dfc8; padding:3px; border-radius:8px;">
           <button class="btn-sub" id="tab-p1" style="flex:1; padding:5px; background:var(--accent-green); color:#fff; font-weight:800;" onclick="selectScorePlayer(1)">PLAYER 1 (自分)</button>
           <button class="btn-sub" id="tab-p2" style="flex:1; padding:5px;" onclick="selectScorePlayer(2)">PLAYER 2</button>
           <button class="btn-sub" id="tab-p3" style="flex:1; padding:5px;" onclick="selectScorePlayer(3)">PLAYER 3</button>
@@ -2082,9 +2088,9 @@
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; background:#152238; padding:6px 10px; border-radius:8px;">
-          <div><div style="font-size:10px; color:var(--text-sub);">GROSS</div><div style="font-size:18px; font-weight:900; color:#38bdf8;" id="score-total-gross">0</div></div>
-          <div><div style="font-size:10px; color:var(--text-sub);">PUTT</div><div style="font-size:18px; font-weight:900; color:#34d399;" id="score-total-putt">0</div></div>
-          <div><div style="font-size:10px; color:var(--text-sub);">新ペリアHDCP</div><div style="font-size:16px; font-weight:800; color:#fbbf24;" id="score-peoria-hdcp">0.0</div></div>
+          <div><div style="font-size:10px; color:var(--text-sub);">GROSS</div><div style="font-size:18px; font-weight:900; color:#0e7490;" id="score-total-gross">0</div></div>
+          <div><div style="font-size:10px; color:var(--text-sub);">PUTT</div><div style="font-size:18px; font-weight:900; color:#1e7a4c;" id="score-total-putt">0</div></div>
+          <div><div style="font-size:10px; color:var(--text-sub);">新ペリアHDCP</div><div style="font-size:16px; font-weight:800; color:#b45309;" id="score-peoria-hdcp">0.0</div></div>
           <div><div style="font-size:10px; color:var(--text-sub);">NET (順位)</div><div style="font-size:16px; font-weight:800; color:#a855f7;" id="score-peoria-net">0.0</div></div>
         </div>
 
@@ -2120,13 +2126,13 @@
         <button class="modal-close" onclick="closeGuideModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <div style="font-size:15px; font-weight:800; color:#fff;" id="guide-hole-title">1H (Par 4 / 365y)</div>
+        <div style="font-size:15px; font-weight:800; color:var(--text-main);" id="guide-hole-title">1H (Par 4 / 365y)</div>
         <div style="font-size:12px; color:var(--text-sub); line-height:1.6;" id="guide-hole-desc">
           ティーからグリーンまでフラットで素直なホール。フェアウェイセンターやや右狙いがセオリー。
         </div>
-        <div style="background:#132238; border-radius:8px; padding:8px; margin-top:4px;">
+        <div style="background:#e7dfc8; border-radius:8px; padding:8px; margin-top:4px;">
           <div style="font-size:11px; font-weight:700; color:var(--accent-green);">プロキャディの推奨レイアップ戦略:</div>
-          <div style="font-size:12px; color:#fff; margin-top:3px;" id="guide-caddie-advice">
+          <div style="font-size:12px; color:var(--text-main); margin-top:3px;" id="guide-caddie-advice">
             ティーショットは中間点(IP1)まで220y。セカンドは残り145y、無理のないセンター狙いが有効です。
           </div>
         </div>
@@ -2819,23 +2825,23 @@
       if (status === 'saving') {
         if (badge) {
           badge.innerHTML = '🔄 保存中...';
-          badge.style.background = 'rgba(245, 158, 11, 0.25)';
-          badge.style.color = '#fbbf24';
+          badge.style.background = 'rgba(180, 83, 9, 0.14)';
+          badge.style.color = '#b45309';
         }
         if (syncBtn) syncBtn.innerHTML = '<span class="icon-spin">🔄</span>';
       } else if (status === 'synced') {
         const timeStr = customMsg || new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
         if (badge) {
           badge.innerHTML = `☁️ KV同期済 (${timeStr})`;
-          badge.style.background = 'rgba(16, 185, 129, 0.2)';
-          badge.style.color = '#34d399';
+          badge.style.background = 'rgba(30, 122, 76, 0.12)';
+          badge.style.color = '#14532d';
         }
         if (syncBtn) syncBtn.innerHTML = '☁️';
       } else if (status === 'local') {
         if (badge) {
           badge.innerHTML = '⚪ 端末保存';
-          badge.style.background = 'rgba(148, 163, 184, 0.2)';
-          badge.style.color = '#94a3b8';
+          badge.style.background = 'rgba(107, 107, 88, 0.15)';
+          badge.style.color = '#6b6b58';
         }
         if (syncBtn) syncBtn.innerHTML = '☁️';
       }
@@ -3666,6 +3672,7 @@
 
         const ipMarker = L.marker(coord, {
           draggable: true,
+          zIndexOffset: 500,
           icon: L.divIcon({ className: '', html: markerHtml, iconSize: [30, 30], iconAnchor: [15, 15] })
         }).addTo(map);
 
@@ -3697,6 +3704,20 @@
       createSegmentDistanceBadges(allPoints);
     }
 
+    // ★ v16: 区間バッジは進行方向の右側へ20mオフセットして置く (線上に置くと
+    //   IPラベル / OBラベルと重なるため。距離表示そのものは変わらない)
+    function offsetSegmentBadgeMidpoint(p1, p2) {
+      const mid = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+      const k = Math.cos(mid[0] * Math.PI / 180);
+      const dx = (p2[1] - p1[1]) * k * 111320; // 東向き (m)
+      const dy = (p2[0] - p1[0]) * 110540;     // 北向き (m)
+      const len = Math.hypot(dx, dy) || 1;
+      const OFF = 20; // m, 進行方向の右側
+      const ox = (dy / len) * OFF;  // 東成分
+      const oy = (-dx / len) * OFF; // 北成分
+      return [mid[0] + oy / 110540, mid[1] + ox / (k * 111320)];
+    }
+
     function createSegmentDistanceBadges(points) {
       ipSegmentBadgeMarkers.forEach(m => map.removeLayer(m));
       ipSegmentBadgeMarkers = [];
@@ -3705,12 +3726,13 @@
         const p1 = points[i];
         const p2 = points[i + 1];
         const distYards = calcDistanceYards(p1, p2);
-        const midCoord = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+        const midCoord = offsetSegmentBadgeMidpoint(p1, p2);
 
         const badgeHtml = `<div class="ip-segment-badge">${distYards} yd</div>`;
         const badgeMarker = L.marker(midCoord, {
           icon: L.divIcon({ className: '', html: badgeHtml, iconSize: [0, 0] }),
-          interactive: false
+          interactive: false,
+          zIndexOffset: 1000
         }).addTo(map);
 
         ipSegmentBadgeMarkers.push(badgeMarker);
@@ -3726,7 +3748,7 @@
         const p1 = allPoints[i];
         const p2 = allPoints[i + 1];
         const distYards = calcDistanceYards(p1, p2);
-        const midCoord = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+        const midCoord = offsetSegmentBadgeMidpoint(p1, p2);
 
         if (ipSegmentBadgeMarkers[i]) {
           ipSegmentBadgeMarkers[i].setLatLng(midCoord);
@@ -3910,7 +3932,7 @@
               ${t.id.charAt(0).toUpperCase()}
             </div>
             <div>
-              <div style="font-weight:800; font-size:12.5px; color:#fff;">${teeName}</div>
+              <div style="font-weight:800; font-size:12.5px; color:var(--text-main);">${teeName}</div>
               <div style="font-size:10px; color:var(--text-sub);">${teeDesc}</div>
             </div>
           </div>
@@ -3958,7 +3980,7 @@
       // UIバッジ更新
       const cDisp = document.getElementById('current-course-display');
       if (cDisp) {
-        cDisp.innerHTML = `${currentCourse.name} <span style="font-size:9px; background:rgba(16,185,129,0.25); color:#34d399; padding:1px 4px; border-radius:4px;" id="current-subcourse-badge">${currentSubCourse.name}</span>`;
+        cDisp.innerHTML = `${currentCourse.name} <span style="font-size:9px; background:rgba(30,122,76,0.12); color:#14532d; padding:1px 4px; border-radius:4px;" id="current-subcourse-badge">${currentSubCourse.name}</span>`;
       }
       const prefEl = document.getElementById('current-course-pref');
       if (prefEl) prefEl.innerText = `${currentCourse.pref} (タップで変更)`;
@@ -4481,7 +4503,7 @@
         if (uElev == null || pElev == null) {
           // ★ 標高不明: 数値を出さず、高低差補正も行わない (playsLike 側で diffM=0 として扱う)
           if (uDisplay) uDisplay.innerText = '—';
-          if (diffEl) { diffEl.innerText = '標高不明'; diffEl.style.color = '#94a3b8'; }
+          if (diffEl) { diffEl.innerText = '—'; diffEl.style.color = 'var(--text-muted)'; }
           if (yardEl) yardEl.innerText = '';
         } else {
           if (uDisplay) uDisplay.innerText = userElevation.toFixed(1);
@@ -4492,7 +4514,7 @@
 
           if (diffEl) {
             diffEl.innerText = `${sign}${diffM.toFixed(1)}m`;
-            diffEl.style.color = diffM > 0.5 ? '#ef4444' : (diffM < -0.5 ? '#38bdf8' : '#fff');
+            diffEl.style.color = diffM > 0.5 ? '#dc2626' : (diffM < -0.5 ? '#0e7490' : 'var(--text-main)');
           }
           if (yardEl) yardEl.innerText = `(${sign}${diffY}y)`;
         }
@@ -4525,7 +4547,7 @@
       const wArrow = document.getElementById('wind-arrow');
       if (wArrow) {
         wArrow.style.transform = `rotate(${relAngle + 180}deg)`;
-        wArrow.style.color = windInfo.speed >= 8 ? '#f87171' : (windInfo.speed >= 5 ? '#fbbf24' : '#94a3b8');
+        wArrow.style.color = windInfo.speed >= 8 ? '#dc2626' : (windInfo.speed >= 5 ? '#b45309' : '#6b6b58');
       }
       const wFresh = document.getElementById('wind-fresh');
       if (wFresh) {
@@ -4984,10 +5006,10 @@
       }
       list.forEach(c => {
         const item = document.createElement('div');
-        item.style.cssText = 'background:#132238; border:1px solid var(--border-subtle); border-radius:8px; padding:7px 10px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;';
+        item.style.cssText = 'background:#fbf7ec; border:1px solid var(--border-subtle); border-radius:8px; padding:7px 10px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;';
         item.innerHTML = `
           <div>
-            <div style="font-weight:700; color:#fff; font-size:12px;">${escapeHtmlStr(c.name)}</div>
+            <div style="font-weight:700; color:var(--text-main); font-size:12px;">${escapeHtmlStr(c.name)}</div>
             <div style="font-size:10px; color:var(--text-sub);">${escapeHtmlStr(c.pref)} / Par ${c.par || 72}</div>
           </div>
           <button class="btn-main" style="padding:4px 8px; font-size:11px;">次へ</button>
@@ -5921,9 +5943,9 @@
         const timeStr = s.timestamp ? new Date(s.timestamp).toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' }) : '';
         item.innerHTML = `
           <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:14px; background:#1e293b; padding:4px 8px; border-radius:6px; font-weight:800; color:#38bdf8;">第${s.shotIndex}打</span>
+            <span style="font-size:14px; background:rgba(14,116,144,0.10); padding:4px 8px; border-radius:6px; font-weight:800; color:#0e7490;">第${s.shotIndex}打</span>
             <div>
-              <div style="font-weight:800; font-size:13px; color:#fff;">${s.club} <span style="color:#10b981; margin-left:4px;">${s.distanceYards} yd</span> <span style="font-size:11px; color:#94a3b8;">(${s.distanceMeters}m)</span></div>
+              <div style="font-weight:800; font-size:13px; color:var(--text-main);">${s.club} <span style="color:#1e7a4c; margin-left:4px;">${s.distanceYards} yd</span> <span style="font-size:11px; color:var(--text-muted);">(${s.distanceMeters}m)</span></div>
               <div style="font-size:10px; color:var(--text-sub);">${timeStr}${s.startAccuracy ? ` / 計測精度 ±${Math.max(s.startAccuracy, s.endAccuracy || 0)}m (${s.measureMethod || ''})` : ''}</div>
             </div>
           </div>
@@ -8078,11 +8100,11 @@
       list.innerHTML = '';
       userClubs.forEach((c, idx) => {
         const item = document.createElement('div');
-        item.style.cssText = 'background:#132238; border:1px solid var(--border-subtle); border-radius:6px; padding:4px 8px; display:flex; justify-content:space-between; align-items:center;';
+        item.style.cssText = 'background:#fbf7ec; border:1px solid var(--border-subtle); border-radius:6px; padding:4px 8px; display:flex; justify-content:space-between; align-items:center;';
         item.innerHTML = `
           <span style="font-weight:700; font-size:11px;">${escapeHtmlStr(c.name)}</span>
           <div style="display:flex; align-items:center; gap:4px;">
-            <input type="number" value="${c.dist}" id="club-inp-${idx}" style="width:50px; background:#1e293b; border:1px solid var(--border-subtle); color:#fff; border-radius:4px; padding:3px; text-align:center; font-weight:800; font-size:12px;">
+            <input type="number" value="${c.dist}" id="club-inp-${idx}" style="width:50px; background:#ffffff; border:1px solid var(--border-subtle); color:#17180f; border-radius:4px; padding:3px; text-align:center; font-weight:800; font-size:12px;">
             <span style="font-size:10px; color:var(--text-sub);">y</span>
           </div>
         `;
