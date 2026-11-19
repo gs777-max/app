@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Serif+JP:wght@600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ============ FIT LAB v2.5 — paper x deep green x brass editorial, mobile-first ============ */
+/* ============ FIT LAB v2.6 — paper x deep green x brass editorial, mobile-first ============ */
 :root{
   --paper:#F6F1E7; --card:#FFFDF8; --ink:#14201B; --ink2:#2E3B34; --muted:#4A5A51;
   --green:#0B352A; --green2:#072A20; --green-soft:#E4EFE7; --green-line:#7FA98C;
@@ -193,9 +193,18 @@ img,svg{max-width:100%}
 .score{font-size:13px;color:var(--muted);text-align:right}
 .score b{font-size:26px;color:var(--green);font-family:'Fraunces',serif}
 .lock-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  text-align:center;padding:20px;background:rgba(11,53,42,.86);border-radius:18px}
+  text-align:center;padding:20px;background:var(--green);border-radius:18px;cursor:pointer}
 .lock-overlay .lock-t{font-weight:700;font-size:18px;color:#E9CE8E}
 .lock-overlay .lock-s{font-size:14px;color:#DCE8DF;max-width:420px}
+.pw-modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(11,53,42,.72)}
+.pw-modal[hidden]{display:none}
+.pw-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;max-width:420px;width:100%}
+.pw-card h3{margin:0 0 6px;font-size:21px}
+.pw-card p{margin:0 0 14px;font-size:14.5px;color:var(--ink2)}
+.pw-card input{width:100%;min-height:52px;font-size:18px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+.pw-err{color:#B3261E;font-size:14px;font-weight:700;min-height:20px;margin:10px 0 0}
+.pw-row{display:flex;gap:10px;margin-top:14px}
+.pw-row .btn{flex:1}
 .score-bar{height:6px;background:var(--line-soft);border-radius:3px;overflow:hidden;margin-top:6px}
 .score-bar i{display:block;height:100%;background:var(--green)}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -833,7 +842,21 @@ footer b{color:var(--ink2)}
 <button type="button" id="btn-pro-unlock" class="btn btn-brass">デモ解除で Pro 表示を試す</button>
 <button type="button" id="btn-pro-lock" class="btn btn-ghost">デモ解除を取り消す</button>
 </div>
-<p class="demo-note">※ 決済はまだ実装されていません。「デモ解除」はこの端末だけで表示を切り替えるお試しボタンです。料金は予定価格です。</p>
+<p class="demo-note">※ 決済はまだ実装されていません。「デモ解除」はこの端末だけで表示を切り替えるお試しボタンです。料金は予定価格です。ロック中のカードをタップするとパスワードでも解除できます。</p>
+</div>
+
+<!-- ============ PASSWORD MODAL ============ -->
+<div class="pw-modal" id="pw-modal" hidden role="dialog" aria-modal="true" aria-labelledby="pw-title">
+<div class="pw-card">
+<h3 id="pw-title">Pro をパスワードで解除</h3>
+<p>ロック中の Top 4〜10と感度分析の全文を表示します。パスワードを入力してください。</p>
+<input type="password" id="pw-input" autocomplete="off" aria-label="パスワード" placeholder="パスワード">
+<p class="pw-err" id="pw-err" aria-live="polite"></p>
+<div class="pw-row">
+<button type="button" id="pw-submit" class="btn btn-brass">解除する</button>
+<button type="button" id="pw-cancel" class="btn btn-ghost">キャンセル</button>
+</div>
+</div>
 </div>
 
 <div class="sec-head">
@@ -893,7 +916,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Fitting v2.5</b><br>
+<b>FIT LAB — Driver Fitting v2.6</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
@@ -2071,7 +2094,7 @@ footer b{color:var(--ink2)}
 </script>
 
 <script>
-/* ================= FIT LAB v2.5 UI ================= */
+/* ================= FIT LAB v2.6 UI ================= */
 (function(){
 'use strict';
 var STEP_NAMES = {1:'あなたについて', 2:'球の高さと飛距離', 3:'球筋と打点', 4:'診断結果'};
@@ -2207,6 +2230,90 @@ cards[0].appendChild(arc);
 }
 }
 
+/* ---- v2.6: SHA-256（パスワード照合用。パスワード文字列そのものはコードに置かない） ---- */
+function sha256hex(ascii){
+function rr(v,a){return (v>>>a)|(v<<(32-a));}
+var maxWord=Math.pow(2,32), result='';
+var words=[], asciiBitLength=ascii.length*8;
+var hash=sha256hex.h=sha256hex.h||[], k=sha256hex.k=sha256hex.k||[];
+var primeCounter=k.length, isComposite={};
+for(var candidate=2;primeCounter<64;candidate++){
+if(!isComposite[candidate]){
+for(var i=0;i<313;i+=candidate){isComposite[i]=candidate;}
+hash[primeCounter]=(Math.pow(candidate,.5)*maxWord)|0;
+k[primeCounter++]=(Math.pow(candidate,1/3)*maxWord)|0;
+}}
+ascii+='\x80';
+while(ascii.length%64-56)ascii+='\x00';
+for(var i=0;i<ascii.length;i++){
+var j=ascii.charCodeAt(i);
+if(j>>8)return '';
+words[i>>2]|=j<<((3-i)%4)*8;
+}
+words[words.length]=((asciiBitLength/maxWord)|0);
+words[words.length]=(asciiBitLength);
+for(var j=0;j<words.length;){
+var w=words.slice(j,j+=16), oldHash=hash;
+hash=hash.slice(0,8);
+for(var i=0;i<64;i++){
+var w15=w[i-15], w2=w[i-2];
+var a=hash[0], e=hash[4];
+var temp1=hash[7]
++(rr(e,6)^rr(e,11)^rr(e,25))
++((e&hash[5])^((~e)&hash[6]))
++k[i]
++(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+var temp2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+hash=[(temp1+temp2)|0].concat(hash);
+hash[4]=(hash[4]+temp1)|0;
+}
+for(var i=0;i<8;i++){hash[i]=(hash[i]+oldHash[i])|0;}
+}
+for(var i=0;i<8;i++){
+for(var j=3;j+1;j--){
+var b=(hash[i]>>(j*8))&255;
+result+=((b<16)?0:'')+b.toString(16);
+}}
+return result;
+}
+window.__fitlab = { sha256hex: sha256hex };
+/* パスワードはハッシュ値のみで照合する（平文はリポジトリに置かない）。
+   正式パスワード（8桁）に変えるときは、このハッシュ値を差し替えること。
+   window.__pwHashOverride はテスト用フック（運用時は未設定）。 */
+var PRO_PW_HASH = '625fe74cad4600b5e8b76a9283333eb79052ae50d6af7f660feb4831d87af5d2';
+function verifyPassword(pw){
+try { return sha256hex(pw) === (window.__pwHashOverride || PRO_PW_HASH); }
+catch(e){ return false; }
+}
+function openPwModal(){
+var m = document.getElementById('pw-modal');
+if (!m) return;
+m.hidden = false;
+var err = document.getElementById('pw-err'); if (err) err.textContent = '';
+var inp = document.getElementById('pw-input'); if (inp) { inp.value = ''; inp.focus(); }
+}
+function closePwModal(){
+var m = document.getElementById('pw-modal');
+if (m) m.hidden = true;
+}
+document.getElementById('pw-submit').addEventListener('click', function(){
+var inp = document.getElementById('pw-input');
+var pw = inp ? inp.value : '';
+if (verifyPassword(pw)) {
+try { localStorage.setItem('pro_unlocked','1'); } catch(e){}
+closePwModal();
+applyProGate();
+document.getElementById('save-note').textContent = 'パスワードで解除しました。この端末では Top 10 の全文が表示されます（決済は行われていません）。';
+} else {
+var err = document.getElementById('pw-err');
+if (err) err.textContent = 'パスワードが違います。ロック画面のままです。';
+if (inp) { inp.value = ''; inp.focus(); }
+}
+});
+document.getElementById('pw-cancel').addEventListener('click', closePwModal);
+document.getElementById('pw-modal').addEventListener('click', function(e){ if (e.target === this) closePwModal(); });
+document.getElementById('pw-input').addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); document.getElementById('pw-submit').click(); } });
+
 /* ---- Pro gate: wrap the preserved renderTop10 ---- */
 var lastTop10 = null, lastCtx = null;
 var _renderTop10 = renderTop10;
@@ -2230,7 +2337,11 @@ card.classList.add('rank-card','locked');
 if (!card.querySelector('.lock-overlay')) {
 var ov = document.createElement('div');
 ov.className = 'lock-overlay';
-ov.innerHTML = '<div class="lock-t">第' + (idx+1) + '位は Pro で公開</div><div class="lock-s">Top 4〜10の全文は Pro（¥480/月・¥3,800/年、準備中）でご覧いただけます。下の「デモ解除で Pro 表示を試す」で表示を試せます。</div>';
+ov.setAttribute('role','button');
+ov.setAttribute('tabindex','0');
+ov.innerHTML = '<div class="lock-t">第' + (idx+1) + '位は Pro で公開</div><div class="lock-s">Top 4〜10の全文は Pro（¥480/月・¥3,800/年、準備中）でご覧いただけます。カードをタップしてパスワードで解除できます。</div>';
+ov.addEventListener('click', function(){ openPwModal(); });
+ov.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPwModal(); } });
 card.appendChild(ov);
 }
 } else {
