@@ -1,33 +1,47 @@
-# 🎙️ 感情AIボイス - ネオ・サイバーAIホログラムHUD (v2.7 Vercel Serverless)
+# 🎙️ 感情AIボイス - ネオ・サイバーAIホログラムHUD (v2.9 Speed & Accuracy)
 
 Google Gemini Live API（WebSocket 双方向音声ストリーミング）を活用した、リアルタイム感情音声対話Webアプリケーションです。
 Vercel へのデプロイに最適化されたサーバーレス関数アーキテクチャを採用しています。
 
+デプロイ済みサイト: https://app-aivoiceappvercel.vercel.app/
+
 ---
 
-## 🌟 今回の改修内容 (v2.7)
+## 🌟 今回の改修内容 (v2.9)
 
-1. **Vercel サーバーレス API バックエンドの構築 (`api/key.js`)**:
-   - Vercel の環境変数（`GEMINI_LIVE_API_KEY` または `GEMINI_API_KEY`）を自動的に読み込んでクライアントに提供するバックエンド API を新規作成。
-   - クライアント側から直接 `.env` ファイルを fetch する脆弱な仕様を完全に撤廃・不要化。
-2. **自動キーローダーの実装 (`initEnvConfig`)**:
-   - ページ起動時に自動で `/api/key` へリクエストを送信し、API キーをシームレスに初期設定。
-   - キーが未設定の場合でも、画面右上の「⚙️ CONFIG」モーダルから直接入力・ローカル保存 (`localStorage`) する安全なフォールバックを維持。
-3. **ローカルサーバー (`server.py`) の Vercel エミュレーション機能**:
-   - ローカル開発時も `http://localhost:8080/api/key` 経由でキーが自動取得されるよう、Vercel サーバーレス API と同等のエンドポイントをシミュレーション。
-4. **マルチプラットフォーム対応 (iOS / Windows / macOS)**:
-   - iOS Safari で必須となるユーザー操作起点の AudioContext 有効化、Web Audio API の単一インスタンス管理、マイク権限ハンドリングに完全対応。
+スピード最優先の改善と、小さな正確性修正です。
+
+1. **遅延計測の埋め込み**: 発話終了→AI初回音声／初回再生までの実測遅延（ミリ秒）をヘッダーの `LAT` 表示と診断ログに出します。計測なしでは改善効果を検証できないため最優先で追加しました。
+2. **AudioWorklet 化**: マイク入力を非推奨の `ScriptProcessor(4096)` から `AudioWorklet` に移行し、送信チャンクを 45ms から 25ms に短縮しました。AudioWorklet が使えないブラウザでは従来方式へ自動フォールバックします。
+3. **ターン確定の短縮**: 無音での発話完了判定を 380ms から 220ms に短縮し、Live API の `setup` にサーバー側VAD（`automaticActivityDetection`、無音200ms）を明示設定しました。
+4. **再生キューの上限・陳腐化破棄**: 1.5秒以上溜まった音声チャンクは破棄して最新に追従します（従来は無制限に溜まって遅延が蓄積しました）。
+5. **正確性修正**:
+   - キャラ切替で声も変わるようになりました（LUNA の声を `Aoede` から `Kore` に分離し、切替時に Live API の `setup` を送り直します）。
+   - 感情メーターは「設定値」の表示であることを明記しました（音声からの検出ではありません）。無音時のスペクトラムのダミー波形もやめました。
+   - AIの音声のみ応答も会話ログに残るようになりました（`responseModalities` に `TEXT` を追加し、テキストを1つの吹き出しに蓄積します）。
+   - 感情・キャラ変更の指示を `role: user` のターンとして送るのをやめ、システム指示（`setup` 送り直し）にしました。会話履歴を汚染しません。
+   - 「発話完了」ボタンのダミー発言（どうぞ答えてください）を送らないようにしました。
+   - 切断時に AudioContext やマイクノードを破棄し、再接続で重複しないようにしました。
+   - 起動時のキー取得を3エンドポイント並列化しました（直列待ちを解消）。
+6. **バージョン表記の統一**: タイトル・画面表示・`api/package.json` を v2.9 に統一しました。
+7. **CORS の小さな緩和（`api/key.js` / `api/server.py`）**: `/api/key` を叩けるオリジンを自サイト（`*.vercel.app`）とローカル開発に限定しました。ただし完全な対策ではありません。サイト訪問者は誰でもキーを読める構造自体は変わらないため、次フェーズでサーバー側プロキシ化（キーをブラウザに渡さない設計）が必須です。
+
+## ⚠️ 既知の制限（次フェーズ）
+
+- **実機未検証**: Gemini の生キーなしではライブ音声の実機テストはできていません。ブラウザでの動作確認が必要です。
+- **APIキーの秘匿化は未完了**: 上記の通り、`/api/key` の生キー返却をやめる本格的なプロキシ化は次フェーズです。
+- **キャラ画像の差し替え・日常系リデザイン・課金／アカウント機能は未着手**です。キャラは引き続き静止画3枚です。
 
 ---
 
 ## 🚀 Vercel へのデプロイ手順
 
 1. **GitHub リポジトリへプッシュ**:
-   `game/ai_voice_app_vercel` 以下のコードを GitHub にプッシュします。
+   `ai_voice_app_vercel` 以下のコードを GitHub にプッシュします。
 
 2. **Vercel ダッシュボードでインポート**:
    - [Vercel Dashboard](https://vercel.com/) にログインし、「Add New Project」からリポジトリを選択します。
-   - Root Directory を `game/ai_voice_app_vercel` に指定（またはリポジトリルートの場合そのまま）。
+   - Root Directory を `ai_voice_app_vercel` に指定します。
 
 3. **環境変数 (Environment Variables) の登録**:
    Vercel のプロジェクト設定画面で以下の環境変数のいずれかを登録します：
@@ -39,27 +53,10 @@ Vercel へのデプロイに最適化されたサーバーレス関数アーキ�
 
 ---
 
-## 🌐 ローカルWebサーバー URL
-
-現在、ローカルサーバー（ポート 8080）が稼働中です：
-
-- **今回分 URL (最新版 v2.7)**:
-  [http://localhost:8080/index_20261001_1244.html](http://localhost:8080/index_20261001_1244.html)
-- **ルート URL**:
-  [http://localhost:8080/](http://localhost:8080/)
-- **前回分 URL (バックアップ版・いつでも復元可能)**:
-  [http://localhost:8080/index_anti_20261001_1244.html](http://localhost:8080/index_anti_20261001_1244.html)
-- **サーバーレス API エンドポイント (Python)**:
-  [http://localhost:8080/api/server](http://localhost:8080/api/server)
-- **サーバーレス API エンドポイント (JS/共通)**:
-  [http://localhost:8080/api/key](http://localhost:8080/api/key)
-
----
-
-## 📋 ローカル実行手順
+## 🌐 ローカル実行手順
 
 ```bash
-# game/ai_voice_app_vercel ディレクトリで実行
+# ai_voice_app_vercel ディレクトリで実行
 python api/server.py 8080
 ```
 ブラウザで `http://localhost:8080/` を開き、マイクを許可して「会話開始」を押してください。
