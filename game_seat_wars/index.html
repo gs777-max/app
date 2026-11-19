@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   SEAT WARS ― 満員電車椅子取合戦 (単一ファイル版)
-  Version: 1.4.3
+  Version: 1.5.0
   Created: 20261107
   Three.js (CDN) によるブラウザ3D FPS。音楽は Internet Archive API から情景に合うクラシックをランダム再生。
   v1.1.0 (20261107): 路線・乗車駅セレクト、十字キー/Enter操作、スマホのタッチ操作（ジョイスティック/視点ドラッグ/ボタン）を復活。
@@ -15,6 +15,7 @@
   v1.4.1 (20261114): 日次品質改善ラウンド1 — デッドキー指示の修正（譲席・パリィのプロンプトを十字キー/決定に統一、降車はドアへ向かって歩く操作に）、感度スライダーのキーボード矢印キー操作を修正、スキルボタンのフォーカス外し、開始の二重起動ガード、クールダウン表示に「秒」、毎フレームDOM書き込みのキャッシュ、駅名標の実名表示と車内・ホームの天井照明、屋根の影を外して車内・ホームを明るく。ゲームバランス・収録データ・BGM選曲ロジックは不変。
   v1.4.2 (20261117): 日次品質改善ラウンド2 — フェーズ①ホームの見た目改善（駅名標の中央を隠していた柱を外して駅名が読めるように、ホーム床にタイル質感のキャンバステクスチャ、線路側にバラスト＋レール＋明るめのトンネル壁で真っ黒な虚空を解消）。操作・ゲームバランス・収録データ・BGM選曲ロジックは不変。
   v1.4.3 (20261119): UI大刷新（ゼロベース）— ガラスモーフィズムを全廃し、鉄道運行ボード風のフラット＆ソリッドなデザインシステムに。信号イエローを主アクセントに、スタート画面をセクション型レイアウトに再設計、HUD（駅名ボード・目的ストリップ・警告プロンプト・スキルバー・ボタン群）を刷新。操作ルール・ゲームロジック・3Dシーンは不変。
+  v1.5.0 (20261119): 大改善 — スマホの視認性・操作性・没入性をマネタイズ水準へ。3Dシーンの明るさ（環境光・ヘッドランプ・床/バラスト/トンネル壁の明度）、吊り下げ駅名標、ホーム備品（ベンチ・自販機・ポスター・時計）、NPCの徘徊・首振り、窓外景色の到着前非表示、ジョイスティックの応答カーブと振動フィードバック、スキルボタンの選択・クールダウン表示、ブレーキ音。ゲームバランス・操作ルール・RUSH HOUR OPSデザインは不変。
 -->
 <html lang="ja">
 <head>
@@ -22,7 +23,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SEAT WARS ― 満員電車椅子取合戦</title>
 <style>
-  /* ============ SEAT WARS v1.4.3 — RUSH HOUR OPS ============
+  /* ============ SEAT WARS v1.5.0 — RUSH HOUR OPS ============
      ゼロベース刷新。旧ガラスモーフィズムを全廃し、東京の鉄道運行ボードを
      モチーフにしたフラット＆ソリッドなUIに。半透明・ぼかし・グラデーション
      は使わない。面は不透明、角は小さく、影はハードなオフセット。
@@ -75,6 +76,9 @@
   #touchBtns #tbL,#touchBtns #tbR{min-height:56px;font-size:13.5px;padding:10px 2px;}
   #touchBtns #tbQ,#touchBtns #tbE,#touchBtns #tbF,#touchBtns #tbR2{font-size:13.5px;padding:10px 2px;white-space:nowrap;}
   #touchBtns #tbAction{min-height:56px;background:var(--yel);color:#111;border:1px solid #000;border-bottom:3px solid var(--yel-dk);font-weight:900;font-size:17px;padding:12px 8px;box-shadow:4px 4px 0 rgba(0,0,0,.5);}
+  /* v1.5.0: 選択中のスキルをボタン自体で示す（スキルバー文字だけでは分かりにくい）＋クールダウン中は暗く */
+  #touchBtns button.sel{border-color:var(--yel);color:var(--yel);background:#241f08;}
+  #touchBtns button.cd{opacity:.55;}
   @media (max-width:640px){
     #station{top:8px;left:8px;padding:6px 10px 7px;min-width:0;max-width:44vw;}
     #station::before{font-size:8px;}
@@ -82,11 +86,11 @@
     #station .next{font-size:10px;}
     #objective{top:112px;font-size:12.5px;padding:8px 12px;}
     #prompt{top:33%;font-size:16px;padding:8px 16px;}
-    #announce{font-size:12px;bottom:262px;}
+    #announce{font-size:12px;bottom:252px;}
     #omikuji{font-size:10px;max-width:46vw;padding:6px 8px;top:54px;}
     #weather{font-size:9.5px;max-width:46vw;padding:6px 8px;}
     #skillbar{font-size:11px;bottom:6px;left:8px;right:8px;width:auto;padding:7px 10px;}
-    #touchBtns{bottom:64px;}
+    #touchBtns{bottom:56px;}
   }
   /* ---- screens ---- */
   .screen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;background-color:var(--bg);background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);background-size:48px 48px;color:var(--paper);overflow-y:auto;}
@@ -174,8 +178,8 @@
     <div style="display:flex;gap:8px"><button id="tbQ" style="flex:1">すり抜け</button><button id="tbE" style="flex:1">加速</button><button id="tbF" style="flex:1">結界</button><button id="tbR2" style="flex:1">心眼</button></div>
     <div style="display:flex;gap:8px"><button id="tbL" style="width:74px">◀ 避ける</button><button id="tbAction" style="flex:1">決定</button><button id="tbR" style="width:74px">避ける ▶</button></div>
   </div>
-  <div id="joyBase" style="display:none;position:fixed;width:112px;height:112px;border:2px solid rgba(255,200,0,.55);border-radius:50%;z-index:24;pointer-events:none;transform:translate(-50%,-50%);background:rgba(255,200,0,.05);box-shadow:0 0 0 6px rgba(255,200,0,.06)"></div>
-  <div id="joyKnob" style="display:none;position:fixed;width:50px;height:50px;border-radius:50%;background:#f2efe7;border:2px solid rgba(0,0,0,.35);z-index:25;pointer-events:none;transform:translate(-50%,-50%);box-shadow:0 2px 12px rgba(0,0,0,.5)"></div>
+  <div id="joyBase" style="display:none;position:fixed;width:128px;height:128px;border:2px solid rgba(255,200,0,.55);border-radius:50%;z-index:24;pointer-events:none;transform:translate(-50%,-50%);background:rgba(255,200,0,.05);box-shadow:0 0 0 6px rgba(255,200,0,.06)"></div>
+  <div id="joyKnob" style="display:none;position:fixed;width:56px;height:56px;border-radius:50%;background:#f2efe7;border:2px solid rgba(0,0,0,.35);z-index:25;pointer-events:none;transform:translate(-50%,-50%);box-shadow:0 2px 12px rgba(0,0,0,.5)"></div>
 </div>
 <div class="screen" id="start">
   <div class="hazard"></div>
@@ -183,7 +187,7 @@
     <header class="mast">
       <div class="eyebrow">TOKYO COMMUTER BATTLE<span class="eyebrow-ja">通勤サバイバル</span></div>
       <h1>SEAT WARS</h1>
-      <div class="mast-sub"><span class="jp-title">満員電車椅子取合戦</span><span class="ver-chip" id="verLabel">ver 1.4.3</span></div>
+      <div class="mast-sub"><span class="jp-title">満員電車椅子取合戦</span><span class="ver-chip" id="verLabel">ver 1.5.0</span></div>
       <p class="lede">朝の首都圏。座席は、戦場だ。一人称視点でホームの陣取りから乗車ダッシュ、下車予測の心理戦、そして着席防衛戦を戦い抜き、目的地まで生き延びろ。画面にゲージはない。視界の揺れ・心音・赤い視界が、あなたの状態を物語る。</p>
     </header>
     <section class="howto">
@@ -357,19 +361,32 @@ function doorChime(){ /* v1.4.0: two-tone E5->C5 departure chime, soft sine deca
     g.gain.setValueAtTime(0.0001,t0+off);g.gain.exponentialRampToValueAtTime(0.07,t0+off+0.02);
     g.gain.exponentialRampToValueAtTime(0.0001,t0+off+0.7);
     o.connect(g);g.connect(ctx.destination);o.start(t0+off);o.stop(t0+off+0.75);});}
+function brakeScreech(){ /* v1.5.0: arrival brake screech — filtered noise sweep, synthesized */
+  const ctx=AC();if(!ctx)return;try{
+  const len=ctx.sampleRate*1.4,buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*0.4;
+  const src=ctx.createBufferSource();src.buffer=buf;
+  const f=ctx.createBiquadFilter();f.type="bandpass";f.Q.value=2.2;
+  f.frequency.setValueAtTime(2600,ctx.currentTime);f.frequency.exponentialRampToValueAtTime(850,ctx.currentTime+1.2);
+  const g=ctx.createGain();g.gain.setValueAtTime(0.0001,ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.09,ctx.currentTime+0.08);
+  g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+1.35);
+  src.connect(f);f.connect(g);g.connect(ctx.destination);src.start();src.stop(ctx.currentTime+1.4);}catch(e){}}
 /* ================= THREE setup ================= */
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x0a0d12);scene.fog=new THREE.Fog(0x0a0d12,34,95);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x141a24);scene.fog=new THREE.Fog(0x141a24,30,90);
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,0.1,200);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
 $("app").appendChild(renderer.domElement);
 let fovBase=70;
 function fitFov(){camera.aspect=innerWidth/innerHeight;fovBase=camera.aspect<0.8?82:(camera.aspect<1.2?76:70);camera.fov=fovBase;camera.updateProjectionMatrix();}
 addEventListener("resize",()=>{fitFov();renderer.setSize(innerWidth,innerHeight);});
 fitFov();
-scene.add(new THREE.AmbientLight(0xfff1dd,0.5));scene.add(new THREE.HemisphereLight(0xcfe4ff,0x33291f,0.35));
-const dl=new THREE.DirectionalLight(0xfff2d8,0.9);dl.position.set(6,14,8);scene.add(dl);
+scene.add(new THREE.AmbientLight(0xfff1dd,0.72));scene.add(new THREE.HemisphereLight(0xcfe4ff,0x33291f,0.5));
+const dl=new THREE.DirectionalLight(0xfff2d8,1.15);dl.position.set(6,14,8);scene.add(dl);
+/* v1.5.0 camera fill light: 視線方向を常に照らし、スマホでNPCの正面が真っ暗な塊にならないようにする（影なし・弱め、毎フレームカメラに追従） */
+const _fill=new THREE.DirectionalLight(0xfff2e0,0.4);scene.add(_fill);scene.add(_fill.target);
 dl.castShadow=true;dl.shadow.mapSize.set(1024,1024);
 dl.shadow.camera.left=-22;dl.shadow.camera.right=22;dl.shadow.camera.top=16;dl.shadow.camera.bottom=-10;dl.shadow.bias=-0.0004;
 /* 適応品質: FPSが低い端末では解像度を段階的に下げて操作性を守る */
@@ -383,10 +400,10 @@ function box(w,h,d,c,x,y,z,parent){const m=new THREE.Mesh(new THREE.BoxGeometry(
 /* ---- platform ---- */
 /* v1.4.2 platform floor tiles: canvas texture (warm light-grey 1m tiles, grout lines) */
 const _tileC=document.createElement("canvas");_tileC.width=_tileC.height=256;
-(function(){const g=_tileC.getContext("2d");g.fillStyle="#979da6";g.fillRect(0,0,256,256);
- for(let ty=0;ty<4;ty++)for(let tx=0;tx<4;tx++){const v=148+Math.floor(Math.random()*16);
+(function(){const g=_tileC.getContext("2d");g.fillStyle="#a9adb6";g.fillRect(0,0,256,256);
+ for(let ty=0;ty<4;ty++)for(let tx=0;tx<4;tx++){const v=168+Math.floor(Math.random()*14);
   g.fillStyle="rgb("+v+","+(v+2)+","+(v+7)+")";g.fillRect(tx*64+2,ty*64+2,60,60);}
- g.strokeStyle="rgba(58,62,70,0.6)";g.lineWidth=2;
+ g.strokeStyle="rgba(70,74,84,0.55)";g.lineWidth=2;
  for(let i=0;i<=4;i++){g.beginPath();g.moveTo(i*64,0);g.lineTo(i*64,256);g.stroke();
   g.beginPath();g.moveTo(0,i*64);g.lineTo(256,i*64);g.stroke();}})();
 const _tileTex=new THREE.CanvasTexture(_tileC);_tileTex.wrapS=_tileTex.wrapT=THREE.RepeatWrapping;_tileTex.repeat.set(15,1.75);
@@ -397,10 +414,19 @@ box(60,0.06,0.5,0xf7d038,0,0.03,2.15);                   // yellow tactile line
 box(60,4,0.4,0x3c4658,0,2,9.2);                          // back wall
 for(let i=-4;i<=4;i++){if(i===0)continue;box(0.35,3.4,0.35,0x9aa2ae,i*6,1.7,8.6);} // pillars (v1.4.2: no centre pillar — it hid the middle of the station sign)
 /* v1.4.2 track side: ballast + rails so phase 1 does not face a black void */
-box(60,0.12,5.4,0x23262c,0,-0.32,-1.2);                  // ballast bed
+box(60,0.12,5.4,0x3a3f47,0,-0.32,-1.2);                  // ballast bed (v1.5.0: brighter so the track reads)
 const _railM=new THREE.MeshStandardMaterial({color:0x9aa0a8,roughness:0.35,metalness:0.7});
-[-1.0,-2.2].forEach(function(z){const r=new THREE.Mesh(new THREE.BoxGeometry(60,0.07,0.09),_railM);
+[-1.0,-2.2,-3.4,-4.6].forEach(function(z){const r=new THREE.Mesh(new THREE.BoxGeometry(60,0.07,0.09),_railM);
   r.position.set(0,-0.24,z);scene.add(r);});
+/* v1.5.0 sleepers: one InstancedMesh for both tracks — the track reads as a track, not two thin lines (1 draw call) */
+const _sleeperG=new THREE.BoxGeometry(0.28,0.05,2.6);
+const _sleeperM=new THREE.MeshStandardMaterial({color:0x4a3f35,roughness:0.95});
+const _sleepers=new THREE.InstancedMesh(_sleeperG,_sleeperM,104);
+(function(){const m4=new THREE.Matrix4();let k=0;
+ for(let x=-29;x<=29;x+=1.15){m4.makeTranslation(x,-0.27,-1.6);_sleepers.setMatrixAt(k++,m4);}
+ for(let x=-29;x<=29;x+=1.15){m4.makeTranslation(x,-0.27,-4.0);_sleepers.setMatrixAt(k++,m4);}
+ _sleepers.count=k;_sleepers.instanceMatrix.needsUpdate=true;})();
+_sleepers.receiveShadow=true;scene.add(_sleepers);
 box(60,0.4,8,0x2c3444,0,4.2,5.2).castShadow=false;         // roof (no shadow: lets daylight onto the platform)
 const signCanvas=document.createElement("canvas");signCanvas.width=512;signCanvas.height=80;
 const signTex=new THREE.CanvasTexture(signCanvas);
@@ -413,13 +439,54 @@ function drawSign(){const g=signCanvas.getContext("2d");const L=LINES[lineIdx];
  g.font="15px sans-serif";g.textAlign="right";g.fillStyle="#555555";
  g.fillText(G.stationIdx<L.stations.length-1?("次は "+L.stations[G.stationIdx+1]):"終点",502,58);
  signTex.needsUpdate=true;}
-const signBoard=box(7,1,0.15,0xffffff,0,3.1,8.9);        // station sign (color set per line)
-const signFace=new THREE.Mesh(new THREE.PlaneGeometry(6.9,0.96),new THREE.MeshBasicMaterial({map:signTex}));
-signFace.position.set(0,3.1,8.80);signFace.rotation.y=Math.PI;scene.add(signFace);drawSign();
+const signBoard=box(8,1.2,0.15,0xffffff,0,2.85,8.9);      // station sign (color set per line; v1.5.0: bigger & lower)
+const signFace=new THREE.Mesh(new THREE.PlaneGeometry(7.9,1.16),new THREE.MeshBasicMaterial({map:signTex}));
+signFace.position.set(0,2.85,8.80);signFace.rotation.y=Math.PI;scene.add(signFace);drawSign();
+/* v1.5.0 hanging sign: the wall sign sits behind the player's back at spawn, so it was
+   never seen (it read as a blank beige board). A double-sided sign hangs from the roof
+   in the spawn view, sharing the same canvas texture. Placed 3m ahead of the spawn
+   point and sized to fit the portrait phone's narrow horizontal FOV, so the station
+   name reads instead of filling the frame as a cropped billboard. */
+const _hangSign=new THREE.Mesh(new THREE.PlaneGeometry(3.0,0.47),new THREE.MeshBasicMaterial({map:signTex,side:THREE.DoubleSide}));
+_hangSign.position.set(0,2.8,2.2);_hangSign.userData.v15="hangSign";scene.add(_hangSign);
+box(0.06,1.0,0.06,0x666666,-1.15,3.5,2.2);box(0.06,1.0,0.06,0x666666,1.15,3.5,2.2);
 /* v1.4.1 platform ceiling light panels (emissive look, no extra lights) */
 const _ceilM=new THREE.MeshBasicMaterial({color:0xfff3d0});
 [-18,0,18].forEach(x=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(4,0.8),_ceilM);
  p.rotation.x=Math.PI/2;p.position.set(x,3.97,5.2);scene.add(p);});
+/* v1.5.0 platform props: benches, vending machines, posters, clock — the platform
+   was an empty grey box; these give it station air. All static, cheap. */
+(function(){
+ /* benches (facing the track) */
+ [[-10,7.8],[10,7.8]].forEach(function(p){const bx=p[0],bz=p[1];
+  box(3.2,0.12,0.55,0x8a6d3b,bx,0.5,bz);box(3.2,0.7,0.1,0x8a6d3b,bx,0.95,bz+0.24);
+  box(0.12,0.5,0.5,0x555555,bx-1.4,0.25,bz);box(0.12,0.5,0.5,0x555555,bx+1.4,0.25,bz);});
+ /* vending machines against the back wall */
+ function vend(x,base,accent){const g=new THREE.Group();g.position.set(x,0,8.75);scene.add(g);
+  box(1.1,2.0,0.7,base,0,1.0,0,g);
+  const c=document.createElement("canvas");c.width=128;c.height=192;const gg=c.getContext("2d");
+  gg.fillStyle=accent;gg.fillRect(0,0,128,192);
+  for(let r=0;r<4;r++)for(let cc=0;cc<3;cc++){gg.fillStyle=["#e74c3c","#2980b9","#27ae60","#f39c12","#8e44ad","#16a085"][(r*3+cc)%6];gg.fillRect(10+cc*38,14+r*34,30,26);}
+  gg.fillStyle="#111";gg.font="bold 20px sans-serif";gg.textAlign="center";gg.fillText("飲料",64,168);
+  const t=new THREE.CanvasTexture(c);const p=new THREE.Mesh(new THREE.PlaneGeometry(0.95,1.45),new THREE.MeshBasicMaterial({map:t}));
+  p.position.set(0,1.05,-0.36);p.rotation.y=Math.PI;g.add(p);}
+ vend(-13.5,0xc0392b,"#e74c3c");vend(13.5,0x2471a3,"#2980b9");
+ /* posters on the back wall (clear of the station sign, which spans x -4..4) */
+ [["#e74c3c","行こう、","海のある休日へ"],["#27ae60","資格取得","通勤時間で学ぶ"],["#8e44ad","映画公開","来週金曜ロードショー"]].forEach(function(a,i){
+  const c=document.createElement("canvas");c.width=256;c.height=160;const g=c.getContext("2d");
+  g.fillStyle=a[0];g.fillRect(0,0,256,160);g.fillStyle="#ffffff";g.font="bold 30px sans-serif";g.textAlign="center";
+  g.fillText(a[1],128,62);g.font="bold 24px sans-serif";g.fillText(a[2],128,102);
+  const t=new THREE.CanvasTexture(c);const p=new THREE.Mesh(new THREE.PlaneGeometry(1.9,1.19),new THREE.MeshBasicMaterial({map:t}));
+  p.position.set([-9,6.5,9.5][i],2.1,8.98);p.rotation.y=Math.PI;scene.add(p);});
+ /* station clock on the back wall */
+ (function(){const c=document.createElement("canvas");c.width=c.height=128;const g=c.getContext("2d");
+  g.fillStyle="#f2efe7";g.beginPath();g.arc(64,64,60,0,7);g.fill();g.strokeStyle="#111";g.lineWidth=5;g.stroke();
+  g.fillStyle="#111";for(let h=0;h<12;h++){const a=h*Math.PI/6;g.beginPath();g.arc(64+Math.sin(a)*48,64-Math.cos(a)*48,4,0,7);g.fill();}
+  g.strokeStyle="#111";g.lineWidth=4;g.beginPath();g.moveTo(64,64);g.lineTo(64+Math.sin(1.9)*34,64-Math.cos(1.9)*34);g.stroke();
+  g.lineWidth=3;g.beginPath();g.moveTo(64,64);g.lineTo(64+Math.sin(4.4)*46,64-Math.cos(4.4)*46);g.stroke();
+  const t=new THREE.CanvasTexture(c);const p=new THREE.Mesh(new THREE.PlaneGeometry(1.0,1.0),new THREE.MeshBasicMaterial({map:t}));
+  p.position.set(14,3.5,8.98);p.rotation.y=Math.PI;scene.add(p);})();
+})();
 /* ---- train ---- */
 const train=new THREE.Group();scene.add(train);train.position.x=80;
 const CAR={len:30,wallZ:-1.35,doorZ:1.35};
@@ -464,22 +531,30 @@ DOORX.forEach(dx=>{const m=new THREE.Mesh(new THREE.RingGeometry(0.42,0.6,24),ne
    Pooled basic-material boxes outside the car (z≈-3): tunnel lights, cool pillars,
    bright station slabs, plus a dim tunnel-wall backdrop. Scrolls only while the
    train is running (phase>=3, doors closed); brightness breathes on a slow cycle. */
-const worldG=new THREE.Group();scene.add(worldG);
+const worldG=new THREE.Group();scene.add(worldG);worldG.visible=false; /* v1.5.0: hidden until the train runs — the slabs/pillars floated visibly from the platform before arrival */
+/* v1.5.0 tunnel group: the tunnel wall + its lights stay visible from the platform so the track side is not a black void */
+const tunnelG=new THREE.Group();scene.add(tunnelG);
 const _wGeo=new THREE.BoxGeometry(1,1,1);
 const _wLightM=new THREE.MeshBasicMaterial({color:0xffd9a0});
 const _wCoolM=new THREE.MeshBasicMaterial({color:0xbfd9ff});
 const _wSlabM=new THREE.MeshBasicMaterial({color:0xdfe8f2});
-const _wWallM=new THREE.MeshBasicMaterial({color:0x2c3440}); /* v1.4.2: lighter tunnel wall (was 0x141a24, read as pitch-black void from the platform) */
+const _wStripeM=new THREE.MeshBasicMaterial({color:0xffc800}); /* v1.5.0: slab safety-line stripe */
+const _wWallM=new THREE.MeshBasicMaterial({color:0x39434f}); /* v1.5.0: brighter tunnel wall (was 0x2c3440) */
 const _wBase={light:_wLightM.color.clone(),cool:_wCoolM.color.clone(),slab:_wSlabM.color.clone(),wall:_wWallM.color.clone()};
 const _wItems=[];
-(function(){const back=new THREE.Mesh(new THREE.PlaneGeometry(190,9),_wWallM);back.position.set(0,2.2,-5.2);worldG.add(back);
+(function(){const back=new THREE.Mesh(new THREE.PlaneGeometry(190,9),_wWallM);back.position.set(0,2.2,-5.2);tunnelG.add(back);
+ /* tunnel light strips on the wall, visible above the train roof from the platform */
+ const _tunLightM=new THREE.MeshBasicMaterial({color:0xffe9b8});
+ for(let x=-24;x<=24;x+=8){const p=new THREE.Mesh(new THREE.PlaneGeometry(2.2,0.35),_tunLightM);p.position.set(x,4.6,-5.15);tunnelG.add(p);}
  for(let i=0;i<26;i++){const kind=i%5;const m=new THREE.Mesh(_wGeo,kind===4?_wSlabM:(kind%2?_wCoolM:_wLightM));
-  if(kind===4){m.scale.set(10+Math.random()*6,3.4,0.4);m.position.set(-85+i*6.8+Math.random()*2,1.9,-3.4);}
+  if(kind===4){m.scale.set(4.5+Math.random()*1.5,3.4,0.4);m.position.set(-85+i*6.8+Math.random()*2,1.9,-3.4);
+   const st=new THREE.Mesh(_wGeo,_wStripeM);st.scale.set(0.96,0.09,1.05);st.position.set(0,0.15,0);m.add(st);}
   else if(kind%2){m.scale.set(0.35,3.6,0.35);m.position.set(-85+i*6.8+Math.random()*3,1.7,-3.1);}
   else{m.scale.set(1.6,0.28,0.2);m.position.set(-85+i*6.8+Math.random()*3,2.5,-3.0);}
   worldG.add(m);_wItems.push(m);}})();
 let _wEnv=0;
 function updateWorld(dt){
+  worldG.visible=(G.phase>=3); /* v1.5.0: window scenery only while running */
   const run=(G.phase>=3&&!G.doorsOpen)?1:0;
   _wEnv+=(run-_wEnv)*Math.min(1,dt*0.7);
   const sp=17*_wEnv;
@@ -596,7 +671,7 @@ function spawnNPC(x,z,opts){opts=opts||{};const t=NPC_TYPES[opts.type!==undefine
  const npc={id:npcId++,type:t,group:g,rig,bag:rig.bag,body:rig.torso,x,z,tx:x,tz:z,speed:1.1+Math.random()*0.7,
   state:opts.state||"stand",seat:-1,exitAt:99,feint:false,tellT:0,iconC:ic.c,iconTex:ic.tex,
   irrit:Math.random(),lean:0,helped:false,rival:!!opts.rival,phrase:"",
-  breathPh:Math.random()*6.283,stagger:0,stagSX:1,stagSZ:0};
+  breathPh:Math.random()*6.283,stagger:0,stagSX:1,stagSZ:0,wanderT:0};
  npcs.push(npc);return npc;}
 function removeNPC(n){scene.remove(n.group);const i=npcs.indexOf(n);if(i>=0)npcs.splice(i,1);
   if(n.seat>=0&&seats[n.seat].takenBy===n)seats[n.seat].takenBy=null;}
@@ -647,27 +722,31 @@ renderer.domElement.addEventListener("touchstart",e=>{
   for(const t of e.changedTouches){
     if(t.clientX<innerWidth*0.45&&joy.id===null){joy.id=t.identifier;joy.ox=t.clientX;joy.oy=t.clientY;joy.dx=0;joy.dy=0;joy.active=true;
       const jb=$("joyBase"),jk=$("joyKnob");jb.style.display="block";jk.style.display="block";
-      jb.style.left=t.clientX+"px";jb.style.top=t.clientY+"px";jk.style.left=t.clientX+"px";jk.style.top=t.clientY+"px";}
+      jb.style.left=t.clientX+"px";jb.style.top=t.clientY+"px";jk.style.left=t.clientX+"px";jk.style.top=t.clientY+"px";
+      jb.style.borderColor="rgba(255,200,0,1)";jb.style.background="rgba(255,200,0,.12)";jk.style.background="#ffc800";}
     else if(lookT.id===null){lookT.id=t.identifier;lookT.lx=t.clientX;lookT.ly=t.clientY;}
   }
   if(G.started)e.preventDefault();
 },{passive:false});
 renderer.domElement.addEventListener("touchmove",e=>{
   for(const t of e.changedTouches){
-    if(t.identifier===joy.id){joy.dx=(t.clientX-joy.ox)/42;joy.dy=(t.clientY-joy.oy)/42;
-      const kx=joy.ox+Math.max(-44,Math.min(44,t.clientX-joy.ox)),ky=joy.oy+Math.max(-44,Math.min(44,t.clientY-joy.oy));
+    if(t.identifier===joy.id){joy.dx=(t.clientX-joy.ox)/46;joy.dy=(t.clientY-joy.oy)/46;
+      const kx=joy.ox+Math.max(-52,Math.min(52,t.clientX-joy.ox)),ky=joy.oy+Math.max(-52,Math.min(52,t.clientY-joy.oy));
       const jk=$("joyKnob");jk.style.left=kx+"px";jk.style.top=ky+"px";}
     if(t.identifier===lookT.id){player.tYaw-=(t.clientX-lookT.lx)*0.006*lookSens;player.tPitch-=(t.clientY-lookT.ly)*0.006*lookSens;
       player.tPitch=Math.max(-1.1,Math.min(1.1,player.tPitch));lookT.lx=t.clientX;lookT.ly=t.clientY;}
   }
   if(G.started)e.preventDefault();
 },{passive:false});
-const _endTouch=e=>{for(const t of e.changedTouches){if(t.identifier===joy.id){joy.id=null;joy.active=false;joy.dx=0;joy.dy=0;$("joyBase").style.display="none";$("joyKnob").style.display="none";}if(t.identifier===lookT.id)lookT.id=null;}};
+const _endTouch=e=>{for(const t of e.changedTouches){if(t.identifier===joy.id){joy.id=null;joy.active=false;joy.dx=0;joy.dy=0;
+const jb=$("joyBase"),jk=$("joyKnob");jb.style.display="none";jk.style.display="none";
+jb.style.borderColor="rgba(255,200,0,.55)";jb.style.background="rgba(255,200,0,.05)";jk.style.background="#f2efe7";}if(t.identifier===lookT.id)lookT.id=null;}};
 renderer.domElement.addEventListener("touchend",_endTouch);
 renderer.domElement.addEventListener("touchcancel",_endTouch);
 function bindTap(id,fn){const el=$(id);if(!el)return;let lt=0;
-  el.addEventListener("touchstart",e=>{e.preventDefault();lt=Date.now();fn();if(el.blur)el.blur();},{passive:false});
-  el.addEventListener("click",()=>{if(Date.now()-lt<600)return;fn();if(el.blur)el.blur();});}
+  const _vib=()=>{try{if(navigator.vibrate)navigator.vibrate(10);}catch(e){}}; /* v1.5.0: haptic tap feedback on phones */
+  el.addEventListener("touchstart",e=>{e.preventDefault();lt=Date.now();_vib();fn();if(el.blur)el.blur();},{passive:false});
+  el.addEventListener("click",()=>{if(Date.now()-lt<600)return;_vib();fn();if(el.blur)el.blur();});}
 bindTap("tbL",()=>doParry(-1));bindTap("tbR",()=>doParry(1));bindTap("tbWake",()=>wakeTap());
 bindTap("tbYield",()=>{if(G.elderEvent)giveSeat();});bindTap("tbAction",()=>doAction());
 bindTap("tbQ",()=>useSkill(0));bindTap("tbE",()=>useSkill(1));bindTap("tbF",()=>useSkill(2));bindTap("tbR2",()=>useSkill(3));
@@ -776,9 +855,13 @@ announce(LINES[lineIdx].name+" "+LINES[lineIdx].stations[G.stationIdx]+"駅。�
 DOORX.forEach((dx,di)=>{for(let q=0;q<2;q++){const n=spawnNPC(dx+(Math.random()-0.5)*0.5,3.1+q*0.8,{rival:true});
 n.state="queue";n.tx=dx;n.tz=3.0+q*0.8;}});
 const guard=spawnNPC(DOORX[1],2.35,{});guard.state="guard";setIcon(guard,"🧍");
-for(let i=0;i<7;i++)spawnNPC(-14+Math.random()*28,4+Math.random()*2.5,{});
+/* v1.5.0: wanderers stay clear of the spawn point (an NPC looming in the camera at
+   start read as a dark blob) and roam the platform instead of standing still */
+for(let i=0;i<7;i++){let wx=-14+Math.random()*28;const wz=4+Math.random()*2.5;
+ if(Math.abs(wx)<3.5)wx=wx<0?-3.5-Math.random()*4:3.5+Math.random()*4; /* v1.5.0: スポーン列全体を避ける（wz条件付きだと z>=6.2 の裏側に残る） */
+ const n=spawnNPC(wx,wz,{state:"wander"});n.speed=0.5+Math.random()*0.3;n.tx=wx;n.tz=wz;}
 renderer.domElement.requestPointerLock();}
-function arriveTrain(){trainArrived=true;announce("電車が到着します。黄色い線までお下がりください。",3);trainNoise(true);}
+function arriveTrain(){trainArrived=true;announce("電車が到着します。黄色い線までお下がりください。",3);trainNoise(true);brakeScreech();}
 function openDoors(){G.doorsOpen=true;G.phase=2;phaseT=14;
   blip(1318,0.12,"sine",0.07);setTimeout(()=>blip(1568,0.16,"sine",0.07),150); /* door chime */
 queueBonus=queueMarks.some(m=>Math.hypot(m.position.x-player.x,m.position.z-player.z)<0.7);
@@ -851,7 +934,13 @@ function updateNPCs(dt){
     const _stg=n.stagger>0?Math.sin((1-n.stagger)*Math.PI)*0.07:0;
     n.rig.g.rotation.z=_swayRollNow*0.8-n.stagSX*_stg;
     n.rig.g.rotation.x=n.stagSZ*_stg;
-    if(n.state==="queue"||n.state==="stand"){moveNPC(n,dt);}
+    /* v1.5.0 idle life: NPCs glance around while standing/queueing/wandering */
+    if(n.state==="queue"||n.state==="stand"||n.state==="wander")
+      n.rig.headG.rotation.y=Math.sin(G.time*0.45+n.breathPh)*0.35;
+    if(n.state==="wander"){n.wanderT-=dt; /* slow platform roam: new target every few seconds */
+      if(n.wanderT<=0){let tx=-14+Math.random()*28,tz=3.6+Math.random()*3.6;if(Math.abs(tx)<3.5)tx=tx<0?-3.5:3.5;n.tx=tx;n.tz=tz;n.wanderT=4+Math.random()*5;}/* v1.5.0: 徘徊先はスポーン列（|x|<3.5）を避ける */
+      moveNPC(n,dt);}
+    else if(n.state==="queue"||n.state==="stand"){moveNPC(n,dt);}
     else if(n.state==="guard"){ /* 仁王立ちマン: blocks door 2 unless ghost skill */
       if(player.inside===false&&Math.abs(player.x-DOORX[1])<0.8&&player.z<3&&player.z>1.6&&!(G.ghost>0)){
         player.z=1.6;if(G.contactCd<=0){G.contactCd=1;hurtSAN(2,"ドア横の仁王立ちマンが微動だにしない… 『流体すり抜け』を選んで決定で抜けろ！");}}}
@@ -889,7 +978,8 @@ function updateNPCs(dt){
 function updatePlayer(dt){const st=stats();
   const _lk=Math.min(1,dt*20);player.yaw+=(player.tYaw-player.yaw)*_lk;player.pitch+=(player.tPitch-player.pitch)*_lk;
   let f=0,r=0;if(keys.ArrowUp)f+=1;if(keys.ArrowDown)f-=1;if(keys.ArrowRight)r+=1;if(keys.ArrowLeft)r-=1;
-  if(joy.active){const jf=Math.max(-1,Math.min(1,-joy.dy)),jr=Math.max(-1,Math.min(1,joy.dx));
+  if(joy.active){const _jc=v=>{const a=Math.min(1,Math.abs(v));return Math.sign(v)*a*a*(3-2*a);}; /* v1.5.0 smoothstep curve: fine control near centre, full speed at the edge */
+  const jf=_jc(-joy.dy),jr=_jc(joy.dx);
   if(Math.abs(jf)>0.08)f+=jf;if(Math.abs(jr)>0.08)r+=jr;}
   f=Math.max(-1,Math.min(1,f));r=Math.max(-1,Math.min(1,r));
   if(G.seated){f=0;r=0;player.vx=0;player.vz=0;}
@@ -1013,6 +1103,9 @@ if(G.hp<=0)gameOver("貧血ブラックアウト","視界が暗転し、膝か�
 if(G.leanEvent){G.leanEvent.t-=dt;if(G.leanEvent.t<=0){const n=G.leanEvent.npc;G.leanEvent=null;showPrompt("");
 n.lean=0;n.leanCd=8;n.group.rotation.z=0;setIcon(n,"");hurtSAN(6,"隣の頭が肩に激突――ヘッドバットを食らった！");G.hp-=4;}}
 updatePlayer(dt);updateNPCs(dt);contactCheck(dt);checkMiracle();heartbeat(dt);
+/* v1.5.0: camera fill light follows the view direction */
+_fill.position.copy(camera.position);
+_fill.target.position.set(camera.position.x-Math.sin(player.yaw)*3,1.2,camera.position.z-Math.cos(player.yaw)*3);
 updateWorld(dt);if(rumbleMaster)rumbleMaster.gain.value=0.055*(1+joltLevel*1.8);
 /* --- diegetic effects (no gauges) --- */
 /* v1.4.1 perf: cache per-frame DOM writes; only touch the DOM when the rounded value actually changes */
@@ -1033,6 +1126,11 @@ const _sb= innerWidth<640 ? _chips+" 〈決定:発動〉" :
 "通勤武術 ["+stats().label+" 脚力"+stats().leg+" 体幹"+stats().core+" 慧眼"+stats().eye+"] "+_chips+
 " 人徳: ？？？（隠し） 奇跡 "+G.miracles+"回 〈ホイール:選択 / Enter・クリック:決定〉";
 if(_sb!==_dom.sb){_dom.sb=_sb;$("skillbar").textContent=_sb;}
+/* v1.5.0 skill-button feedback: the selected skill is highlighted on the touch panel
+   itself and skills on cooldown are dimmed (was only visible in the text strip) */
+["tbQ","tbE","tbF","tbR2"].forEach((id,i)=>{const el=$(id);if(!el)return;
+ const s=(i===selSkill?"s":"")+(SKILLCDS[i]>0?"c":"");
+ if(el.dataset.v15!==s){el.dataset.v15=s;el.classList.toggle("sel",i===selSkill);el.classList.toggle("cd",SKILLCDS[i]>0);}});
 }
 renderer.render(scene,camera);}
 animate();
