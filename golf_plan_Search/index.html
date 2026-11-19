@@ -169,6 +169,104 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
 .btn:active,.chip:active,.preset:active,.book-btn:active{transform:translateY(1px)}
 /* 動きを減らす設定の利用者にはアニメーション・遷移を出さない */
 @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *,*::before,*::after{transition:none !important; animation:none !important} }
+/* ===== v3.9 モバイルファースト大刷新（2026-11-19） =====
+   方針：視認性・操作性・没入性を、レイアウト構造から見直す。判定ロジック・
+   VERIFIED_PRICES・料金表示のテキストは変えない。タップ対象はすべて48px以上を維持。 */
+[hidden]{display:none !important}
+@keyframes fadeUp{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+.course{animation:fadeUp .35s ease both}
+.hero-eyebrow{margin:0 0 6px; color:var(--gold); font-size:11px; font-weight:900; letter-spacing:.32em}
+/* コースカードのビジュアル帯（CSS/SVGのみ。コース地形モチーフ） */
+.course-visual{height:64px; background-color:var(--pine); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='120' viewBox='0 0 720 120'%3E%3Crect width='720' height='120' fill='%230d3b2e'/%3E%3Cpath d='M0 78 C120 52 240 92 360 70 S600 44 720 66 L720 120 L0 120 Z' fill='%2317604a'/%3E%3Cpath d='M0 96 C140 76 260 104 400 86 S620 70 720 88 L720 120 L0 120 Z' fill='%230a2e23'/%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.14' stroke-width='1.2'%3E%3Cpath d='M-20 34 C150 8 300 52 470 24 S680 -2 760 18'/%3E%3Cpath d='M-20 54 C160 28 310 72 480 44 S690 18 760 38'/%3E%3C/g%3E%3Cellipse cx='540' cy='86' rx='46' ry='10' fill='%231d6a4e'/%3E%3Cline x1='540' y1='86' x2='540' y2='34' stroke='%23c8a24a' stroke-width='2.5'/%3E%3Cpath d='M540 34 L568 42 L540 52 Z' fill='%23c8a24a'/%3E%3Ccircle cx='540' cy='86' r='4' fill='%23c8a24a'/%3E%3C/svg%3E"); background-size:cover; background-position:center}
+.course.cv1 .course-visual{background-position:28% center}
+.course.cv2 .course-visual{background-position:72% center}
+.course-id{flex:1; min-width:0}
+/* 価格ヒーロー：条件に合うプランの価格を大きく */
+.price-hero{background:var(--pine); color:#f5f1e3; margin:2px 14px 0; border-radius:8px; padding:10px 14px; display:flex; align-items:baseline; gap:6px 12px; flex-wrap:wrap}
+.ph-label{color:var(--gold); font-size:12px; font-weight:900; letter-spacing:.08em}
+.ph-price{font-size:30px; font-weight:900; color:#fff; line-height:1.1; letter-spacing:.01em}
+.ph-per{font-size:12px; color:#d9d2ba}
+.ph-meta{margin-left:auto; font-size:12.5px; color:#d9d2ba; font-weight:700}
+/* ファクトストリップ：車・総距離・レート・ホールを数字で読む */
+.course-facts{display:grid; grid-template-columns:repeat(4,1fr); margin:10px 14px 0; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--cream)}
+.fact{padding:9px 4px 8px; text-align:center; border-left:1px solid var(--line); min-width:0}
+.fact:first-child{border-left:none}
+.fact-num{display:block; font-size:15px; font-weight:900; color:var(--pine); line-height:1.35; overflow-wrap:break-word}
+.fact-label{display:block; font-size:10.5px; color:var(--sub); font-weight:700; margin-top:1px}
+/* フォームの折りたたみ */
+.form-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+.form-head h2{margin:0}
+.form-toggle{flex:0 0 auto; min-height:48px; padding:8px 14px; border:1.5px solid var(--gold-d); background:#fff; color:var(--pine); border-radius:8px; font-weight:900; font-size:13.5px}
+form.panel.form-collapsed #form-body{display:none}
+.form-summary{display:flex; align-items:center; gap:10px; margin-top:12px; padding:10px 12px; background:var(--cream); border:1px solid var(--line); border-radius:8px; font-size:13px; font-weight:700}
+.form-summary .fs-text{flex:1; min-width:0}
+.form-summary .fs-edit{flex:0 0 auto; min-height:48px; padding:8px 14px}
+/* 並び替え：デスクトップはセレクト、モバイルはチップ＋ボトムシート */
+.sort-chips{display:none}
+.sort-sheet{position:fixed; left:0; right:0; bottom:0; z-index:81; background:var(--paper); border-radius:16px 16px 0 0; box-shadow:0 -12px 40px rgba(0,0,0,.28); padding:8px 16px calc(20px + env(safe-area-inset-bottom)); transform:translateY(102%); transition:transform .25s ease}
+.sort-sheet.open{transform:none}
+.sheet-backdrop{position:fixed; inset:0; background:rgba(10,30,22,.5); z-index:80; opacity:0; transition:opacity .2s ease}
+.sheet-backdrop.open{opacity:1}
+.sheet-grip{width:44px; height:5px; border-radius:99px; background:#d8d2bd; margin:4px auto 8px}
+.sheet-head{display:flex; align-items:center; justify-content:space-between}
+.sheet-head h3{margin:0; font-size:18px}
+.sheet-close{min-height:48px; padding:8px 14px; border:1.5px solid #c9c2ab; background:#fff; border-radius:8px; font-weight:900; font-size:14px}
+.sheet-options{display:grid; gap:8px; margin-top:10px}
+.sheet-options button{min-height:52px; text-align:left; padding:10px 14px; border:1.5px solid #c9c2ab; background:#fff; border-radius:10px; font-weight:700; font-size:15px}
+.sheet-options button[aria-pressed=true]{background:var(--pine); border-color:var(--pine); color:#fff}
+/* 表示についての折りたたみ */
+.demo-note summary{font-weight:900; font-size:13.5px; color:var(--pine); cursor:pointer; min-height:48px; display:flex; align-items:center}
+.demo-body{padding-top:6px}
+/* セクション見出しの編集調 */
+.section h2{border-bottom:2px solid var(--gold); padding-bottom:6px}
+.results-head h2{border-bottom:2px solid var(--gold); padding-bottom:4px}
+@media(max-width:920px){
+  html{scroll-padding-top:130px}
+  body{font-size:15.5px}
+  .hero-in{padding:20px 16px 18px}
+  .hero h1{font-size:24px; line-height:1.4; margin-bottom:6px}
+  .hero p{font-size:13px}
+  .hero .meta{margin-top:10px; gap:6px}
+  .hero .meta span{font-size:11px; padding:3px 9px}
+  .wrap{padding:14px 12px 130px; gap:14px}
+  .wrap>*{min-width:0} /* v3.9修正：390pxでグリッドの1fr列が並び替えチップ行の内容幅(495px)に引っ張られ、文書幅507pxの横はみ出しが出た。子要素の自動最小幅を0にし、列を390pxに収める。チップ行自体は横スクロールのまま */
+  form.panel{padding:14px}
+  .presets{flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch}
+  .preset{flex:0 0 auto; scroll-snap-align:start; min-height:52px; font-size:13px}
+  input[type=date]{min-height:52px}
+  .sticky-bar{gap:8px; padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
+  .sticky-bar .btn{font-size:13.5px; padding:10px 8px; min-height:52px}
+  .sticky-bar #btn-search-sticky{flex:2 1 auto}
+  .sticky-bar #btn-cond,.sticky-bar #btn-sort-open{flex:0 0 auto}
+  .sort-select{display:none}
+  .sort-chips{display:flex; flex:1 1 100%; gap:8px; overflow-x:auto; padding:2px 0 4px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch}
+  .sort-chips button{flex:0 0 auto; scroll-snap-align:start; min-height:48px; padding:9px 14px; border:1.5px solid #c9c2ab; background:#fff; border-radius:999px; font-weight:700; font-size:13.5px}
+  .sort-chips button[aria-pressed=true]{background:var(--pine); border-color:var(--pine); color:#fff}
+  .course-visual{height:54px}
+  .course-head{padding:12px 14px 8px}
+  .course-head h3{font-size:19px}
+  .price-hero{margin:2px 12px 0; padding:10px 12px}
+  .ph-price{font-size:30px}
+  .course-facts{margin:10px 12px 0}
+  .fact-num{font-size:14px}
+  .course-specs{padding:10px 12px 0}
+  .site-block{padding:10px 12px 4px}
+  .plan-line{padding:12px 0}
+  .plan-price .yen{font-size:26px}
+  .plan-name{font-size:15px}
+  .book-row{flex-direction:column}
+  .book-row .book-btn{width:100%; justify-content:center; min-height:52px}
+  .showall-btn{min-height:56px; font-size:15px}
+  .compare-line{padding:0 12px 12px}
+  .results-head h2{font-size:20px}
+  .summary-bar{font-size:13px; padding:10px 12px}
+  .summary-bar b{font-size:15px}
+}
+@media(min-width:921px){
+  .course-visual{height:72px}
+  .ph-price{font-size:32px}
+  .plan-price .yen{font-size:24px}
+}
 </style>
 </head>
 <body>
@@ -184,6 +282,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
 
 <div class="hero">
   <div class="hero-in">
+    <p class="hero-eyebrow">FAIRWAY FINDER</p>
     <h1>週末の18ホールを、<br>いちばんいい条件で探す。</h1>
     <p>日付と条件を入れるだけ。条件に合うコースと、各予約サイトの「そのコース専用ページ」へのリンクをまとめます。実地確認済みの日付については、条件に合う確認済みプランの総額もあわせて表示します。</p>
     <div class="meta"><span>登録不要</span><span>スマホ / Windows / Mac 対応</span><span>天気・日没は実データ（不可時は概算）</span></div>
@@ -193,9 +292,14 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
 <div class="wrap">
   <!-- ============ SEARCH FORM ============ -->
   <form class="panel" id="search" onsubmit="runSearch(true);return false" aria-label="検索条件">
-    <h2>検索条件</h2>
-    <p class="form-note">基本条件だけでも探せます。詳しい条件は「もっと条件を詳しく設定する」から開けます。入力はこの端末に自動保存されます。</p>
-
+    <div class="form-head">
+      <div>
+        <h2>検索条件</h2>
+        <p class="form-note">基本条件だけでも探せます。詳しい条件は「もっと条件を詳しく設定する」から開けます。入力はこの端末に自動保存されます。</p>
+      </div>
+      <button type="button" class="form-toggle" id="btn-form-toggle" aria-expanded="true" aria-controls="form-body">条件を閉じる</button>
+    </div>
+    <div id="form-body">
     <div class="presets" aria-label="プリセット">
       <button type="button" class="preset" data-preset="p1">いつもの週末：75分・¥11,000・2B保証</button>
       <button type="button" class="preset" data-preset="p2">平日お得：3名・昼食付・¥10,000未満</button>
@@ -392,6 +496,8 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
       <button type="button" class="btn btn-sub" id="btn-reset">リセット</button>
     </div>
     <p class="small" id="saved-note"></p>
+    </div>
+    <div class="form-summary" id="form-summary" hidden><span class="fs-text"></span><button type="button" class="btn btn-sub fs-edit" id="btn-form-expand">変更する</button></div>
   </form>
 
   <!-- ============ RESULTS ============ -->
@@ -403,7 +509,7 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
       </div>
       <div class="panel sort-bar" style="padding:10px 14px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px">
         <label for="f-sort" style="font-weight:900; font-size:13px">並び替え（表示フィルタ）</label>
-        <select id="f-sort" style="width:auto; min-width:250px; flex:1">
+        <select id="f-sort" class="sort-select" style="width:auto; min-width:250px; flex:1">
           <option value="price" selected>価格が安い順（条件に合うプランの総額）</option>
           <option value="match">おすすめ順（近い → 総距離 → 難易度）</option>
           <option value="drive">車の移動時間が短い順</option>
@@ -414,11 +520,22 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
           <option value="thru">スループレーがある順</option>
           <option value="lunch">昼食付きがある順</option>
         </select>
+        <div class="sort-chips" id="sort-chips" role="group" aria-label="並び替え">
+          <button type="button" data-sort="price" aria-pressed="true">価格が安い順</button>
+          <button type="button" data-sort="match" aria-pressed="false">おすすめ順</button>
+          <button type="button" data-sort="drive" aria-pressed="false">車が短い順</button>
+          <button type="button" data-sort="yard" aria-pressed="false">総距離が長い順</button>
+          <button type="button" data-sort="rating" aria-pressed="false">難易度が高い順</button>
+          <button type="button" data-sort="g2b" aria-pressed="false">2B保証順</button>
+          <button type="button" data-sort="g3b" aria-pressed="false">3B保証順</button>
+          <button type="button" data-sort="thru" aria-pressed="false">スルー順</button>
+          <button type="button" data-sort="lunch" aria-pressed="false">昼食付き順</button>
+        </div>
         <span class="small">変更すると即座に並び替わります</span>
       </div>
       <div class="summary-bar" id="summary-bar"><span>条件を入れて「この条件で探す」を押してください</span></div>
       <div class="panel" style="padding:12px 14px; margin-bottom:14px" id="cond-chips"><span class="small">検索すると、ここに検索した条件が表示されます（再検索時は、前回から変えた条件が色付きで分かります）</span></div>
-      <div class="demo-note"><b>表示について（重要）：</b> 料金は、<b>予約サイトで実地確認した日付（いまは 2026-12-12 と 2026-12-15）の分だけ</b>、条件に合う確認済みプランの総額を「確認時点」の情報としてすべて表示します（各サイト・各日付で安い方から最大5件まで）。確認していない日付では料金を表示しません。以前は見本データを実在の検索結果のように表示していたため、土曜に実在しない料金（例：大平台・かすみがうらで ¥8,980）が出る問題があり、見本データは全コース分を削除しました。その他の表示は、コースの基本情報（エリア・車の時間・総距離・難易度）と、<b>到達確認済みの「そのコース専用ページ」へのリンク</b>です。予算・保証・昼食・スタート時間などの条件は、各コースの「確認する条件」として表示し、確認済みプランにはその条件で絞り込みを適用します。結果は価格が安い順（条件に合うプランの総額）に、<b>条件に合うコースをすべて</b>表示します。リンクは2026-11-11に到達確認済みです（アコーディアはソフト404になる gid 形式を使わず、コースページ形式のみ）。</div>
+      <details class="demo-note" id="demo-note"><summary>表示について（料金は実地確認分のみ）</summary><div class="demo-body"><b>表示について（重要）：</b> 料金は、<b>予約サイトで実地確認した日付（いまは 2026-12-12 と 2026-12-15）の分だけ</b>、条件に合う確認済みプランの総額を「確認時点」の情報としてすべて表示します（各サイト・各日付で安い方から最大5件まで）。確認していない日付では料金を表示しません。以前は見本データを実在の検索結果のように表示していたため、土曜に実在しない料金（例：大平台・かすみがうらで ¥8,980）が出る問題があり、見本データは全コース分を削除しました。その他の表示は、コースの基本情報（エリア・車の時間・総距離・難易度）と、<b>到達確認済みの「そのコース専用ページ」へのリンク</b>です。予算・保証・昼食・スタート時間などの条件は、各コースの「確認する条件」として表示し、確認済みプランにはその条件で絞り込みを適用します。結果は価格が安い順（条件に合うプランの総額）に、<b>条件に合うコースをすべて</b>表示します。リンクは2026-11-11に到達確認済みです（アコーディアはソフト404になる gid 形式を使わず、コースページ形式のみ）。</div></details>
       <div id="result-list"></div>
       <div id="full-list"></div>
       <div id="toda-note"></div>
@@ -483,13 +600,31 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
 <footer>
   <p>FAIRWAY FINDER はプランの比較・検討のためのツールで、予約は行いません。料金は実際にプレーする人数で選択したときの総額で確認してください。「割増なし」と「保証」は別の条件です。天気・日没は Open-Meteo（登録不要・無料）の実データを使い、取得できない場合は概算表示になります。</p>
   <p>戸田パブリックゴルフコースを指定する場合は、専用予約ページ（golferweb）で通常予約と一人予約の両方を確認してください： https://www.golferweb.jp/login_wing.php?g_no=5089</p>
+  <p>FAIRWAY FINDER v3.9（2026-11-19）</p>
 </footer>
 
 <div class="sticky-bar">
+  <a class="btn btn-sub" href="#search" id="btn-cond" onclick="setFormCollapsed(false)">条件</a>
   <button type="button" class="btn btn-main" style="margin:0" id="btn-search-sticky" onclick="document.getElementById('btn-search').click()">この条件で探す</button>
-  <a class="btn btn-sub" href="#results">結果を見る</a>
+  <button type="button" class="btn btn-sub" id="btn-sort-open">並び替え</button>
 </div>
 <div class="toast" id="toast" role="status"></div>
+<div class="sheet-backdrop" id="sort-sheet-backdrop" hidden></div>
+<section class="sort-sheet" id="sort-sheet" role="dialog" aria-modal="true" aria-label="並び替え" hidden>
+  <div class="sheet-grip" aria-hidden="true"></div>
+  <div class="sheet-head"><h3>並び替え</h3><button type="button" class="sheet-close" id="btn-sort-close">閉じる</button></div>
+  <div class="sheet-options" id="sort-sheet-options">
+    <button type="button" data-sort="price" aria-pressed="true">価格が安い順（条件に合うプランの総額）</button>
+    <button type="button" data-sort="match" aria-pressed="false">おすすめ順（近い → 総距離 → 難易度）</button>
+    <button type="button" data-sort="drive" aria-pressed="false">車の移動時間が短い順</button>
+    <button type="button" data-sort="yard" aria-pressed="false">総距離が長い順</button>
+    <button type="button" data-sort="rating" aria-pressed="false">難易度が高い順</button>
+    <button type="button" data-sort="g2b" aria-pressed="false">2B保証がある順</button>
+    <button type="button" data-sort="g3b" aria-pressed="false">3B保証がある順</button>
+    <button type="button" data-sort="thru" aria-pressed="false">スループレーがある順</button>
+    <button type="button" data-sort="lunch" aria-pressed="false">昼食付きがある順</button>
+  </div>
+</section>
 
 <script>
 "use strict";
@@ -503,7 +638,8 @@ footer{max-width:1180px; margin:0 auto; padding:0 16px 40px; color:var(--sub); f
    戸田パブリック 5,960→6,237Y（GORAで再確認。6,000Y超で対象内）。大平台・アジア取手・取手桜が丘はティー／ルート基準未決定のため据え置き。
    価格再確認（2026-11-14）：全29組み合わせを再確認。かすみがうら 12/12 の3サイトを各−¥1,000訂正（GORA 18990／アコーディア 16990／じゃらん 17990）、石岡 PGM 25990→25900、スタート例の軽微なズレ3件も訂正。checked は再確認日 2026-11-14。
    価格再確認（2026-11-18）：GORAはカレンダー再取得＋18H抽出＋時間選択ページで照合。アコーディアはコースページの静的解析（planNm・price_total・12/12枠の frameJoson）で照合。GDO・PGM・習志野アコーディア・じゃらん4コースは実ブラウザで照合。全29組み合わせを確認。訂正は料金・プラン変更6件（取手桜が丘 12/12：GORA 21990→24990、アコーディア 20990→23990、GDO 21990→24990、じゃらん 21990→24990。取手桜が丘 12/15 GORA 8990→10990、石岡 12/15 GORA 11400→11900）、GORA かすみがうら 12/12 は組売 17990へ（プラン詳細で「お一人様の料金 総額 17,990円」と明記され1名あたり表示と判明したため、11-14の組売除外判断を覆して代表に採用。2名+5,500円・3名+2,200円の割増あり。じゃらんの組売も同表示で1名あたりと確認）、スタート例のズレ14件も訂正（早朝枠の完売が多く、残り1枠のみのプランあり）。9H+αプラン（皆川城アコーディア 8,990・じゃらん 9,990等）は18H代表から従来どおり除外（じゃらんの詳細で「2回目の9Hは日没で回れない場合あり」と確認）。PGM石岡 25900・習志野「18H空きなし」は変更なし。checked は再確認日 2026-11-18。
-   v3.8（2026-11-18夜、ユーザー承認）：VERIFIED_PRICES を1プラン／サイト／日から複数プラン（上限：安い方から5件／サイト／日）に拡張。各プランは総額・プラン名・スタート時間（確認済みの開始時刻一覧）に加え、属性 g（2B／3B／指定なし）・lunch（incl=昼食付き／sub=補助付／none=なし）・thru（""=スルーでない／am=午前・早朝スルー／pm=午後スルー／thru=スルー）を持つ。表示は条件に合うプランをすべて出し、合わないプランは「すべて表示」で「条件外のプラン」として区切って出す（既定では描画しない）。並び替えは価格安・コースレート・18Hヤード・2B保証・3B保証・スループレー・昼食付きを追加（価格＝合致プランの最安総額順、レート／ヤード＝コース単位、保証・スルー・昼食＝該当する合致プランを持つコースを先に）。GORAはカレンダー再取得＋時間選択ページで61プラン＋皆川城2プランを照合（皆川城は同一内容の重複掲載2件を除外して5件に補充）。アコーディアはコースページ静的解析で43プラン（12/12のみ）。じゃらんは ?playMonth=11&playDate=12 のプラン一覧＋予約開始ページで20プランを照合（18ホールアイコンで18H判定）。GDO・PGMは静的取得が不可（GDOはbotブロック、PGMはJS描画）のため、v3.7で今朝実ブラウザ確認済みの単独プランのみ継続（GDO皆川城18990・取手桜が丘24990、PGM石岡25900）。GDO大平台は除外：超早プランがGORA・アコーディア・じゃらんの全サイトで完売確認され、GDOにも残っていない可能性が高いため。12/15はGORAのみ（v3.7と同じ）。9H・ハーフ・薄暮・9H+αは18Hから従来どおり除外。 */
+   v3.8（2026-11-18夜、ユーザー承認）：VERIFIED_PRICES を1プラン／サイト／日から複数プラン（上限：安い方から5件／サイト／日）に拡張。各プランは総額・プラン名・スタート時間（確認済みの開始時刻一覧）に加え、属性 g（2B／3B／指定なし）・lunch（incl=昼食付き／sub=補助付／none=なし）・thru（""=スルーでない／am=午前・早朝スルー／pm=午後スルー／thru=スルー）を持つ。表示は条件に合うプランをすべて出し、合わないプランは「すべて表示」で「条件外のプラン」として区切って出す（既定では描画しない）。並び替えは価格安・コースレート・18Hヤード・2B保証・3B保証・スループレー・昼食付きを追加（価格＝合致プランの最安総額順、レート／ヤード＝コース単位、保証・スルー・昼食＝該当する合致プランを持つコースを先に）。GORAはカレンダー再取得＋時間選択ページで61プラン＋皆川城2プランを照合（皆川城は同一内容の重複掲載2件を除外して5件に補充）。アコーディアはコースページ静的解析で43プラン（12/12のみ）。じゃらんは ?playMonth=11&playDate=12 のプラン一覧＋予約開始ページで20プランを照合（18ホールアイコンで18H判定）。GDO・PGMは静的取得が不可（GDOはbotブロック、PGMはJS描画）のため、v3.7で今朝実ブラウザ確認済みの単独プランのみ継続（GDO皆川城18990・取手桜が丘24990、PGM石岡25900）。GDO大平台は除外：超早プランがGORA・アコーディア・じゃらんの全サイトで完売確認され、GDOにも残っていない可能性が高いため。12/15はGORAのみ（v3.7と同じ）。9H・ハーフ・薄暮・9H+αは18Hから従来どおり除外。
+   v3.9（2026-11-19、モバイルファースト大刷新）：視認性・操作性・没入性をレイアウト構造から見直す。判定ロジック・VERIFIED_PRICES・料金表示テキストは不変。(1)視認性：ヒーローをコンパクトに（モバイルで見出し24px・余白縮小）、コースカードにビジュアル帯（SVG地形モチーフ）＋価格ヒーロー（条件に合うプランの価格を大きく表示）＋ファクトストリップ（車・総距離・コースレート・ホールを数字で）を追加、プラン行の価格を大きく（24〜26px）、表示についての注記を折りたたみに。(2)操作性：下部スティッキーバーを「条件／探す／並び替え」の3ボタンに、並び替えはモバイルでクイックチップ＋ボトムシート式に、フォームは折りたたみ可（検索後はモバイルで自動でたたみ、条件サマリーを表示。再訪時は保存条件があれば初回からたたむ）、プリセットを横スクロールの大きなクイックチップに。(3)没入性：カードのフェードイン、シートのスライドアップ、編集調の見出しと余白。配色（深緑＋クリーム＋ゴールド）・タップ対象48px以上は維持。 */
 const COURSES = [
  {name:"大平台カントリー倶楽部", area:"栃木・栃木市", pref:"栃木", drive:75, yard:7018, rating:73.6, par:72, holes:18, features:["乗用カート","ナビ付きカート","練習場あり"]},
  {name:"かすみがうらゴルフクラブ", area:"茨城・行方市", pref:"茨城", drive:60, yard:6754, rating:72.8, par:72, holes:18, features:["乗用カート","ナビ付きカート"]},
@@ -2369,15 +2505,22 @@ function userPlanHTML(p, course){
   <div class="plan-price"><span class="yen">${yen(p.price)}</span><br><span class="per">追加時の金額・要再確認</span></div>
   ${link?`<a class="book-btn" href="${link}" title="${siteAbbr(p.site)}・${course.name}の専用ページへ" target="_blank" rel="noopener">予約へ</a>`:""}</div>`;
 }
-function courseHTML(c, cond){
+function courseHTML(c, cond, variant){
  const links=COURSE_LINKS[c.name]||{};
  const chosen=cond.sites.filter(s=>links[s]);
  const missing=cond.sites.filter(s=>!links[s]);
  const checklist=planChecklist(cond);
  const dateBadge=cond.date?`<span class="date-badge">${fmtDateStr(cond.date)}</span>`:"";
- let html=`<article class="course${c.watch?' watch':''}">
-  <div class="course-head"><h3>${c.name}</h3><span class="area">${c.area}</span><span class="dist">${$("f-from").value||"出発地点"}から車 約${c.drive}分</span></div>
-  <div class="course-specs"><span class="spec">${c.holes}H ・ パー${c.par}</span><span class="spec">総距離 ${c.yardNote||c.yard.toLocaleString()+"Y"}</span>${c.rating?`<span class="spec">コースレート ${c.rating}（難易度）</span>`:""}${c.features.map(f=>`<span class="spec">${f}</span>`).join("")}</div>`;
+ /* v3.9: 価格ヒーロー＝条件に合うプランの価格を大きく。合致なし・未確認日は出さない */
+ const mPlans=matchingPlans(c, cond);
+ const best=mPlans.length? mPlans[0].plan.price : Infinity;
+ const hero=isFinite(best)?`<div class="price-hero"><span class="ph-label">条件に合うプラン</span><span class="ph-price">${yen(best)}</span><span class="ph-per">〜 ／1人あたり（総額）</span><span class="ph-meta">${mPlans.length}件・${new Set(mPlans.map(x=>x.site)).size}サイト</span></div>`:"";
+ let html=`<article class="course${c.watch?' watch':''}${variant?' cv'+variant:''}">
+  <div class="course-visual" aria-hidden="true"></div>
+  <div class="course-head"><div class="course-id"><h3>${c.name}</h3><span class="area">${c.area}</span></div><span class="dist">${$("f-from").value||"出発地点"}から車 約${c.drive}分</span></div>
+  ${hero}
+  <div class="course-facts"><div class="fact"><span class="fact-num">約${c.drive}分</span><span class="fact-label">車の時間</span></div><div class="fact"><span class="fact-num">${c.yardNote||c.yard.toLocaleString()+"Y"}</span><span class="fact-label">総距離</span></div>${c.rating?`<div class="fact"><span class="fact-num">${c.rating}</span><span class="fact-label">コースレート</span></div>`:""}<div class="fact"><span class="fact-num">${c.holes}H</span><span class="fact-label">パー${c.par}</span></div></div>
+  <div class="course-specs">${c.features.map(f=>`<span class="spec">${f}</span>`).join("")}</div>`;
  if(c.userPlans && c.userPlans.length){
    html+=`<div class="site-block"><div class="site-name">あなたが追加したプラン（各サイトで確認済みのものだけを追加してください）</div>${c.userPlans.map(p=>userPlanHTML(p,c)).join("")}</div>`;
  }
@@ -2385,7 +2528,7 @@ function courseHTML(c, cond){
   <div style="padding:8px 0 4px">
    <div class="plan-tags" style="margin-bottom:8px">${dateBadge} <span>確認する条件：</span>${checklist.map(t=>`<span class="spec">${t}</span>`).join("")}</div>
    ${verifiedPriceHTML(c, cond)}
-   <div style="display:flex; flex-wrap:wrap; gap:8px">
+   <div class="book-row" style="display:flex; flex-wrap:wrap; gap:8px">
    ${chosen.length? chosen.map(s=>`<a class="book-btn" style="display:inline-flex; align-items:center; text-decoration:none" href="${links[s]}" target="_blank" rel="noopener">${siteAbbr(s)}で料金・空きを見る</a>`).join("") : `<span class="small">選択中のサイトでは、このコースの専用ページを確認できていません。</span>`}
    </div>
    ${missing.length?`<p class="small" style="margin:8px 0 2px">${missing.map(s=>siteAbbr(s)).join("・")}：このコースの専用ページを確認できていないため、リンクを表示していません。</p>`:""}
@@ -2438,7 +2581,7 @@ let lastFormJSON="";
 function currentFormJSON(){ try{ return localStorage.getItem("ff_form")||""; }catch(e){ return ""; } }
 function refreshDirty(){
  const dirty=!!lastFormJSON && currentFormJSON()!==lastFormJSON;
- ["btn-search","btn-search-sticky"].forEach(id=>{ const b=$(id); if(!b) return; b.textContent=dirty?"条件が変わりました・再検索する":"この条件で探す"; b.classList.toggle("btn-dirty", dirty); });
+ ["btn-search","btn-search-sticky"].forEach(id=>{ const b=$(id); if(!b) return; b.textContent=dirty?(id==="btn-search-sticky"?"再検索する":"条件が変わりました・再検索する"):"この条件で探す"; b.classList.toggle("btn-dirty", dirty); });
 }
 
 /* ---- main search（コース基本情報で探し、料金・空きは各サイトへ誘導する） ---- */
@@ -2465,7 +2608,7 @@ async function runSearch(scroll=true){
  if(isPast){
    $("result-list").innerHTML=`<div class="zero-state"><p class="big">過去の日付です</p><p>${fmtDateStr(cond.date)} は既に過ぎています。今日以降の日付で検索してください。</p></div>`;
  } else if(total){
-   $("result-list").innerHTML= shown.map(c=>courseHTML(c,cond)).join("");
+   $("result-list").innerHTML= shown.map((c,i)=>courseHTML(c,cond,i%3)).join("");
  } else {
    $("result-list").innerHTML= `<div class="zero-state"><p class="big">検索結果が0件</p><p>エリア・車の時間・総距離・コース名の条件に合うコースが掲載データにありませんでした。<br>条件を少し緩めると見つかることがあります。</p><div class="zero-actions"><button type="button" class="btn btn-gold" onclick="relaxDrive()">車の時間を広げる</button><button type="button" class="btn btn-sub" onclick="relaxArea()">エリアをすべて選ぶ</button><button type="button" class="btn btn-sub" onclick="clearCourseName()">コース名・除外指定を外す</button></div></div>`;
  }
@@ -2475,6 +2618,8 @@ async function runSearch(scroll=true){
  renderCondChips(cond); renderTodaNote(cond, matched);
  renderWatch(cond); renderCompare(); renderSiteLinks(cond);
  lastFormJSON=currentFormJSON(); refreshDirty();
+ /* v3.9: モバイルでは検索後にフォームをたたみ、結果をすぐ見せる */
+ if(scroll && window.innerWidth<=920) setFormCollapsed(true);
  if(scroll) $("results").scrollIntoView({behavior:"smooth"});
  loadWeather().then(t=>{ const cur=getConditions(); if(cur.date!==cond.date||(cur.areas[0]||"")!==(cond.areas[0]||"")) return; const el=document.getElementById("wx-line"); if(el) el.textContent=t; });
 }
@@ -2496,12 +2641,12 @@ function renderTodaNote(cond, matched){
 function renderWatch(cond){
  if(cond.date && cond.date<todayStr()){ $("watch-list").innerHTML='<div class="panel" style="padding:12px 16px; margin-bottom:12px"><b>過去の日付のため表示されません</b><br><span class="small">特別監視コースも、今日以降の日付で検索したときに表示されます。</span></div>'; return; }
  const rows=[];
- cond.watchList.forEach(w=>{
+ cond.watchList.forEach((w,wi)=>{
    const core=w.replace(/ゴルフクラブ|カントリークラブ/g,"");
    const c=allCourses().find(x=>{ const xc=x.name.replace(/ゴルフクラブ|カントリークラブ/g,""); return x.name===w || x.name.includes(core) || core.includes(xc); });
    if(!c){ rows.push(`<div class="panel" style="padding:12px 16px; margin-bottom:12px"><b>${w}</b> <span class="badge badge-warn">要確認</span><br><span class="small">掲載データにこのコースがありません。各予約サイトで直接ご確認ください。</span></div>`); return; }
    const wc={...cond, sites:cond.sites.length?cond.sites:Object.keys(COURSE_LINKS[c.name]||{})};
-   rows.push(`<div style="margin-bottom:2px"><span class="badge badge-best">特別監視：目安 ${yen(cond.watchPrice)}前後を各サイトで確認</span></div>`+courseHTML(c,wc));
+   rows.push(`<div style="margin-bottom:2px"><span class="badge badge-best">特別監視：目安 ${yen(cond.watchPrice)}前後を各サイトで確認</span></div>`+courseHTML(c,wc,wi%3));
  });
  $("watch-list").innerHTML= rows.length? rows.join("") : '<div class="panel empty">監視コースが設定されていません</div>';
 }
@@ -2528,13 +2673,59 @@ $("btn-add").addEventListener("click",()=>{
  localStorage.setItem("ff_extra_plans", JSON.stringify(extraPlans)); toast("追加しました"); runSearch(false);
 });
 ["f-watch-price","f-watch-list","f-date"].forEach(id=>$(id).addEventListener("change",()=>runSearch(false)));
-$("f-sort").addEventListener("change",()=>{ saveForm(); runSearch(false); });
+$("f-sort").addEventListener("change",()=>{ saveForm(); syncSortUI(); runSearch(false); });
+
+/* ---- v3.9: ソートチップ／ソートシート／フォーム折りたたみ ---- */
+function syncSortUI(){
+  const v=$("f-sort").value;
+  document.querySelectorAll('#sort-chips [data-sort]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.sort===v)));
+  document.querySelectorAll('#sort-sheet-options [data-sort]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.sort===v)));
+}
+function setSort(v){
+  const s=$("f-sort"); if(!s || ![...s.options].some(o=>o.value===v)) return;
+  s.value=v; syncSortUI(); saveForm(); runSearch(false);
+}
+function openSortSheet(){
+  const sh=$("sort-sheet"), bd=$("sort-sheet-backdrop"); if(!sh) return;
+  sh.hidden=false; bd.hidden=false;
+  requestAnimationFrame(()=>{ sh.classList.add('open'); bd.classList.add('open'); });
+}
+function closeSortSheet(){
+  const sh=$("sort-sheet"), bd=$("sort-sheet-backdrop"); if(!sh) return;
+  sh.classList.remove('open'); bd.classList.remove('open');
+  setTimeout(()=>{ sh.hidden=true; bd.hidden=true; },220);
+}
+function formSummaryText(){
+  const cond=getConditions();
+  const d=cond.date?fmtDateStr(cond.date):"日付未指定";
+  const b=cond.budget>=999999?"料金上限なし":"〜"+yen(cond.budget);
+  return `${d}・${cond.players}名・${b}・車${cond.drive>=9999?"制限なし":"〜"+cond.drive+"分"}`;
+}
+function setFormCollapsed(collapsed){
+  const f=document.querySelector('form.panel'); if(!f) return;
+  f.classList.toggle('form-collapsed', collapsed);
+  const t=$('btn-form-toggle');
+  if(t){ t.setAttribute('aria-expanded', String(!collapsed)); t.textContent=collapsed?'条件を開く':'条件を閉じる'; }
+  const s=$('form-summary');
+  if(s){ if(collapsed){ s.hidden=false; const tx=s.querySelector('.fs-text'); if(tx) tx.textContent=formSummaryText(); } else s.hidden=true; }
+}
+document.querySelectorAll('#sort-chips [data-sort]').forEach(b=>b.addEventListener('click',()=>setSort(b.dataset.sort)));
+document.querySelectorAll('#sort-sheet-options [data-sort]').forEach(b=>b.addEventListener('click',()=>{ setSort(b.dataset.sort); closeSortSheet(); }));
+$("btn-sort-open").addEventListener('click', openSortSheet);
+$("btn-sort-close").addEventListener('click', closeSortSheet);
+$("sort-sheet-backdrop").addEventListener('click', closeSortSheet);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSortSheet(); });
+$("btn-form-toggle").addEventListener('click', ()=>setFormCollapsed(!document.querySelector('form.panel').classList.contains('form-collapsed')));
+$("btn-form-expand").addEventListener('click', ()=>{ setFormCollapsed(false); $('search').scrollIntoView({behavior:'smooth'}); });
+syncSortUI();
 
 /* ---- sticky bar: モバイルでは常時表示（②改善： パネル内スクロールでも押せるように） ---- */
 
 /* ---- init ---- */
 loadForm(); $("f-date").min=todayStr(); genAIText && ($("ai-text").value="");
 runSearch(false);
+/* v3.9: 再訪時（保存条件あり）はモバイルでフォームをたたみ、結果をすぐ見せる */
+if(window.innerWidth<=920){ try{ if(localStorage.getItem('ff_form')) setFormCollapsed(true); }catch(e){} }
 </script>
 </body>
 </html>
