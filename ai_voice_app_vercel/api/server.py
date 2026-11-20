@@ -108,8 +108,9 @@ def _login_hashes():
             (os.environ.get('LOGIN_PASSWORD_HASH') or '').strip().lower())
 
 def _auth_configured():
-    id_h, pw_h = _login_hashes()
-    return bool(re.fullmatch(r'[0-9a-f]{64}', id_h or '')) and bool(re.fullmatch(r'[0-9a-f]{64}', pw_h or ''))
+    # v3.6.1: パスワードのみ（LOGIN_PASSWORD_HASH のみ必須）
+    _id_h, pw_h = _login_hashes()
+    return bool(re.fullmatch(r'[0-9a-f]{64}', pw_h or ''))
 
 def _sha256_hex(v):
     return hashlib.sha256(str(v or '').encode('utf-8')).hexdigest()
@@ -210,7 +211,7 @@ class handler(SimpleHTTPRequestHandler):
             return
         if clean_path == '/api/login':
             if not _auth_configured():
-                self._send_json(503, {"success": False, "code": "AUTH_NOT_CONFIGURED", "error": "ログイン設定が未完了です（環境変数 LOGIN_ID_HASH / LOGIN_PASSWORD_HASH）。", "runtime": "python"})
+                self._send_json(503, {"success": False, "code": "AUTH_NOT_CONFIGURED", "error": "ログイン設定が未完了です（環境変数 LOGIN_PASSWORD_HASH）。", "runtime": "python"})
                 return
             self._send_json(200, {"success": True, "authenticated": _is_authenticated(self.headers), "runtime": "python"})
             return
@@ -241,7 +242,7 @@ class handler(SimpleHTTPRequestHandler):
 
         if clean_path == '/api/login':
             if not _auth_configured():
-                self._send_json(503, {"success": False, "code": "AUTH_NOT_CONFIGURED", "error": "ログイン設定が未完了です（環境変数 LOGIN_ID_HASH / LOGIN_PASSWORD_HASH）。", "runtime": "python"})
+                self._send_json(503, {"success": False, "code": "AUTH_NOT_CONFIGURED", "error": "ログイン設定が未完了です（環境変数 LOGIN_PASSWORD_HASH）。", "runtime": "python"})
                 return
             try:
                 length = int(self.headers.get('Content-Length') or 0)
@@ -249,10 +250,10 @@ class handler(SimpleHTTPRequestHandler):
                 payload = json.loads(raw.decode('utf-8')) if raw else {}
             except Exception:
                 payload = {}
-            id_h, pw_h = _login_hashes()
-            ok = hmac.compare_digest(_sha256_hex(payload.get('id')), id_h) and hmac.compare_digest(_sha256_hex(payload.get('password')), pw_h)
+            _id_h, pw_h = _login_hashes()
+            ok = hmac.compare_digest(_sha256_hex(payload.get('password')), pw_h)
             if not ok:
-                self._send_json(401, {"success": False, "error": "IDまたはパスワードが違います。", "runtime": "python"})
+                self._send_json(401, {"success": False, "error": "パスワードが違います。", "runtime": "python"})
                 return
             cookie = f"{AUTH_COOKIE}={_create_session_token()}; Path=/; HttpOnly; SameSite=Lax; Max-Age={AUTH_SESSION_SEC}"
             self._send_json(200, {"success": True, "authenticated": True, "runtime": "python"}, set_cookie=cookie)

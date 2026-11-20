@@ -2,7 +2,7 @@
  * ログイン認証の共通ヘルパー（v3.6.0）
  *
  * - ユーザーID / パスワードの平文はコードに書かない。
- *   Vercel 環境変数 LOGIN_ID_HASH / LOGIN_PASSWORD_HASH に
+ *   Vercel 環境変数 LOGIN_PASSWORD_HASH に
  *   SHA-256 ハッシュ（16進64文字）を設定する。
  * - ログイン成功時は HMAC 署名付きセッションCookie（7日間）を発行する。
  *   署名キーは LOGIN_PASSWORD_HASH 自体（サーバー内でのみ使用）。
@@ -33,8 +33,9 @@ function getLoginHashes() {
 }
 
 function isConfigured() {
+  // v3.6.1: パスワードのみでログイン（IDは廃止）。必要なのは LOGIN_PASSWORD_HASH のみ。
   const h = getLoginHashes();
-  return /^[0-9a-f]{64}$/.test(h.idHash) && /^[0-9a-f]{64}$/.test(h.pwHash);
+  return /^[0-9a-f]{64}$/.test(h.pwHash);
 }
 
 function sign(payloadB64) {
@@ -88,9 +89,9 @@ function clearCookie() {
   return `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
 }
 
-function checkCredentials(id, password) {
+function checkCredentials(password) {
   const h = getLoginHashes();
-  return safeEqual(sha256Hex(id), h.idHash) && safeEqual(sha256Hex(password), h.pwHash);
+  return safeEqual(sha256Hex(password), h.pwHash);
 }
 
 module.exports = {
