@@ -7,22 +7,29 @@
   <meta property="og:title" content="AIボイス — 日常ではなす相棒">
   <meta property="og:description" content="話すだけの、日常の会話パートナー。マイクで話しかけると、選んだパートナーがすぐに応えます。">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://app-aivoiceappvercel.vercel.app/">
+  <meta property="og:image" content="https://app-aivoiceappvercel.vercel.app/assets/cyber_holo_face.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://app-aivoiceappvercel.vercel.app/">
   <meta name="theme-color" content="#f7f5f2">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="AIボイス">
+  <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
-  <title>AIボイス — 日常ではなす相棒 (v3.2)</title>
+  <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
+  <title>AIボイス — 日常ではなす相棒 (v3.4)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
-    /* v3.2 スマホ没入 — デザインシステム
+    /* v3.3 信頼性・アクセシビリティ（v3.2 スマホ没入を継承。会話エンジンは無変更）
        方針: 明るい日常系を維持。白と暖かいグレー、アクセントは深い緑1色のみ。
        グラデーション・グロー・走査線・レティクル等のSF装飾は使わない。
        フォントは Zen Kaku Gothic New 1ファミリー。基本文字は17px。
-       会話中は100dvhの1画面（スクロールなし）、操作は親指ドックに集約する。 */
+       会話中は100dvhの1画面（スクロールなし）、操作は親指ドックに集約する。
+       v3.3追加: オフラインバナー、シートのフォーカス管理、マイク案内の具体化、PWA基盤。 */
     :root {
       --bg: #f7f5f2;
       --surface: #ffffff;
@@ -130,6 +137,17 @@
       background: var(--ink); color: #fff; border: none; border-radius: 999px;
       padding: 8px 16px; font-size: 0.9rem; font-weight: 900; min-height: 44px;
     }
+
+    /* v3.3: オフラインバナー（オフライン時のみ表示。会話は止めない） */
+    .offline-banner {
+      flex: 0 0 auto;
+      padding: 10px 16px;
+      background: var(--danger-soft); color: var(--danger);
+      border-bottom: 1px solid var(--line);
+      font-size: 0.92rem; font-weight: 700; line-height: 1.6;
+      text-align: center;
+    }
+    .offline-banner[hidden] { display: none; }
 
     /* メインスクロール領域（会話中はスクロール停止） */
     main {
@@ -552,6 +570,8 @@
     </div>
   </header>
 
+  <div id="offline-banner" class="offline-banner" role="status" hidden>オフラインです。接続が戻ると、会話をはじめられます。</div>
+
   <div class="plan-bar">
     <span class="plan-badge">無料でお試し中</span>
     <span class="session-timer">経過 <span id="session-elapsed">00:00</span></span>
@@ -654,7 +674,7 @@
       <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい、同じ並びで使えるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.2 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.4 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -875,7 +895,7 @@
       <details class="advanced">
         <summary>上級者向け（APIキー）</summary>
         <div class="form-item" style="margin-top: 10px;">
-          <label for="cfg-api-key">Gemini APIキー</label>
+          <label for="cfg-api-key">Gemini APIキー（不要：サーバー経由で接続します）</label>
           <input type="password" id="cfg-api-key" class="form-ctrl" placeholder="AIzaSy..." autocomplete="off">
           <p class="setting-note">キーはこの端末にだけ保存されます。共有しないでください。</p>
         </div>
@@ -889,18 +909,27 @@
   <div id="toast-shelf" class="toast-shelf" aria-live="polite"></div>
 <script>
     /**
-     * AIボイス - v3.2 スマホ没入 (v3.0 Everyday Pro + v3.1 会話流暢化を継承し、画面をモバイル没入仕様に刷新)
+     * AIボイス - v3.4 一時トークン化 (v3.3 信頼性・アクセシビリティを継承)
+     * v3.4 (2026-11-20): 生キー返却 (/api/key) を廃止。接続前に /api/token から
+     *  エフェメラルトークンを取得し、v1beta Constrained (access_token) で接続する。
+     *  RESTフォールバックは /api/rest プロキシ経由。実機ライブ音声は未検証。
      * v3.1 会話流暢化 (2026-11-19, improve/conversation-fluency-20261119):
      *  setup仕様修正（AUDIOのみ＋文字起こし）、ターン判定600/500ms、VADしきい値暴走防止、
      *  割り込みのサーバー中断＋音声抑制、切断・自動再接続。実機ライブ音声は未検証。
      * v3.2 (2026-11-19): 会話エンジンは無変更。UIを100dvh1画面＋親指ドック＋ボトムシートに刷新し、
      *  字幕・状態ピル・セッションタイマー・WakeLock・触覚フィードバック・要約表示の配線を追加。
+     * v3.3 (2026-11-20): 会話エンジンは無変更。オフライン表示と開始ガード、シート／設定の
+     *  フォーカス管理（初期フォーカス・Tabトラップ・復帰）、マイクエラー案内の具体化、
+     *  キー未設定時に isConnecting が残る不具合の修正、PWA基盤（manifest・共有メタ）。
+     *  Service Worker はプレビュー確認後に別途導入する（今夜は未導入）。実機ライブ音声は未検証。
      */
     const LIVE_MODEL_NAME = 'models/gemini-2.5-flash-native-audio-latest';
-    const REST_MODEL_NAME = 'models/gemini-2.5-flash';
+    // v3.4: RESTフォールバックは /api/rest 経由のため、クライアント側のモデル指定は不要。
 
     const appState = {
-      apiKey: '',
+      // v3.4: 生キーはブラウザに持たない。接続時に /api/token から一時トークンを取る。
+      ephemeralToken: null, // { value, expireTimeMs, newSessionExpireTimeMs }
+      _resumeWithSameToken: false, // 自動再接続（セッション再開）では期限内の同一トークンを再利用する
       isMockMode: false,
       enableSmartFallback: true,
       enableNoiseFilter: true,
@@ -1052,7 +1081,8 @@
       cfgFallback: document.getElementById('cfg-fallback'),
       cfgMock: document.getElementById('cfg-mock'),
       btnSaveCfg: document.getElementById('btn-save-cfg'),
-      toastShelf: document.getElementById('toast-shelf')
+      toastShelf: document.getElementById('toast-shelf'),
+      offlineBanner: document.getElementById('offline-banner')
     };
 
     function logMessage(text, type = 'info') {
@@ -1080,52 +1110,93 @@
       }, 4000);
     }
 
+    // v3.3: マイクエラーの案内を原因ごとに分ける（UIのみ。取得ロジックは無変更）。
+    // トーストは消えるため、字幕にも残して次の行動が分かるようにする。
+    function isMicError(err) {
+      if (!err || !err.name) return false;
+      return ['NotAllowedError', 'PermissionDeniedError', 'SecurityError', 'NotFoundError', 'OverconstrainedError', 'NotReadableError', 'AbortError'].indexOf(err.name) !== -1;
+    }
+    function micErrorGuidance(err) {
+      const name = (err && err.name) || '';
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError') {
+        return 'マイクが許可されていません。アドレスバーの鍵（またはマイク）アイコンから、このサイトのマイクを「許可」にして、もう一度「会話をはじめる」を押してください。';
+      }
+      if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+        return '使えるマイクが見つかりませんでした。マイクを接続するか、設定で「既定のマイク」を選んで、もう一度お試しください。';
+      }
+      if (name === 'NotReadableError' || name === 'AbortError') {
+        return 'マイクを開けませんでした。他のアプリがマイクを使っていないか確認して、もう一度お試しください。';
+      }
+      return 'マイクを使えませんでした。ブラウザのマイク許可を確認して、もう一度お試しください。';
+    }
+    function showMicError(err) {
+      const msg = micErrorGuidance(err);
+      popToast(msg, 'error');
+      const sub = document.getElementById('live-subtitle');
+      if (sub) sub.textContent = msg;
+    }
+
+    // v3.4: 生キーの取得は廃止。起動時はサーバー経由モードであることだけを示し、
+    // 実際のトークン取得は接続時（fetchEphemeralToken）に行う。
     async function initEnvConfig() {
-      // v2.9: 3エンドポイントを並列に試し、最初に成功したものを使う（直列待ちをやめる）
-      const endpoints = ['/api/key', '/api/server', '/api/get-key'];
-      const tryEndpoint = async (ep) => {
-        // v3.1: 1エンドポイントあたり5秒でタイムアウト。サーバーが応答しないとき無限に待たない。
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 5000);
-        try {
-          const res = await fetch(ep, { signal: controller.signal });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-          if (data && data.success && data.apiKey) return { ep, data };
-          throw new Error(data && data.error ? data.error : 'no key');
-        } catch (err) {
-          if (err && err.name === 'AbortError') throw new Error(`${ep} timeout (5s)`);
-          throw err;
-        } finally {
-          clearTimeout(timer);
-        }
-      };
+      // 旧版で保存した生キーが残っていれば消す（ブラウザにキーを残さない）。
+      try { localStorage.removeItem('GEMINI_API_KEY'); } catch (e) {}
+      if (UI.cfgApiKey) {
+        UI.cfgApiKey.value = '';
+        UI.cfgApiKey.disabled = true;
+        UI.cfgApiKey.placeholder = '不要です（サーバー経由で接続します）';
+      }
+      UI.envBadge.textContent = '🔐 サーバー経由で接続します（キーは渡りません）';
+      UI.envBadge.style.color = '#34d399';
+      logMessage('v3.4: 接続時は /api/token から一時トークンを取得します。生キーはブラウザに渡りません', 'info');
+      return true;
+    }
+
+    // v3.4: /api/token からエフェメラルトークンを取得する（5秒タイムアウト）。
+    async function fetchEphemeralToken() {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
       try {
-        const first = await Promise.any(endpoints.map(tryEndpoint));
-        appState.apiKey = first.data.apiKey.trim();
-        UI.cfgApiKey.value = appState.apiKey;
-        UI.envBadge.textContent = '✅ Vercel サーバーキー連携成功 (ACTIVE)';
-        UI.envBadge.style.color = '#34d399';
-        logMessage(`✅ Vercel サーバーレスAPI (${first.ep}) から Live API キーを自動ロード完了 (登録元: ${first.data.source || 'Vercel Env'}, Runtime: ${first.data.runtime || 'node'})`, 'success');
-        return true;
+        const res = await fetch('/api/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: '{}',
+          signal: controller.signal
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success || !data.token) {
+          throw new Error(data && data.error ? data.error : `HTTP ${res.status}`);
+        }
+        const tok = {
+          value: data.token,
+          expireTimeMs: data.expireTime ? Date.parse(data.expireTime) : (Date.now() + 30 * 60 * 1000),
+          newSessionExpireTimeMs: data.newSessionExpireTime ? Date.parse(data.newSessionExpireTime) : (Date.now() + 60 * 1000)
+        };
+        appState.ephemeralToken = tok;
+        return tok.value;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    // v3.4: 接続用トークンを用意する。自動再接続（セッション再開）では期限内の
+    // 同一トークンを再利用し、それ以外（新規・パートナー切替）は取り直す。
+    // uses は1回のため、新規セッションごとに新しいトークンが必要。
+    async function ensureEphemeralToken() {
+      const cached = appState.ephemeralToken;
+      const canReuse = appState._resumeWithSameToken && cached &&
+        Date.now() < (cached.expireTimeMs - 30000);
+      appState._resumeWithSameToken = false;
+      if (canReuse) {
+        logMessage('一時トークンを再利用して再接続します（セッション再開）', 'info');
+        return cached.value;
+      }
+      try {
+        return await fetchEphemeralToken();
       } catch (err) {
-        logMessage('Vercel サーバーレスAPIからキーを取得できませんでした（全エンドポイント失敗）', 'warn');
+        logMessage(`一時トークンの取得に失敗: ${err.message}`, 'error');
+        return null;
       }
-
-      // ローカルストレージ（設定モーダル保存済みキー）からの復元フォールバック
-      const localKey = localStorage.getItem('GEMINI_API_KEY');
-      if (localKey) {
-        appState.apiKey = localKey;
-        UI.cfgApiKey.value = localKey;
-        UI.envBadge.textContent = '💾 ローカル保存キー適用中';
-        UI.envBadge.style.color = '#38bdf8';
-        logMessage('ローカルストレージからAPIキーを復元しました', 'info');
-        return true;
-      }
-
-      UI.envBadge.textContent = '⚠️ APIキー未設定 (Vercel環境変数または設定モーダル)';
-      UI.envBadge.style.color = '#fbbf24';
-      return false;
     }
 
     async function fetchAudioDevices() {
@@ -1344,7 +1415,7 @@
           stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         } catch (mErr) {
           logMessage(`マイク取得が拒否されました: ${mErr.name} - ${mErr.message}`, 'error');
-          popToast('マイクの使用が許可されていません。ブラウザのアドレスバー横でマイクを「許可」してください', 'error');
+          showMicError(mErr);
           throw mErr;
         }
       }
@@ -1561,6 +1632,13 @@
         return;
       }
 
+      // v3.3: オフラインでは接続を試みない（お試しモードはローカル動作のため対象外）。
+      if (!navigator.onLine) {
+        popToast('オフラインです。接続が戻ってから、もう一度お試しください。', 'warn');
+        logMessage('オフラインのため接続を開始しませんでした', 'warn');
+        return;
+      }
+
       // v3.1: 連打による二重接続ガード。接続中は2回目以降の呼び出しを無視する。
       if (appState.isConnecting) {
         logMessage('接続処理中のため、開始の二重呼び出しを無視します', 'warn');
@@ -1575,13 +1653,13 @@
       appState.expectClose = false;
       // v3.1: 前セッションのバージイン抑制が残っていると、再接続直後のAI音声が捨てられるため消す。
       appState.suppressAiAudio = false;
-      if (!appState.apiKey) {
-        const loaded = await initEnvConfig();
-        if (!loaded || !appState.apiKey) {
-          popToast('Gemini API キーを設定してください', 'warn');
-          UI.settingsModal.style.display = 'flex';
-          return;
-        }
+      // v3.4: 接続前に一時トークンを取得する（生キーは使わない）。
+      const liveToken = await ensureEphemeralToken();
+      if (!liveToken) {
+        // v3.3: 接続中フラグを残すと二度と開始できなくなるため、必ず戻す。
+        appState.isConnecting = false;
+        popToast('接続用トークンを取得できませんでした。時間をおいて再試行してください', 'warn');
+        return;
       }
 
       try {
@@ -1590,7 +1668,8 @@
         await startMicrophoneEngine();
 
         logMessage(`Gemini Live API (${LIVE_MODEL_NAME}) へ WebSocket 接続中...`, 'info');
-        const liveUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${appState.apiKey}`;
+        // v3.4: v1beta Constrained 接続。トークンは access_token で渡す（公式仕様）。
+        const liveUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?access_token=${encodeURIComponent(liveToken)}`;
         
         appState.ws = new WebSocket(liveUrl);
         appState.isConnected = true;
@@ -1659,6 +1738,8 @@
             if (appState.reconnectTimer) clearTimeout(appState.reconnectTimer);
             appState.reconnectTimer = setTimeout(() => {
               appState.reconnectTimer = null;
+              // v3.4: セッション再開の再接続では期限内の同一トークンを再利用できる。
+              appState._resumeWithSameToken = true;
               if (!appState.expectClose) startLiveSession();
             }, delayMs);
             return;
@@ -1675,8 +1756,8 @@
       } catch (err) {
         appState.isConnecting = false;
         logMessage(`セッション起動エラー: ${err.name} - ${err.message}`, 'error');
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          popToast('マイクの使用許可がブロックされています。ブラウザの鍵アイコンから許可してください', 'error');
+        if (isMicError(err)) {
+          showMicError(err);
         } else {
           popToast(`接続エラー: ${err.message}`, 'error');
         }
@@ -2179,27 +2260,27 @@
         const char = appState.characters[appState.selectedChar];
         const emoNames = { joy: '喜び', anger: '怒り', sadness: '悲しみ', fun: '楽しさ' };
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/${REST_MODEL_NAME}:generateContent?key=${appState.apiKey}`;
-        const body = {
-          contents: [{ parts: [{ text: userPrompt }] }],
-          systemInstruction: {
-            parts: [{ text: `${char.systemPrompt}\n現在の感情: ${emoNames[appState.emotion]} (強度: ${appState.intensity}%)\n1〜2文で短く日本語で返答してください。` }]
-          }
-        };
-
-        const res = await fetch(url, {
+        // v3.4: RESTフォールバックは /api/rest プロキシ経由（生キーはブラウザに渡らない）。
+        const res = await fetch('/api/rest', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
+          body: JSON.stringify({
+            prompt: userPrompt,
+            systemInstruction: `${char.systemPrompt}\n現在の感情: ${emoNames[appState.emotion]} (強度: ${appState.intensity}%)\n1〜2文で短く日本語で返答してください。`
+          })
         });
 
-        const data = await res.json();
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'うまく聞き取れませんでした。もう一度お願いします。';
-        
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          throw new Error(data && data.error ? data.error : `HTTP ${res.status}`);
+        }
+        const reply = data.text || 'うまく聞き取れませんでした。もう一度お願いします。';
+
         appendChat('ai', reply, appState.emotion);
         speakWithBrowserSynthesis(reply);
       } catch (err) {
         logMessage(`REST問い合わせ失敗: ${err.message}`, 'error');
+        popToast('予備の方式で応答を取得できませんでした。時間をおいて再試行してください', 'warn');
       }
     }
 
@@ -2407,23 +2488,19 @@
 
     UI.btnOpenSettings.addEventListener('click', () => {
       fetchAudioDevices();
-      UI.settingsModal.style.display = 'flex';
+      openSettings();
     });
 
     UI.btnCloseModal.addEventListener('click', () => {
-      UI.settingsModal.style.display = 'none';
+      closeSettings();
     });
 
     UI.btnSaveCfg.addEventListener('click', () => {
-      const k = UI.cfgApiKey.value.trim();
-      if (k) {
-        appState.apiKey = k;
-        localStorage.setItem('GEMINI_API_KEY', k);
-        UI.envBadge.textContent = '💾 保存済みキー適用中';
-        UI.envBadge.style.color = '#38bdf8';
-        logMessage('設定画面からAPIキーを保存しました', 'success');
-      }
+      // v3.4: 生キーの手入力・保存は廃止（サーバー経由の一時トークンで接続する）。
+      try { localStorage.removeItem('GEMINI_API_KEY'); } catch (e) {}
       appState.isMockMode = UI.cfgMock.checked;
+      // v3.3: お試しモードの切替で開始ボタンの有効／無効も合わせる。
+      syncOnlineState();
       appState.enableSmartFallback = UI.cfgFallback.checked;
       appState.enableNoiseFilter = UI.cfgNoiseFilter.checked;
       appState.bargeInSensitivity = UI.cfgBargeInSens.value;
@@ -2431,12 +2508,12 @@
       const sensLabel = { strict: '生活音ガード', normal: '標準（既定）', sensitive: '高感度' }[appState.bargeInSensitivity];
       logMessage(`設定更新: ノイズフィルター [${appState.enableNoiseFilter ? 'ON' : 'OFF'}], 割り込み感度 [${sensLabel}]`, 'info');
 
-      UI.settingsModal.style.display = 'none';
+      closeSettings();
       popToast('設定を保存しました (ノイズ耐性 & 高速化適用)', 'success');
     });
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.2 を起動しました', 'info');
+      logMessage('AIボイス v3.4 を起動しました', 'info');
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
       await initEnvConfig();
@@ -2547,22 +2624,123 @@
     UI.btnStop.addEventListener('click', () => haptic(15));
     UI.btnInterrupt.addEventListener('click', () => haptic(10));
 
-    // --- ボトムシート開閉 ---
+    // --- ボトムシート開閉（v3.3: フォーカス管理を追加。開閉の見た目と配線は維持） ---
+    // 開いたボタンを覚え、閉じるボタンへフォーカスし、Tabをシート内に閉じ込め、
+    // 閉じたら元のボタンへ戻す。背景の inert 化はプレビュー確認後の次段階とする。
+    const SHEET_CLOSE_IDS = {
+      'sheet-chat': 'btn-close-chat',
+      'sheet-voice': 'btn-close-voice',
+      'sheet-plan': 'btn-close-plan',
+      'sheet-summary': 'btn-close-summary'
+    };
+    const lastFocusByOverlay = {};
+    function rememberFocus(key) {
+      const ae = document.activeElement;
+      if (ae && ae !== document.body && typeof ae.focus === 'function') lastFocusByOverlay[key] = ae;
+    }
+    function restoreFocus(key, fallbackEl) {
+      const prev = lastFocusByOverlay[key];
+      delete lastFocusByOverlay[key];
+      const prevUsable = prev && document.contains(prev) && prev.getClientRects().length > 0;
+      const target = prevUsable ? prev : fallbackEl;
+      if (target && typeof target.focus === 'function') {
+        try { target.focus({ preventScroll: true }); } catch (e) { try { target.focus(); } catch (e2) {} }
+      }
+    }
+    function focusOverlayClose(overlayEl, closeId) {
+      requestAnimationFrame(() => {
+        const btn = closeId ? document.getElementById(closeId) : null;
+        const target = btn || getFocusable(overlayEl)[0];
+        if (target && typeof target.focus === 'function') {
+          try { target.focus({ preventScroll: true }); } catch (e) { try { target.focus(); } catch (e2) {} }
+        }
+      });
+    }
+    function getFocusable(container) {
+      if (!container) return [];
+      const nodes = container.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+      return Array.prototype.filter.call(nodes, (n) => n.getClientRects().length > 0);
+    }
     function openSheet(id) {
       const el = document.getElementById(id);
       if (!el) return;
+      rememberFocus(id);
       el.classList.add('open');
       if (id === 'sheet-chat' && UI.chatView) {
         requestAnimationFrame(() => { UI.chatView.scrollTop = UI.chatView.scrollHeight; });
       }
+      focusOverlayClose(el, SHEET_CLOSE_IDS[id]);
     }
     function closeSheet(id) {
       const el = document.getElementById(id);
-      if (el) el.classList.remove('open');
+      if (!el || !el.classList.contains('open')) return;
+      el.classList.remove('open');
+      restoreFocus(id, UI.btnStart);
     }
     function closeAllSheets() {
       ['sheet-chat', 'sheet-voice', 'sheet-plan', 'sheet-summary'].forEach(closeSheet);
     }
+    function openSettings() {
+      if (!UI.settingsModal) return;
+      rememberFocus('settings-modal');
+      UI.settingsModal.style.display = 'flex';
+      focusOverlayClose(UI.settingsModal, 'btn-close-modal');
+    }
+    function closeSettings() {
+      if (!UI.settingsModal || UI.settingsModal.style.display !== 'flex') return;
+      UI.settingsModal.style.display = 'none';
+      restoreFocus('settings-modal', UI.btnOpenSettings);
+    }
+    function getOpenOverlay() {
+      if (UI.settingsModal && UI.settingsModal.style.display === 'flex') return UI.settingsModal;
+      const ids = ['sheet-summary', 'sheet-plan', 'sheet-voice', 'sheet-chat'];
+      for (let i = 0; i < ids.length; i++) {
+        const el = document.getElementById(ids[i]);
+        if (el && el.classList.contains('open')) return el;
+      }
+      return null;
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Tab') return;
+      const overlay = getOpenOverlay();
+      if (!overlay) return;
+      const items = getFocusable(overlay);
+      if (!items.length) { e.preventDefault(); return; }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const ae = document.activeElement;
+      if (e.shiftKey) {
+        if (ae === first || !overlay.contains(ae)) { e.preventDefault(); last.focus(); }
+      } else {
+        if (ae === last || !overlay.contains(ae)) { e.preventDefault(); first.focus(); }
+      }
+    });
+
+    // --- v3.3: オンライン／オフライン表示（会話エンジンは無変更） ---
+    function syncOnlineState() {
+      const offline = !navigator.onLine;
+      document.body.classList.toggle('is-offline', offline);
+      if (UI.offlineBanner) {
+        UI.offlineBanner.hidden = !offline;
+        if (offline) {
+          UI.offlineBanner.textContent = (appState.isConnected || appState.isSessionReady)
+            ? 'オフラインです。接続が戻ると、自動で再接続を試みます。'
+            : 'オフラインです。接続が戻ると、会話をはじめられます。';
+        }
+      }
+      // お試しモードはローカル動作のため、オフラインでも開始できるようにする。
+      if (UI.btnStart) UI.btnStart.disabled = offline && !appState.isMockMode;
+    }
+    window.addEventListener('offline', () => {
+      syncOnlineState();
+      popToast('オフラインになりました。接続が戻るまで、会話は開始できません。', 'warn');
+      logMessage('オフラインになりました', 'warn');
+    });
+    window.addEventListener('online', () => {
+      syncOnlineState();
+      popToast('接続が戻りました。会話をはじめられます。', 'success');
+      logMessage('オンラインに戻りました', 'success');
+    });
     const btnOpenChat = document.getElementById('btn-open-chat');
     if (btnOpenChat) btnOpenChat.addEventListener('click', () => openSheet('sheet-chat'));
     const btnCloseChat = document.getElementById('btn-close-chat');
@@ -2583,12 +2761,14 @@
     });
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
+        closeSettings();
         closeAllSheets();
-        if (UI.settingsModal) UI.settingsModal.style.display = 'none';
       }
     });
     // 字幕の初期同期（ヒーロー状態）
     syncHeroState('待機中');
+    // v3.3: 起動時点の接続状態を反映する（通知は出さない）。
+    syncOnlineState();
   </script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 {
   "name": "ai-voice-app-vercel-api",
-  "version": "3.2.0",
+  "version": "3.4.0",
   "description": "Backend API resources and serverless functions for AI Voice App",
-  "main": "key.js",
+  "main": "token.js",
   "scripts": {
     "start": "python server.py 8080"
   },
