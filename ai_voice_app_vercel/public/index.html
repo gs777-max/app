@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.4.3)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.4.4)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -674,7 +674,7 @@
       <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい、同じ並びで使えるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.4.3 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.4.4 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -909,8 +909,8 @@
   <div id="toast-shelf" class="toast-shelf" aria-live="polite"></div>
 <script>
     /**
-     * AIボイス - v3.4.3 会話切断（1007）修正 (v3.4 一時トークン化を継承)
-     * v3.4.3 (2026-11-20): モデルを gemini-3.8-live に変更（2.5系は終了）、
+     * AIボイス - v3.4.4 会話切断（1007）修正 (v3.4 一時トークン化を継承)
+     * v3.4.4 (2026-11-20): モデルを gemini-3.8-live に変更（2.5系は終了）、
      *  音声送信を mediaChunks から audio に変更、自動検出有効時の activityStart と
      *  自動 turnComplete 送信を廃止（いずれも仕様外で1007切断の原因）。実機ライブ音声は未検証。
      * v3.4.2 (2026-11-20): トークンを制約なし（プレーン）にし、接続先を
@@ -932,7 +932,7 @@
      *  キー未設定時に isConnecting が残る不具合の修正、PWA基盤（manifest・共有メタ）。
      *  Service Worker はプレビュー確認後に別途導入する（今夜は未導入）。実機ライブ音声は未検証。
      */
-    // v3.4.3: 2.5系ネイティブ音声モデルは2026-11-17に終了。現行の安定モデルに変更。
+    // v3.4.4: 2.5系ネイティブ音声モデルは2026-11-17に終了。現行の安定モデルに変更。
     const LIVE_MODEL_NAME = 'models/gemini-3.8-live';
     // v3.4: RESTフォールバックは /api/rest 経由のため、クライアント側のモデル指定は不要。
 
@@ -948,6 +948,8 @@
       consecutiveVoiceFrames: 0,
       // v3.1 会話流暢化: バージイン後のAI音声抑制、再接続制御
       suppressAiAudio: false, // trueの間、AIの新規音声チャンクを再生キューに入れない
+      suppressUntil: 0, // v3.4.4: 抑制は時間制限付き（割り込み後800ms）。無期限にAI音声を止めない
+      _bargeInConfirmed: false, // v3.4.4: AI発話中にユーザーの声が確定したか（マイク送信ゲート用）
       isConnecting: false, // startLiveSession() の二重接続ガード
       reconnectAttempts: 0,
       reconnectTimer: null,
@@ -1501,9 +1503,11 @@
           appState.noiseFloor = appState.noiseFloor * 0.95 + rms * 0.05;
         }
 
-        // AI発話中はスピーカーからの回り込み音を考慮してしきい値を1.5倍に引き上げ
+        // AI発話中はスピーカーからの回り込み音を考慮してしきい値を引き上げる。
+        // v3.4.4: 1.5倍ではスマホのスピーカー回り込み（AI自身の声）が割り込みを誤発動させ、
+        // 会話が途切れ途切れになっていたため2.2倍に強化。
         if (appState.isAiSpeaking) {
-          threshold *= 1.5;
+          threshold *= 2.2;
         }
 
         // --- 人間の音声判定 & 時間的持続性フィルター (Temporal Persistence) ---
@@ -1519,7 +1523,10 @@
             setTelemetryStatus('transmitting', '話しています');
 
             // AIが話している最中の割り込み (Barge-in): 人間が確実に声を出した時のみ発動！
-            if (appState.isAiSpeaking && voiceSustainedFrames >= 2) {
+            // v3.4.4: 2フレーム(50ms)ではAI自身の声の回り込みで誤発動するため、
+            // 6フレーム(150ms)継続を必須にした。確定後はマイク送信ゲートも開く。
+            if (appState.isAiSpeaking && voiceSustainedFrames >= 6) {
+              appState._bargeInConfirmed = true;
               logMessage(`⚡ 人間の発話を検知して割り込み (RMS: ${amplifiedRms.toFixed(3)}, 閾値: ${threshold.toFixed(3)})`, 'warn');
               interruptAudio();
               // v3.1: バージイン後、ユーザー発話が終わるまでAIの新規音声チャンクを再生キューに入れない。
@@ -1536,6 +1543,8 @@
             voiceSustainedFrames = 0;
             // v3.1: ユーザー発話が終わったので、バージイン後のAI音声抑制を解除する。
             appState.suppressAiAudio = false;
+            // v3.4.4: 割り込み確定フラグも解除する。
+            appState._bargeInConfirmed = false;
             setTelemetryStatus('transmitting', 'AIが考えています');
             logMessage(`⚡ 人間の発話完了を高速検知 (${appState.silenceMs}ms無音) -> 即時ターンコミット送信`, 'info');
 
@@ -1544,7 +1553,7 @@
             appState.latency.firstAudioAt = 0;
             appState.latency.firstPlaybackAt = 0;
 
-            // v3.4.3: 自動活動検出が有効なとき、ターン終了はサーバー側VAD（silenceDurationMs）が判定する。
+            // v3.4.4: 自動活動検出が有効なとき、ターン終了はサーバー側VAD（silenceDurationMs）が判定する。
             // clientContent の turnComplete は生成を割り込むため、自動コミットでは送らない（手動トリガーのみ）。
           }
         }
@@ -1558,11 +1567,15 @@
           const chunkToProcess = new Float32Array(sampleBuffer);
           sampleBuffer = [];
 
-          if (appState.isSessionReady && appState.ws && appState.ws.readyState === WebSocket.OPEN) {
+          // v3.4.4: AI発話中は、ユーザーの声が確定するまでマイク音声をサーバーへ送らない。
+          // スピーカーから回り込んだAI自身の声がサーバー側VADに「割り込み」と誤判定され、
+          // 生成が途中で止まって途切れ途切れになるのを防ぐ（ローカルVAD判定は継続する）。
+          if (appState.isSessionReady && appState.ws && appState.ws.readyState === WebSocket.OPEN &&
+              (!appState.isAiSpeaking || appState._bargeInConfirmed)) {
             const pcm16 = resampleAndGain(chunkToProcess, inSampleRate, 16000, appState.micGain);
             const base64Audio = int16ArrayToBase64(pcm16);
 
-            // v3.4.3: mediaChunks は非推奨。現行仕様の audio フィールドで送る。
+            // v3.4.4: mediaChunks は非推奨。現行仕様の audio フィールドで送る。
             const payload = {
               realtimeInput: {
                 audio: {
@@ -1722,7 +1735,7 @@
           }
           // v3.1: 1007 は setup 不正（設定エラー）。再接続しても同じエラーになるので再接続しない。
           if (e.code === 1007) {
-            // v3.4.3: サーバーの切断理由（詳細）を表示して切り分けできるようにする。
+            // v3.4.4: サーバーの切断理由（詳細）を表示して切り分けできるようにする。
             const msg = `設定エラーで切断されました（コード1007）。再接続しません。詳細: ${e.reason || 'なし'}`;
             logMessage(msg, 'error');
             popToast(msg, 'error');
@@ -1834,6 +1847,8 @@
 
       if (data.serverContent && data.serverContent.turnComplete) {
         finalizeAiText();
+        // v3.4.4: ターン完了で割り込み後のAI音声抑制を確実に解除する。
+        appState.suppressAiAudio = false;
         logMessage('AI 応答ターン完了', 'info');
       }
     }
@@ -1841,9 +1856,10 @@
     function enqueueAudio(base64Pcm24k) {
       if (!appState.audioCtx) return;
 
-      // v3.1: バージイン後、ユーザー発話が終わるまでAIの新規音声チャンクを再生キューに入れない。
-      // （割り込み直後に届いた遅延チャンクが、ユーザーの声に被って再生されるのを防ぐ）
-      if (appState.suppressAiAudio || appState.isUserSpeaking) {
+      // v3.1: バージイン直後の遅延チャンクがユーザーの声に被らないよう一時的に破棄する。
+      // v3.4.4: isUserSpeaking での破棄を廃止（AIの声の回り込みでフラグが立ち、AI音声に穴が開いていた）。
+      // 抑制は割り込み後800msの時間制限付き（サーバー割り込み時に無期限に無音化しない）。
+      if (appState.suppressAiAudio && performance.now() < (appState.suppressUntil || 0)) {
         appState.droppedChunks++;
         return;
       }
@@ -1858,8 +1874,9 @@
         logMessage(`⏱ 遅延実測: 発話終了→AI初回音声 ${ms}ms`, 'info');
       }
 
-      // v2.9 再生キュー上限：1.5秒以上溜まった音声チャンクは破棄して最新に追従する
-      if (appState.nextStartTime - appState.audioCtx.currentTime > 1.5) {
+      // v2.9 再生キュー上限：溜まりすぎた音声チャンクは破棄して最新に追従する
+      // v3.4.4: 生成は実時間より速いため1.5秒上限では文の途中でチャンクが欠落し途切れていた。4秒に緩和。
+      if (appState.nextStartTime - appState.audioCtx.currentTime > 4.0) {
         appState.droppedChunks++;
         if (appState.droppedChunks % 10 === 1) logMessage(`⏱ 再生キュー過多のため音声チャンクを破棄（累計 ${appState.droppedChunks}件）`, 'warn');
         return;
@@ -1921,6 +1938,8 @@
         if (i !== -1) appState.scheduledSources.splice(i, 1);
         if (appState.scheduledSources.length === 0) {
           appState.isAiSpeaking = false;
+          // v3.4.4: AI発話が終わったら割り込み確定フラグを解除（次ターンのゲート初期化）。
+          appState._bargeInConfirmed = false;
           if (appState.isConnected) {
             setTelemetryStatus('ready', '話せます');
           }
@@ -1939,8 +1958,11 @@
       }
       appState.isAiSpeaking = false;
       // v3.1: バージイン中はAIの新規音声を再生キューに入れない（解除はターン確定時）。
+      // v3.4.4: 抑制は800msの時間制限付き。サーバー割り込み（回り込み誤判定含む）で
+      // 解除条件を満たさずAIが無期限に無音化するのを防ぐ。
       appState.suppressAiAudio = true;
-      // v3.4.3: activityStart は自動活動検出が有効なときは送れない（仕様外で1007切断の原因）。
+      appState.suppressUntil = performance.now() + 800;
+      // v3.4.4: activityStart は自動活動検出が有効なときは送れない（仕様外で1007切断の原因）。
       // サーバー側の自動検出（START_OF_ACTIVITY_INTERRUPTS）が生成を止めるため、送信しない。
       popToast('割り込みました (発話を中断)', 'info');
       logMessage('オーディオ再生キューを強制クリア (割り込み)', 'info');
@@ -2030,14 +2052,15 @@
         inputAudioTranscription: { languageCodes: ['ja-JP'] },
         outputAudioTranscription: { languageCodes: ['ja-JP'] },
         // v3.1: サーバー側VADを明示（無音500msでターン終了とみなす）。
-        // クライアント側 silenceMs 600ms と二重で切らないよう、サーバー側は500msに統一。
+        // v3.4.4: 感度HIGHではAI自身の声の回り込みや生活音でターンが細切れになっていたため、
+        // 感度をLOWに下げ、発話開始の確認時間（prefixPaddingMs）と無音判定を延ばして安定化。
         realtimeInputConfig: {
           automaticActivityDetection: {
             disabled: false,
-            startOfSpeechSensitivity: 'START_SENSITIVITY_HIGH',
-            endOfSpeechSensitivity: 'END_SENSITIVITY_HIGH',
-            prefixPaddingMs: 20,
-            silenceDurationMs: 500
+            startOfSpeechSensitivity: 'START_SENSITIVITY_LOW',
+            endOfSpeechSensitivity: 'END_SENSITIVITY_LOW',
+            prefixPaddingMs: 120,
+            silenceDurationMs: 700
           }
         },
         systemInstruction: {
@@ -2510,7 +2533,7 @@
     });
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.4.3 を起動しました', 'info');
+      logMessage('AIボイス v3.4.4 を起動しました', 'info');
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
       await initEnvConfig();
