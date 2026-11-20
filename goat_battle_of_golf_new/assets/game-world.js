@@ -31,7 +31,7 @@
   (function(){
     var TL = new THREE.TextureLoader();
     /* v4.9: アセット版数（boot 層の __GOAT_AV__ と連動）。テクスチャ/GLB の URL に付与する */
-    var AVQ = '?v=' + (window.__GOAT_AV__ || 'N3');
+    var AVQ = '?v=' + (window.__GOAT_AV__ || 'N4');
     function loadTex(name, srgb, rx, ry){
     var t = TL.load('assets/textures/' + name + '.png' + AVQ, function(){
       window.HQW._ready[name] = 1;
@@ -3177,6 +3177,9 @@ scene.remove(m.mesh);
            （親側 startGolfBattle → getNextBattleTarget が rivalDefeated を見て
            ライバル戦を返すため、遭遇は既存フローの正式な入口になる） */
         handleRivalEncounter();
+      } else if (act.type === "npcTalk") {
+        /* N4: 住人との会話（バナー表示のみ。施設・進行・既存機能には触れない） */
+        showBanner(act.title, act.line);
       }
     }
 
@@ -3380,6 +3383,8 @@ scene.remove(m.mesh);
             /* v4.27 A-14: 閉じた門は中抜きの菱形（白抜き＋紫の縁）にして、色だけでなく形でも開／閉を区別する。 */
             miniCtx.strokeStyle = gc; miniCtx.lineWidth = 1.8; miniCtx.stroke();
           }
+        } else if (lm.isNpcTalk) {
+          /* N4: 住人の会話マーカーはミニマップに描かない（施設の金ドットと混同させない） */
         } else if (lm.isRival) {
           /* N3: 好敵手は橙の菱形（未撃破）／仲間は緑の菱形。門（大菱形）と大きさで区別する */
           var rr2 = 4.0, rc2 = STATE.rivalDefeated ? "#44e587" : "#ff7847";
@@ -3911,6 +3916,8 @@ scene.remove(m.mesh);
 
       /* N3: ライバルNPCの毎フレーム更新（idle再生・プレイヤーへの向き直り・名前ラベル） */
       updateRivalNpc(dt, elapsed);
+      /* N4: 住人NPCの毎フレーム更新（歩行・役割NPCのidle再生と向き直り・立ちNPCの微揺れ） */
+      updateTownNpcs(dt, elapsed);
 
       if (subTrialTargetMesh && subTrialTargetMesh.visible) {
         subTrialTargetMesh.rotation.y = elapsed * 2.4;
@@ -4012,6 +4019,7 @@ scene.remove(m.mesh);
         STATE.rivalDefeated = !!d.rivalDefeated;
         STATE.nextTarget = d.nextTarget || null;
         refreshRivalNpc();
+        townOnSyncRoles(); /* N4: 役割住人は主人公・ライバルが判明したこの時点で確定する */
         refreshPurificationAtmosphere();
         if (subTrialTargetMesh) {
           subTrialTargetMesh.visible = !STATE.subTrialDone;
@@ -4184,7 +4192,7 @@ scene.remove(m.mesh);
       if (!key) { npc.failed = true; return; }
       initRivalLoader(function (loader) {
         if (!loader) { if (rivalNpc === npc) npc.failed = true; return; }
-        loader.loadAsync("assets/chars/" + key + ".glb?v=N3").then(function (gltf) {
+        loader.loadAsync("assets/chars/" + key + ".glb?v=N4").then(function (gltf) {
           if (rivalNpc !== npc) { /* 読み込み中に状態が変わった場合は破棄して捨てる */
             gltf.scene.traverse(function (o) { if (o.geometry) { try { o.geometry.dispose(); } catch (e) {} } });
             return;
@@ -4296,6 +4304,438 @@ scene.remove(m.mesh);
       get dialogOpen() { return rivalDialogOpen; },
       pos: RIVAL_POS
     };
+
+    /* =========================================================================
+       N4: 住人NPC（設計書 visibility_design_v1.md 第3章・併用案C）
+       - 役割住人（クラブハウス受付／プロショップ店員）は主人公級GLB（案A）:
+         主人公・そのエリアのライバルと重ならないキャラを使い、ポロ（PoloRed）と
+         キャップ（CapMat）の色を差し替えて別人化する。idle 再生＋名前ラベル付き。
+       - それ以外の住人（19番の客・立ち話ペア・通行人・モイライ）は手続き生成の
+         簡易モデル（案B）: 頂点カラーで色分けした部品を1ジオメトリへ結合し、
+         立ち=1ドローコール、歩行=3ドローコール（胴＋両脚）に抑える。
+       - 配置は全エリア共通レイアウト（町の造りが共通のため）＋エリア別パレット。
+         人数は 1エリア 11人（神域は10人）、延べ65人。
+       - 読み込みは現在のエリア分だけ。pagehide で全資産を traverse dispose する。
+       - 施設ビーコン・ショップ等の既存機能には触れない。会話は npcTalk
+         ランドマークによるバナー表示のみ（施設の入口は従来どおりビーコン）。
+       ========================================================================= */
+    var townNpcs = [];       /* 全NPC（kind: role/guest/moirai/pair/walker） */
+    var townRoles = [];      /* GLB役割NPC */
+    var townWalkers = [];    /* 歩行NPC */
+    var townLandmarks = [];  /* 会話ランドマーク */
+    var townGeos = [];       /* 破棄対象（結合ジオメトリ） */
+    var townRolesSpawned = false;
+    var townSyncSeen = false;
+    var townDisposed = false;
+    var townVillagerMat = null;
+
+    function townLog() { try { console.log.apply(console, ["[GOAT-N4]"].concat([].slice.call(arguments))); } catch (e) {} }
+    function townSeeded(seed) { var s = seed >>> 0; return function () { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; }; }
+    function townYawTo(x, z, tx, tz) { return Math.atan2(tx - x, tz - z); }
+    function townMat() {
+      if (!townVillagerMat) townVillagerMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0.02 });
+      return townVillagerMat;
+    }
+
+    var TOWN_SKINS = [0xf2c8a2, 0xeab98e, 0xe0ac82, 0xc98d64, 0x9c6b43, 0x8d5b36];
+    var TOWN_HAIRS = [0x2a2320, 0x4a3728, 0x6e5136, 0x8a8d94, 0xd8d3c8, 0x1c1c22];
+    /* エリア別パレット（主人公6人の勝負服＝白/赤ポロ＋黒パンツ等の組み合わせは含めない） */
+    var TOWN_PALETTES = [
+      { shirts: [0x3b4a6b, 0x707a52, 0x8a5a3b, 0x5d4a68, 0x7a3b3b, 0x46655e], pants: [0x2e3138, 0x4a4038, 0x5b5346, 0x37414f], hats: [0x2a2f45, 0x6b4a2f, 0x44503c, 0x30343e] }, /* 0 京都 */
+      { shirts: [0x51643c, 0x7a86a0, 0xa08b62, 0x74586a, 0x4a5d7a, 0x8c6d4f], pants: [0x3a3f4a, 0x5a5148, 0x474f42, 0x2f3540], hats: [0x8a4a16, 0x3c4656, 0x6e5136, 0x2e3138] }, /* 1 パリ */
+      { shirts: [0xa8542f, 0x74552e, 0x5f7050, 0x8a6a42, 0x94422e, 0x606a7a], pants: [0x4a3a2c, 0x3c3630, 0x59503f, 0x2e3138], hats: [0x7e3c20, 0x4a3421, 0x596250, 0x30343e] }, /* 2 ローマ */
+      { shirts: [0x3c5a78, 0x8e3324, 0x707a52, 0xc0a062, 0x4a4e57, 0x7a4a5e], pants: [0x2c3e50, 0x4a4038, 0x3a3f4a, 0x59503f], hats: [0xb22234, 0x2a2f45, 0xd8d3c8, 0x5a4632] }, /* 3 アメリカ */
+      { shirts: [0x2f3a52, 0x55504a, 0x6e5136, 0x473b52, 0x39524a, 0x71463a], pants: [0x22232b, 0x3a3630, 0x2e3138, 0x453f35], hats: [0x17181e, 0x3a2e24, 0x2a2c34, 0x51473c] }, /* 4 江戸城 */
+      { shirts: [0xe9e2cf, 0xd8ecff, 0xf2ede0, 0xd9cfa8, 0xcfd8e6, 0xe6dcc4], pants: [0xd8d3c8, 0xb9ac8e, 0xaebdd0, 0xcfc4a4], hats: [0xffcf56, 0xf2ede0, 0xc9a227, 0xd8ecff] }  /* 5 神域 */
+    ];
+    var TOWN_HINTS = [
+      "「この先の門の番人は、日本ツアー94勝の地の帝王だって。残影を浄化しないと、本気を出してくれないらしいよ。」",
+      "「パリのボスは、往年の名選手がそのたび入れ替わって現れるそうだ。誰が出るかは運命の糸次第……。」",
+      "「ローマの門番は南アフリカの鉄人。正確無比なショットで真っ向から崩すのが近道らしい。」",
+      "「アメリカではパーマーとニクラス、往年の二巨頭との2連戦が待っている。体力とボールの残りに注意だ。」",
+      "「江戸城の奥には絶対王者が待つ。……だが、その影に糸を引く者の気配がする、と宮司様が言っていたよ。」",
+      "「ここは天空の神域。運命の糸の終端で、すべての物語が収束する場所……。」"
+    ];
+
+    function townPickVillagerPal(rnd, areaPal) {
+      var hatTypes = ["cap", "straw", "flat", "hair", "cap", "hair"];
+      return {
+        shirt: areaPal.shirts[Math.floor(rnd() * areaPal.shirts.length)],
+        pants: areaPal.pants[Math.floor(rnd() * areaPal.pants.length)],
+        skin: TOWN_SKINS[Math.floor(rnd() * TOWN_SKINS.length)],
+        hair: TOWN_HAIRS[Math.floor(rnd() * TOWN_HAIRS.length)],
+        hat: areaPal.hats[Math.floor(rnd() * areaPal.hats.length)],
+        hatType: hatTypes[Math.floor(rnd() * hatTypes.length)],
+        scale: 0.93 + rnd() * 0.13 + (rnd() < 0.18 ? 0.07 : 0)
+      };
+    }
+
+    /* ---- 簡易モデルの部品生成（頂点カラーを焼き込み、行列を適用して返す） ---- */
+    function townPart(geo, hex, x, y, z, o) {
+      o = o || {};
+      var m = new THREE.Matrix4().compose(
+        new THREE.Vector3(x || 0, y || 0, z || 0),
+        new THREE.Quaternion().setFromEuler(new THREE.Euler(o.rx || 0, o.ry || 0, o.rz || 0)),
+        new THREE.Vector3(o.sx == null ? 1 : o.sx, o.sy == null ? 1 : o.sy, o.sz == null ? 1 : o.sz));
+      geo.applyMatrix4(m);
+      var c = new THREE.Color(hex);
+      if (o.shade) c.offsetHSL(0, 0, o.shade);
+      var n = geo.attributes.position.count;
+      var arr = new Float32Array(n * 3);
+      for (var i = 0; i < n; i++) { arr[i * 3] = c.r; arr[i * 3 + 1] = c.g; arr[i * 3 + 2] = c.b; }
+      geo.setAttribute("color", new THREE.BufferAttribute(arr, 3));
+      return geo;
+    }
+    function townMerge(parts) {
+      var pos = [], nor = [], col = [], idx = [], base = 0;
+      parts.forEach(function (g) {
+        var pa = g.attributes.position, na = g.attributes.normal, ca = g.attributes.color, ia = g.index;
+        for (var i = 0; i < pa.count; i++) { pos.push(pa.getX(i), pa.getY(i), pa.getZ(i)); nor.push(na.getX(i), na.getY(i), na.getZ(i)); col.push(ca.getX(i), ca.getY(i), ca.getZ(i)); }
+        if (ia) { for (var j = 0; j < ia.count; j++) idx.push(ia.getX(j) + base); }
+        base += pa.count;
+        g.dispose();
+      });
+      var out = new THREE.BufferGeometry();
+      out.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+      out.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
+      out.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+      out.setIndex(idx);
+      townGeos.push(out);
+      return out;
+    }
+    function townHeadParts(pal, headY) {
+      var parts = [];
+      parts.push(townPart(new THREE.CylinderGeometry(0.05, 0.055, 0.09, 8), pal.skin, 0, headY - 0.16, 0));
+      parts.push(townPart(new THREE.SphereGeometry(0.145, 14, 11), pal.skin, 0, headY, 0));
+      parts.push(townPart(new THREE.ConeGeometry(0.028, 0.07, 6), pal.skin, 0, headY - 0.015, 0.148, { rx: Math.PI / 2 - 0.15 }));
+      if (pal.hatType === "cap") {
+        parts.push(townPart(new THREE.SphereGeometry(0.152, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2), pal.hat, 0, headY + 0.017, -0.008));
+        parts.push(townPart(new THREE.BoxGeometry(0.21, 0.024, 0.15), pal.hat, 0, headY + 0.033, 0.168));
+      } else if (pal.hatType === "straw") {
+        parts.push(townPart(new THREE.CylinderGeometry(0.30, 0.30, 0.024, 16), pal.hat, 0, headY + 0.055, 0));
+        parts.push(townPart(new THREE.CylinderGeometry(0.148, 0.168, 0.115, 12), pal.hat, 0, headY + 0.12, 0));
+      } else if (pal.hatType === "flat") {
+        parts.push(townPart(new THREE.SphereGeometry(0.163, 14, 8), pal.hat, 0, headY + 0.055, 0.012, { sx: 1.06, sy: 0.38, sz: 1.18 }));
+      } else { /* hair */
+        parts.push(townPart(new THREE.SphereGeometry(0.151, 14, 9, 0, Math.PI * 2, 0, 1.95), pal.hair, 0, headY + 0.013, -0.014));
+      }
+      return parts;
+    }
+    function townUpperParts(pal, withLegs) {
+      var parts = [];
+      parts.push(townPart(new THREE.CylinderGeometry(0.150, 0.185, 0.56, 12), pal.shirt, 0, 1.38, 0));   /* 胴 */
+      parts.push(townPart(new THREE.CylinderGeometry(0.185, 0.168, 0.22, 12), pal.pants, 0, 1.03, 0));   /* 骨盤 */
+      [-1, 1].forEach(function (sd) {                                                                     /* 腕＋肩＋手 */
+        parts.push(townPart(new THREE.SphereGeometry(0.062, 9, 7), pal.shirt, sd * 0.185, 1.585, 0));
+        parts.push(townPart(new THREE.CylinderGeometry(0.042, 0.037, 0.58, 8), pal.shirt, sd * 0.228, 1.31, 0, { rz: -sd * 0.10 }));
+        parts.push(townPart(new THREE.SphereGeometry(0.048, 8, 6), pal.skin, sd * 0.258, 1.01, 0));
+      });
+      parts = parts.concat(townHeadParts(pal, 1.845));
+      if (withLegs) {
+        [-1, 1].forEach(function (sd) {
+          parts.push(townPart(new THREE.CylinderGeometry(0.060, 0.074, 0.85, 9), pal.pants, sd * 0.10, 0.495, 0));
+          parts.push(townPart(new THREE.BoxGeometry(0.115, 0.07, 0.25), 0x23242c, sd * 0.10, 0.035, 0.032));
+        });
+      }
+      return parts;
+    }
+    function townRobeParts(pal) {
+      var parts = [];
+      parts.push(townPart(new THREE.CylinderGeometry(0.175, 0.385, 1.32, 14), pal.shirt, 0, 0.66, 0));        /* ローブ裾 */
+      parts.push(townPart(new THREE.CylinderGeometry(0.150, 0.180, 0.52, 12), pal.shirt, 0, 1.42, 0, { shade: -0.035 })); /* 上身 */
+      parts.push(townPart(new THREE.CylinderGeometry(0.196, 0.205, 0.07, 14), pal.hat, 0, 1.17, 0));          /* 帯（金） */
+      [-1, 1].forEach(function (sd) {
+        parts.push(townPart(new THREE.SphereGeometry(0.062, 9, 7), pal.shirt, sd * 0.185, 1.60, 0, { shade: -0.035 }));
+        parts.push(townPart(new THREE.CylinderGeometry(0.042, 0.037, 0.58, 8), pal.shirt, sd * 0.228, 1.33, 0, { rz: -sd * 0.10, shade: -0.035 }));
+        parts.push(townPart(new THREE.SphereGeometry(0.048, 8, 6), pal.skin, sd * 0.258, 1.03, 0));
+      });
+      parts = parts.concat(townHeadParts({ skin: pal.skin, hair: pal.hair, hat: pal.hat, hatType: "hair" }, 1.86));
+      return parts;
+    }
+    function townLegMesh(pal, sd) {
+      var parts = [];
+      parts.push(townPart(new THREE.CylinderGeometry(0.060, 0.074, 0.85, 9), pal.pants, 0, -0.425, 0));
+      parts.push(townPart(new THREE.BoxGeometry(0.115, 0.07, 0.25), 0x23242c, 0, -0.885, 0.032));
+      var mesh = new THREE.Mesh(townMerge(parts), townMat());
+      mesh.position.set(sd * 0.10, 0.92, 0);
+      mesh.castShadow = true;
+      return mesh;
+    }
+    function buildVillagerFigure(pal, opts) {
+      opts = opts || {};
+      var grp = new THREE.Group();
+      var inner = new THREE.Group();
+      grp.add(inner);
+      var body = new THREE.Mesh(townMerge(opts.robe ? townRobeParts(pal) : townUpperParts(pal, !opts.walker)), townMat());
+      body.castShadow = true;
+      inner.add(body);
+      var legL = null, legR = null;
+      if (opts.walker) { legL = townLegMesh(pal, -1); legR = townLegMesh(pal, 1); inner.add(legL); inner.add(legR); }
+      return { grp: grp, inner: inner, body: body, legL: legL, legR: legR };
+    }
+    function makeTownLabel(text, colorHex) {
+      var cv = document.createElement("canvas"); cv.width = 512; cv.height = 128;
+      var cx2 = cv.getContext("2d");
+      cx2.fillStyle = "rgba(12,16,34,0.88)";
+      var bw = 472, bh = 74, bx = (512 - bw) / 2, by = (128 - bh) / 2;
+      cx2.beginPath();
+      if (cx2.roundRect) cx2.roundRect(bx, by, bw, bh, 20); else cx2.rect(bx, by, bw, bh);
+      cx2.fill();
+      cx2.lineWidth = 5; cx2.strokeStyle = colorHex; cx2.stroke();
+      cx2.font = "900 40px 'Noto Sans JP', sans-serif";
+      cx2.textAlign = "center"; cx2.textBaseline = "middle";
+      cx2.fillStyle = "#ffffff";
+      cx2.fillText(text, 256, 66);
+      var tex = new THREE.CanvasTexture(cv);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+      sp.scale.set(3.4, 0.85, 1);
+      sp.renderOrder = 20;
+      return sp;
+    }
+
+    function spawnTownVillager(kind, x, z, yaw, pal, extra) {
+      var fig = buildVillagerFigure(pal, extra || {});
+      fig.grp.position.set(x, terrainY(x, z), z);
+      fig.grp.rotation.y = yaw;
+      fig.grp.scale.setScalar(pal.scale || 1);
+      scene.add(fig.grp);
+      var rec = { kind: kind, grp: fig.grp, group: fig.grp, inner: fig.inner, legL: fig.legL, legR: fig.legR, x: x, z: z, yaw: yaw, seed: (townNpcs.length * 1.37) % 10, labelSprite: null };
+      townNpcs.push(rec);
+      return rec;
+    }
+
+    /* ---- 歩行（経路を往復。端で小休止、プレイヤーが近いと立ち止まる） ---- */
+    function townPathPoint(w, d) {
+      var dd = d % (w.total * 2); if (dd < 0) dd += w.total * 2;
+      var forward = dd <= w.total;
+      var rem = forward ? dd : (w.total * 2 - dd);
+      for (var i = 0; i < w.segs.length; i++) {
+        if (rem <= w.segs[i] || i === w.segs.length - 1) {
+          var a = w.path[i], b = w.path[i + 1], t = w.segs[i] ? Math.min(1, rem / w.segs[i]) : 0;
+          return { x: a[0] + (b[0] - a[0]) * t, z: a[1] + (b[1] - a[1]) * t, dx: (b[0] - a[0]) * (forward ? 1 : -1), dz: (b[1] - a[1]) * (forward ? 1 : -1) };
+        }
+        rem -= w.segs[i];
+      }
+      var last = w.path[w.path.length - 1];
+      return { x: last[0], z: last[1], dx: 0, dz: 1 };
+    }
+    function spawnTownWalker(path, speed, pal, dist0) {
+      var rec = spawnTownVillager("walker", path[0][0], path[0][1], 0, pal, { walker: true });
+      var segs = [], total = 0;
+      for (var i = 0; i < path.length - 1; i++) { var L = Math.hypot(path[i + 1][0] - path[i][0], path[i + 1][1] - path[i][1]); segs.push(L); total += L; }
+      var w = { rec: rec, path: path, segs: segs, total: total, dist: dist0 || 0, speed: speed, phase: (dist0 || 0) * 3.6, pauseT: 0, moving: false };
+      townWalkers.push(w);
+      townNpcWalkUpdate(w, 0, true);
+      return w;
+    }
+    function townNpcWalkUpdate(w, dt, snap) {
+      var rec = w.rec;
+      if (w.pauseT > 0) w.pauseT -= dt;
+      var pDist = Math.hypot(player.x - rec.grp.position.x, player.z - rec.grp.position.z);
+      var wantMove = !snap && w.pauseT <= 0 && pDist > 1.45;
+      w.moving = wantMove;
+      if (wantMove) {
+        var prevCycle = Math.floor(w.dist / w.total);
+        w.dist += w.speed * dt;
+        if (Math.floor(w.dist / w.total) !== prevCycle) w.pauseT = 1.2 + (rec.seed % 1) * 1.3;
+        w.phase += dt * w.speed * 3.6;
+      }
+      var pt = townPathPoint(w, w.dist);
+      rec.grp.position.set(pt.x, terrainY(pt.x, pt.z), pt.z);
+      rec.x = pt.x; rec.z = pt.z;
+      if (pt.dx || pt.dz) {
+        var diff = Math.atan2(pt.dx, pt.dz) - rec.grp.rotation.y;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        rec.grp.rotation.y += diff * Math.min(1, snap ? 1 : dt * 5);
+      }
+      var sw = wantMove ? Math.sin(w.phase) * 0.52 : 0;
+      var ease = Math.min(1, snap ? 1 : dt * 10);
+      if (rec.legL) { rec.legL.rotation.x += (sw - rec.legL.rotation.x) * ease; rec.legR.rotation.x += (-sw - rec.legR.rotation.x) * ease; }
+      if (rec.inner) rec.inner.position.y = wantMove ? Math.abs(Math.cos(w.phase)) * 0.045 : 0;
+    }
+
+    /* ---- 役割住人（案A: 主人公級GLB＋色差し替え） ---- */
+    var TOWN_ROLE_DEFS = [
+      { role: "receptionist", label: "🏠 クラブハウス受付", x: -8.3, z: 4.9, face: [0, 10], scaleMul: 0.99,
+        tint: { polo: 0x8fb8ad, cap: 0xf0ead8 }, tint5: { polo: 0xe9e2cf, cap: 0xffcf56 },
+        line: "「お疲れさまです、旅のゴルファー様。クラブハウスでは全回復・セーブ・新聞ヒントをご用意しております。お気軽にビーコンへどうぞ。」" },
+      { role: "shopkeeper", label: "🛍 プロショップ店員", x: 8.3, z: 4.9, face: [0, 10], scaleMul: 1.03,
+        tint: { polo: 0x74553a, cap: 0x2e2a26 }, tint5: { polo: 0xcfd8e6, cap: 0xf2ede0 },
+        line: "「いらっしゃいませ！ 全11枠のギアとボールを取り揃えております。お買い求めは隣のビーコンからどうぞ。いい一打になりますように！」" }
+    ];
+    function townOnSyncRoles() { townSyncSeen = true; refreshTownRoles(); }
+    function refreshTownRoles() {
+      if (townRolesSpawned || townDisposed) return;
+      townRolesSpawned = true;
+      var all = ["Watu", "Matuya", "TIiger", "Junbo", "McIlro", "DeCham"];
+      var pool = all.filter(function (c) { return c !== CHAR_ID && c !== (STATE.rivalId || null); });
+      if (pool.length < 2) pool = all.filter(function (c) { return c !== CHAR_ID; });
+      TOWN_ROLE_DEFS.forEach(function (def, i) {
+        spawnTownRole(def, pool[(AREA_IDX + i * 2) % pool.length]);
+      });
+    }
+    function spawnTownRole(def, charId) {
+      var tint = (AREA_IDX === 5 && def.tint5) ? def.tint5 : def.tint;
+      var rec = { kind: "role", role: def.role, charId: charId, def: def, group: null, grp: null, mixer: null, idleAction: null, ready: false, failed: false, label: null, headY: 2.6, yaw: townYawTo(def.x, def.z, def.face[0], def.face[1]), x: def.x, z: def.z, seed: 0 };
+      var grp = new THREE.Group();
+      grp.position.set(def.x, terrainY(def.x, def.z), def.z);
+      grp.rotation.y = rec.yaw;
+      scene.add(grp);
+      rec.group = grp; rec.grp = grp;
+      townRoles.push(rec); townNpcs.push(rec);
+      var key = RIVAL_CHAR_KEY[charId];
+      if (!key) { rec.failed = true; return; }
+      initRivalLoader(function (loader) {
+        if (!loader) { rec.failed = true; townLog("role loader unavailable:", def.role); return; }
+        loader.loadAsync("assets/chars/" + key + ".glb?v=N4").then(function (gltf) {
+          if (townDisposed) { gltf.scene.traverse(function (o) { if (o.geometry) { try { o.geometry.dispose(); } catch (e) {} } }); return; }
+          var model = gltf.scene;
+          /* N2/N3 で実証済みの透け対処＋別人化の色差し替え（ポロとキャップは無地マテリアルのため色替えがそのまま効く） */
+          model.traverse(function (o) {
+            if (o.isMesh) {
+              o.castShadow = true; o.receiveShadow = false;
+              var mats = Array.isArray(o.material) ? o.material : [o.material];
+              mats.forEach(function (m) {
+                m.transparent = false; m.depthWrite = true; m.alphaTest = 0.35;
+                if (m.name === "PoloRed") m.color.setHex(tint.polo);
+                else if (m.name === "CapMat") m.color.setHex(tint.cap);
+                m.needsUpdate = true;
+              });
+            }
+          });
+          /* 身長キャリブレーション（ライバルと同一方式）＋役割ごとの微差 */
+          var mb = new THREE.Box3().setFromObject(model);
+          var modelH = Math.max(0.01, mb.max.y - mb.min.y);
+          var pb = new THREE.Box3().setFromObject(playerMesh);
+          var playerH = Math.max(0.01, pb.max.y - pb.min.y);
+          var ratio = (RIVAL_WORLD_SCALE[charId] || 1.05) / (RIVAL_WORLD_SCALE[CHAR_ID] || 1.05);
+          grp.scale.setScalar((playerH * ratio) / modelH * (def.scaleMul || 1));
+          rec.headY = modelH;
+          grp.add(model);
+          rec.mixer = new THREE.AnimationMixer(model);
+          gltf.animations.forEach(function (a) { if (a.name === "idle") rec.idleAction = rec.mixer.clipAction(a); });
+          if (rec.idleAction) { rec.idleAction.setLoop(THREE.LoopRepeat, Infinity); rec.idleAction.play(); }
+          var sp = makeTownLabel(def.label, def.role === "receptionist" ? "#ffd875" : "#44e587");
+          sp.position.y = rec.headY + 0.55;
+          grp.add(sp);
+          rec.label = sp;
+          rec.ready = true;
+          townLog("role ready:", def.role, charId);
+        }).catch(function (e) { rec.failed = true; townLog("role load FAILED:", def.role, charId, e && e.message); });
+      });
+      var lm = { x: def.x, z: def.z, r: 2.1, label: "💬 " + def.label + "と話す", color: 0xffe9a8, isNpcTalk: true, action: { type: "npcTalk", title: def.label, line: def.line } };
+      LANDMARKS.push(lm); townLandmarks.push(lm);
+    }
+
+    /* ---- 配置（全エリア共通レイアウト＋エリア別パレット） ---- */
+    function spawnTownNpcs() {
+      var rnd = townSeeded(9000 + AREA_IDX * 131);
+      var pal = TOWN_PALETTES[AREA_IDX] || TOWN_PALETTES[0];
+      function nextPal() { return townPickVillagerPal(rnd, pal); }
+      /* 19番ホールの客（神域は1人） */
+      var guestDefs = (AREA_IDX === 5) ? [{ x: -3.5, z: 11.4, face: [0, 14] }] : [{ x: -3.5, z: 11.4, face: [0, 14] }, { x: 3.7, z: 12.0, face: [0, 14] }];
+      guestDefs.forEach(function (g) { spawnTownVillager("guest", g.x, g.z, townYawTo(g.x, g.z, g.face[0], g.face[1]), nextPal(), {}); });
+      /* 運命の三女神モイライ（ローブ姿・別格の佇まい） */
+      var moiraiRecs = [];
+      [[-2.0, 18.8], [0, 19.8], [2.0, 18.8]].forEach(function (p) {
+        var mp = { shirt: 0xf2ede0, pants: 0xf2ede0, skin: TOWN_SKINS[Math.floor(rnd() * 3)], hair: 0xd8d3c8, hat: 0xc9a227, hatType: "hair", scale: 1.0 + rnd() * 0.05 };
+        moiraiRecs.push(spawnTownVillager("moirai", p[0], p[1], townYawTo(p[0], p[1], 0, 10), mp, { robe: true }));
+      });
+      var msp = makeTownLabel("✦ 運命の三女神 モイライ", "#b589ff");
+      msp.position.y = 2.52;
+      moiraiRecs[1].grp.add(msp);
+      moiraiRecs[1].labelSprite = msp;
+      var mlm = { x: 0, z: 18.4, r: 2.4, label: "💬 モイライに話しかける", color: 0xb589ff, isNpcTalk: true, action: { type: "npcTalk", title: "✦ 運命の三女神モイライ", line: "「糸はすでに織り上げられた。あとは汝の手で、断つか結び直すか――19番ホールで待っておるぞ。」" } };
+      LANDMARKS.push(mlm); townLandmarks.push(mlm);
+      /* 立ち話ペア（広場の西） */
+      [{ x: -8.6, z: 16.4, face: [-9.7, 15.5] }, { x: -9.7, z: 15.5, face: [-8.6, 16.4] }].forEach(function (g) {
+        spawnTownVillager("pair", g.x, g.z, townYawTo(g.x, g.z, g.face[0], g.face[1]), nextPal(), {});
+      });
+      var plm = { x: -9.15, z: 15.95, r: 2.2, label: "💬 住人の噂話を聞く", color: 0xffe9a8, isNpcTalk: true, action: { type: "npcTalk", title: "💬 町の住人", line: TOWN_HINTS[AREA_IDX] || TOWN_HINTS[0] } };
+      LANDMARKS.push(plm); townLandmarks.push(plm);
+      /* 通行人（参道の往復／横丁の往復） */
+      spawnTownWalker([[1.9, 30], [2.8, 14], [0.4, -6], [2.0, -26], [0.6, -40]], 1.85, nextPal(), AREA_IDX * 11 + 5);
+      spawnTownWalker([[-27, 11.8], [-13, 12.0], [5, 11.2], [19, 10.8], [28, 11.4]], 1.55, nextPal(), AREA_IDX * 17 + 40);
+      townLog("townspeople spawned (villagers):", townNpcs.length);
+    }
+
+    function updateTownNpcs(dt, elapsed) {
+      if (townDisposed) return;
+      townRoles.forEach(function (rec) {
+        if (rec.mixer && rec.ready) rec.mixer.update(dt);
+        if (!rec.grp) return;
+        var dx = player.x - rec.def.x, dz = player.z - rec.def.z;
+        var dist = Math.hypot(dx, dz);
+        var targetYaw = (dist < 9) ? Math.atan2(dx, dz) : rec.yaw;
+        var diff = targetYaw - rec.grp.rotation.y;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        rec.grp.rotation.y += diff * Math.min(1, dt * 3.0);
+        if (rec.label) rec.label.visible = dist < 26;
+      });
+      townWalkers.forEach(function (w) { townNpcWalkUpdate(w, dt, false); });
+      for (var i = 0; i < townNpcs.length; i++) {
+        var r = townNpcs[i];
+        if (r.kind === "role" || r.kind === "walker") continue;
+        if (r.inner) r.inner.rotation.z = Math.sin(elapsed * 0.85 + r.seed) * 0.011; /* 立ちNPCの微かな揺れ */
+        if (r.labelSprite) r.labelSprite.visible = Math.hypot(player.x - r.x, player.z - r.z) < 26;
+      }
+    }
+
+    function disposeTownNpcs() {
+      if (townDisposed) return;
+      townDisposed = true;
+      townNpcs.forEach(function (rec) {
+        var g = rec.grp || rec.group;
+        if (!g) return;
+        if (rec.mixer) { try { rec.mixer.stopAllAction(); } catch (e) {} }
+        scene.remove(g);
+        g.traverse(function (o) {
+          if (o.geometry && townGeos.indexOf(o.geometry) < 0) { try { o.geometry.dispose(); } catch (e) {} }
+          if (o.material) {
+            var ms = Array.isArray(o.material) ? o.material : [o.material];
+            ms.forEach(function (m) {
+              if (m === townVillagerMat) return;
+              for (var k in m) { var v = m[k]; if (v && v.isTexture) { try { v.dispose(); } catch (e) {} } }
+              try { m.dispose(); } catch (e) {}
+            });
+          }
+        });
+      });
+      townGeos.forEach(function (g) { try { g.dispose(); } catch (e) {} });
+      townGeos = [];
+      townLandmarks.forEach(function (lm) { var i = LANDMARKS.indexOf(lm); if (i >= 0) LANDMARKS.splice(i, 1); });
+      townLandmarks = []; townNpcs = []; townRoles = []; townWalkers = [];
+      if (townVillagerMat) { try { townVillagerMat.dispose(); } catch (e) {} townVillagerMat = null; }
+      townLog("townspeople disposed");
+    }
+    window.addEventListener("pagehide", function () { try { disposeTownNpcs(); } catch (e) {} });
+
+    /* 検証・診断用ハンドル（N3 の __GOATN3 と同型） */
+    window.__GOATN4 = {
+      get count() { return townNpcs.length; },
+      get villagers() { return townNpcs.filter(function (r) { return r.kind !== "role"; }).length; },
+      get roles() { return townRoles.map(function (r) { return { role: r.role, charId: r.charId, ready: r.ready, failed: r.failed }; }); },
+      get rolesReady() { return townRoles.length === 2 && townRoles.every(function (r) { return r.ready; }); },
+      get walkers() { return townWalkers.map(function (w) { return { x: +w.rec.grp.position.x.toFixed(2), z: +w.rec.grp.position.z.toFixed(2), moving: w.moving }; }); },
+      get talkLandmarks() { return townLandmarks.length; },
+      get disposed() { return townDisposed; },
+      disposeAll: function () { disposeTownNpcs(); }
+    };
+
+    spawnTownNpcs();
+    /* スタンドアロン時のフォールバック: 親の同期（ライバル確定）が来ていれば何もしない。
+       同期が来ない直接起動では約12秒後に主人公だけを除外して生やす（重い環境で同期が遅れても、
+       ライバルと同顔の役割住人が生える競合を避けるため段階的に待つ）。 */
+    (function townRoleFallback(tries) {
+      setTimeout(function () {
+        if (townRolesSpawned || townDisposed) return;
+        if (townSyncSeen || tries >= 4) { refreshTownRoles(); return; }
+        townRoleFallback(tries + 1);
+      }, 2500);
+    })(0);
 
     /* スタンドアロン直接起動時も即動作するよう初期スポーンを実行し、親へ挨拶送信 */
     spawnAreaMobs(null, []);
