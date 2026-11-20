@@ -617,9 +617,17 @@
         <div class="p-3 bg-[#202226] border-b border-[#2e3138] flex items-center justify-between">
           <div>
             <div class="text-xs font-extrabold text-white tracking-wide">CURRENT PLAYER</div>
-            <div class="text-[11px] text-gray-300">ドライバー | 2026/11/13 Session</div>
+            <div id="history-session-label" class="text-[11px] text-gray-300">ドライバー | 2026/11/13 Session</div>
           </div>
           <div id="history-total-count" class="text-sm font-num font-bold text-white">5</div>
+        </div>
+
+        <div id="history-session-summary" class="px-3 py-2 bg-[#1a1c20] border-b border-[#2e3138] hidden">
+          <div class="flex items-center justify-between text-[11px] text-gray-300">
+            <span>平均キャリー <strong id="sum-avg-carry" class="text-white font-num text-[13px]">—</strong> yds</span>
+            <span>ベスト <strong id="sum-best-carry" class="text-white font-num text-[13px]">—</strong> yds</span>
+            <span>平均ブレ <strong id="sum-avg-offline" class="text-white font-num text-[13px]">—</strong> yds</span>
+          </div>
         </div>
 
         <div class="px-3 py-2 bg-[#18191c] border-b border-[#2e3138] flex items-center justify-between text-xs text-gray-200">
@@ -2091,6 +2099,33 @@
       return sprite;
     }
 
+    // Carry-point sign: compact two-line tag ("キャリー" + yardage) for the carry landing spot.
+    function createCarrySignSprite(carryYards) {
+      const c = document.createElement('canvas');
+      c.width = 160;
+      c.height = 88;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = 'rgba(18, 22, 28, 0.85)';
+      ctx.beginPath();
+      ctx.roundRect(10, 8, 140, 72, 10);
+      ctx.fill();
+      ctx.strokeStyle = '#7dd3fc';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.fillStyle = '#bae6fd';
+      ctx.font = '700 17px "Noto Sans JP", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('キャリー', 80, 26);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 28px "Inter", sans-serif';
+      ctx.fillText(`${Math.round(carryYards)}y`, 80, 58);
+      const tex = new THREE.CanvasTexture(c);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+      sprite.scale.set(10, 5.5, 1);
+      return sprite;
+    }
+
     function build3DRangeEnvironment() {
       const turfGeo = new THREE.PlaneGeometry(520, 560);
       const turfMat = new THREE.MeshStandardMaterial({
@@ -2285,6 +2320,23 @@
           const landSign = createYardageSignSprite(`${Math.round(item.shot.totalYards)}y`);
           landSign.position.set(landX, 5.0, landZ);
           trajectory3DGroup.add(landSign);
+
+          // Carry marker (current shot only): white/blue ring + carry sign at the carry point
+          const carryPt = item.shot.trajectory.find(pt => pt.phase === 'carry');
+          if (carryPt) {
+            const carryX = toSceneX(carryPt.x);
+            const carryZ = carryPt.z;
+            const carryRing = new THREE.Mesh(
+              new THREE.RingGeometry(1.6, 2.2, 48),
+              new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.9, side: THREE.DoubleSide })
+            );
+            carryRing.rotation.x = -Math.PI / 2;
+            carryRing.position.set(carryX, 0.06, carryZ);
+            trajectory3DGroup.add(carryRing);
+            const carrySign = createCarrySignSprite(item.shot.carryYards);
+            carrySign.position.set(carryX, 4.2, carryZ);
+            trajectory3DGroup.add(carrySign);
+          }
         }
 
         if (item.animate && tubeGeo.index) {
@@ -2518,6 +2570,12 @@
       state.currentShot = shot;
 
       document.querySelectorAll('.panel-club-title').forEach(el => { el.textContent = shot.clubName; });
+      const sessLbl = document.getElementById('history-session-label');
+      if (sessLbl) {
+        const _d = new Date();
+        const _ds = `${_d.getFullYear()}/${String(_d.getMonth() + 1).padStart(2, '0')}/${String(_d.getDate()).padStart(2, '0')}`;
+        sessLbl.textContent = `${shot.clubName} | ${_ds} Session`;
+      }
       const spec = CLUBS[state.club];
       document.getElementById('club-spec-info').textContent = `${state.club} ロフト ${spec.loft}° / 重心深 ${spec.cgMm}mm`;
 
@@ -2833,6 +2891,23 @@
 
       document.getElementById('shot-count-badge').textContent = state.shotHistory.length;
       document.getElementById('history-total-count').textContent = state.shotHistory.length;
+
+      // Session summary: average / best carry and average offline (computed, no storage change)
+      const sumEl = document.getElementById('history-session-summary');
+      if (sumEl) {
+        if (state.shotHistory.length === 0) {
+          sumEl.classList.add('hidden');
+        } else {
+          const carries = state.shotHistory.map(h => h.shot.carryYards);
+          const avgCarry = carries.reduce((a, b) => a + b, 0) / carries.length;
+          const bestCarry = Math.max(...carries);
+          const avgOff = state.shotHistory.reduce((a, h) => a + Math.abs(h.shot.carrySideYards || 0), 0) / state.shotHistory.length;
+          document.getElementById('sum-avg-carry').textContent = avgCarry.toFixed(1);
+          document.getElementById('sum-best-carry').textContent = bestCarry.toFixed(1);
+          document.getElementById('sum-avg-offline').textContent = avgOff.toFixed(1);
+          sumEl.classList.remove('hidden');
+        }
+      }
 
       state.shotHistory.forEach((item) => {
         const s = item.shot;
@@ -3233,6 +3308,8 @@
     });
 
     document.getElementById('btn-clear-history').addEventListener('click', () => {
+      if (state.shotHistory.length === 0) return;
+      if (!window.confirm(`保存されたショット履歴 ${state.shotHistory.length}件をすべて削除しますか？この操作は取り消せません。`)) return;
       state.shotHistory = [];
       saveShotHistory();
       renderShotHistorySidebar();
