@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.6.0)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.6.1)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -316,7 +316,7 @@
     /* パートナー選択（横スナップスクロール） */
     .partners-section { background: transparent; }
     /* v3.6.0 ログイン画面 */
-    .login-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: var(--bg); padding: 20px; }
+    .login-overlay { position: fixed; inset: 0; z-index: 1500; display: flex; align-items: center; justify-content: center; background: var(--bg); padding: 20px; }
     .login-overlay[hidden] { display: none; }
     .login-card { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 30px 24px 26px; box-shadow: 0 12px 40px rgba(30,28,26,.10); text-align: center; }
     .login-card .brand-mark { margin: 0 auto 10px; }
@@ -576,8 +576,6 @@
       <h1 class="login-title">AIボイス</h1>
       <p class="login-sub">ログインして会話をはじめましょう</p>
       <form id="login-form">
-        <label class="login-label" for="login-id">ID</label>
-        <input id="login-id" class="form-ctrl" type="text" autocomplete="username" required>
         <label class="login-label" for="login-pw">パスワード</label>
         <input id="login-pw" class="form-ctrl" type="password" autocomplete="current-password" required>
         <p id="login-error" class="login-error" role="alert" hidden></p>
@@ -790,7 +788,7 @@
       <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい、同じ並びで使えるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.6.0 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.6.1 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -2834,7 +2832,6 @@
     if (loginForm) {
       loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const idEl = document.getElementById('login-id');
         const pwEl = document.getElementById('login-pw');
         const btn = document.getElementById('btn-login');
         if (btn) btn.disabled = true;
@@ -2842,7 +2839,7 @@
           const res = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: idEl ? idEl.value : '', password: pwEl ? pwEl.value : '' })
+            body: JSON.stringify({ password: pwEl ? pwEl.value : '' })
           });
           const data = await res.json().catch(() => ({}));
           if (res.ok && data.success) {
@@ -2870,7 +2867,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.6.0 を起動しました', 'info');
+      logMessage('AIボイス v3.6.1 を起動しました', 'info');
       checkAuth();
       startSpectrumVisualizer();
       updateEmotionMeters('joy');

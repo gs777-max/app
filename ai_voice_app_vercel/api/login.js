@@ -3,11 +3,11 @@
  *
  * エンドポイント: /api/login
  * - GET    : ログイン状態を返す { success: true, authenticated: boolean }
- * - POST   : { id, password } を検証し、成功時にセッションCookieを発行
+ * - POST   : { password } を検証し、成功時にセッションCookieを発行
  * - DELETE : ログアウト（Cookieを消去）
  *
- * ID / パスワードの平文はコードに書かない。環境変数 LOGIN_ID_HASH /
- * LOGIN_PASSWORD_HASH（SHA-256ハッシュ）と比較する（_auth.js 参照）。
+ * パスワードの平文はコードに書かない。環境変数 LOGIN_PASSWORD_HASH
+ * （SHA-256ハッシュ）と比較する（_auth.js 参照）。
  */
 
 const auth = require('./_auth');
@@ -51,7 +51,7 @@ async function handler(req, res) {
     res.status(503).json({
       success: false,
       code: 'AUTH_NOT_CONFIGURED',
-      error: 'ログイン設定が未完了です（Vercel環境変数 LOGIN_ID_HASH / LOGIN_PASSWORD_HASH を設定してください）。'
+      error: 'ログイン設定が未完了です（Vercel環境変数 LOGIN_PASSWORD_HASH を設定してください）。'
     });
     return;
   }
@@ -73,10 +73,9 @@ async function handler(req, res) {
   }
 
   const body = parseBody(req);
-  const id = typeof body.id === 'string' ? body.id : '';
   const password = typeof body.password === 'string' ? body.password : '';
-  if (!id || !password || !auth.checkCredentials(id, password)) {
-    res.status(401).json({ success: false, error: 'IDまたはパスワードが違います。' });
+  if (!password || !auth.checkCredentials(password)) {
+    res.status(401).json({ success: false, error: 'パスワードが違います。' });
     return;
   }
 
