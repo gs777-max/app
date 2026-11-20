@@ -31,6 +31,8 @@
  * アカウント・利用制限は次フェーズで必須。
  */
 
+const auth = require('./_auth');
+
 function isAllowedOrigin(origin) {
   if (!origin) return false;
   if (origin === 'https://app-aivoiceappvercel.vercel.app') return true;
@@ -72,6 +74,12 @@ async function handler(req, res) {
   // トークン発行口を外部サイトから使わせない（同一オリジンのブラウザ fetch は Origin を送る）。
   if (!allowed) {
     res.status(403).json({ success: false, error: 'このオリジンからはトークンを発行できません。' });
+    return;
+  }
+
+  // v3.6.0: ログイン必須（セッションCookieがないと発行しない）。
+  if (!auth.isAuthenticated(req)) {
+    res.status(401).json({ success: false, code: 'AUTH_REQUIRED', error: 'ログインが必要です。' });
     return;
   }
 

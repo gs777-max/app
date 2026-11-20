@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.5.0)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.6.0)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -315,6 +315,16 @@
 
     /* パートナー選択（横スナップスクロール） */
     .partners-section { background: transparent; }
+    /* v3.6.0 ログイン画面 */
+    .login-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: var(--bg); padding: 20px; }
+    .login-overlay[hidden] { display: none; }
+    .login-card { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 30px 24px 26px; box-shadow: 0 12px 40px rgba(30,28,26,.10); text-align: center; }
+    .login-card .brand-mark { margin: 0 auto 10px; }
+    .login-title { font-size: 1.6rem; font-weight: 900; margin: 0; }
+    .login-sub { color: var(--muted); font-size: .95rem; margin: 6px 0 18px; }
+    .login-label { display: block; text-align: left; font-weight: 700; font-size: .9rem; margin: 12px 0 6px; }
+    .login-error { color: #b3261e; font-size: .9rem; margin: 12px 0 0; text-align: left; }
+    .login-btn { width: 100%; height: 56px; min-height: 56px; margin-top: 18px; font-size: 1.05rem; }
     .partner-group { margin-top: 18px; }
     .partner-group:first-of-type { margin-top: 6px; }
     .partner-group-title { font-size: 1.05rem; font-weight: 900; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
@@ -559,6 +569,23 @@
 </head>
 <body>
 
+  <!-- v3.6.0 ログイン画面（API利用のためログイン必須） -->
+  <div id="login-overlay" class="login-overlay" role="dialog" aria-modal="true" aria-label="ログイン">
+    <div class="login-card">
+      <div class="brand-mark" aria-hidden="true">話</div>
+      <h1 class="login-title">AIボイス</h1>
+      <p class="login-sub">ログインして会話をはじめましょう</p>
+      <form id="login-form">
+        <label class="login-label" for="login-id">ID</label>
+        <input id="login-id" class="form-ctrl" type="text" autocomplete="username" required>
+        <label class="login-label" for="login-pw">パスワード</label>
+        <input id="login-pw" class="form-ctrl" type="password" autocomplete="current-password" required>
+        <p id="login-error" class="login-error" role="alert" hidden></p>
+        <button id="btn-login" type="submit" class="btn-primary login-btn">ログイン</button>
+      </form>
+    </div>
+  </div>
+
   <header>
     <div class="brand">
       <div class="brand-mark" aria-hidden="true">話</div>
@@ -763,7 +790,7 @@
       <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい、同じ並びで使えるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.5.0 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.6.0 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -989,7 +1016,8 @@
           <p class="setting-note">キーはこの端末にだけ保存されます。共有しないでください。</p>
         </div>
       </details>
-      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;">
+      <div style="display: flex; justify-content: space-between; gap: 8px; margin-top: 6px;">
+        <button id="btn-logout" class="btn-ghost" style="height: 56px; min-height: 56px; padding: 0 18px;">ログアウト</button>
         <button id="btn-save-cfg" class="btn-primary" style="width: auto; height: 56px; min-height: 56px; padding: 0 22px; font-size: 1rem;">保存して閉じる</button>
       </div>
     </div>
@@ -1050,6 +1078,12 @@
       isPaused: false,
       isMuted: false,
       isAiSpeaking: false,
+      // v3.6.0: AIターンの継続状態。再生キューの瞬間的な空きでマイクゲートが
+      // 開閉すると回り込み→割り込み→途切れの悪循環になるため、ターン完了＋
+      // キュー排出まで「AI発話中」として扱う。
+      aiTurnActive: false,
+      _aiTurnEndTimer: null,
+      _turnCompleteSeen: false,
       
       txChunks: 0,
       rxChunks: 0,
@@ -1334,6 +1368,10 @@
           signal: controller.signal
         });
         const data = await res.json().catch(() => ({}));
+        if (res.status === 401) {
+          showLogin();
+          throw new Error('ログインが必要です。ログインしてください。');
+        }
         if (!res.ok || !data.success || !data.token) {
           throw new Error(data && data.error ? data.error : `HTTP ${res.status}`);
         }
@@ -1697,7 +1735,7 @@
         // AI発話中はスピーカーからの回り込み音を考慮してしきい値を引き上げる。
         // v3.4.4: 1.5倍ではスマホのスピーカー回り込み（AI自身の声）が割り込みを誤発動させ、
         // 会話が途切れ途切れになっていたため2.2倍に強化。
-        if (appState.isAiSpeaking) {
+        if (appState.aiTurnActive) {
           threshold *= 2.2;
         }
 
@@ -1716,7 +1754,7 @@
             // AIが話している最中の割り込み (Barge-in): 人間が確実に声を出した時のみ発動！
             // v3.4.4: 2フレーム(50ms)ではAI自身の声の回り込みで誤発動するため、
             // 6フレーム(150ms)継続を必須にした。確定後はマイク送信ゲートも開く。
-            if (appState.isAiSpeaking && voiceSustainedFrames >= 6) {
+            if (appState.aiTurnActive && voiceSustainedFrames >= 6) {
               appState._bargeInConfirmed = true;
               logMessage(`⚡ 人間の発話を検知して割り込み (RMS: ${amplifiedRms.toFixed(3)}, 閾値: ${threshold.toFixed(3)})`, 'warn');
               interruptAudio();
@@ -1762,7 +1800,7 @@
           // スピーカーから回り込んだAI自身の声がサーバー側VADに「割り込み」と誤判定され、
           // 生成が途中で止まって途切れ途切れになるのを防ぐ（ローカルVAD判定は継続する）。
           if (appState.isSessionReady && appState.ws && appState.ws.readyState === WebSocket.OPEN &&
-              (!appState.isAiSpeaking || appState._bargeInConfirmed)) {
+              (!appState.aiTurnActive || appState._bargeInConfirmed)) {
             const pcm16 = resampleAndGain(chunkToProcess, inSampleRate, 16000, appState.micGain);
             const base64Audio = int16ArrayToBase64(pcm16);
 
@@ -2017,8 +2055,14 @@
       }
 
       if (data.serverContent && data.serverContent.interrupted) {
-        logMessage('⚡ サーバーから割り込み (Interrupted) 通知を受信', 'warn');
-        interruptAudio();
+        // v3.6.0: ユーザーが実際に話していないときの割り込み通知は、スピーカー
+        // 回り込みの誤判定として無視し、受信済み音声を最後まで再生する（語尾が切れない）。
+        if (appState._bargeInConfirmed || appState.isUserSpeaking) {
+          logMessage('⚡ サーバーから割り込み (Interrupted) 通知を受信', 'warn');
+          interruptAudio();
+        } else {
+          logMessage('⚡ サーバー割り込み通知を無視（ユーザー発話未検出・回り込み誤判定の可能性）', 'warn');
+        }
         return;
       }
 
@@ -2037,6 +2081,7 @@
       }
 
       if (data.serverContent && data.serverContent.turnComplete) {
+        appState._turnCompleteSeen = true;
         finalizeAiText();
         // v3.4.4: ターン完了で割り込み後のAI音声抑制を確実に解除する。
         appState.suppressAiAudio = false;
@@ -2065,9 +2110,15 @@
         logMessage(`⏱ 遅延実測: 発話終了→AI初回音声 ${ms}ms`, 'info');
       }
 
+      // v3.6.0: AIターンの継続を記録（マイクゲートと割り込み判定の基準）。
+      appState.aiTurnActive = true;
+      appState._turnCompleteSeen = false;
+      if (appState._aiTurnEndTimer) { clearTimeout(appState._aiTurnEndTimer); appState._aiTurnEndTimer = null; }
+
       // v2.9 再生キュー上限：溜まりすぎた音声チャンクは破棄して最新に追従する
       // v3.4.4: 生成は実時間より速いため1.5秒上限では文の途中でチャンクが欠落し途切れていた。4秒に緩和。
-      if (appState.nextStartTime - appState.audioCtx.currentTime > 4.0) {
+      // v3.6.0: 破棄は文の途中の欠落（途切れ）の直接原因になるため、実質無効化（60秒）。
+      if (appState.nextStartTime - appState.audioCtx.currentTime > 60.0) {
         appState.droppedChunks++;
         if (appState.droppedChunks % 10 === 1) logMessage(`⏱ 再生キュー過多のため音声チャンクを破棄（累計 ${appState.droppedChunks}件）`, 'warn');
         return;
@@ -2108,7 +2159,12 @@
       appState.analyserNode.connect(appState.audioCtx.destination);
 
       const now = appState.audioCtx.currentTime;
-      const scheduledStart = Math.max(appState.nextStartTime, now);
+      let scheduledStart = Math.max(appState.nextStartTime, now);
+      // v3.6.0: ターン開始時（または再生が追いついてしまった時）は180msの
+      // ジッタバッファを置き、チャンク到着のばらつきで音が途切れないようにする。
+      if (appState.scheduledSources.length === 0 && appState.nextStartTime <= now) {
+        scheduledStart = now + 0.18;
+      }
       source.start(scheduledStart);
       const dur = audioBuf.duration / appState.playbackSpeed;
       appState.nextStartTime = scheduledStart + dur;
@@ -2128,12 +2184,27 @@
         const i = appState.scheduledSources.indexOf(source);
         if (i !== -1) appState.scheduledSources.splice(i, 1);
         if (appState.scheduledSources.length === 0) {
-          appState.isAiSpeaking = false;
-          // v3.4.4: AI発話が終わったら割り込み確定フラグを解除（次ターンのゲート初期化）。
-          appState._bargeInConfirmed = false;
-          if (appState.isConnected) {
-            setTelemetryStatus('ready', '話せます');
-          }
+          // v3.6.0: キューが一瞬空いただけで「AI発話終了」にしない。
+          // 次のチャンクが来ればタイマーは取り消される。ターン完了が届いて
+          // いない間は最大5秒までゲートを閉じたまま待ち、回り込みを防ぐ。
+          if (appState._aiTurnEndTimer) clearTimeout(appState._aiTurnEndTimer);
+          const idleSince = performance.now();
+          const checkEnd = () => {
+            appState._aiTurnEndTimer = null;
+            if (appState.scheduledSources.length !== 0) return;
+            if (!appState._turnCompleteSeen && performance.now() - idleSince < 5000) {
+              appState._aiTurnEndTimer = setTimeout(checkEnd, 1000);
+              return;
+            }
+            appState.isAiSpeaking = false;
+            appState.aiTurnActive = false;
+            // v3.4.4: AI発話が終わったら割り込み確定フラグを解除（次ターンのゲート初期化）。
+            appState._bargeInConfirmed = false;
+            if (appState.isConnected) {
+              setTelemetryStatus('ready', '話せます');
+            }
+          };
+          appState._aiTurnEndTimer = setTimeout(checkEnd, 500);
         }
       };
     }
@@ -2148,6 +2219,10 @@
         appState.nextStartTime = appState.audioCtx.currentTime;
       }
       appState.isAiSpeaking = false;
+      // v3.6.0: ターン状態も終了させる。
+      appState.aiTurnActive = false;
+      appState._turnCompleteSeen = false;
+      if (appState._aiTurnEndTimer) { clearTimeout(appState._aiTurnEndTimer); appState._aiTurnEndTimer = null; }
       // v3.1: バージイン中はAIの新規音声を再生キューに入れない（解除はターン確定時）。
       // v3.4.4: 抑制は800msの時間制限付き。サーバー割り込み（回り込み誤判定含む）で
       // 解除条件を満たさずAIが無期限に無音化するのを防ぐ。
@@ -2725,8 +2800,78 @@
       popToast('設定を保存しました (ノイズ耐性 & 高速化適用)', 'success');
     });
 
+    // ===== v3.6.0 ログイン =====
+    function showLogin(message) {
+      const ov = document.getElementById('login-overlay');
+      if (ov) ov.hidden = false;
+      const err = document.getElementById('login-error');
+      if (err) {
+        if (message) { err.textContent = message; err.hidden = false; }
+        else { err.hidden = true; }
+      }
+    }
+    function hideLogin() {
+      const ov = document.getElementById('login-overlay');
+      if (ov) ov.hidden = true;
+    }
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/login', { method: 'GET' });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.authenticated) { hideLogin(); return true; }
+        if (data && data.code === 'AUTH_NOT_CONFIGURED') {
+          showLogin('ログイン設定が未完了です。管理者が環境変数を設定してください。');
+        } else {
+          showLogin();
+        }
+        return false;
+      } catch (e) {
+        showLogin();
+        return false;
+      }
+    }
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const idEl = document.getElementById('login-id');
+        const pwEl = document.getElementById('login-pw');
+        const btn = document.getElementById('btn-login');
+        if (btn) btn.disabled = true;
+        try {
+          const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: idEl ? idEl.value : '', password: pwEl ? pwEl.value : '' })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.success) {
+            if (pwEl) pwEl.value = '';
+            hideLogin();
+            popToast('ログインしました');
+          } else {
+            showLogin(data && data.error ? data.error : 'ログインに失敗しました。');
+          }
+        } catch (err) {
+          showLogin('ログインに失敗しました。通信を確認してください。');
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      });
+    }
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', async () => {
+        try { await fetch('/api/login', { method: 'DELETE' }); } catch (e) {}
+        if (appState.isConnected && typeof disconnectSession === 'function') disconnectSession();
+        showLogin();
+        popToast('ログアウトしました');
+      });
+    }
+
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.4.4 を起動しました', 'info');
+      logMessage('AIボイス v3.6.0 を起動しました', 'info');
+      checkAuth();
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
       await initEnvConfig();

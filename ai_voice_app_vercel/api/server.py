@@ -15,6 +15,9 @@ import json
 import re
 import urllib.request
 import urllib.error
+import hashlib
+import hmac
+import base64
 from datetime import datetime, timedelta, timezone
 
 # Windows 環境での Unicode 出力対策
@@ -96,6 +99,58 @@ def rest_generate(api_key, prompt, system_instruction):
     except Exception:
         return ''
 
+# --- v3.6.0 ログイン認証（ID/PW平文は書かない。環境変数のSHA-256ハッシュと比較） ---
+AUTH_COOKIE = 'aivoice_session'
+AUTH_SESSION_SEC = 7 * 24 * 60 * 60
+
+def _login_hashes():
+    return ((os.environ.get('LOGIN_ID_HASH') or '').strip().lower(),
+            (os.environ.get('LOGIN_PASSWORD_HASH') or '').strip().lower())
+
+def _auth_configured():
+    id_h, pw_h = _login_hashes()
+    return bool(re.fullmatch(r'[0-9a-f]{64}', id_h or '')) and bool(re.fullmatch(r'[0-9a-f]{64}', pw_h or ''))
+
+def _sha256_hex(v):
+    return hashlib.sha256(str(v or '').encode('utf-8')).hexdigest()
+
+def _b64url(b):
+    return base64.urlsafe_b64encode(b).decode('ascii').rstrip('=')
+
+def _sign_session(payload_b64):
+    _, pw_h = _login_hashes()
+    return _b64url(hmac.new(pw_h.encode('utf-8'), payload_b64.encode('utf-8'), hashlib.sha256).digest())
+
+def _create_session_token():
+    import time as _time
+    payload = _b64url(json.dumps({"exp": int((_time.time() + AUTH_SESSION_SEC) * 1000)}).encode('utf-8'))
+    return f"{payload}.{_sign_session(payload)}"
+
+def _verify_session_token(token):
+    if not token or '.' not in token:
+        return False
+    payload, sig = token.rsplit('.', 1)
+    if not hmac.compare_digest(sig, _sign_session(payload)):
+        return False
+    try:
+        import time as _time
+        pad = '=' * (-len(payload) % 4)
+        data = json.loads(base64.urlsafe_b64decode(payload + pad).decode('utf-8'))
+        return isinstance(data.get('exp'), (int, float)) and _time.time() * 1000 < data['exp']
+    except Exception:
+        return False
+
+def _is_authenticated(headers):
+    if not _auth_configured():
+        return False
+    raw = headers.get('Cookie') or ''
+    for part in raw.split(';'):
+        if '=' in part:
+            k, v = part.split('=', 1)
+            if k.strip() == AUTH_COOKIE:
+                return _verify_session_token(v.strip())
+    return False
+
 class handler(SimpleHTTPRequestHandler):
     """Vercel サーバーレス関数規格ハンドラー (class名: handler)"""
 
@@ -128,11 +183,13 @@ class handler(SimpleHTTPRequestHandler):
         self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')
         super().end_headers()
 
-    def _send_json(self, status, resp_data):
+    def _send_json(self, status, resp_data, set_cookie=None):
         body = json.dumps(resp_data, ensure_ascii=False).encode('utf-8')
         self.send_response(status)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length', str(len(body)))
+        if set_cookie:
+            self.send_header('Set-Cookie', set_cookie)
         self.end_headers()
         self.wfile.write(body)
 
@@ -151,6 +208,12 @@ class handler(SimpleHTTPRequestHandler):
                 "runtime": "python"
             })
             return
+        if clean_path == '/api/login':
+            if not _auth_configured():
+                self._send_json(503, {"success": False, "code": "AUTH_NOT_CONFIGURED", "error": "ログイン設定が未完了です（環境変数 LOGIN_ID_HASH / LOGIN_PASSWORD_HASH）。", "runtime": "python"})
+                return
+            self._send_json(200, {"success": True, "authenticated": _is_authenticated(self.headers), "runtime": "python"})
+            return
         if clean_path in ['/api/token', '/api/rest']:
             self._send_json(405, {"success": False, "error": "POSTのみ対応しています。", "runtime": "python"})
             return
@@ -158,14 +221,46 @@ class handler(SimpleHTTPRequestHandler):
         # ローカルサーバー実行時の静的ファイル配信
         super().do_GET()
 
+    def do_DELETE(self):
+        clean_path = self.path.split('?')[0].rstrip('/')
+        if clean_path == '/api/login':
+            self._send_json(200, {"success": True, "runtime": "python"},
+                            set_cookie=f"{AUTH_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0")
+            return
+        self._send_json(404, {"success": False, "error": "Not Found", "runtime": "python"})
+
     def do_POST(self):
         clean_path = self.path.split('?')[0].rstrip('/')
 
-        if clean_path not in ['/api/token', '/api/rest']:
+        if clean_path not in ['/api/token', '/api/rest', '/api/login']:
             self._send_json(404, {"success": False, "error": "Not Found", "runtime": "python"})
             return
         if not self._allowed_origin():
             self._send_json(403, {"success": False, "error": "このオリジンからは利用できません。", "runtime": "python"})
+            return
+
+        if clean_path == '/api/login':
+            if not _auth_configured():
+                self._send_json(503, {"success": False, "code": "AUTH_NOT_CONFIGURED", "error": "ログイン設定が未完了です（環境変数 LOGIN_ID_HASH / LOGIN_PASSWORD_HASH）。", "runtime": "python"})
+                return
+            try:
+                length = int(self.headers.get('Content-Length') or 0)
+                raw = self.rfile.read(length) if length > 0 else b''
+                payload = json.loads(raw.decode('utf-8')) if raw else {}
+            except Exception:
+                payload = {}
+            id_h, pw_h = _login_hashes()
+            ok = hmac.compare_digest(_sha256_hex(payload.get('id')), id_h) and hmac.compare_digest(_sha256_hex(payload.get('password')), pw_h)
+            if not ok:
+                self._send_json(401, {"success": False, "error": "IDまたはパスワードが違います。", "runtime": "python"})
+                return
+            cookie = f"{AUTH_COOKIE}={_create_session_token()}; Path=/; HttpOnly; SameSite=Lax; Max-Age={AUTH_SESSION_SEC}"
+            self._send_json(200, {"success": True, "authenticated": True, "runtime": "python"}, set_cookie=cookie)
+            return
+
+        # v3.6.0: ログイン必須（セッションCookieがないと発行しない）。
+        if not _is_authenticated(self.headers):
+            self._send_json(401, {"success": False, "code": "AUTH_REQUIRED", "error": "ログインが必要です。", "runtime": "python"})
             return
 
         key, _source = get_api_key()

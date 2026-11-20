@@ -17,6 +17,8 @@ const REST_MODEL = 'models/gemini-2.5-flash';
 const MAX_PROMPT_CHARS = 2000;
 const MAX_SYSTEM_CHARS = 4000;
 
+const auth = require('./_auth');
+
 function isAllowedOrigin(origin) {
   if (!origin) return false;
   if (origin === 'https://app-aivoiceappvercel.vercel.app') return true;
@@ -57,6 +59,12 @@ async function handler(req, res) {
   }
   if (!allowed) {
     res.status(403).json({ success: false, error: 'このオリジンからは利用できません。' });
+    return;
+  }
+
+  // v3.6.0: ログイン必須（セッションCookieがないと使えない）。
+  if (!auth.isAuthenticated(req)) {
+    res.status(401).json({ success: false, code: 'AUTH_REQUIRED', error: 'ログインが必要です。' });
     return;
   }
 
@@ -121,3 +129,4 @@ async function handler(req, res) {
 
 module.exports = handler;
 module.exports.default = handler;
+
