@@ -685,7 +685,7 @@
         <div class="partner-rail">
         <button id="btn-char-ellie" class="char-card" data-char="ellie" aria-pressed="false">
           <span class="char-photo-wrap">
-            <img src="./assets/char_ellie.webp" alt="エリー・カーターの写真" loading="lazy" decoding="async">
+            <img data-photo-key="ellie" alt="エリー・カーターの写真" loading="lazy" decoding="async">
             <span class="selected-badge">選択中</span>
           </span>
           <span class="char-name">エリー・カーター</span>
@@ -694,7 +694,7 @@
         </button>
         <button id="btn-char-marcus" class="char-card" data-char="marcus" aria-pressed="false">
           <span class="char-photo-wrap">
-            <img src="./assets/char_marcus.webp" alt="マーカス・リードの写真" loading="lazy" decoding="async">
+            <img data-photo-key="marcus" alt="マーカス・リードの写真" loading="lazy" decoding="async">
             <span class="selected-badge">選択中</span>
           </span>
           <span class="char-name">マーカス・リード</span>
@@ -703,7 +703,7 @@
         </button>
         <button id="btn-char-ai" class="char-card" data-char="ai" aria-pressed="false">
           <span class="char-photo-wrap">
-            <img src="./assets/char_ai.webp" alt="桜井あいの写真" loading="lazy" decoding="async">
+            <img data-photo-key="ai" alt="桜井あいの写真" loading="lazy" decoding="async">
             <span class="selected-badge">選択中</span>
           </span>
           <span class="char-name">桜井あい</span>
@@ -712,7 +712,7 @@
         </button>
         <button id="btn-char-yuri" class="char-card" data-char="yuri" aria-pressed="false">
           <span class="char-photo-wrap">
-            <img src="./assets/char_yuri.webp" alt="天宮ユリの写真" loading="lazy" decoding="async">
+            <img data-photo-key="yuri" alt="天宮ユリの写真" loading="lazy" decoding="async">
             <span class="selected-badge">選択中</span>
           </span>
           <span class="char-name">天宮ユリ</span>
@@ -727,7 +727,7 @@
         <div class="partner-rail">
         <button id="btn-char-rio" class="char-card" data-char="rio" aria-pressed="false">
           <span class="char-photo-wrap">
-            <img src="./assets/char_rio.webp" alt="リオの写真" loading="lazy" decoding="async">
+            <img data-photo-key="rio" alt="リオの写真" loading="lazy" decoding="async">
             <span class="selected-badge">選択中</span>
           </span>
           <span class="char-name">リオ</span>
@@ -736,7 +736,7 @@
         </button>
         <button id="btn-char-kaito" class="char-card" data-char="kaito" aria-pressed="false">
           <span class="char-photo-wrap">
-            <img src="./assets/char_kaito.webp" alt="カイトの写真" loading="lazy" decoding="async">
+            <img data-photo-key="kaito" alt="カイトの写真" loading="lazy" decoding="async">
             <span class="selected-badge">選択中</span>
           </span>
           <span class="char-name">カイト</span>
@@ -751,7 +751,7 @@
         <div class="partner-rail">
         <button id="btn-char-maria" class="char-card" data-char="maria" aria-pressed="false">
           <span class="char-photo-wrap">
-            <img src="./assets/char_maria.webp" alt="桐生マリアの写真" loading="lazy" decoding="async">
+            <img data-photo-key="maria" alt="桐生マリアの写真" loading="lazy" decoding="async">
             <span class="selected-badge">選択中</span>
           </span>
           <span class="char-name">桐生マリア</span>
@@ -1087,7 +1087,7 @@
         },
         ellie: {
           name: 'エリー・カーター',
-          image: './assets/char_ellie.webp',
+          photoKey: 'ellie',
           voice: 'Callirrhoe',
           desc: '30歳・女性・ベテランツアーキャディ',
           speed: 1.0, pitch: 50,
@@ -1096,7 +1096,7 @@
         },
         marcus: {
           name: 'マーカス・リード',
-          image: './assets/char_marcus.webp',
+          photoKey: 'marcus',
           voice: 'Charon',
           desc: '48歳・男性・伝説の米ツアーチャンピオン',
           speed: 0.95, pitch: -100,
@@ -1105,7 +1105,7 @@
         },
         ai: {
           name: '桜井あい',
-          image: './assets/char_ai.webp',
+          photoKey: 'ai',
           voice: 'Autonoe',
           desc: '32歳・女性・日本女子ツアープロ',
           speed: 1.0, pitch: 0,
@@ -1114,7 +1114,7 @@
         },
         yuri: {
           name: '天宮ユリ',
-          image: './assets/char_yuri.webp',
+          photoKey: 'yuri',
           voice: 'Leda',
           desc: '35歳・女性・天才ゴルフレッスンプロ',
           speed: 1.0, pitch: -50,
@@ -1123,7 +1123,7 @@
         },
         rio: {
           name: 'リオ',
-          image: './assets/char_rio.webp',
+          photoKey: 'rio',
           voice: 'Orus',
           desc: '80歳・男性・天才エンジニアの大御所',
           speed: 0.9, pitch: -150,
@@ -1132,7 +1132,7 @@
         },
         kaito: {
           name: 'カイト',
-          image: './assets/char_kaito.webp',
+          photoKey: 'kaito',
           voice: 'Zephyr',
           desc: '22歳・女性・天才ITエンジニア',
           speed: 1.05, pitch: 50,
@@ -1141,7 +1141,7 @@
         },
         maria: {
           name: '桐生マリア',
-          image: './assets/char_maria.webp',
+          photoKey: 'maria',
           voice: 'Sulafat',
           desc: '70歳・女性・天才ピアノ講師',
           speed: 0.92, pitch: -100,
@@ -1391,6 +1391,28 @@
       }
     }
 
+    // v3.5: 新規キャラ写真は data URI を遅延読み込みする（初回表示を軽く保つ）。
+    function resolveCharImage(char) {
+      if (char.photoKey && window.CHAR_PHOTOS && window.CHAR_PHOTOS[char.photoKey]) return window.CHAR_PHOTOS[char.photoKey];
+      return char.image || '';
+    }
+    let _charPhotosLoading = false;
+    function loadCharPhotos(done) {
+      if (window.CHAR_PHOTOS) { if (done) done(); return; }
+      if (_charPhotosLoading) return;
+      _charPhotosLoading = true;
+      const sc = document.createElement('script');
+      sc.src = './assets/char-photos.js';
+      sc.onload = () => {
+        document.querySelectorAll('img[data-photo-key]').forEach(img => {
+          const uri = window.CHAR_PHOTOS && window.CHAR_PHOTOS[img.dataset.photoKey];
+          if (uri) img.src = uri;
+        });
+        if (done) done();
+      };
+      document.body.appendChild(sc);
+    }
+
     function selectCharacter(charKey) {
       appState.selectedChar = charKey;
       const char = appState.characters[charKey];
@@ -1414,10 +1436,14 @@
         if (UI.pitchVal) UI.pitchVal.textContent = char.pitch > 0 ? `+${char.pitch} cents` : `${char.pitch} cents`;
       }
       UI.avatarImage.style.opacity = '0';
-      setTimeout(() => {
-        UI.avatarImage.src = char.image;
+      const applyHero = () => {
+        UI.avatarImage.src = resolveCharImage(char);
         UI.avatarImage.alt = char.name + 'の写真';
         UI.avatarImage.style.opacity = '1';
+      };
+      setTimeout(() => {
+        if (char.photoKey && !window.CHAR_PHOTOS) loadCharPhotos(applyHero);
+        else applyHero();
       }, 200);
       popToast(`パートナー: ${char.name}`);
       // v3.1: 声は setup に含まれるため、パートナー切替は再接続で新しい setup を送る。
@@ -2543,6 +2569,8 @@
     document.querySelectorAll('.char-card[data-char]').forEach(btn => {
       btn.addEventListener('click', () => selectCharacter(btn.dataset.char));
     });
+    // v3.5: パートナー写真（data URI）は少し遅らせて読み込む。
+    setTimeout(() => loadCharPhotos(), 600);
 
     UI.emoBtns.forEach(btn => {
       btn.addEventListener('click', () => setEmotion(btn.dataset.emotion));
