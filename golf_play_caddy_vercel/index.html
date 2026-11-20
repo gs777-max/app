@@ -2447,6 +2447,16 @@
       }
     };
 
+    /* ★ Gold を選べないコース: 戸田パブリックでは Gold は前半・後半で使い分ける
+       「もう一方のティー」で、フロントティー（短いティー）ではないため、ティー選択肢
+       から外す（ユーザー決定 2026-11-20）。Gold を全ホール選ぶと実際にはない組合せ
+       （前半は後半のティー、後半は前半のティー）になり、OUT#2 のパー3が 225y と
+       表示される。もう一方のティーは反対側の半分の White として既に使える。 */
+    const COURSES_WITHOUT_GOLD = ['toda_public', 'osm_way_190159432'];
+    function courseHasGold(course) {
+      return !(course && COURSES_WITHOUT_GOLD.includes(course.id));
+    }
+
     /* ==========================================================
        3. アプリ共通状態変数
     ========================================================== */
@@ -2732,6 +2742,8 @@
 
     // 選択ティーグラウンドに応じた精密ティー座標の算出
     function resolveTeeCoordinate(hole, teeType) {
+      // ★ Gold を選べないコース（戸田パブリック）では Gold 要求を White に落とす
+      if (teeType === 'gold' && !courseHasGold(currentCourse)) teeType = 'white';
       const calib = getCalibratedTeePinCoord(currentCourse.id, hole.h, teeType, currentGreenSide);
       if (calib && Array.isArray(calib.tee) && isValidCoord(calib.tee)) {
         return [...calib.tee];
@@ -3914,8 +3926,12 @@
       ensureWizardRatings();
       const ratingRow = wizardRatingRow();
       const TEE_RATING_KEY = { black: 'Black', blue: 'Blue', white: 'White', gold: 'Green', red: 'Red' };
+      // ★ 戸田パブリックでは Gold を選択肢から外す（前半・後半で使い分ける「もう一方のティー」で、フロントティーではないため）
+      const goldAvailable = courseHasGold(wizardTempCourse);
+      if (!goldAvailable && wizardTempTeeType === 'gold') wizardTempTeeType = 'white';
 
       Object.values(TEE_DEFINITIONS).forEach(t => {
+        if (t.id === 'gold' && !goldAvailable) return;
         const isSelected = (wizardTempTeeType === t.id);
         let teeName = t.name;
         let teeDesc = t.desc;
@@ -3946,6 +3962,12 @@
         };
         container.appendChild(card);
       });
+      if (!goldAvailable) {
+        const note = document.createElement('div');
+        note.style.cssText = 'font-size:11px; color:var(--text-sub); padding:6px 2px; line-height:1.6;';
+        note.innerText = '戸田パブリックでは Gold は選べません。Gold は前半・後半で使い分ける「もう一方のティー」で、フロントティーではありません。';
+        container.appendChild(note);
+      }
     }
 
     // ウィザード設定コミット ＆ ラウンド開始
@@ -3967,6 +3989,8 @@
       calibState = null;
       currentCourse = wizardTempCourse;
       currentSubCourse = wizardTempSubCourse;
+      // ★ 戸田パブリックでは Gold を選べない（選ばれていた場合は White に戻す）
+      if (!courseHasGold(wizardTempCourse) && wizardTempTeeType === 'gold') wizardTempTeeType = 'white';
       currentTeeType = wizardTempTeeType;
 
       // ★ ホールデータ構築: 実測内蔵 → OSM実測(非同期バインド) → 2タップ登録、の順。架空座標は一切生成しない
@@ -6724,8 +6748,11 @@
         //    holeList とサブコースが食い違い、別ローテーションの節へ誤って保存される)
         const restoreUiState = !cloudData.combos;
         if (restoreUiState && cloudData.currentTeeType && cloudData.currentTeeType !== currentTeeType && TEE_DEFINITIONS[cloudData.currentTeeType]) {
-          currentTeeType = cloudData.currentTeeType;
-          updateHeaderTeeBadge();
+          // ★ 戸田パブリックではクラウドに残る Gold の UI 状態も復元しない（Gold は選べないため）
+          if (!(cloudData.currentTeeType === 'gold' && !courseHasGold(currentCourse))) {
+            currentTeeType = cloudData.currentTeeType;
+            updateHeaderTeeBadge();
+          }
         }
         if (restoreUiState && cloudData.currentGreenSide && (cloudData.currentGreenSide === 'L' || cloudData.currentGreenSide === 'R') && cloudData.currentGreenSide !== currentGreenSide) {
           currentGreenSide = cloudData.currentGreenSide;
