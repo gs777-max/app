@@ -26,7 +26,6 @@ if sys.platform == 'win32':
 # 静的ファイルのルートパス (../public)
 PUBLIC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'public'))
 
-LIVE_MODEL = 'models/gemini-2.5-flash-native-audio-latest'
 REST_MODEL = 'models/gemini-2.5-flash'
 
 def get_api_key():
@@ -59,22 +58,15 @@ def _iso(dt):
 def issue_ephemeral_token(api_key):
     """Gemini のエフェメラルトークンを発行する（v1beta auth_tokens）。
 
-    v3.4.1: liveConnectConstraints は公式例の最小構成（model +
-    responseModalities + sessionResumption）に絞る。文字起こし・VAD の設定は
-    クライアントの setup メッセージ側で送る（制約に入れると 400 になる）。
+    v3.4.2: 制約なしのプレーントークン。生 REST では liveConnectConstraints が
+    「Unknown name」として 400 で拒否される（実機の詳細エラーで確認）。
+    モデル・設定はクライアントの setup メッセージ側で送る。
     """
     now = datetime.now(timezone.utc)
     body = {
         "uses": 1,
         "expireTime": _iso(now + timedelta(minutes=30)),
-        "newSessionExpireTime": _iso(now + timedelta(minutes=2)),
-        "liveConnectConstraints": {
-            "model": LIVE_MODEL,
-            "config": {
-                "responseModalities": ["AUDIO"],
-                "sessionResumption": {}
-            }
-        }
+        "newSessionExpireTime": _iso(now + timedelta(minutes=2))
     }
     req = urllib.request.Request(
         'https://generativelanguage.googleapis.com/v1beta/auth_tokens',

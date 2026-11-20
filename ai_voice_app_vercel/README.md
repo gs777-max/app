@@ -1,10 +1,20 @@
-# AIボイス — 日常ではなす相棒 (v3.4.1 トークン発行修正)
+# AIボイス — 日常ではなす相棒 (v3.4.2 トークン発行修正)
 
 Google Gemini Live API（WebSocket 双方向音声ストリーミング）を使った、リアルタイム音声対話Webアプリケーションです。Vercel へのデプロイに最適化されたサーバーレス関数アーキテクチャを採用しています。
 
 デプロイ済みサイト: https://app-aivoiceappvercel.vercel.app/
 
 ---
+
+## 今回の改修内容 (v3.4.2 トークン発行修正、2026-11-20)
+
+v3.4.1 デプロイ後の実機テストでも「接続用トークンを取得できませんでした」となり、v3.4.1 で追加した詳細エラーにより原因が確定しました。実機ライブ音声は未検証です。
+
+詳細エラー: `INVALID_ARGUMENT: Invalid JSON payload received. Unknown name "liveConnectConstraints" at 'auth_token': Cannot find field.`
+
+1. **プレーントークン化**: 生 REST（`POST /v1beta/auth_tokens`）では `liveConnectConstraints` フィールド自体が受け付けられませんでした。公式の簡略例どおり `uses` / `expireTime` / `newSessionExpireTime` のみで発行するようにしました（`api/token.js` / `api/server.py`）。モデル・設定はクライアントの setup メッセージで指定します。トークンは単回（uses 1）・短命（開始2分／接続30分）のままです。モデル固定はしません（利用制限・アカウントは次フェーズで必須）。
+2. **接続先の修正**: クライアントの WebSocket 接続先が通常版 `BidiGenerateContent` になっていたため、エフェメラルトークン用の `BidiGenerateContentConstrained`（v1beta、`access_token`）に直しました。
+3. **詳細エラーは維持**: 失敗時は引き続き Google の詳細エラー（`error.message` / `error.status` のみ）を 502 に含めます。
 
 ## 今回の改修内容 (v3.4.1 トークン発行修正、2026-11-20)
 

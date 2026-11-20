@@ -15,6 +15,13 @@
  * 文字起こし・VAD の設定はクライアントの setup メッセージ側で送る。
  * 失敗時は Google の詳細エラー（message / status のみ）を 502 に含める。
  *
+ * v3.4.2: 制約なしのプレーントークンに変更。v3.4.1 でも
+ * 「Unknown name "liveConnectConstraints" at 'auth_token'」で 400 になった
+ * （実機の詳細エラーで確認）。生 REST では制約フィールドを受け付けないため、
+ * 公式の簡略例どおり uses / expireTime / newSessionExpireTime のみで発行し、
+ * モデル・設定はクライアントの setup メッセージで指定する。
+ * トークンは単回・短命のまま。モデル固定はしない（利用制限は次フェーズ）。
+ *
  * 公式ドキュメント: https://ai.google.dev/gemini-api/docs/live-api/ephemeral-tokens
  * 既定の有効期限: 新規セッション開始は発行後1分以内、接続は30分、uses 1回。
  * ここでは新規セッション開始を2分に少しだけ延ばし、接続は30分のままにする。
@@ -23,8 +30,6 @@
  * /api/token 自体が公開の発行口になり「タダ乗り」は止まらない。
  * アカウント・利用制限は次フェーズで必須。
  */
-
-const LIVE_MODEL = 'models/gemini-2.5-flash-native-audio-latest';
 
 function isAllowedOrigin(origin) {
   if (!origin) return false;
@@ -83,17 +88,11 @@ async function handler(req, res) {
   const expireTime = new Date(now + 30 * 60 * 1000).toISOString();
   const newSessionExpireTime = new Date(now + 2 * 60 * 1000).toISOString();
 
+  // v3.4.2: プレーントークン（制約なし）。モデル・設定はクライアント setup で指定する。
   const body = {
     uses: 1,
     expireTime,
-    newSessionExpireTime,
-    liveConnectConstraints: {
-      model: LIVE_MODEL,
-      config: {
-        responseModalities: ['AUDIO'],
-        sessionResumption: {}
-      }
-    }
+    newSessionExpireTime
   };
 
   try {
