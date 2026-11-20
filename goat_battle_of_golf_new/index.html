@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23ffd059'/%3E%3Ccircle cx='8' cy='8' r='7' fill='none' stroke='%23a67c00' stroke-width='1'/%3E%3C/svg%3E"> <!-- v4.36 A-2: favicon 404 解消（data-URI） -->
-<title>BATTLE OF GOLF - GOAT | WebGL版（v4.36）</title>
+<title>BATTLE OF GOLF - GOAT | 新規系統（N1）</title>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://archive.org">
 <link rel="dns-prefetch" href="https://fonts.googleapis.com">
 <!-- v4.1: セーブ破損の自動復旧（本体スクリプトより前に実行し、壊れた保存をバックアップから戻す） -->
 <script>
 (function(){
-  var KEYS = ["goat_save_slots_v3","goat_global_meta_v3","goat_resume_normal_v3","goat_resume_goat_v3","goat_active_battle_v2","goat_active_free_v1"];
+  var KEYS = ["goatn_save_slots_v3","goatn_global_meta_v3","goatn_resume_normal_v3","goatn_resume_goat_v3","goatn_active_battle_v2","goatn_active_free_v1"];
   for(var i=0;i<KEYS.length;i++){
     var k = KEYS[i];
     try {
@@ -496,7 +496,7 @@
   #narrText { font-size: 0.82rem !important; }
 }
 </style>
-<script src="assets/diag-overlay.js?v=4.36"></script>
+<script src="assets/diag-overlay.js?v=N1"></script>
 </head>
 <body>
 
@@ -578,7 +578,7 @@
       <button class="bigbtn ghost" id="loadSlotBtn">📂 セーブスロット（5枠）</button>
     </div>
     <div style="margin-top:16px;font-size:11.5px;color:#7e88ab;">
-      Complete Master Edition v4.36【WebGL版・新エンジン】｜ 全5エリア＋天空の神域 ｜ 全11コース3D決戦 ｜ 全11枠ギア80種 ｜ 四神波動MAX ｜ 5モード高速移動搭載
+      Complete Master Edition N1【新規系統・新エンジン】｜ 全5エリア＋天空の神域 ｜ 全11コース3D決戦 ｜ 全11枠ギア80種 ｜ 四神波動MAX ｜ 5モード高速移動搭載
     </div>
     <div id="engineChip" style="margin-top:8px;font-size:11.5px;color:#ffd875;font-weight:700;">描画: 確認中…（ワールドに入ると実際に描いている方式が表示されます）</div>
   </div>
@@ -1696,9 +1696,9 @@ function narrate(text, role, enText, cinemaMs){
 /* =========================================================================
    第4部：セーブ・レジューム・周回メタ管理・状態初期化・パリ17名抽選ロジック
    ========================================================================= */
-var META_KEY = "goat_global_meta_v3";
-var SLOTS_KEY = "goat_save_slots_v3";
-function resumeKey(mode){ return mode === "goat" ? "goat_resume_goat_v3" : "goat_resume_normal_v3"; }
+var META_KEY = "goatn_global_meta_v3";
+var SLOTS_KEY = "goatn_save_slots_v3";
+function resumeKey(mode){ return mode === "goat" ? "goatn_resume_goat_v3" : "goatn_resume_normal_v3"; }
 
 function loadMeta(){
   try {
@@ -1990,7 +1990,7 @@ function computeFinalPattern(){
 
 /* 現在エリアにおける次のゴルフ対戦ターゲットを解決 */
 /* v4.2 項目8: 周回天候 ― エリアの個性（基準天候）を保ちつつ、周回ごとに同系統の天候へ変化させる。
-   現在の周回数は周回メタ（goat_global_meta_v3 の clearedCount）に相乗りする（新規キー追加なし）。
+   現在の周回数は周回メタ（goatn_global_meta_v3 の clearedCount）に相乗りする（新規キー追加なし）。
    1周目（clearedCount=0）は基準天候そのもの。物語固定の天候（アメリカのボス戦=sunny、江戸の決戦=fog/storm 等）は対象外。 */
 var AREA_WEATHER_CYCLES = [
   ["sunny", "sunny", "rain", "strongWind"],      /* 京都: 晴れの地。雨や風の日もある */
@@ -2492,7 +2492,7 @@ function launchGolfIframe(tgt, overrideCharId){
   S.activeBattle = battleCtx;
   window.__curGolfKind = "rpg"; // v4.33: 実行中ゴルフの種別（フリーと本編で保存枠を分けるため）
   S.nextBuff = null; // バフは今回の対戦で消費
-  try { localStorage.setItem("goat_active_battle_v2", JSON.stringify(battleCtx)); } catch(e){}
+  try { localStorage.setItem("goatn_active_battle_v2", JSON.stringify(battleCtx)); } catch(e){}
   saveResume();
   saveSlot(0, "[AUTO] 対戦開始オートセーブ");
 
@@ -2799,8 +2799,8 @@ function handleGolfResult(res){
   /* v4.33: 結果は種別ごとの保存枠から受け取る（フリーの結果で本編対戦の途中データを消さない） */
   var isFree = (res.outcome === "free") || (window.__curGolfKind === "free") || !!res.freeRound;
   var ctx = isFree ? S.activeFree : S.activeBattle;
-  if(isFree){ S.activeFree = null; try { localStorage.removeItem("goat_active_free_v1"); } catch(e){} }
-  else { S.activeBattle = null; try { localStorage.removeItem("goat_active_battle_v2"); } catch(e){} }
+  if(isFree){ S.activeFree = null; try { localStorage.removeItem("goatn_active_free_v1"); } catch(e){} }
+  else { S.activeBattle = null; try { localStorage.removeItem("goatn_active_battle_v2"); } catch(e){} }
   window.__curGolfKind = null;
 
   /* v4.31: フリーラウンドの結果は勝敗・報酬処理へ流さず、専用処理（ベスト10登録＋結果画面）へ。
@@ -3733,8 +3733,8 @@ function renderSaveSlotsInto(container){
   });
 }
 
-/* v4.33: フリーラウンドの途中経過は本編対戦と別枠（S.activeFree＋専用キー goat_active_free_v1）で保持する。
-   v4.32 以前は本編対戦と同じ S.activeBattle／goat_active_battle_v2 を共用していたため、本編対戦の
+/* v4.33: フリーラウンドの途中経過は本編対戦と別枠（S.activeFree＋専用キー goatn_active_free_v1）で保持する。
+   v4.32 以前は本編対戦と同じ S.activeBattle／goatn_active_battle_v2 を共用していたため、本編対戦の
    途中はフリーラウンドを開始できず、開始すると本編の再開データと競合した。旧セーブでフリー分が
    本編枠に入っている場合は、ここでフリー枠へ自動移行する（記録・途中経過は失われない）。 */
 function splitFreeSlot(){
@@ -3742,10 +3742,10 @@ function splitFreeSlot(){
   if(S.activeBattle && S.activeBattle.freeRound){
     if(!S.activeFree) S.activeFree = S.activeBattle;
     S.activeBattle = null;
-    try { localStorage.removeItem("goat_active_battle_v2"); } catch(e){}
+    try { localStorage.removeItem("goatn_active_battle_v2"); } catch(e){}
   }
   if(S.activeFree){
-    try { localStorage.setItem("goat_active_free_v1", JSON.stringify(S.activeFree)); } catch(e){}
+    try { localStorage.setItem("goatn_active_free_v1", JSON.stringify(S.activeFree)); } catch(e){}
   }
 }
 
@@ -3755,7 +3755,7 @@ function resumeFromLoadedState(){
   /* もしゴルフ対戦の途中（1打単位レジューム）で中断していた場合は、そのホール・打数から即時復帰！ */
   if(S.activeBattle && S.activeBattle.course){
     window.__curGolfKind = "rpg";
-    try { localStorage.setItem("goat_active_battle_v2", JSON.stringify(S.activeBattle)); } catch(e){}
+    try { localStorage.setItem("goatn_active_battle_v2", JSON.stringify(S.activeBattle)); } catch(e){}
     document.getElementById("titleScr").style.display = "none";
     document.getElementById("charScr").style.display = "none";
     document.getElementById("ingameNav").style.display = "flex";
@@ -4238,7 +4238,7 @@ return;
         if(typeof d.mental === "number"){ shotCtx.mental = d.mental; if(!isFreeShot) S.mental = d.mental; }
         if(typeof d.balls === "number"){ shotCtx.balls = d.balls; S.balls = d.balls; }
       }
-      try { localStorage.setItem(isFreeShot ? "goat_active_free_v1" : "goat_active_battle_v2", JSON.stringify(shotCtx)); } catch(e){}
+      try { localStorage.setItem(isFreeShot ? "goatn_active_free_v1" : "goatn_active_battle_v2", JSON.stringify(shotCtx)); } catch(e){}
       updateTopbar();
       saveResume();
     }
@@ -4413,8 +4413,8 @@ function renderCharPortraitSVG(c){
    ========================================================================= */
 (function(){
   "use strict";
-  var SAVE_KEYS = ["goat_save_slots_v3","goat_global_meta_v3","goat_resume_normal_v3","goat_resume_goat_v3","goat_active_battle_v2","goat_active_free_v1"];
-  var REC_KEY = "goat_records_v41";
+  var SAVE_KEYS = ["goatn_save_slots_v3","goatn_global_meta_v3","goatn_resume_normal_v3","goatn_resume_goat_v3","goatn_active_battle_v2","goatn_active_free_v1"];
+  var REC_KEY = "goatn_records_v41";
 
   /* ---- 項目16: 保存のたびに控え（バックアップ）を自動で残す ---- */
   try {
@@ -4617,16 +4617,16 @@ table.free-tbl tr.me td{background:rgba(255,200,60,.16);color:#fff;font-weight:9
 <script>
 /* =========================================================================
    v4.31: フリーラウンド（単独ラウンド）＋コース別ベスト10
-   - 本編セーブ（キー4種＋goat_active_battle_v2）の形式は不変更。ベスト10は新規キーに分離。
+   - 本編セーブ（キー4種＋goatn_active_battle_v2）の形式は不変更。ベスト10は新規キーに分離。
    - 起動は launchGolfIframe と同型の専用経路。battleCtx への freeRound 追加のみで、
      postMessage プロトコル "4.2" は不変更。
-   v4.33: 途中経過は本編対戦と別枠（S.activeFree＋専用キー goat_active_free_v1）に分離。
+   v4.33: 途中経過は本編対戦と別枠（S.activeFree＋専用キー goatn_active_free_v1）に分離。
      本編対戦の途中でも開始でき、本編の再開データには触れない。旧セーブで本編枠に
      入っているフリー分は splitFreeSlot() がフリー枠へ自動移行する。
    ========================================================================= */
 (function(){
 "use strict";
-var BEST_KEY = "goat_freeround_best_v1";
+var BEST_KEY = "goatn_freeround_best_v1";
 var FREE_COURSES = [
   { id:"toda",        name:"戸田パブリック",        flag:"🇯🇵", desc:"荒川河川敷 18H Par72", best:"ベスト 39" },
   { id:"sasayama",    name:"宍戸ヒルズ西コース",    flag:"🇯🇵", desc:"日本オープン開催 Par72", best:"" },
@@ -4857,7 +4857,7 @@ function launchFreeRound(){
   /* v4.33: フリーの途中経過は専用枠へ（本編対戦の途中データには触れない） */
   S.activeFree = battleCtx;
   window.__curGolfKind = "free";
-  try { localStorage.setItem("goat_active_free_v1", JSON.stringify(battleCtx)); } catch(e){}
+  try { localStorage.setItem("goatn_active_free_v1", JSON.stringify(battleCtx)); } catch(e){}
   saveResume();
   closeFreeScr();
   closeBestScr();
@@ -4884,7 +4884,7 @@ function resumeFreeRound(){
   if(!S) return;
   splitFreeSlot();
   if(!S.activeFree || !S.activeFree.course) return;
-  try { localStorage.setItem("goat_active_free_v1", JSON.stringify(S.activeFree)); } catch(e){}
+  try { localStorage.setItem("goatn_active_free_v1", JSON.stringify(S.activeFree)); } catch(e){}
   window.__curGolfKind = "free";
   closeFreeScr();
   closeBestScr();
@@ -5010,7 +5010,7 @@ window.addEventListener("message", function(ev){
   if(S.mode !== "goat" && typeof d.ballsLeft === "number") S.balls = Math.max(0, Math.round(d.ballsLeft));
   S.activeFree = null;
   window.__curGolfKind = null;
-  try { localStorage.removeItem("goat_active_free_v1"); } catch(e){}
+  try { localStorage.removeItem("goatn_active_free_v1"); } catch(e){}
   var gf = $("golfFrame");
   gf.classList.remove("active");
   try { gf.src = "about:blank"; } catch(e){}

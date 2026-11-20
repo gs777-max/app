@@ -1,17 +1,17 @@
 /* GOAT 診断オーバーレイ（?diag=1 でのみ有効。通常プレイでは完全に無効）
-   有効化条件: 自分自身の URL に diag=1 / localStorage goat_diag=1 / 親ページ URL に diag=1
+   有効化条件: 自分自身の URL に diag=1 / localStorage goatn_diag=1 / 親ページ URL に diag=1
    無効化: URL に diag=off、またはパネルの「OFF」ボタン（localStorage を消去）
    目的: 実機で「HQモデル適用のどこで落ちているか」をスクリーンショット1枚で確定させる。 */
 (function () {
   'use strict';
   var qs = '';
   try { qs = location.search || ''; } catch (e) {}
-  if (/[?&]diag=off/.test(qs)) { try { localStorage.removeItem('goat_diag'); } catch (e) {} return; }
+  if (/[?&]diag=off/.test(qs)) { try { localStorage.removeItem('goatn_diag'); } catch (e) {} return; }
   var on = /[?&]diag=1/.test(qs);
-  if (!on) { try { on = localStorage.getItem('goat_diag') === '1'; } catch (e) {} }
+  if (!on) { try { on = localStorage.getItem('goatn_diag') === '1'; } catch (e) {} }
   if (!on) { try { on = /[?&]diag=1/.test(window.parent.location.search || ''); } catch (e) {} }
   if (!on) return;
-  try { localStorage.setItem('goat_diag', '1'); } catch (e) {}
+  try { localStorage.setItem('goatn_diag', '1'); } catch (e) {}
 
   var T0 = Date.now();
   var pageKind = /world\.html/.test(location.pathname) ? 'world' : (/golf\.html/.test(location.pathname) ? 'golf' : 'shell');
@@ -68,7 +68,7 @@
   panel.appendChild(btnRow); panel.appendChild(body);
   function mount() { if (document.body) { document.body.appendChild(panel); } else { setTimeout(mount, 100); } }
   mount();
-  btnOff.addEventListener('click', function () { try { localStorage.removeItem('goat_diag'); } catch (e) {} if (panel.parentNode) panel.parentNode.removeChild(panel); });
+  btnOff.addEventListener('click', function () { try { localStorage.removeItem('goatn_diag'); } catch (e) {} if (panel.parentNode) panel.parentNode.removeChild(panel); });
   btnCopy.addEventListener('click', function () {
     var t = body.textContent || '';
     try { navigator.clipboard.writeText(t); btnCopy.textContent = '✅ コピーしました'; } catch (e) { btnCopy.textContent = 'コピー失敗（スクショでOK）'; }
@@ -135,7 +135,7 @@
 
   function render() {
     var lines = [];
-    lines.push('=== GOAT DIAG v4.36 (' + ts() + ') ===');
+    lines.push('=== GOAT DIAG N1 (' + ts() + ') ===');
     lines.push('page: ' + pageKind + ' / host: ' + location.host + ' path: ' + location.pathname);
     lines.push('AV: ' + (window.__GOAT_AV__ || '?') + ' / engine badge: ' + (function () { try { var b = document.querySelector('[data-engine-badge]') || document.getElementById('engineBadge'); return b ? b.textContent : '(不明)'; } catch (e) { return '?'; } })());
     lines.push('UA: ' + navigator.userAgent.slice(0, 110));
