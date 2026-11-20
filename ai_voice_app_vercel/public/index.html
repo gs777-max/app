@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.4.1)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.4.2)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -674,7 +674,7 @@
       <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい、同じ並びで使えるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.4.1 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.4.2 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -909,7 +909,10 @@
   <div id="toast-shelf" class="toast-shelf" aria-live="polite"></div>
 <script>
     /**
-     * AIボイス - v3.4.1 トークン発行修正 (v3.4 一時トークン化を継承)
+     * AIボイス - v3.4.2 トークン発行修正 (v3.4 一時トークン化を継承)
+     * v3.4.2 (2026-11-20): トークンを制約なし（プレーン）にし、接続先を
+     *  BidiGenerateContentConstrained に修正。v3.4.1 の詳細エラーで
+     *  「Unknown name liveConnectConstraints」と判明したため。実機ライブ音声は未検証。
      * v3.4.1 (2026-11-20): /api/token が HTTP 400 で失敗する不具合を修正。
      *  トークン制約を公式例の最小構成に絞り、文字起こし設定の不正フィールド
      *  (languageCode) を languageCodes に直した。実機ライブ音声は未検証。
@@ -1671,8 +1674,8 @@
         await startMicrophoneEngine();
 
         logMessage(`Gemini Live API (${LIVE_MODEL_NAME}) へ WebSocket 接続中...`, 'info');
-        // v3.4: v1beta Constrained 接続。トークンは access_token で渡す（公式仕様）。
-        const liveUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?access_token=${encodeURIComponent(liveToken)}`;
+        // v3.4.2: エフェメラルトークン用 Constrained 接続。トークンは access_token で渡す。
+        const liveUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=${encodeURIComponent(liveToken)}`;
         
         appState.ws = new WebSocket(liveUrl);
         appState.isConnected = true;
@@ -2518,7 +2521,7 @@
     });
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.4.1 を起動しました', 'info');
+      logMessage('AIボイス v3.4.2 を起動しました', 'info');
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
       await initEnvConfig();
