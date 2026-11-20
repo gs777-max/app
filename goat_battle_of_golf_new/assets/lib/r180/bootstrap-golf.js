@@ -1,4 +1,4 @@
-import { boot } from './boot-common.js?v=N2';
+import { boot } from './boot-common.js?v=N3';
 boot({
   params: {
     canvas: document.getElementById('canvas'),

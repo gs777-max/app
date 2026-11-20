@@ -31,7 +31,7 @@
   (function(){
     var TL = new THREE.TextureLoader();
     /* v4.9: アセット版数（boot 層の __GOAT_AV__ と連動）。テクスチャ/GLB の URL に付与する */
-    var AVQ = '?v=' + (window.__GOAT_AV__ || 'N2');
+    var AVQ = '?v=' + (window.__GOAT_AV__ || 'N3');
     function loadTex(name, srgb, rx, ry){
     var t = TL.load('assets/textures/' + name + '.png' + AVQ, function(){
       window.HQW._ready[name] = 1;
@@ -3172,6 +3172,11 @@ scene.remove(m.mesh);
           return;
         }
         postToParent({ type: "goat:toGolf" });
+      } else if (act.type === "rival") {
+        /* N3: ライバル遭遇。対戦への遷移は決戦の門と同一の goat:toGolf を使う
+           （親側 startGolfBattle → getNextBattleTarget が rivalDefeated を見て
+           ライバル戦を返すため、遭遇は既存フローの正式な入口になる） */
+        handleRivalEncounter();
       }
     }
 
@@ -3375,6 +3380,18 @@ scene.remove(m.mesh);
             /* v4.27 A-14: 閉じた門は中抜きの菱形（白抜き＋紫の縁）にして、色だけでなく形でも開／閉を区別する。 */
             miniCtx.strokeStyle = gc; miniCtx.lineWidth = 1.8; miniCtx.stroke();
           }
+        } else if (lm.isRival) {
+          /* N3: 好敵手は橙の菱形（未撃破）／仲間は緑の菱形。門（大菱形）と大きさで区別する */
+          var rr2 = 4.0, rc2 = STATE.rivalDefeated ? "#44e587" : "#ff7847";
+          miniCtx.fillStyle = "#ffffff";
+          miniCtx.beginPath();
+          miniCtx.moveTo(lx, ly - rr2 - 1.6); miniCtx.lineTo(lx + rr2 + 1.6, ly); miniCtx.lineTo(lx, ly + rr2 + 1.6); miniCtx.lineTo(lx - rr2 - 1.6, ly);
+          miniCtx.closePath(); miniCtx.fill();
+          miniCtx.fillStyle = rc2;
+          miniCtx.beginPath();
+          miniCtx.moveTo(lx, ly - rr2); miniCtx.lineTo(lx + rr2, ly); miniCtx.lineTo(lx, ly + rr2); miniCtx.lineTo(lx - rr2, ly);
+          miniCtx.closePath(); miniCtx.fill();
+          miniCtx.strokeStyle = "rgba(90,30,0,0.6)"; miniCtx.lineWidth = 0.9; miniCtx.stroke();
         } else {
           haloDot(lx, ly, 3.2, "#ffd875", "rgba(120,82,0,0.65)");
         }
@@ -3892,6 +3909,9 @@ scene.remove(m.mesh);
         }
       }
 
+      /* N3: ライバルNPCの毎フレーム更新（idle再生・プレイヤーへの向き直り・名前ラベル） */
+      updateRivalNpc(dt, elapsed);
+
       if (subTrialTargetMesh && subTrialTargetMesh.visible) {
         subTrialTargetMesh.rotation.y = elapsed * 2.4;
         if (_subTrialBaseY === null) _subTrialBaseY = terrainY(26, -18);
@@ -3987,6 +4007,11 @@ scene.remove(m.mesh);
         STATE.subTrialDone = !!d.subTrialDone;
         /* v4.1（項目7）: エリアボス撃破済みなら「天岩戸の光が戻った」状態として大気を完全浄化側へ */
         STATE.bossDefeated = !!d.bossDefeated;
+        /* N3: ライバル遭遇（このエリアのライバルと撃破状態を保持し、NPC表示へ反映する） */
+        STATE.rivalId = (typeof d.rivalId === "string") ? d.rivalId : null;
+        STATE.rivalDefeated = !!d.rivalDefeated;
+        STATE.nextTarget = d.nextTarget || null;
+        refreshRivalNpc();
         refreshPurificationAtmosphere();
         if (subTrialTargetMesh) {
           subTrialTargetMesh.visible = !STATE.subTrialDone;
@@ -4002,6 +4027,275 @@ scene.remove(m.mesh);
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
+
+    /* =========================================================================
+       N3: ライバル遭遇（ワールド上に好敵手が実体で立ち、近づくと声かけ→対戦へ）
+       - 配置・状態は親（index.html）の goat:syncState が持つ rivalId／rivalDefeated を
+         唯一の正とし、ワールド側は表示と導線だけを担う（進行ロジックは親に集約）。
+       - 対戦への遷移は決戦の門と同一の goat:toGolf を使う。親の getNextBattleTarget が
+         rivalDefeated=false の間はライバル戦を返すため、遭遇は既存フローの正式な入口。
+       - モデルは対戦側（N2 CharStage）と同一の圧縮GLB＋KTX2 基盤をワールド向けに移植。
+         このエリアのライバル1体だけを読み込み、不要時は traverse して確実に破棄する。
+       ========================================================================= */
+    var RIVAL_POS = { x: -5.6, z: -46.2 }; /* 決戦の門（0,-52）手前の参道西脇。建物列は |x|>=6.6、門の除外円 (0,-52,r8) の内側で、他テーマの小物（灯籠・糸杉・塔）とも重ならない位置 */
+    var RIVAL_WORLD_SCALE = { Watu: 1.02, Matuya: 1.05, TIiger: 1.07, Junbo: 1.06, McIlro: 1.10, DeCham: 1.09 };
+    var RIVAL_CHAR_KEY = { Watu: "watu", Matuya: "matuya", TIiger: "tiiger", Junbo: "junbo", McIlro: "mcilro", DeCham: "decham" };
+    var RIVAL_LINES = {
+      Watu:   { challenge: "「待っていたぞ。神の遊戯を人に授けたこの俺を、まずゴルフで越えてみせよ！」", ally: "「ははっ、いい目覚めだ。これからは俺もお前の味方だ。困ったら声をかけな。」" },
+      Matuya: { challenge: "「……来たか。闇に囚われたこの身を、ゴルフで解き放ってみせよ。」", ally: "「……目が覚めた。静かに、しかし確かに――これからはお前の側に立つ。」" },
+      TIiger: { challenge: "「フン、挑戦者か。絶対王者の牙城、1ホールで崩せるものなら崩してみせよ！」", ally: "「……悪くない目覚めだ。次に狙う獲物は、共に仕留めよう。」" },
+      Junbo:  { challenge: "「おう、来たな！ 地の帝王の豪快なゴルフ、身をもって味わうがいい！」", ally: "「がはは、目が覚めたわい！ ここからは俺の飛距離もお前の武器だ。」" },
+      McIlro: { challenge: "「やあ、待っていたよ。北の空を貫く一打、受け止められるかい？」", ally: "「清々しい朝だね。ここからは、同じ空の下で戦おう。」" },
+      DeCham: { challenge: "「計算済みだ。君の勝率は――まあ、ゴルフは理論どおりにいかないから面白い。かかってきたまえ。」", ally: "「……データが書き換わった。これからは君の味方として計算するよ。」" }
+    };
+    var rivalNpc = null; /* { charId, defeated, group, mixer, idleAction, ready, failed, label, labelKind, yaw, gen } */
+    var rivalLandmark = null;
+    var rivalLoader = null, rivalLoaderErr = null;
+    var rivalDialogOpen = false;
+
+    function rivalLog() { try { console.log.apply(console, ["[GOAT-N3]"].concat([].slice.call(arguments))); } catch (e) {} }
+
+    function initRivalLoader(cb) {
+      if (rivalLoader || rivalLoaderErr) { cb(rivalLoader); return; }
+      import("three/addons/loaders/KTX2Loader.js").then(function (mod) {
+        try {
+          var ktx2 = new mod.KTX2Loader();
+          ktx2.setTranscoderPath("assets/lib/r180/addons/libs/basis/");
+          ktx2.detectSupport(renderer);
+          rivalLoader = new THREE.GLTFLoader();
+          rivalLoader.setKTX2Loader(ktx2);
+          if (window.MeshoptDecoder) rivalLoader.setMeshoptDecoder(window.MeshoptDecoder);
+          rivalLog("loader ready");
+        } catch (e) { rivalLoaderErr = String(e && e.message || e); rivalLog("loader init failed", rivalLoaderErr); }
+        cb(rivalLoader);
+      }).catch(function (e) { rivalLoaderErr = String(e && e.message || e); rivalLog("KTX2Loader import failed", rivalLoaderErr); cb(null); });
+    }
+
+    function disposeRivalNpc() {
+      if (!rivalNpc) return;
+      var npc = rivalNpc; rivalNpc = null;
+      try { if (npc.mixer) npc.mixer.stopAllAction(); } catch (e) {}
+      if (npc.group) {
+        scene.remove(npc.group);
+        npc.group.traverse(function (o) {
+          if (o.geometry) { try { o.geometry.dispose(); } catch (e) {} }
+          if (o.material) {
+            var ms = Array.isArray(o.material) ? o.material : [o.material];
+            ms.forEach(function (m) {
+              for (var k in m) { var v = m[k]; if (v && v.isTexture) { try { v.dispose(); } catch (e) {} } }
+              try { m.dispose(); } catch (e) {}
+            });
+          }
+        });
+      }
+      if (npc.label) {
+        scene.remove(npc.label);
+        if (npc.label.material) {
+          if (npc.label.material.map) { try { npc.label.material.map.dispose(); } catch (e) {} }
+          try { npc.label.material.dispose(); } catch (e) {}
+        }
+      }
+    }
+
+    function makeRivalLabel(charId, defeated) {
+      var cv = document.createElement("canvas"); cv.width = 512; cv.height = 128;
+      var cx2 = cv.getContext("2d");
+      cx2.fillStyle = defeated ? "rgba(10,42,24,0.88)" : "rgba(46,14,8,0.88)";
+      var bw = 452, bh = 74, bx = (512 - bw) / 2, by = (128 - bh) / 2;
+      cx2.beginPath();
+      if (cx2.roundRect) cx2.roundRect(bx, by, bw, bh, 20); else cx2.rect(bx, by, bw, bh);
+      cx2.fill();
+      cx2.lineWidth = 5; cx2.strokeStyle = defeated ? "#44e587" : "#ff7847"; cx2.stroke();
+      cx2.font = "900 44px 'Noto Sans JP', sans-serif";
+      cx2.textAlign = "center"; cx2.textBaseline = "middle";
+      cx2.fillStyle = "#ffffff";
+      cx2.fillText(defeated ? (charId + "（仲間）") : ("⚔ " + charId), 256, 66);
+      var tex = new THREE.CanvasTexture(cv);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+      sp.scale.set(3.6, 0.9, 1);
+      sp.renderOrder = 20;
+      return sp;
+    }
+
+    function refreshRivalLabel() {
+      if (!rivalNpc || !rivalNpc.group) return;
+      var kind = rivalNpc.defeated ? "ally" : "rival";
+      if (rivalNpc.labelKind === kind && rivalNpc.label) return;
+      if (rivalNpc.label) {
+        rivalNpc.group.remove(rivalNpc.label);
+        if (rivalNpc.label.material) {
+          if (rivalNpc.label.material.map) { try { rivalNpc.label.material.map.dispose(); } catch (e) {} }
+          try { rivalNpc.label.material.dispose(); } catch (e) {}
+        }
+        rivalNpc.label = null;
+      }
+      var sp = makeRivalLabel(rivalNpc.charId, rivalNpc.defeated);
+      sp.position.y = (rivalNpc.headY || 2.6) + 0.62;
+      rivalNpc.group.add(sp);
+      rivalNpc.label = sp;
+      rivalNpc.labelKind = kind;
+    }
+
+    function refreshRivalLandmarkLabel() {
+      if (!rivalLandmark || !rivalNpc) return;
+      rivalLandmark.label = rivalNpc.defeated
+        ? ("💬 " + rivalNpc.charId + "（仲間）と話す")
+        : ("⚔ 好敵手 " + rivalNpc.charId + " に声をかける");
+      _lastPromptLM = null; /* 表示中でも文言を即時更新させる */
+    }
+
+    /* syncState のたびに呼ばれる。状態が変わったときだけ実作業をする（冪等） */
+    function refreshRivalNpc() {
+      var charId = (AREA_IDX <= 4) ? (STATE.rivalId || null) : null;
+      var defeated = !!STATE.rivalDefeated;
+      if (!charId) {
+        if (rivalNpc) { disposeRivalNpc(); }
+        if (rivalLandmark) {
+          var li = LANDMARKS.indexOf(rivalLandmark);
+          if (li >= 0) LANDMARKS.splice(li, 1);
+          rivalLandmark = null;
+        }
+        return;
+      }
+      if (!rivalLandmark) {
+        rivalLandmark = { x: RIVAL_POS.x, z: RIVAL_POS.z, r: 3.6, label: "", color: 0xff7847, isRival: true, action: { type: "rival" } };
+        LANDMARKS.push(rivalLandmark);
+      }
+      if (rivalNpc && rivalNpc.charId === charId) {
+        if (rivalNpc.defeated !== defeated) {
+          rivalNpc.defeated = defeated;
+          refreshRivalLabel();
+          refreshRivalLandmarkLabel();
+        }
+        return;
+      }
+      disposeRivalNpc();
+      var npc = {
+        charId: charId, defeated: defeated, group: new THREE.Group(),
+        mixer: null, idleAction: null, ready: false, failed: false,
+        label: null, labelKind: null, headY: 2.6, yaw: 0, gen: 0
+      };
+      npc.group.position.set(RIVAL_POS.x, terrainY(RIVAL_POS.x, RIVAL_POS.z), RIVAL_POS.z);
+      scene.add(npc.group);
+      rivalNpc = npc;
+      refreshRivalLandmarkLabel();
+      var key = RIVAL_CHAR_KEY[charId];
+      if (!key) { npc.failed = true; return; }
+      initRivalLoader(function (loader) {
+        if (!loader) { if (rivalNpc === npc) npc.failed = true; return; }
+        loader.loadAsync("assets/chars/" + key + ".glb?v=N3").then(function (gltf) {
+          if (rivalNpc !== npc) { /* 読み込み中に状態が変わった場合は破棄して捨てる */
+            gltf.scene.traverse(function (o) { if (o.geometry) { try { o.geometry.dispose(); } catch (e) {} } });
+            return;
+          }
+          var model = gltf.scene;
+          /* N2 で実証済みの透け対処（不透明化＋alphaTest）を同一に適用 */
+          model.traverse(function (o) {
+            if (o.isMesh) {
+              o.castShadow = true; o.receiveShadow = false;
+              var mats = Array.isArray(o.material) ? o.material : [o.material];
+              mats.forEach(function (m) { m.transparent = false; m.depthWrite = true; m.alphaTest = 0.35; m.needsUpdate = true; });
+            }
+          });
+          /* 身長キャリブレーション: ワールドの主人公メッシュ実測に体格比で一致させる */
+          var mb = new THREE.Box3().setFromObject(model);
+          var modelH = Math.max(0.01, mb.max.y - mb.min.y);
+          var pb = new THREE.Box3().setFromObject(playerMesh);
+          var playerH = Math.max(0.01, pb.max.y - pb.min.y);
+          var ratio = (RIVAL_WORLD_SCALE[charId] || 1.05) / (RIVAL_WORLD_SCALE[CHAR_ID] || 1.05);
+          var s = (playerH * ratio) / modelH;
+          npc.group.scale.setScalar(s);
+          npc.headY = modelH;
+          npc.group.add(model);
+          npc.mixer = new THREE.AnimationMixer(model);
+          gltf.animations.forEach(function (a) { if (a.name === "idle") npc.idleAction = npc.mixer.clipAction(a); });
+          if (npc.idleAction) { npc.idleAction.setLoop(THREE.LoopRepeat, Infinity); npc.idleAction.play(); }
+          npc.ready = true;
+          refreshRivalLabel();
+          rivalLog("rival ready:", charId, "scale", s.toFixed(3));
+        }).catch(function (e) {
+          if (rivalNpc === npc) { npc.failed = true; rivalLog("rival load FAILED:", charId, e && e.message); }
+        });
+      });
+    }
+
+    function updateRivalNpc(dt, elapsed) {
+      if (!rivalNpc || !rivalNpc.group) return;
+      if (rivalNpc.mixer && rivalNpc.ready) rivalNpc.mixer.update(dt);
+      /* 近づいたらプレイヤーの方を向く（声かけ演出）。遠ければ参道の南（広場側）を向く */
+      var dx = player.x - RIVAL_POS.x, dz = player.z - RIVAL_POS.z;
+      var dist = Math.hypot(dx, dz);
+      var targetYaw = (dist < 14) ? Math.atan2(dx, dz) : 0;
+      var diff = targetYaw - rivalNpc.yaw;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      rivalNpc.yaw += diff * Math.min(1, dt * 3.2);
+      rivalNpc.group.rotation.y = rivalNpc.yaw;
+      /* 名前ラベルは「姿が見える距離」だけ表示する */
+      if (rivalNpc.label) rivalNpc.label.visible = dist < 34;
+    }
+
+    function openRivalChoice() {
+      var npc = rivalNpc; if (!npc) return;
+      var lines = RIVAL_LINES[npc.charId] || RIVAL_LINES.Watu;
+      var nt = STATE.nextTarget;
+      document.getElementById("rcName").textContent = "⚔ 好敵手 " + npc.charId;
+      document.getElementById("rcLine").textContent = lines.challenge;
+      document.getElementById("rcCond").textContent = (nt && nt.kind === "rival")
+        ? ("対戦条件： " + (nt.holes || 1) + "ホールマッチ ＠ " + (nt.courseName || "") + "／" + (nt.title || ""))
+        : "対戦条件： 1ホールマッチ（同点はショットポイント→残りパワーで決着）";
+      document.getElementById("rivalChoice").style.display = "block";
+      rivalDialogOpen = true;
+      STATE.paused = true; /* 選択中はワールドを止める（親モーダル表示時と同じ作法） */
+    }
+    function closeRivalChoice(resume) {
+      document.getElementById("rivalChoice").style.display = "none";
+      rivalDialogOpen = false;
+      if (resume) STATE.paused = false;
+    }
+    document.getElementById("rcFight").onclick = function () {
+      if (!rivalDialogOpen) return;
+      closeRivalChoice(false); /* 対戦へ移行するので親側の pause 制御に委ねる */
+      STATE.paused = false;
+      postToParent({ type: "goat:toGolf" });
+    };
+    document.getElementById("rcLeave").onclick = function () {
+      if (!rivalDialogOpen) return;
+      closeRivalChoice(true);
+      showToast("対戦をやめておいた（いつでも声をかけられる）");
+    };
+
+    function handleRivalEncounter() {
+      if (rivalDialogOpen) return;
+      if (!rivalNpc || !STATE.rivalId) return;
+      var lines = RIVAL_LINES[rivalNpc.charId] || RIVAL_LINES.Watu;
+      if (STATE.rivalDefeated) {
+        /* 勝利後：その場に仲間として残り、再戦は始まらない（設計書 §4.4 の推奨案） */
+        showBanner("💬 " + rivalNpc.charId + "（仲間）", lines.ally);
+        return;
+      }
+      if (!isDuelGateOpen()) {
+        /* 進行ゲートは決戦の門と同一条件に揃える（浄化2体 or GOAT/神域） */
+        showBanner("🔒 " + rivalNpc.charId + " はまだ本気を出していない", "「まずは聖地の残影を浄化してから来い」――先に残影をあと " + Math.max(0, 2 - countPurified()) + " 体浄化せよ！");
+        playSfx("hurt");
+        return;
+      }
+      openRivalChoice();
+    }
+
+    /* 文書破棄時はライバルGLB資産も明示破棄する（エリア移動・対戦遷移での残留防止） */
+    window.addEventListener("pagehide", function () { try { disposeRivalNpc(); } catch (e) {} });
+
+    /* 検証・診断用ハンドル（N2 の __GOATN2 と同型） */
+    window.__GOATN3 = {
+      get rivalId() { return rivalNpc ? rivalNpc.charId : null; },
+      get defeated() { return !!STATE.rivalDefeated; },
+      get ready() { return !!(rivalNpc && rivalNpc.ready); },
+      get failed() { return !!(rivalNpc && rivalNpc.failed); },
+      get dialogOpen() { return rivalDialogOpen; },
+      pos: RIVAL_POS
+    };
 
     /* スタンドアロン直接起動時も即動作するよう初期スポーンを実行し、親へ挨拶送信 */
     spawnAreaMobs(null, []);

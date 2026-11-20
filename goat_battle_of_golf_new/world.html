@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23ffd059'/%3E%3Ccircle cx='8' cy='8' r='7' fill='none' stroke='%23a67c00' stroke-width='1'/%3E%3C/svg%3E"> <!-- v4.36 A-2: favicon 404 解消（data-URI） -->
-  <title>BATTLE OF GOLF - GOAT | Next-Gen 3D Action RPG World N2 | 新規系統</title>
+  <title>BATTLE OF GOLF - GOAT | Next-Gen 3D Action RPG World N3 | 新規系統</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@700;900&display=swap">
@@ -682,6 +682,67 @@
       font-size: 12px;
     }
 
+    /* N3: ライバル遭遇の声かけ選択ダイアログ（ワールド既存UIの紺＋金の作法に合わせる） */
+    #rivalChoice {
+      position: absolute;
+      left: 50%;
+      bottom: 150px;
+      transform: translateX(-50%);
+      z-index: 30;
+      width: min(430px, calc(100vw - 32px));
+      box-sizing: border-box;
+      background: linear-gradient(135deg, rgba(24, 28, 56, 0.97), rgba(12, 14, 30, 0.98));
+      border: 1.5px solid #ffd875;
+      border-radius: 14px;
+      padding: 16px 18px 14px;
+      color: #fff7df;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.8), 0 0 22px rgba(255, 210, 90, 0.3);
+      text-align: center;
+    }
+    #rivalChoice .rc-name {
+      font-size: 17px;
+      font-weight: 900;
+      color: #ffd875;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    #rivalChoice .rc-line {
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: #f3ecd9;
+      margin-bottom: 8px;
+    }
+    #rivalChoice .rc-cond {
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: #bcd0ff;
+      margin-bottom: 12px;
+    }
+    #rivalChoice .rc-btns {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    #rivalChoice .rc-btns button {
+      flex: 1;
+      min-height: 44px;
+      font-size: 14.5px;
+      font-weight: 800;
+      border-radius: 10px;
+      cursor: pointer;
+      padding: 10px 8px;
+    }
+    #rcFight {
+      background: linear-gradient(135deg, #c9a227, #a37f14);
+      color: #1d1402;
+      border: 1.5px solid #ffe9a8;
+    }
+    #rcLeave {
+      background: rgba(38, 44, 78, 0.9);
+      color: #dfe6ff;
+      border: 1.5px solid #5a6aa8;
+    }
+
     /* 浄化・開放シネマバナー ＆ トースト通知 */
     #centerBanner {
       position: absolute;
@@ -784,18 +845,18 @@
       #minimap { width: 104px !important; height: 104px !important; }
     }
   </style>
-<script src="assets/diag-overlay.js?v=N2"></script>
+<script src="assets/diag-overlay.js?v=N3"></script>
 <script type="importmap">
 {"imports":{
- "three": "./assets/lib/r180/three.module.js?v=N2",
- "three/webgpu": "./assets/lib/r180/three.webgpu.js?v=N2",
- "three/tsl": "./assets/lib/r180/three.tsl.js?v=N2",
+ "three": "./assets/lib/r180/three.module.js?v=N3",
+ "three/webgpu": "./assets/lib/r180/three.webgpu.js?v=N3",
+ "three/tsl": "./assets/lib/r180/three.tsl.js?v=N3",
  "three/addons/": "./assets/lib/r180/addons/",
- "three/addons/loaders/GLTFLoader.js": "./assets/lib/r180/addons/loaders/GLTFLoader.js?v=N2",
- "three/addons/libs/meshopt_decoder.module.js": "./assets/lib/r180/addons/libs/meshopt_decoder.module.js?v=N2"
+ "three/addons/loaders/GLTFLoader.js": "./assets/lib/r180/addons/loaders/GLTFLoader.js?v=N3",
+ "three/addons/libs/meshopt_decoder.module.js": "./assets/lib/r180/addons/libs/meshopt_decoder.module.js?v=N3"
 }}
 </script>
-<script type="module" src="assets/lib/r180/bootstrap-world.js?v=N2"></script>
+<script type="module" src="assets/lib/r180/bootstrap-world.js?v=N3"></script>
 </head>
 
 <body>
@@ -854,7 +915,7 @@
   <!-- 右下：ミニマップ（タップで瞬間移動対応） -->
   <div id="miniWrap" class="hud-card" title="ミニマップの任意の場所をクリック／タップするとそこへ瞬時に高速移動します">
     <canvas id="minimap" width="156" height="156" role="img" aria-label="ミニマップ。エリアの地形と、残影・施設・決戦門の位置を示します"></canvas>
-    <div class="map-legend">🟣残影 🟢浄化 🟡施設 🔴決戦門(開) ◇決戦門(閉) (タップ瞬移)</div>
+    <div class="map-legend">🟣残影 🟢浄化 🟡施設 🟠好敵手 🔴決戦門(開) ◇決戦門(閉) (タップ瞬移)</div>
   </div>
 
   <!-- 左下：スマホ＆PC両対応 360°バーチャルスティック -->
@@ -881,6 +942,17 @@
   </div>
 
   <div id="interactPrompt"><span class="kbadge">👆 タップ / Enter</span><span id="promptLabel">調べる</span></div>
+
+  <!-- N3: ライバル遭遇の声かけ選択ダイアログ -->
+  <div id="rivalChoice" style="display:none;">
+    <div class="rc-name" id="rcName">好敵手</div>
+    <div class="rc-line" id="rcLine"></div>
+    <div class="rc-cond" id="rcCond"></div>
+    <div class="rc-btns">
+      <button id="rcFight" type="button">⚔ 対戦する</button>
+      <button id="rcLeave" type="button">まだやめる</button>
+    </div>
+  </div>
 
   <div id="fireControls">
     <button id="dashToggleBtn" class="on" title="常時高速ダッシュのON/OFF切替">⚡ 常時高速: ON</button>
