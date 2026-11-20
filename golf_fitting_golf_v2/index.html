@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Serif+JP:wght@600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ============ FIT LAB v2.5 — paper x deep green x brass editorial, mobile-first ============ */
+/* ============ FIT LAB v2.7 — paper x deep green x brass editorial, mobile-first ============ */
 :root{
   --paper:#F6F1E7; --card:#FFFDF8; --ink:#14201B; --ink2:#2E3B34; --muted:#4A5A51;
   --green:#0B352A; --green2:#072A20; --green-soft:#E4EFE7; --green-line:#7FA98C;
@@ -193,9 +193,18 @@ img,svg{max-width:100%}
 .score{font-size:13px;color:var(--muted);text-align:right}
 .score b{font-size:26px;color:var(--green);font-family:'Fraunces',serif}
 .lock-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  text-align:center;padding:20px;background:rgba(11,53,42,.86);border-radius:18px}
+  text-align:center;padding:20px;background:var(--green);border-radius:18px;cursor:pointer}
 .lock-overlay .lock-t{font-weight:700;font-size:18px;color:#E9CE8E}
 .lock-overlay .lock-s{font-size:14px;color:#DCE8DF;max-width:420px}
+.pw-modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(11,53,42,.72)}
+.pw-modal[hidden]{display:none}
+.pw-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;max-width:420px;width:100%}
+.pw-card h3{margin:0 0 6px;font-size:21px}
+.pw-card p{margin:0 0 14px;font-size:14.5px;color:var(--ink2)}
+.pw-card input{width:100%;min-height:52px;font-size:18px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+.pw-err{color:#B3261E;font-size:14px;font-weight:700;min-height:20px;margin:10px 0 0}
+.pw-row{display:flex;gap:10px;margin-top:14px}
+.pw-row .btn{flex:1}
 .score-bar{height:6px;background:var(--line-soft);border-radius:3px;overflow:hidden;margin-top:6px}
 .score-bar i{display:block;height:100%;background:var(--green)}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -220,10 +229,14 @@ img,svg{max-width:100%}
 .pro-panel{border:2px solid var(--brass);border-radius:18px;background:#fff;padding:24px;margin:24px 0}
 .pro-panel h3{margin:0 0 6px;font-size:24px}
 .pro-panel p{margin:0 0 12px;font-size:15px;color:var(--ink2)}
+.pro-panel.unlocked>.kicker,.pro-panel.unlocked>h3,.pro-panel.unlocked>.sell-copy,.pro-panel.unlocked>.price-row{display:none}
+.pro-panel.unlocked #btn-pro-unlock{display:none}
+.unlocked-note{font-size:15px;font-weight:700;color:var(--green)}
 .price-row{display:grid;grid-template-columns:1fr;gap:12px;margin:16px 0}
 @media(min-width:640px){.price-row{grid-template-columns:1fr 1fr}}
 .price-card{border:1px solid var(--line);border-radius:14px;padding:20px;background:var(--card)}
-.price-card.pro{border:2px solid var(--green);background:var(--green);color:#F6F1E7}
+.price-card.pro{border:2px solid var(--green);background:var(--green);color:#F6F1E7;cursor:pointer}
+.pro-tap-hint{margin-top:12px;font-size:13px;font-weight:700;color:#E9CE8E}
 .price-card.pro ul{color:#DCE8DF}
 .price-card.pro .plan{color:#E9CE8E}
 .price-card .plan{font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--brass-dark)}
@@ -340,7 +353,7 @@ footer b{color:var(--ink2)}
       <div><b>14</b><span>ヘッドモデル</span></div>
       <div><b>115</b><span>シャフト</span></div>
       <div><b>2分</b><span>診断時間</span></div>
-      <div><b>無料</b><span>Top 3 まで</span></div>
+      <div><b>無料</b><span>5〜10位まで</span></div>
     </div>
 
     <div class="preset-block">
@@ -366,7 +379,7 @@ footer b{color:var(--ink2)}
           <span class="p-go">この条件で診断する →</span>
         </button>
       </div>
-      <p class="free-note">診断結果の <b>Top 3 は無料</b>でご覧いただけます。Top 4〜10と感度分析の全文は Pro（¥480/月・¥3,800/年、準備中）でご覧いただけます。</p>
+      <p class="free-note">診断結果の <b>5〜10位は無料</b>でご覧いただけます。ベスト1〜4と感度分析の全文は Pro（¥480/月・¥3,800/年、準備中）でご覧いただけます。</p>
     </div>
   </section>
 
@@ -813,27 +826,43 @@ footer b{color:var(--ink2)}
 
 <div class="pro-panel" id="pro-panel">
 <div class="kicker">Pro — Full Access</div>
-<h3>Top 4〜10と感度分析の全文は、Proで。</h3>
-<p>無料では Top 3 まで。Proではベスト10の全文と「1つだけ変えたらどうなるか」の感度分析、季節別セッティングをすべてご覧いただけます。</p>
+<h3>ベスト1〜4と感度分析の全文は、Proで。</h3>
+<p class="sell-copy">無料では 5〜10位まで。Proではベスト1〜4の全文と「1つだけ変えたらどうなるか」の感度分析、季節別セッティングをすべてご覧いただけます。</p>
+<p class="unlocked-note" id="pro-unlocked-note" hidden>Pro表示を解除中です。下の「デモ解除を取り消す」で再ロックできます。</p>
 <div class="price-row">
 <div class="price-card">
 <div class="plan">FREE — 無料</div>
 <div class="yen">¥0</div>
 <div class="plan-sub">ずっと無料</div>
-<ul><li>ベスト10のうち Top 3 を表示</li><li>3段階解析サマリー</li><li>診断結果の保存・コピー</li></ul>
+<ul><li>ベスト10のうち 5〜10位を表示</li><li>3段階解析サマリー</li><li>診断結果の保存・コピー</li></ul>
 </div>
 <div class="price-card pro">
 <div class="plan">PRO — 準備中</div>
 <div class="yen">¥480<span style="font-size:15px">/月</span></div>
 <div class="plan-sub">または ¥3,800/年（月あたり約¥317・約34%お得）</div>
 <ul><li>ベスト10の全文表示</li><li>感度分析（A/Bテスト指針）の全文</li><li>季節別セッティング・カタログ全件表示</li></ul>
+<div class="pro-tap-hint">タップしてパスワードで解除</div>
 </div>
 </div>
 <div class="action-row">
 <button type="button" id="btn-pro-unlock" class="btn btn-brass">デモ解除で Pro 表示を試す</button>
 <button type="button" id="btn-pro-lock" class="btn btn-ghost">デモ解除を取り消す</button>
 </div>
-<p class="demo-note">※ 決済はまだ実装されていません。「デモ解除」はこの端末だけで表示を切り替えるお試しボタンです。料金は予定価格です。</p>
+<p class="demo-note">※ 決済はまだ実装されていません。「デモ解除」はこの端末だけで表示を切り替えるお試しボタンです。料金は予定価格です。ロック中のカード、またはPROカードをタップするとパスワード入力が開きます。</p>
+</div>
+
+<!-- ============ PASSWORD MODAL ============ -->
+<div class="pw-modal" id="pw-modal" hidden role="dialog" aria-modal="true" aria-labelledby="pw-title">
+<div class="pw-card">
+<h3 id="pw-title">Pro をパスワードで解除</h3>
+<p>ロック中のベスト1〜4と感度分析の全文を表示します。パスワードを入力してください。</p>
+<input type="password" id="pw-input" autocomplete="off" aria-label="パスワード" placeholder="パスワード">
+<p class="pw-err" id="pw-err" aria-live="polite"></p>
+<div class="pw-row">
+<button type="button" id="pw-submit" class="btn btn-brass">解除する</button>
+<button type="button" id="pw-cancel" class="btn btn-ghost">キャンセル</button>
+</div>
+</div>
 </div>
 
 <div class="sec-head">
@@ -842,6 +871,7 @@ footer b{color:var(--ink2)}
 <p id="priority-param-badge" class="badge">最優先改善パラメータ：算出中</p>
 </div>
 <div class="sum-grid sens-grid" id="sensitivity-container"></div>
+<p id="sens-lock-note" class="demo-note" hidden>感度分析の全文は Pro で公開中です。ベスト1〜4のロックを解除すると表示されます。</p>
 
 <div class="action-row no-print">
 <button type="button" id="btn-save-result" class="btn btn-ghost">診断結果を保存する</button>
@@ -893,7 +923,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Fitting v2.5</b><br>
+<b>FIT LAB — Driver Fitting v2.7</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
@@ -2071,7 +2101,7 @@ footer b{color:var(--ink2)}
 </script>
 
 <script>
-/* ================= FIT LAB v2.5 UI ================= */
+/* ================= FIT LAB v2.7 UI ================= */
 (function(){
 'use strict';
 var STEP_NAMES = {1:'あなたについて', 2:'球の高さと飛距離', 3:'球筋と打点', 4:'診断結果'};
@@ -2181,7 +2211,8 @@ cmp.className = 'top3-compare';
 var rows = list.slice(0,3).map(function(it, i){
 return '<div class="top3-row"><div class="r">' + (i+1) + '</div><div class="m">' + it.head.brand + ' ' + it.head.model + ' ' + it.chosenLoft + '<small>' + it.shaft.brand + ' ' + it.shaft.model + ' [' + it.shaft.flex + '] ' + it.shaft.weight + 'g</small></div><div class="s">' + it.score + '<span style="font-size:12px">/100</span></div></div>';
 }).join('');
-cmp.innerHTML = '<h3>Top 3 をひと目で比べる</h3><p>無料で見られる上位3つの組み合わせです。スコアは重さ・振動数・球筋・打点・弾道の5要素から採点しています。</p>' + rows;
+cmp.innerHTML = '<h3>Top 3 をひと目で比べる</h3><p>ベスト1〜3の組み合わせです。スコアは重さ・振動数・球筋・打点・弾道の5要素から採点しています。</p>' + rows;
+cmp.style.display = proUnlocked() ? '' : 'none';
 box.insertBefore(cmp, box.firstChild);
 var cards = box.querySelectorAll('article');
 var sum = window.__fitSummary || null;
@@ -2207,6 +2238,98 @@ cards[0].appendChild(arc);
 }
 }
 
+/* ---- v2.6: SHA-256（パスワード照合用。パスワード文字列そのものはコードに置かない） ---- */
+function sha256hex(ascii){
+function rr(v,a){return (v>>>a)|(v<<(32-a));}
+var maxWord=Math.pow(2,32), result='';
+var words=[], asciiBitLength=ascii.length*8;
+var hash=sha256hex.h=sha256hex.h||[], k=sha256hex.k=sha256hex.k||[];
+var primeCounter=k.length, isComposite={};
+for(var candidate=2;primeCounter<64;candidate++){
+if(!isComposite[candidate]){
+for(var i=0;i<313;i+=candidate){isComposite[i]=candidate;}
+hash[primeCounter]=(Math.pow(candidate,.5)*maxWord)|0;
+k[primeCounter++]=(Math.pow(candidate,1/3)*maxWord)|0;
+}}
+ascii+='\x80';
+while(ascii.length%64-56)ascii+='\x00';
+for(var i=0;i<ascii.length;i++){
+var j=ascii.charCodeAt(i);
+if(j>>8)return '';
+words[i>>2]|=j<<((3-i)%4)*8;
+}
+words[words.length]=((asciiBitLength/maxWord)|0);
+words[words.length]=(asciiBitLength);
+for(var j=0;j<words.length;){
+var w=words.slice(j,j+=16), oldHash=hash;
+hash=hash.slice(0,8);
+for(var i=0;i<64;i++){
+var w15=w[i-15], w2=w[i-2];
+var a=hash[0], e=hash[4];
+var temp1=hash[7]
++(rr(e,6)^rr(e,11)^rr(e,25))
++((e&hash[5])^((~e)&hash[6]))
++k[i]
++(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+var temp2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+hash=[(temp1+temp2)|0].concat(hash);
+hash[4]=(hash[4]+temp1)|0;
+}
+for(var i=0;i<8;i++){hash[i]=(hash[i]+oldHash[i])|0;}
+}
+for(var i=0;i<8;i++){
+for(var j=3;j+1;j--){
+var b=(hash[i]>>(j*8))&255;
+result+=((b<16)?0:'')+b.toString(16);
+}}
+return result;
+}
+window.__fitlab = { sha256hex: sha256hex };
+/* パスワードはハッシュ値のみで照合する（平文はリポジトリに置かない）。
+   正式パスワード（8桁）に変えるときは、このハッシュ値を差し替えること。
+   window.__pwHashOverride はテスト用フック（運用時は未設定）。 */
+var PRO_PW_HASH = '625fe74cad4600b5e8b76a9283333eb79052ae50d6af7f660feb4831d87af5d2';
+function verifyPassword(pw){
+try { return sha256hex(pw) === (window.__pwHashOverride || PRO_PW_HASH); }
+catch(e){ return false; }
+}
+function openPwModal(){
+var m = document.getElementById('pw-modal');
+if (!m) return;
+m.hidden = false;
+var err = document.getElementById('pw-err'); if (err) err.textContent = '';
+var inp = document.getElementById('pw-input'); if (inp) { inp.value = ''; inp.focus(); }
+}
+function closePwModal(){
+var m = document.getElementById('pw-modal');
+if (m) m.hidden = true;
+}
+document.getElementById('pw-submit').addEventListener('click', function(){
+var inp = document.getElementById('pw-input');
+var pw = inp ? inp.value : '';
+if (verifyPassword(pw)) {
+try { localStorage.setItem('pro_unlocked','1'); } catch(e){}
+closePwModal();
+applyProGate();
+document.getElementById('save-note').textContent = 'パスワードで解除しました。この端末ではベスト1〜4の全文が表示されます（決済は行われていません）。';
+} else {
+var err = document.getElementById('pw-err');
+if (err) err.textContent = 'パスワードが違います。ロック画面のままです。';
+if (inp) { inp.value = ''; inp.focus(); }
+}
+});
+document.getElementById('pw-cancel').addEventListener('click', closePwModal);
+document.getElementById('pw-modal').addEventListener('click', function(e){ if (e.target === this) closePwModal(); });
+document.getElementById('pw-input').addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); document.getElementById('pw-submit').click(); } });
+/* v2.7: PROカードをタップしてもパスワード入力が開く（ロック中のみ） */
+var proCard = document.querySelector('#pro-panel .price-card.pro');
+if (proCard) {
+proCard.setAttribute('role','button');
+proCard.setAttribute('tabindex','0');
+proCard.addEventListener('click', function(){ if (!proUnlocked()) openPwModal(); });
+proCard.addEventListener('keydown', function(e){ if ((e.key === 'Enter' || e.key === ' ') && !proUnlocked()) { e.preventDefault(); openPwModal(); } });
+}
+
 /* ---- Pro gate: wrap the preserved renderTop10 ---- */
 var lastTop10 = null, lastCtx = null;
 var _renderTop10 = renderTop10;
@@ -2225,12 +2348,16 @@ var cards = box.querySelectorAll('article,.rank-card,.glass-card');
 var unlocked = proUnlocked();
 cards.forEach(function(card, idx){
 card.classList.remove('rank-card');
-if (idx >= 3 &&!unlocked) {
+if (idx < 4 &&!unlocked) {
 card.classList.add('rank-card','locked');
 if (!card.querySelector('.lock-overlay')) {
 var ov = document.createElement('div');
 ov.className = 'lock-overlay';
-ov.innerHTML = '<div class="lock-t">第' + (idx+1) + '位は Pro で公開</div><div class="lock-s">Top 4〜10の全文は Pro（¥480/月・¥3,800/年、準備中）でご覧いただけます。下の「デモ解除で Pro 表示を試す」で表示を試せます。</div>';
+ov.setAttribute('role','button');
+ov.setAttribute('tabindex','0');
+ov.innerHTML = '<div class="lock-t">第' + (idx+1) + '位は Pro で公開</div><div class="lock-s">ベスト1〜4の全文は Pro（¥480/月・¥3,800/年、準備中）でご覧いただけます。下の「デモ解除で Pro 表示を試す」で表示を試せます。</div>';
+ov.addEventListener('click', function(){ openPwModal(); });
+ov.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPwModal(); } });
 card.appendChild(ov);
 }
 } else {
@@ -2238,21 +2365,31 @@ card.classList.remove('locked');
 var ov2 = card.querySelector('.lock-overlay');
 if (ov2) ov2.remove();
 }
-if (idx < 3) card.classList.add('rank-card');
+if (idx < 4) card.classList.add('rank-card');
 if (idx === 0) card.classList.add('top1');
 });
+var cmp = document.getElementById('top3-compare');
+if (cmp) cmp.style.display = unlocked ? '' : 'none';
+var sens = document.getElementById('sensitivity-container');
+var sensNote = document.getElementById('sens-lock-note');
+if (sens) sens.style.display = unlocked ? '' : 'none';
+if (sensNote) sensNote.hidden = unlocked;
 var panel = document.getElementById('pro-panel');
-if (panel) panel.style.display = unlocked? 'none': '';
+if (panel) {
+  panel.classList.toggle('unlocked', unlocked);
+  var note = document.getElementById('pro-unlocked-note');
+  if (note) note.hidden = !unlocked;
+}
 }
 document.getElementById('btn-pro-unlock').addEventListener('click', function(){
 try { localStorage.setItem('pro_unlocked','1');} catch(e){}
 applyProGate();
-document.getElementById('save-note').textContent = 'デモ解除しました。この端末では Top 10 の全文が表示されます（決済は行われていません）。';
+document.getElementById('save-note').textContent = 'デモ解除しました。この端末ではベスト1〜4の全文が表示されます（決済は行われていません）。';
 });
 document.getElementById('btn-pro-lock').addEventListener('click', function(){
 try { localStorage.removeItem('pro_unlocked');} catch(e){}
 applyProGate();
-document.getElementById('save-note').textContent = 'デモ解除を取り消しました。Top 4〜10は再びロックされます。';
+document.getElementById('save-note').textContent = 'デモ解除を取り消しました。ベスト1〜4は再びロックされます。';
 });
 
 /* ---- Save / copy / print ---- */
@@ -2276,7 +2413,7 @@ var lines = [''];
 if (lastTop10) lastTop10.slice(0,3).forEach(function(it, i){
 lines.push('第' + (i+1) + '位（' + it.score + '点）: ' + it.head.brand + ' ' + it.head.model + ' ' + it.chosenLoft + ' × ' + it.shaft.brand + ' ' + it.shaft.model + ' [' + it.shaft.flex + '] ' + it.shaft.weight + 'g');
 });
-lines.push('※ Top 4〜10はProで表示。詳細は FIT LAB でご確認ください。');
+lines.push('※ ベスト1〜4はProで表示。詳細は FIT LAB でご確認ください。');
 var text = lines.join('\n');
 function done(ok){ document.getElementById('save-note').textContent = ok? '結果をコピーしました。': 'コピーできませんでした。';}
 if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(function(){done(true);}, function(){done(false);});}
