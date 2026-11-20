@@ -57,7 +57,12 @@ def _iso(dt):
     return dt.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 def issue_ephemeral_token(api_key):
-    """Gemini のエフェメラルトークンを発行する（v1beta auth_tokens）。"""
+    """Gemini のエフェメラルトークンを発行する（v1beta auth_tokens）。
+
+    v3.4.1: liveConnectConstraints は公式例の最小構成（model +
+    responseModalities + sessionResumption）に絞る。文字起こし・VAD の設定は
+    クライアントの setup メッセージ側で送る（制約に入れると 400 になる）。
+    """
     now = datetime.now(timezone.utc)
     body = {
         "uses": 1,
@@ -67,18 +72,7 @@ def issue_ephemeral_token(api_key):
             "model": LIVE_MODEL,
             "config": {
                 "responseModalities": ["AUDIO"],
-                "sessionResumption": {},
-                "inputAudioTranscription": {"languageCode": "ja-JP"},
-                "outputAudioTranscription": {"languageCode": "ja-JP"},
-                "realtimeInputConfig": {
-                    "automaticActivityDetection": {
-                        "disabled": False,
-                        "startOfSpeechSensitivity": "START_SENSITIVITY_HIGH",
-                        "endOfSpeechSensitivity": "END_SENSITIVITY_HIGH",
-                        "prefixPaddingMs": 20,
-                        "silenceDurationMs": 500
-                    }
-                }
+                "sessionResumption": {}
             }
         }
     }
@@ -221,7 +215,16 @@ class handler(SimpleHTTPRequestHandler):
             self._send_json(200, {"success": True, "text": text, "runtime": "python"})
             return
         except urllib.error.HTTPError as e:
-            self._send_json(502, {"success": False, "error": f"上流APIエラー（HTTP {e.code}）", "runtime": "python"})
+            # v3.4.1: 切り分けのため Google の詳細エラー（message / status のみ）を返す。
+            detail = ''
+            try:
+                err_data = json.loads(e.read().decode('utf-8'))
+                g_err = err_data.get('error') or {}
+                detail = ': '.join(str(x) for x in [g_err.get('status'), g_err.get('message')] if x)
+            except Exception:
+                pass
+            msg = f"上流APIエラー（HTTP {e.code}）" + (f"。詳細: {detail}" if detail else "")
+            self._send_json(502, {"success": False, "error": msg, "runtime": "python"})
             return
         except Exception:
             self._send_json(502, {"success": False, "error": "上流APIに接続できませんでした。", "runtime": "python"})

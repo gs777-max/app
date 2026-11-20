@@ -8,6 +8,13 @@
  * キーはサーバー（Vercel 環境変数）だけが持ち、ブラウザはトークンで
  * Google へ直接 WebSocket 接続する（遅延は増えない）。
  *
+ * v3.4.1: liveConnectConstraints を公式例の最小構成（model +
+ * responseModalities + sessionResumption）に絞った。v3.4 では制約に
+ * 文字起こし（不正フィールド languageCode）と VAD 設定まで入れており、
+ * Google が HTTP 400 を返してトークン発行に失敗していた。
+ * 文字起こし・VAD の設定はクライアントの setup メッセージ側で送る。
+ * 失敗時は Google の詳細エラー（message / status のみ）を 502 に含める。
+ *
  * 公式ドキュメント: https://ai.google.dev/gemini-api/docs/live-api/ephemeral-tokens
  * 既定の有効期限: 新規セッション開始は発行後1分以内、接続は30分、uses 1回。
  * ここでは新規セッション開始を2分に少しだけ延ばし、接続は30分のままにする。
@@ -84,18 +91,7 @@ async function handler(req, res) {
       model: LIVE_MODEL,
       config: {
         responseModalities: ['AUDIO'],
-        sessionResumption: {},
-        inputAudioTranscription: { languageCode: 'ja-JP' },
-        outputAudioTranscription: { languageCode: 'ja-JP' },
-        realtimeInputConfig: {
-          automaticActivityDetection: {
-            disabled: false,
-            startOfSpeechSensitivity: 'START_SENSITIVITY_HIGH',
-            endOfSpeechSensitivity: 'END_SENSITIVITY_HIGH',
-            prefixPaddingMs: 20,
-            silenceDurationMs: 500
-          }
-        }
+        sessionResumption: {}
       }
     }
   };
@@ -111,9 +107,15 @@ async function handler(req, res) {
     });
     const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok || !data.name) {
+      // v3.4.1: 切り分けのため Google の詳細エラー（message / status のみ）を返す。
+      // キー等の秘密情報は含めない。
+      const gErr = (data && data.error) || {};
+      const detail = [gErr.status, gErr.message].filter(Boolean).join(': ');
       res.status(502).json({
         success: false,
-        error: `トークン発行に失敗しました（HTTP ${upstream.status}）。キー設定と Live API の有効化を確認してください。`
+        error: `トークン発行に失敗しました（HTTP ${upstream.status}）。キー設定と Live API の有効化を確認してください。${detail ? ` 詳細: ${detail}` : ''}`,
+        upstreamStatus: gErr.status || null,
+        upstreamMessage: gErr.message || null
       });
       return;
     }
