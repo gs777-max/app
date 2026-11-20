@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Serif+JP:wght@600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ============ FIT LAB v2.7 — paper x deep green x brass editorial, mobile-first ============ */
+/* ============ FIT LAB v2.8 — paper x deep green x brass editorial, mobile-first ============ */
 :root{
   --paper:#F6F1E7; --card:#FFFDF8; --ink:#14201B; --ink2:#2E3B34; --muted:#4A5A51;
   --green:#0B352A; --green2:#072A20; --green-soft:#E4EFE7; --green-line:#7FA98C;
@@ -213,6 +213,10 @@ img,svg{max-width:100%}
 .score-dial{display:flex;align-items:center;gap:12px}
 .score-dial .dial-num{font-family:'Fraunces','Noto Serif JP',serif;font-size:36px;font-weight:700;line-height:1;color:var(--green)}
 #top10-container .rank-card.top1 .score-dial .dial-num{color:#E9CE8E}
+.rank-chip{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;padding:3px 10px;border-radius:999px;border:1.5px solid var(--green);color:var(--green);margin-bottom:6px}
+#top10-container .rank-card.top1 .rank-chip{border-color:#E9CE8E;color:#E9CE8E}
+#top10-container .rank-card.top1 h3[class~="text-white"]{color:#F6F1E7}
+#top10-container article .flex.items-center.gap-2\.5>span{white-space:nowrap}
 .score-dial .dial-of{font-size:13px;color:var(--muted);font-weight:700}
 #top10-container .rank-card.top1 .score-dial .dial-of{color:#B9CDBF}
 .top3-compare{background:var(--green);color:#F6F1E7;border-radius:18px;padding:22px;margin-bottom:18px}
@@ -923,7 +927,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Fitting v2.7</b><br>
+<b>FIT LAB — Driver Fitting v2.8</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
@@ -2101,7 +2105,7 @@ footer b{color:var(--ink2)}
 </script>
 
 <script>
-/* ================= FIT LAB v2.7 UI ================= */
+/* ================= FIT LAB v2.8 UI ================= */
 (function(){
 'use strict';
 var STEP_NAMES = {1:'あなたについて', 2:'球の高さと飛距離', 3:'球筋と打点', 4:'診断結果'};
@@ -2218,11 +2222,12 @@ var cards = box.querySelectorAll('article');
 var sum = window.__fitSummary || null;
 cards.forEach(function(card, idx){
 card.style.animationDelay = (idx * 70) + 'ms';
-var scoreEl = card.querySelector('.flex.items-center.gap-2');
+var scoreEls = card.querySelectorAll('.flex.items-center.gap-2');
+var scoreEl = scoreEls.length ? scoreEls[scoreEls.length - 1] : null;
 if (scoreEl && !scoreEl.querySelector('.score-dial')) {
 var sc = list[idx] ? list[idx].score : 0;
 var C = 163.36, off = (C * (1 - sc / 100)).toFixed(1);
-scoreEl.innerHTML = '<div class="score-dial"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--line)" stroke-width="6"/><circle cx="32" cy="32" r="26" fill="none" stroke="' + (idx === 0 ? '#B9975B' : '#0B352A') + '" stroke-width="6" stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off + '" transform="rotate(-90 32 32)"/></svg><span><span class="dial-num">' + sc + '</span><span class="dial-of">/100点</span><br><span style="font-size:12px;color:var(--muted)">物理適合スコア</span></span></div>';
+scoreEl.innerHTML = '<div class="score-dial"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--line)" stroke-width="6"/><circle cx="32" cy="32" r="26" fill="none" stroke="' + (idx < 4 ? '#B9975B' : '#0B352A') + '" stroke-width="6" stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off + '" transform="rotate(-90 32 32)"/></svg><span><span class="rank-chip">第' + (idx+1) + '位</span><br><span class="dial-num">' + sc + '</span><span class="dial-of">/100点</span><br><span style="font-size:12px;color:var(--muted)">物理適合スコア</span></span></div>';
 }
 });
 if (sum && cards[0] && !cards[0].querySelector('.traj')) {
@@ -2366,7 +2371,7 @@ var ov2 = card.querySelector('.lock-overlay');
 if (ov2) ov2.remove();
 }
 if (idx < 4) card.classList.add('rank-card');
-if (idx === 0) card.classList.add('top1');
+if (idx < 4) card.classList.add('top1');
 });
 var cmp = document.getElementById('top3-compare');
 if (cmp) cmp.style.display = unlocked ? '' : 'none';
