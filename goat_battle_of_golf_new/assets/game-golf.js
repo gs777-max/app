@@ -21,7 +21,7 @@ window.__goatDiagLoopOk = function(slot){ try{ var D = window.__GOAT_DIAG__; if(
   var TL = new THREE.TextureLoader();
   /* v4.9: アセット版数（boot 層の __GOAT_AV__ と連動）。テクスチャ/GLB の URL に付与し、
      30日キャッシュ下でも版上げで確実に差し替わるようにする */
-  var AVQ = '?v=' + (window.__GOAT_AV__ || 'N1');
+  var AVQ = '?v=' + (window.__GOAT_AV__ || 'N2');
   var __WARM = /[?&]warmup=1/.test(location.search); /* v4.5: 先読み時はテクスチャを読み込まない */
   function loadTex(name, srgb, rx, ry){
     if(__WARM) return null;
@@ -2131,6 +2131,9 @@ class GolfGame{
     this._traceStart(); // ★ 弾道トレース開始
     this.ball.onLanded=(surf,pos)=>this._onLanded(surf,pos);
     this.ball.onStopped=(pos,surf)=>this._onStopped(pos,surf);
+    /* N2: 発射とインパクト演出は _launch にまとめ、_swingAnim の N2 ラッパーが
+       スイングクリップのインパクト時刻に発火する（新モデル未適用時は従来どおり即時発火）。 */
+    const _launch=()=>{
     this.ball.shoot(this.ball.position.clone(),carryDist,runDist,aimRad,sideYd,peakRatio,(x,z)=>this.getGY(x,z),{spinAxis:this.dplane.faceAngle-this.dplane.swingPath});
     this.strokes++;this._updateHUDStrokes();
     // ★ ドライビングディスタンス記録
@@ -2140,7 +2143,6 @@ class GolfGame{
     }
     this._holeFirstShot=false;
     document.getElementById("flightBar").style.display="block";
-    this._swingAnim();
     this._haptic(nsBonus>=0.50?"success":nsBonus>=0.20?"medium":"light");
     // ★★★ AAAインパクト演出：迫真サウンド、カメラシェイク、スパーク、フラッシュ ★★★
     if(this.audio){
@@ -2168,6 +2170,9 @@ class GolfGame{
       const col=nsBonus>=0.50?"#ff88ff":nsBonus>=0.30?"#ffdd00":"#00ff88";
       this._showNiceShotPopup(label,col);
     }
+    };
+    this._n2PendingLaunch=_launch;
+    this._swingAnim();
   }
 
   _executePutt(targetRollYd){
@@ -8142,6 +8147,8 @@ document.addEventListener('DOMContentLoaded', function () {
         B.oppPower = typeof ctx.opponent.power === "number" ? ctx.opponent.power : 100;
         B.isBoss = !!ctx.opponent.isBoss;
         B.isPrime = !!ctx.opponent.isPrime;
+        B.oppId = ctx.opponent.id || null;     /* N2: 対戦相手の実体表示用に識別子を保持 */
+        B.oppKind = ctx.opponent.kind || null; /* N2: 同上（"rival" 判定用） */
       }
       B.courseId = ctx.course || B.courseId;
       B.holesCount = ctx.holes || B.holesCount;
@@ -8154,6 +8161,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* キャラクター選定＆表示名反映 */
     var activeCharId = (ctx && ctx.activeChar && ctx.activeChar.id) || q.get("player") || "Watu";
+    B.playerCharId = activeCharId; /* N2: 自キャラ実体表示用（表示名でなくキャラIDを保持） */
     var ci = CHARACTERS.findIndex(function(c){ return c.name === activeCharId; });
     if(ci < 0) ci = 0;
     var ch = Object.assign({}, CHARACTERS[ci], { name: B.playerName });
@@ -8429,3 +8437,714 @@ document.addEventListener('DOMContentLoaded', function () {
 
 /* v4.5: 文書破棄時に WebGL を明示解放し、遷移ピークの GPU メモリを下げる */
 window.addEventListener("pagehide", function(){ try{ var g = window.game; if(g && g.renderer){ if(g.renderer.forceContextLoss) g.renderer.forceContextLoss(); try{ g.renderer.dispose(); }catch(e2){} } }catch(e){} });
+
+
+/* =========================================================================
+N2: キャラ実体表示（骨付きGLBモデル＋クリップアニメーション）
+- 自キャラ: 手続きモデルから GLB モデルへ差し替え（idle / swing / walk）。
+ショットの発射は swing クリップのインパクト時刻に同期させる（_executeShot の
+_n2PendingLaunch を _swingAnim ラッパーがインパクトで発火する）。
+- ライバル戦: 対戦相手を実体表示する。ゴースト計算（stepEnemyGhostOneShot 等）は
+一切変更せず、B.ghost の打数変化を検知して「相手の1打」を映像化する。
+- カメラ: アドレス時は自キャラが見える画角に寄せ、相手ターン時は相手打席カメラへ。
+- ボス戦・フリーラウンドでは相手モデルは出さない（自キャラ差し替えのみ）。
+========================================================================= */
+(function initGoatCharStageN2(){
+"use strict";
+var q = new URLSearchParams(location.search);
+if(q.get("goat")!== "1") return;
+
+var CHAR_KEY = { Watu:"watu", Matuya:"matuya", TIiger:"tiiger", Junbo:"junbo", McIlro:"mcilro", DeCham:"decham"};
+var DS_KEY = { 75:"watu", 80:"matuya", 85:"tiiger", 82:"junbo", 90:"mcilro", 95:"decham"};
+/* 計測キャリブレーション（deliver-N2/work/measure*.json で実測、2026-11-20）:
+off = アドレス時クラブヘッド中心の GLB 局所座標、dir = インパクト前後のクラブヘッド
+速度方向 (XZ)、s = 従来手続きモデルの身長（2.04×体格比）に一致させる拡縮率 */
+var CAL = {
+watu: { off:[0.023,0.037,0.563], dir:[0.978,-0.209], s:1.210},
+matuya: { off:[0.023,0.037,0.559], dir:[0.988,-0.151], s:1.212},
+tiiger: { off:[0.045,0.038,0.524], dir:[0.951, 0.307], s:1.096},
+junbo: { off:[0.030,0.038,0.540], dir:[0.993, 0.120], s:1.164},
+mcilro: { off:[0.045,0.038,0.524], dir:[0.966, 0.258], s:1.154},
+decham: { off:[0.043,0.038,0.528], dir:[0.981, 0.192], s:1.175}
+};
+var IMPACT_T = 0.9667; /* swing クリップのインパクト時刻（f30 @30fps、全キャラ共通の作画キー） */
+
+var stage = {
+booted:false, hooksInstalled:false, loaderReady:false, loadError:null,
+player:null, opp:null, oppBall:null, oppBallState:"rest",
+queue:[], cine:null,
+prevGhost:null, prevHoleIdx:-1,
+swingLaunch:null, swingPending:false, swingStartWall:0, oppPlaced:false, lastCamT:0,
+camPos:null, camLook:null, camActive:false,
+lastPlayerMesh:null, tickOn:false, playerKey:null, oppKey:null,
+flight:null, relocate:null
+};
+window.__GOATN2 = stage;
+
+function log(){ try{ console.log.apply(console, ["[GOAT-N2]"].concat([].slice.call(arguments)));}catch(e){}}
+function clamp(x,a,b){ return Math.max(a, Math.min(b, x));}
+function smooth(x){ return x*x*(3-2*x);}
+
+/* ---------------- Actor（1人分の GLB モデル＋ミキサー） ---------------- */
+function Actor(key){
+this.key = key; this.cal = CAL[key];
+this.group = new THREE.Group();
+this.group.rotation.order = "YXZ";
+this.mixer = null; this.actions = {}; this.current = null;
+this.ready = false; this.failed = false;
+this.moveTarget = null; this.rockStart = 0;
+this.yaw = 0;
+}
+Actor.prototype.load = function(loader){
+var self = this;
+loader.loadAsync("assets/chars/" + this.key + ".glb?v=N2").then(function(gltf){
+var model = gltf.scene;
+/* MPFB 由来マテリアルは BLEND 指定だと同一メッシュ内の描画順が崩れて透けるため、
+テストページで実証した対処（不透明化＋alphaTest）を適用する */
+model.traverse(function(o){
+if(o.isMesh){
+o.castShadow = true; o.receiveShadow = false;
+var mats = Array.isArray(o.material)? o.material: [o.material];
+mats.forEach(function(m){ m.transparent = false; m.depthWrite = true; m.alphaTest = 0.35; m.needsUpdate = true;});
+}
+});
+self.group.add(model);
+self.group.scale.setScalar(self.cal.s);
+self.mixer = new THREE.AnimationMixer(model);
+gltf.animations.forEach(function(a){ self.actions[a.name] = self.mixer.clipAction(a);});
+self.ready = true;
+self.setClip("idle", { loop:true, fade:0.01});
+log("actor ready:", self.key);
+}).catch(function(e){
+self.failed = true;
+log("actor load FAILED:", self.key, e && e.message);
+});
+};
+Actor.prototype.setClip = function(name, opts){
+opts = opts || {};
+var a = this.actions[name]; if(!a) return false;
+var fade = (opts.fade!= null)? opts.fade: 0.25;
+if(this.current === a &&!opts.restart) return true;
+a.enabled = true;
+a.setEffectiveWeight(1);
+a.setLoop(opts.loop? THREE.LoopRepeat: THREE.LoopOnce, Infinity);
+a.clampWhenFinished =!opts.loop;
+if(opts.restart) a.reset();
+a.paused =!!opts.paused;
+a.fadeIn(fade);
+a.play();
+if(this.current && this.current!== a) this.current.fadeOut(fade);
+this.current = a;
+return true;
+};
+Actor.prototype.holdAddress = function(){
+var a = this.actions.swing; if(!a) return;
+this.group.rotation.x = 0; this.rockStart = 0;
+a.enabled = true; a.setEffectiveWeight(1);
+a.setLoop(THREE.LoopOnce, Infinity); a.clampWhenFinished = true;
+a.reset(); a.paused = true; a.play();
+if(this.current && this.current!== a) this.current.fadeOut(0.2);
+this.current = a;
+};
+Actor.prototype.startSwing = function(){
+var a = this.actions.swing; if(!a) return false;
+this.group.rotation.x = 0; this.rockStart = 0;
+a.enabled = true; a.setEffectiveWeight(1);
+a.setLoop(THREE.LoopOnce, Infinity); a.clampWhenFinished = true;
+a.reset(); a.paused = false; a.fadeIn(0.06); a.play();
+if(this.current && this.current!== a) this.current.fadeOut(0.06);
+this.current = a;
+return true;
+};
+/* 打席配置: クラブヘッド（アドレス時）がボール中心に一致し、打球方向が dirWorld を向く */
+Actor.prototype.placeAtAddress = function(ballPos, dirWorld){
+var c = this.cal, s = c.s;
+var alpha = Math.atan2(c.dir[0], c.dir[1]);
+var beta = Math.atan2(dirWorld.x, dirWorld.z);
+var a = beta - alpha;
+var ox = c.off[0]*s, oy = c.off[1]*s, oz = c.off[2]*s;
+var rx = ox*Math.cos(a) + oz*Math.sin(a);
+var rz = -ox*Math.sin(a) + oz*Math.cos(a);
+this.group.position.set(ballPos.x - rx, ballPos.y - oy, ballPos.z - rz);
+this.group.rotation.y = a;
+this.yaw = a;
+};
+/* 待機配置: その場に立ち、faceDir を向く */
+Actor.prototype.placeStanding = function(x, groundY, z, faceDir){
+this.group.position.set(x, groundY, z);
+var a = Math.atan2(faceDir.x, faceDir.z);
+this.group.rotation.y = a;
+this.yaw = a;
+};
+Actor.prototype.chestDir = function(){
+return { x: Math.sin(this.yaw), z: Math.cos(this.yaw)};
+};
+
+/* ---------------- ローダー初期化 ---------------- */
+var gltfLoader = null;
+function initLoader(){
+if(stage.loaderReady || stage.loadError) return;
+import("three/addons/loaders/KTX2Loader.js").then(function(mod){
+try{
+var ktx2 = new mod.KTX2Loader();
+ktx2.setTranscoderPath("assets/lib/r180/addons/libs/basis/");
+ktx2.detectSupport(game.renderer);
+gltfLoader = new THREE.GLTFLoader();
+gltfLoader.setKTX2Loader(ktx2);
+if(window.MeshoptDecoder) gltfLoader.setMeshoptDecoder(window.MeshoptDecoder);
+stage.loaderReady = true;
+log("loader ready");
+maybeLoadActors();
+}catch(e){ stage.loadError = String(e && e.message || e); log("loader init failed", stage.loadError);}
+}).catch(function(e){ stage.loadError = String(e && e.message || e); log("KTX2Loader import failed", stage.loadError);});
+}
+
+function resolvePlayerKey(){
+var B = window.GOAT_BATTLE;
+if(B && B.playerCharId && CHAR_KEY[B.playerCharId]) return CHAR_KEY[B.playerCharId];
+if(game.character && game.character.name && CHAR_KEY[game.character.name]) return CHAR_KEY[game.character.name];
+if(game.character && DS_KEY[game.character.driverSpeed]) return DS_KEY[game.character.driverSpeed];
+return "watu";
+}
+function resolveOppKey(){
+var B = window.GOAT_BATTLE;
+if(!B || B.freeRound || B.inPlayoff) return null;
+var isRival = (B.oppKind === "rival") || (!B.isBoss && B.holesCount === 1);
+if(!isRival) return null;
+if(B.oppId && CHAR_KEY[B.oppId]) return CHAR_KEY[B.oppId];
+if(B.oppName){ for(var n in CHAR_KEY){ if(B.oppName.indexOf(n) === 0) return CHAR_KEY[n];}}
+return null;
+}
+function maybeLoadActors(){
+if(!stage.loaderReady ||!stage.hooksInstalled) return;
+if(!stage.player){
+stage.playerKey = resolvePlayerKey();
+stage.player = new Actor(stage.playerKey);
+stage.player.load(gltfLoader);
+}
+var ok = resolveOppKey();
+if(ok &&!stage.opp){
+stage.oppKey = ok;
+stage.opp = new Actor(ok);
+stage.opp.load(gltfLoader);
+makeOppBall();
+}
+}
+function makeOppBall(){
+if(stage.oppBall) return;
+var m = new THREE.Mesh(
+new THREE.SphereGeometry(0.22, 24, 18),
+new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.34, metalness:0.0})
+);
+m.castShadow = true;
+m.visible = false;
+stage.oppBall = m;
+}
+
+/* ---------------- 入力ロック ---------------- */
+function inputLocked(){
+return!!(stage.cine || stage.queue.length > 0 || stage.swingPending);
+}
+stage.inputLocked = inputLocked;
+
+/* ---------------- フック設置（エンジンのフックより外側に付ける） ---------------- */
+function installHooks(){
+if(stage.hooksInstalled) return;
+stage.hooksInstalled = true;
+
+var origSwingAnim = game._swingAnim.bind(game);
+game._swingAnim = function(){
+var launch = game._n2PendingLaunch || null;
+game._n2PendingLaunch = null;
+if(launch){
+/* 通常ショット: クリップのインパクトで発射する */
+if(stage.player && stage.player.ready && stage.player.startSwing()){
+stage.swingLaunch = launch;
+stage.swingPending = true;
+stage.swingStartWall = performance.now();
+return;
+}
+launch();
+origSwingAnim();
+return;
+}
+/* パット: 発射は済んでいる。モデルには小さな揺れだけ付ける */
+if(stage.player && stage.player.ready){
+stage.player.rockStart = performance.now();
+return;
+}
+origSwingAnim();
+};
+
+var origExecShot = game._executeShot.bind(game);
+game._executeShot = function(p, a, n){ if(inputLocked()) return; return origExecShot(p, a, n);};
+var origExecPutt = game._executePutt.bind(game);
+game._executePutt = function(t){ if(inputLocked()) return; return origExecPutt(t);};
+if(game.shotCtrl){
+var origShotInput = game.shotCtrl.onInput.bind(game.shotCtrl);
+game.shotCtrl.onInput = function(){ if(inputLocked()) return; origShotInput();};
+}
+if(game.puttCtrl){
+var origPuttInput = game.puttCtrl.onInput.bind(game.puttCtrl);
+game.puttCtrl.onInput = function(){ if(inputLocked()) return; origPuttInput();};
+}
+
+var origCam = game.updateCamera.bind(game);
+game.updateCamera = function(){
+origCam();
+applyCameraOverride();
+};
+
+var origLoadHole = game.loadHole.bind(game);
+game.loadHole = function(){
+var r = origLoadHole.apply(null, arguments);
+stage.queue.length = 0;
+stage.cine = null;
+stage.flight = null;
+stage.prevGhost = null;
+stage.oppPlaced = false;
+return r;
+};
+log("hooks installed");
+}
+
+/* ---------------- カメラ ---------------- */
+function addressCamPose(ballPos, dirWorld, chestWorld, dist, height, lookAhead){
+return {
+pos: new THREE.Vector3(
+ballPos.x - dirWorld.x*dist + chestWorld.x*1.7,
+ballPos.y + height,
+ballPos.z - dirWorld.z*dist + chestWorld.z*1.7),
+look: new THREE.Vector3(
+ballPos.x + dirWorld.x*lookAhead,
+ballPos.y + 1.0,
+ballPos.z + dirWorld.z*lookAhead)
+};
+}
+function playerAddressPose(){
+var bp = game.ball.position;
+var pin = game.pinPos || new THREE.Vector3(bp.x, bp.y, bp.z - 100);
+var dx = pin.x - bp.x, dz = pin.z - bp.z;
+var len = Math.hypot(dx, dz) || 1;
+var dir = { x: dx/len, z: dz/len};
+/* camOrbit（右ドラッグ回転）をアドレス画角にも反映する */
+var orb = (game.camOrbit || 0) * Math.PI/180;
+var co = Math.cos(orb), si = Math.sin(orb);
+var rdir = { x: dir.x*co - dir.z*si, z: dir.x*si + dir.z*co};
+var chest = stage.player? stage.player.chestDir(): { x:-dir.z, z:dir.x};
+var putt = (game.gameMode === "putt");
+return addressCamPose(bp, rdir, chest, putt? 4.4: 5.4, putt? 2.0: 2.35, putt? 5: 7);
+}
+function oppAddressPose(item){
+var from = new THREE.Vector3(item.from.x, game.getGY(item.from.x, item.from.z) + 0.03, item.from.z);
+var pin = game.pinPos;
+var dx = pin.x - item.from.x, dz = pin.z - item.from.z;
+var len = Math.hypot(dx, dz) || 1;
+var dir = { x: dx/len, z: dz/len};
+var chest = stage.opp? stage.opp.chestDir(): { x:-dir.z, z:dir.x};
+return addressCamPose(from, dir, chest, 5.4, 2.35, 7);
+}
+function greenPose(item){
+var pin = game.pinPos;
+var from = new THREE.Vector3(item.from.x, game.getGY(item.from.x, item.from.z) + 0.03, item.from.z);
+var dx = pin.x - from.x, dz = pin.z - from.z;
+var len = Math.hypot(dx, dz) || 1;
+var dir = { x: dx/len, z: dz/len};
+var side = { x: -dir.z, z: dir.x};
+var mid = from.clone().lerp(new THREE.Vector3(pin.x, from.y, pin.z), 0.45);
+return {
+pos: new THREE.Vector3(mid.x + side.x*4.6, from.y + 2.1, mid.z + side.z*4.6),
+look: new THREE.Vector3(pin.x, pin.y + 0.2, pin.z)
+};
+}
+function chasePose(){
+var ob = stage.oppBall;
+if(!ob) return null;
+var p = ob.position;
+var pin = game.pinPos;
+var dx = pin.x - p.x, dz = pin.z - p.z;
+var len = Math.hypot(dx, dz) || 1;
+var dir = { x: dx/len, z: dz/len};
+return {
+pos: new THREE.Vector3(p.x - dir.x*9.5, p.y + 4.6, p.z - dir.z*9.5),
+look: new THREE.Vector3(p.x + dir.x*6, p.y + 0.4, p.z + dir.z*6)
+};
+}
+function currentCamTarget(){
+/* シネマ中 */
+if(stage.cine){
+var c = stage.cine;
+if(c.item.isPutt){
+return greenPose(c.item);
+}
+if(c.phase === "chase") return chasePose();
+if(c.phase === "return") return playerAddressPose();
+return oppAddressPose(c.item);
+}
+/* 通常時: ボール静止中は自キャラが見えるアドレス画角 */
+if(stage.player && stage.player.ready && game.ball &&!game.ball.inFlight &&
+!game._holeCompletedFlag && game.cameraMode === "follow"){
+return playerAddressPose();
+}
+return null;
+}
+function applyCameraOverride(){
+var target = null;
+try{ target = currentCamTarget();}catch(e){ target = null;}
+if(!target){
+stage.camActive = false;
+return;
+}
+var cam = game.camera;
+if(!stage.camActive ||!stage.camPos){
+stage.camPos = cam.position.clone();
+var d = new THREE.Vector3();
+cam.getWorldDirection(d);
+stage.camLook = cam.position.clone().add(d.multiplyScalar(10));
+stage.camActive = true;
+}
+var rate = stage.cine? 5.2: 3.4;
+var nowMs = performance.now();
+var dtCam = stage.lastCamT? clamp((nowMs - stage.lastCamT) / 1000, 0.001, 0.1): 1/60;
+stage.lastCamT = nowMs;
+var k = 1 - Math.exp(-rate * dtCam);
+stage.camPos.lerp(target.pos, k);
+stage.camLook.lerp(target.look, k);
+cam.position.copy(stage.camPos);
+cam.lookAt(stage.camLook);
+}
+
+/* ---------------- 相手の待機位置 ---------------- */
+function waitingSpot(){
+var B = window.GOAT_BATTLE;
+if(!B ||!B.ghost ||!game.pinPos) return null;
+var g = B.ghost, pin = game.pinPos;
+var dx = pin.x - g.x, dz = pin.z - g.z;
+var len = Math.hypot(dx, dz) || 1;
+var dir = { x: dx/len, z: dz/len};
+var perp = { x: -dir.z, z: dir.x};
+var pb = game.ball? game.ball.position: { x: g.x, z: g.z};
+var sideSign = ((pb.x - g.x)*perp.x + (pb.z - g.z)*perp.z) > 0? -1: 1;
+var sx = g.x + perp.x*2.6*sideSign - dir.x*1.0;
+var sz = g.z + perp.z*2.6*sideSign - dir.z*1.0;
+return { x: sx, z: sz, groundY: game.getGY(sx, sz), face: dir};
+}
+function ghostBallPos(){
+var B = window.GOAT_BATTLE;
+if(!B ||!B.ghost) return null;
+return new THREE.Vector3(B.ghost.x, game.getGY(B.ghost.x, B.ghost.z) + 0.03, B.ghost.z);
+}
+
+/* ---------------- 相手シネマティック ---------------- */
+function startCine(item){
+var opp = stage.opp;
+var ballPos = ghostBallPosFrom(item.from);
+var pin = game.pinPos;
+var dx = pin.x - item.from.x, dz = pin.z - item.from.z;
+var len = Math.hypot(dx, dz) || 1;
+var dir = { x: dx/len, z: dz/len};
+opp.placeAtAddress(ballPos, dir);
+/* 打席までの距離が遠ければ歩かせず即配置（カメラはまだ自打席側） */
+stage.cine = { item: item, phase: "pan", t: 0, launched: false};
+if(item.isPutt){
+opp.setClip("idle", { loop:true, fade:0.2});
+} else {
+opp.holdAddress();
+}
+log("cine start", JSON.stringify(item));
+}
+function ghostBallPosFrom(p){
+return new THREE.Vector3(p.x, game.getGY(p.x, p.z) + 0.03, p.z);
+}
+function launchOppBall(item){
+var from = ghostBallPosFrom(item.from);
+var to = ghostBallPosFrom(item.to);
+if(item.isPutt){
+var d = from.distanceTo(to);
+stage.flight = { kind:"putt", from:from, to:to, t:0, dur: clamp(d/6, 0.5, 1.8), holed:item.holed};
+} else {
+var dh = Math.hypot(to.x - from.x, to.z - from.z);
+var carry = dh * 0.82;
+stage.flight = {
+kind:"shot", from:from, to:to, t:0,
+carryT: Math.sqrt(Math.max(1, carry)) * 0.19,
+runT: clamp(Math.sqrt(Math.max(1, dh - carry)) * 0.22, 0.3, 1.6),
+peak: carry * 0.16, phase:"carry", holed:false
+};
+}
+stage.oppBallState = "flight";
+if(stage.oppBall){ stage.oppBall.visible = true; stage.oppBall.position.copy(from);}
+}
+function updateFlight(dt){
+var f = stage.flight;
+if(!f ||!stage.oppBall) return true;
+f.t += dt;
+var p = stage.oppBall.position;
+if(f.kind === "putt"){
+var u = clamp(f.t / f.dur, 0, 1);
+var e = 1 - Math.pow(1 - u, 2);
+p.lerpVectors(f.from, f.to, e);
+p.y = game.getGY(p.x, p.z) + 0.03;
+if(u >= 1){ if(f.holed) stage.oppBall.visible = false; return finishFlight();}
+return false;
+}
+if(f.phase === "carry"){
+var uc = clamp(f.t / f.carryT, 0, 1);
+p.lerpVectors(f.from, f.to, uc * 0.82);
+var groundY = game.getGY(p.x, p.z);
+p.y = f.from.y + (groundY + 0.03 - f.from.y) * uc + Math.sin(Math.PI * uc) * f.peak;
+if(uc >= 1){ f.phase = "run"; f.t = 0;}
+return false;
+}
+var ur = clamp(f.t / f.runT, 0, 1);
+var er = 1 - Math.pow(1 - ur, 3);
+var start = f.from.clone().lerp(f.to, 0.82);
+p.lerpVectors(start, f.to, er);
+p.y = game.getGY(p.x, p.z) + 0.03;
+if(ur >= 1) return finishFlight();
+return false;
+}
+function finishFlight(){
+stage.flight = null;
+stage.oppBallState = "rest";
+return true;
+}
+function updateCine(dt){
+var c = stage.cine;
+if(!c) return;
+c.t += dt;
+var opp = stage.opp;
+if(c.item.isPutt){
+if(c.phase === "pan" && c.t > 0.6){ c.phase = "address"; c.t = 0;}
+else if(c.phase === "address" && c.t > 0.45){ c.phase = "stroke"; c.t = 0; opp.rockStart = performance.now();}
+else if(c.phase === "stroke" && c.t > 0.35 &&!c.launched){ c.launched = true; launchOppBall(c.item);}
+else if(c.phase === "stroke" && c.launched &&!stage.flight){ c.phase = "return"; c.t = 0; beginRelocate();}
+else if(c.phase === "return" && c.t > 0.6){ endCine();}
+return;
+}
+if(c.phase === "pan" && c.t > 0.7){ c.phase = "address"; c.t = 0;}
+else if(c.phase === "address" && c.t > 0.5){
+c.phase = "swing"; c.t = 0;
+if(opp) opp.startSwing();
+}
+else if(c.phase === "swing"){
+var sw = opp && opp.actions.swing;
+if(!c.launched && sw && sw.time >= IMPACT_T){ c.launched = true; launchOppBall(c.item); c.phase = "chase"; c.t = 0;}
+else if(!c.launched && c.t > 2.6){ c.launched = true; launchOppBall(c.item); c.phase = "chase"; c.t = 0;}
+}
+else if(c.phase === "chase"){
+var swDone =!opp ||!opp.actions.swing || opp.actions.swing.time >= 1.7;
+if(!stage.flight && swDone){ c.phase = "return"; c.t = 0; if(opp) opp.setClip("idle", { loop:true, fade:0.3}); beginRelocate();}
+}
+else if(c.phase === "return" && c.t > 0.65){ endCine();}
+}
+function endCine(){
+stage.cine = null;
+log("cine end");
+}
+function beginRelocate(){
+var spot = waitingSpot();
+if(!spot ||!stage.opp) { stage.relocate = null; return;}
+stage.relocate = { x: spot.x, z: spot.z, groundY: spot.groundY, face: spot.face, t: 0};
+}
+
+/* ---------------- ゴースト監視 ---------------- */
+function watchGhost(){
+var B = window.GOAT_BATTLE;
+if(!B ||!stage.opp) return;
+if(game.currentHoleIdx!== stage.prevHoleIdx){
+stage.prevHoleIdx = game.currentHoleIdx;
+stage.prevGhost = B.ghost? { x:B.ghost.x, z:B.ghost.z, strokes:B.ghost.strokes, holed:B.ghost.holed}: null;
+stage.queue.length = 0;
+stage.oppPlaced = false;
+snapOppToWaiting();
+return;
+}
+if(!stage.prevGhost){
+stage.prevGhost = { x:B.ghost.x, z:B.ghost.z, strokes:B.ghost.strokes, holed:B.ghost.holed};
+snapOppToWaiting();
+return;
+}
+var g = B.ghost;
+if(g.strokes < stage.prevGhost.strokes){
+stage.prevGhost = { x:g.x, z:g.z, strokes:g.strokes, holed:g.holed};
+stage.queue.length = 0;
+snapOppToWaiting();
+return;
+}
+if(g.strokes > stage.prevGhost.strokes){
+var from = { x: stage.prevGhost.x, z: stage.prevGhost.z};
+var to = { x: g.x, z: g.z};
+var jumped = g.strokes - stage.prevGhost.strokes;
+stage.prevGhost = { x:g.x, z:g.z, strokes:g.strokes, holed:g.holed};
+if(jumped > 1 || game._holeCompletedFlag || B.sentResult){
+/* ホール完了時の一括進行などは映像化せず即時追随 */
+snapOppToWaiting();
+return;
+}
+var pin = game.pinPos;
+var rem = Math.hypot(pin.x - from.x, pin.z - from.z);
+stage.queue.push({ from: from, to: to, isPutt: rem <= 14, holed:!!g.holed});
+log("ghost step queued", JSON.stringify(stage.queue[stage.queue.length-1]));
+}
+/* 相手ボールの静止表示 */
+if(stage.oppBall &&!stage.flight &&!stage.cine){
+var bp = ghostBallPos();
+if(bp){
+stage.oppBall.position.copy(bp);
+stage.oppBall.visible =!B.ghost.holed;
+}
+}
+}
+function snapOppToWaiting(){
+var spot = waitingSpot();
+if(!spot ||!stage.opp ||!stage.opp.ready) return;
+stage.oppPlaced = true;
+stage.opp.placeStanding(spot.x, spot.groundY, spot.z, spot.face);
+stage.opp.setClip("idle", { loop:true, fade:0.2});
+stage.relocate = null;
+if(stage.oppBall){
+var bp = ghostBallPos();
+if(bp) stage.oppBall.position.copy(bp);
+var B = window.GOAT_BATTLE;
+stage.oppBall.visible =!(B && B.ghost && B.ghost.holed);
+}
+}
+
+/* ---------------- 配置・移動の毎フレーム処理 ---------------- */
+function ensureInScene(actor){
+if(actor && actor.ready && actor.group.parent!== game.scene){
+game.scene.add(actor.group);
+}
+}
+function updatePlayer(dt){
+var pl = stage.player;
+if(!pl) return;
+ensureInScene(pl);
+if(game.playerMesh && game.playerMesh!== stage.lastPlayerMesh){
+stage.lastPlayerMesh = game.playerMesh;
+}
+if(!pl.ready) return;
+if(game.playerMesh) game.playerMesh.visible = false;
+if(pl.mixer) pl.mixer.update(dt);
+/* パットの小さな揺れ */
+if(pl.rockStart){
+var rp = (performance.now() - pl.rockStart) / 450;
+if(rp >= 1){ pl.group.rotation.x = 0; pl.rockStart = 0;}
+else pl.group.rotation.x = -Math.sin(rp * Math.PI) * 0.05;
+}
+/* スイング終了後は idle へ */
+if(!stage.swingPending && pl.current === pl.actions.swing){
+var sw = pl.actions.swing;
+if(sw && (sw.time >= 2.5 ||!sw.isRunning())){
+pl.setClip("idle", { loop:true, fade:0.35});
+}
+}
+/* 位置同期: ボール飛行中は打席に留まる */
+if(game.ball &&!game.ball.inFlight &&!stage.swingPending){
+var bp = game.ball.position;
+var aimRad = game.aimAngle * Math.PI / 180;
+pl.placeAtAddress(bp, { x: Math.sin(aimRad), z: -Math.cos(aimRad)});
+}
+}
+function updateOpp(dt){
+var op = stage.opp;
+if(!op) return;
+ensureInScene(op);
+if(stage.oppBall && stage.oppBall.parent!== game.scene && op.ready){
+game.scene.add(stage.oppBall);
+}
+if(!op.ready) return;
+if(op.mixer) op.mixer.update(dt);
+/* 初期配置の取りこぼし防止: モデル準備完了後に未配置なら待機位置へ */
+if(!stage.oppPlaced && stage.prevGhost &&!stage.cine &&!stage.relocate){
+snapOppToWaiting();
+}
+if(op.rockStart){
+var rp = (performance.now() - op.rockStart) / 450;
+if(rp >= 1){ op.group.rotation.x = 0; op.rockStart = 0;}
+else op.group.rotation.x = -Math.sin(rp * Math.PI) * 0.05;
+}
+/* 再配置（歩行→遠ければカメラ外で即時移動） */
+if(stage.relocate &&!stage.cine){
+var r = stage.relocate;
+r.t += dt;
+var gp = op.group.position;
+var dx = r.x - gp.x, dz = r.z - gp.z;
+var dist = Math.hypot(dx, dz);
+if(dist < 0.3 || r.t > 6 || (dist > 30 && r.t > 2.5)){
+op.placeStanding(r.x, r.groundY, r.z, r.face);
+op.setClip("idle", { loop:true, fade:0.25});
+stage.relocate = null;
+} else {
+var camDir = new THREE.Vector3();
+game.camera.getWorldDirection(camDir);
+var toOpp = new THREE.Vector3(dx, 0, dz).normalize();
+var facing = camDir.x * toOpp.x + camDir.z * toOpp.z;
+if(dist > 30 && facing < 0.2){
+op.placeStanding(r.x, r.groundY, r.z, r.face);
+op.setClip("idle", { loop:true, fade:0.1});
+stage.relocate = null;
+} else {
+op.setClip("walk", { loop:true, fade:0.2});
+var step = Math.min(dist, 3.4 * dt);
+gp.x += (dx / dist) * step;
+gp.z += (dz / dist) * step;
+gp.y = game.getGY(gp.x, gp.z);
+var targetYaw = Math.atan2(dx, dz);
+op.group.rotation.y = targetYaw;
+op.yaw = targetYaw;
+}
+}
+}
+}
+
+/* ---------------- メインループ ---------------- */
+var lastTick = 0;
+function tick(now){
+requestAnimationFrame(tick);
+if(document.hidden) return;
+var dt = Math.min(0.05, (now - lastTick) / 1000 || 0.016);
+lastTick = now;
+try{
+updatePlayer(dt);
+updateOpp(dt);
+/* 自分スイングのインパクトで発射 */
+if(stage.swingPending && stage.player && stage.player.actions.swing){
+var sw = stage.player.actions.swing;
+/* 発射はクリップ時刻基準（低fps環境でもアニメと同期する）。壁時計はデッドロック回避のみ */
+if(sw.time >= IMPACT_T || sw.time >= 2.49 || (sw.time > 0 &&!sw.isRunning()) || now - stage.swingStartWall > 60000){
+var l = stage.swingLaunch;
+stage.swingLaunch = null; stage.swingPending = false;
+if(l) l();
+}
+}
+watchGhost();
+/* シネマ開始判定 */
+if(!stage.cine && stage.queue.length > 0 && stage.opp && stage.opp.ready &&
+game.ball &&!game.ball.inFlight &&!stage.swingPending &&!game._holeCompletedFlag){
+startCine(stage.queue.shift());
+}
+if(stage.flight) updateFlight(dt);
+updateCine(dt);
+}catch(e){
+log("tick error", e && e.message);
+}
+}
+
+/* ---------------- 起動 ---------------- */
+var bootTimer = setInterval(function(){
+var g = window.game;
+if(!g ||!g.renderer ||!g.scene) return;
+var B = window.GOAT_BATTLE;
+if(!B ||!B.started) return;
+if(typeof g._getGoatDistMult!== "function") return; /* エンジンのフック設置完了が合図 */
+clearInterval(bootTimer);
+stage.booted = true;
+installHooks();
+initLoader();
+maybeLoadActors();
+if(!stage.tickOn){ stage.tickOn = true; requestAnimationFrame(tick);}
+log("booted. playerKey will be", resolvePlayerKey(), "oppKey", resolveOppKey());
+}, 150);
+})();
