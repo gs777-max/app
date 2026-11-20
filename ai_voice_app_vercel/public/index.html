@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.4.2)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.4.3)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -674,7 +674,7 @@
       <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい、同じ並びで使えるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.4.2 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.4.3 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -909,7 +909,10 @@
   <div id="toast-shelf" class="toast-shelf" aria-live="polite"></div>
 <script>
     /**
-     * AIボイス - v3.4.2 トークン発行修正 (v3.4 一時トークン化を継承)
+     * AIボイス - v3.4.3 会話切断（1007）修正 (v3.4 一時トークン化を継承)
+     * v3.4.3 (2026-11-20): モデルを gemini-3.8-live に変更（2.5系は終了）、
+     *  音声送信を mediaChunks から audio に変更、自動検出有効時の activityStart と
+     *  自動 turnComplete 送信を廃止（いずれも仕様外で1007切断の原因）。実機ライブ音声は未検証。
      * v3.4.2 (2026-11-20): トークンを制約なし（プレーン）にし、接続先を
      *  BidiGenerateContentConstrained に修正。v3.4.1 の詳細エラーで
      *  「Unknown name liveConnectConstraints」と判明したため。実機ライブ音声は未検証。
@@ -929,7 +932,8 @@
      *  キー未設定時に isConnecting が残る不具合の修正、PWA基盤（manifest・共有メタ）。
      *  Service Worker はプレビュー確認後に別途導入する（今夜は未導入）。実機ライブ音声は未検証。
      */
-    const LIVE_MODEL_NAME = 'models/gemini-2.5-flash-native-audio-latest';
+    // v3.4.3: 2.5系ネイティブ音声モデルは2026-11-17に終了。現行の安定モデルに変更。
+    const LIVE_MODEL_NAME = 'models/gemini-3.8-live';
     // v3.4: RESTフォールバックは /api/rest 経由のため、クライアント側のモデル指定は不要。
 
     const appState = {
@@ -1540,15 +1544,8 @@
             appState.latency.firstAudioAt = 0;
             appState.latency.firstPlaybackAt = 0;
 
-            // サーバーに「ユーザーは話し終えたので直ちに応答を返せ」と合図を送り、AIの応答遅延を削ぎ落とす
-            if (appState.isSessionReady && appState.ws && appState.ws.readyState === WebSocket.OPEN) {
-              const commitMsg = {
-                clientContent: {
-                  turnComplete: true
-                }
-              };
-              appState.ws.send(JSON.stringify(commitMsg));
-            }
+            // v3.4.3: 自動活動検出が有効なとき、ターン終了はサーバー側VAD（silenceDurationMs）が判定する。
+            // clientContent の turnComplete は生成を割り込むため、自動コミットでは送らない（手動トリガーのみ）。
           }
         }
 
@@ -1565,14 +1562,13 @@
             const pcm16 = resampleAndGain(chunkToProcess, inSampleRate, 16000, appState.micGain);
             const base64Audio = int16ArrayToBase64(pcm16);
 
+            // v3.4.3: mediaChunks は非推奨。現行仕様の audio フィールドで送る。
             const payload = {
               realtimeInput: {
-                mediaChunks: [
-                  {
-                    mimeType: 'audio/pcm;rate=16000',
-                    data: base64Audio
-                  }
-                ]
+                audio: {
+                  mimeType: 'audio/pcm;rate=16000',
+                  data: base64Audio
+                }
               }
             };
             appState.ws.send(JSON.stringify(payload));
@@ -1726,7 +1722,8 @@
           }
           // v3.1: 1007 は setup 不正（設定エラー）。再接続しても同じエラーになるので再接続しない。
           if (e.code === 1007) {
-            const msg = '設定エラーで切断されました（コード1007：setupが仕様外の可能性）。再接続しません。設定を確認してください。';
+            // v3.4.3: サーバーの切断理由（詳細）を表示して切り分けできるようにする。
+            const msg = `設定エラーで切断されました（コード1007）。再接続しません。詳細: ${e.reason || 'なし'}`;
             logMessage(msg, 'error');
             popToast(msg, 'error');
             setTelemetryStatus('standby', '設定エラー');
@@ -1943,16 +1940,8 @@
       appState.isAiSpeaking = false;
       // v3.1: バージイン中はAIの新規音声を再生キューに入れない（解除はターン確定時）。
       appState.suppressAiAudio = true;
-      // v3.1: ローカル停止に加え、サーバーへ生成中断を送る。
-      // activityStart は「ユーザーが話し始めた」合図で、サーバー側がモデル生成を止める。
-      if (appState.ws && appState.ws.readyState === WebSocket.OPEN && appState.isSessionReady) {
-        try {
-          appState.ws.send(JSON.stringify({ realtimeInput: { activityStart: {} } }));
-          logMessage('サーバーへ生成中断を送信（activityStart）', 'info');
-        } catch (err) {
-          logMessage(`生成中断の送信に失敗: ${err.message}`, 'warn');
-        }
-      }
+      // v3.4.3: activityStart は自動活動検出が有効なときは送れない（仕様外で1007切断の原因）。
+      // サーバー側の自動検出（START_OF_ACTIVITY_INTERRUPTS）が生成を止めるため、送信しない。
       popToast('割り込みました (発話を中断)', 'info');
       logMessage('オーディオ再生キューを強制クリア (割り込み)', 'info');
     }
@@ -2521,7 +2510,7 @@
     });
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.4.2 を起動しました', 'info');
+      logMessage('AIボイス v3.4.3 を起動しました', 'info');
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
       await initEnvConfig();
