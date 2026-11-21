@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23ffd059'/%3E%3Ccircle cx='8' cy='8' r='7' fill='none' stroke='%23a67c00' stroke-width='1'/%3E%3C/svg%3E"> <!-- v4.36 A-2: favicon 404 解消（data-URI） -->
-  <title>BATTLE OF GOLF - GOAT | Next-Gen 3D Action RPG World N4 | 新規系統</title>
+  <title>BATTLE OF GOLF - GOAT | Next-Gen 3D Action RPG World N5 | 新規系統</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@700;900&display=swap">
@@ -743,6 +743,110 @@
       border: 1.5px solid #5a6aa8;
     }
 
+    /* N5: 住人との会話ダイアログ（rivalChoice の作法を踏襲。スマホ縦持ちでも読みやすく、
+       選択肢はすべて 48px 以上のタップ対象にする） */
+    #talkDialog {
+      position: absolute;
+      left: 50%;
+      bottom: 132px;
+      transform: translateX(-50%);
+      z-index: 40;
+      width: min(470px, calc(100vw - 24px));
+      max-height: 58vh;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+      background: linear-gradient(135deg, rgba(24, 28, 56, 0.97), rgba(12, 14, 30, 0.98));
+      border: 1.5px solid #ffd875;
+      border-radius: 14px;
+      padding: 14px 16px 14px;
+      color: #fff7df;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.8), 0 0 22px rgba(255, 210, 90, 0.3);
+    }
+    #talkDialog .tk-head {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    #talkDialog .tk-name {
+      font-size: 17.5px;
+      font-weight: 900;
+      color: #ffd875;
+      letter-spacing: 0.5px;
+      line-height: 1.4;
+      padding-top: 8px;
+    }
+    #tkClose {
+      flex: 0 0 auto;
+      width: auto;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0 12px;
+      font-size: 15px;
+      font-weight: 900;
+      white-space: nowrap;
+      border-radius: 10px;
+      cursor: pointer;
+      background: rgba(38, 44, 78, 0.9);
+      color: #dfe6ff;
+      border: 1.5px solid #5a6aa8;
+    }
+    #talkDialog .tk-line {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      font-size: 17.5px;
+      line-height: 1.7;
+      font-weight: 600;
+      color: #f7f1de;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 12px;
+      padding-right: 2px;
+    }
+    #talkDialog .tk-btns {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+    #talkDialog .tk-btns button {
+      width: 100%;
+      min-height: 52px;
+      font-size: 16px;
+      line-height: 1.45;
+      font-weight: 800;
+      border-radius: 10px;
+      cursor: pointer;
+      padding: 10px 12px;
+      text-align: left;
+      background: rgba(38, 44, 78, 0.92);
+      color: #eef1ff;
+      border: 1.5px solid #5a6aa8;
+    }
+    #talkDialog .tk-btns button.tk-main {
+      background: linear-gradient(135deg, #c9a227, #a37f14);
+      color: #1d1402;
+      border: 1.5px solid #ffe9a8;
+    }
+    @media (max-width: 560px) {
+      #talkDialog {
+        bottom: 108px;
+        max-height: 54vh;
+        padding: 12px 13px 12px;
+      }
+      #talkDialog .tk-line {
+        font-size: 17px;
+      }
+      #talkDialog .tk-btns button {
+        font-size: 15.5px;
+      }
+    }
+
     /* 浄化・開放シネマバナー ＆ トースト通知 */
     #centerBanner {
       position: absolute;
@@ -845,18 +949,18 @@
       #minimap { width: 104px !important; height: 104px !important; }
     }
   </style>
-<script src="assets/diag-overlay.js?v=N4"></script>
+<script src="assets/diag-overlay.js?v=N5"></script>
 <script type="importmap">
 {"imports":{
- "three": "./assets/lib/r180/three.module.js?v=N4",
- "three/webgpu": "./assets/lib/r180/three.webgpu.js?v=N4",
- "three/tsl": "./assets/lib/r180/three.tsl.js?v=N4",
+ "three": "./assets/lib/r180/three.module.js?v=N5",
+ "three/webgpu": "./assets/lib/r180/three.webgpu.js?v=N5",
+ "three/tsl": "./assets/lib/r180/three.tsl.js?v=N5",
  "three/addons/": "./assets/lib/r180/addons/",
- "three/addons/loaders/GLTFLoader.js": "./assets/lib/r180/addons/loaders/GLTFLoader.js?v=N4",
- "three/addons/libs/meshopt_decoder.module.js": "./assets/lib/r180/addons/libs/meshopt_decoder.module.js?v=N4"
+ "three/addons/loaders/GLTFLoader.js": "./assets/lib/r180/addons/loaders/GLTFLoader.js?v=N5",
+ "three/addons/libs/meshopt_decoder.module.js": "./assets/lib/r180/addons/libs/meshopt_decoder.module.js?v=N5"
 }}
 </script>
-<script type="module" src="assets/lib/r180/bootstrap-world.js?v=N4"></script>
+<script type="module" src="assets/lib/r180/bootstrap-world.js?v=N5"></script>
 </head>
 
 <body>
@@ -952,6 +1056,16 @@
       <button id="rcFight" type="button">⚔ 対戦する</button>
       <button id="rcLeave" type="button">まだやめる</button>
     </div>
+  </div>
+
+  <!-- N5: 住人との会話ダイアログ（常に二択：①ゴルフ上達のコツ ②敵キャラ情報） -->
+  <div id="talkDialog" style="display:none;">
+    <div class="tk-head">
+      <div class="tk-name" id="tkName">住人</div>
+      <button id="tkClose" type="button" aria-label="会話を終える">✕ 終える</button>
+    </div>
+    <div class="tk-line" id="tkLine"></div>
+    <div class="tk-btns" id="tkBtns"></div>
   </div>
 
   <div id="fireControls">

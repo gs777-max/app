@@ -31,7 +31,7 @@
   (function(){
     var TL = new THREE.TextureLoader();
     /* v4.9: アセット版数（boot 層の __GOAT_AV__ と連動）。テクスチャ/GLB の URL に付与する */
-    var AVQ = '?v=' + (window.__GOAT_AV__ || 'N4');
+    var AVQ = '?v=' + (window.__GOAT_AV__ || 'N5');
     function loadTex(name, srgb, rx, ry){
     var t = TL.load('assets/textures/' + name + '.png' + AVQ, function(){
       window.HQW._ready[name] = 1;
@@ -3178,8 +3178,10 @@ scene.remove(m.mesh);
            ライバル戦を返すため、遭遇は既存フローの正式な入口になる） */
         handleRivalEncounter();
       } else if (act.type === "npcTalk") {
-        /* N4: 住人との会話（バナー表示のみ。施設・進行・既存機能には触れない） */
-        showBanner(act.title, act.line);
+        /* N5: 住人との本格会話（常に二択の対話ループ。施設・進行・既存機能には触れない）。
+           会話情報が無いランドマークの場合のみ、従来の一言バナーに落とす */
+        if (act.talk) openNpcTalk(act.talk, lm);
+        else showBanner(act.title, act.line);
       }
     }
 
@@ -4192,7 +4194,7 @@ scene.remove(m.mesh);
       if (!key) { npc.failed = true; return; }
       initRivalLoader(function (loader) {
         if (!loader) { if (rivalNpc === npc) npc.failed = true; return; }
-        loader.loadAsync("assets/chars/" + key + ".glb?v=N4").then(function (gltf) {
+        loader.loadAsync("assets/chars/" + key + ".glb?v=N5").then(function (gltf) {
           if (rivalNpc !== npc) { /* 読み込み中に状態が変わった場合は破棄して捨てる */
             gltf.scene.traverse(function (o) { if (o.geometry) { try { o.geometry.dispose(); } catch (e) {} } });
             return;
@@ -4533,7 +4535,7 @@ scene.remove(m.mesh);
       var rec = w.rec;
       if (w.pauseT > 0) w.pauseT -= dt;
       var pDist = Math.hypot(player.x - rec.grp.position.x, player.z - rec.grp.position.z);
-      var wantMove = !snap && w.pauseT <= 0 && pDist > 1.45;
+      var wantMove = !snap && w.pauseT <= 0 && pDist > 1.45 && !w.talkHold; /* N5: 会話中は停止 */
       w.moving = wantMove;
       if (wantMove) {
         var prevCycle = Math.floor(w.dist / w.total);
@@ -4543,6 +4545,7 @@ scene.remove(m.mesh);
       }
       var pt = townPathPoint(w, w.dist);
       rec.grp.position.set(pt.x, terrainY(pt.x, pt.z), pt.z);
+      if (w.talkLm) { w.talkLm.x = pt.x; w.talkLm.z = pt.z; } /* N5: 会話ランドマークを歩行位置へ追随（既存更新への相乗り） */
       rec.x = pt.x; rec.z = pt.z;
       if (pt.dx || pt.dz) {
         var diff = Math.atan2(pt.dx, pt.dz) - rec.grp.rotation.y;
@@ -4589,7 +4592,7 @@ scene.remove(m.mesh);
       if (!key) { rec.failed = true; return; }
       initRivalLoader(function (loader) {
         if (!loader) { rec.failed = true; townLog("role loader unavailable:", def.role); return; }
-        loader.loadAsync("assets/chars/" + key + ".glb?v=N4").then(function (gltf) {
+        loader.loadAsync("assets/chars/" + key + ".glb?v=N5").then(function (gltf) {
           if (townDisposed) { gltf.scene.traverse(function (o) { if (o.geometry) { try { o.geometry.dispose(); } catch (e) {} } }); return; }
           var model = gltf.scene;
           /* N2/N3 で実証済みの透け対処＋別人化の色差し替え（ポロとキャップは無地マテリアルのため色替えがそのまま効く） */
@@ -4625,7 +4628,7 @@ scene.remove(m.mesh);
           townLog("role ready:", def.role, charId);
         }).catch(function (e) { rec.failed = true; townLog("role load FAILED:", def.role, charId, e && e.message); });
       });
-      var lm = { x: def.x, z: def.z, r: 2.1, label: "💬 " + def.label + "と話す", color: 0xffe9a8, isNpcTalk: true, action: { type: "npcTalk", title: def.label, line: def.line } };
+      var lm = { x: def.x, z: def.z, r: 2.1, label: "💬 " + def.label + "と話す", color: 0xffe9a8, isNpcTalk: true, action: { type: "npcTalk", title: def.label, line: def.line, talk: { kind: "role", role: def.role, name: def.label } } };
       LANDMARKS.push(lm); townLandmarks.push(lm);
     }
 
@@ -4647,13 +4650,13 @@ scene.remove(m.mesh);
       msp.position.y = 2.52;
       moiraiRecs[1].grp.add(msp);
       moiraiRecs[1].labelSprite = msp;
-      var mlm = { x: 0, z: 18.4, r: 2.4, label: "💬 モイライに話しかける", color: 0xb589ff, isNpcTalk: true, action: { type: "npcTalk", title: "✦ 運命の三女神モイライ", line: "「糸はすでに織り上げられた。あとは汝の手で、断つか結び直すか――19番ホールで待っておるぞ。」" } };
+      var mlm = { x: 0, z: 18.4, r: 2.4, label: "💬 モイライに話しかける", color: 0xb589ff, isNpcTalk: true, action: { type: "npcTalk", title: "✦ 運命の三女神モイライ", line: "「糸はすでに織り上げられた。あとは汝の手で、断つか結び直すか――19番ホールで待っておるぞ。」", talk: { kind: "moirai", name: "✦ 運命の三女神モイライ" } } };
       LANDMARKS.push(mlm); townLandmarks.push(mlm);
       /* 立ち話ペア（広場の西） */
       [{ x: -8.6, z: 16.4, face: [-9.7, 15.5] }, { x: -9.7, z: 15.5, face: [-8.6, 16.4] }].forEach(function (g) {
         spawnTownVillager("pair", g.x, g.z, townYawTo(g.x, g.z, g.face[0], g.face[1]), nextPal(), {});
       });
-      var plm = { x: -9.15, z: 15.95, r: 2.2, label: "💬 住人の噂話を聞く", color: 0xffe9a8, isNpcTalk: true, action: { type: "npcTalk", title: "💬 町の住人", line: TOWN_HINTS[AREA_IDX] || TOWN_HINTS[0] } };
+      var plm = { x: -9.15, z: 15.95, r: 2.2, label: "💬 住人の噂話を聞く", color: 0xffe9a8, isNpcTalk: true, action: { type: "npcTalk", title: "💬 町の住人", line: TOWN_HINTS[AREA_IDX] || TOWN_HINTS[0], talk: { kind: "pair", name: "💬 町の住人" } } };
       LANDMARKS.push(plm); townLandmarks.push(plm);
       /* 通行人（参道の往復／横丁の往復） */
       spawnTownWalker([[1.9, 30], [2.8, 14], [0.4, -6], [2.0, -26], [0.6, -40]], 1.85, nextPal(), AREA_IDX * 11 + 5);
@@ -4725,7 +4728,547 @@ scene.remove(m.mesh);
       disposeAll: function () { disposeTownNpcs(); }
     };
 
+/* =========================================================================
+N5: 住人との会話（ユーザー指示 2026-11-21／同日追加要件で対話ループ化）
+- N4 の一言バナー（npcTalk → showBanner）は本格会話へ格上げし、廃止した。
+会話ランドマークは全住人に付け、近づくとプロンプトから会話ダイアログが開く。
+- 対話ループ: 挨拶→話題の二択（①ゴルフ上達のコツ／②敵キャラ情報）→
+プレイヤーの反応二択→住人の返し→「続きを聞く／別の話題にする」の二択、
+という往復を、プレイヤーが終える（✕終える／会話を終える）まで何度でも
+繰り返せる。各画面の選択肢は常に2つに統一する。
+- ユニークさ: ①のコツは TALK_TIPS（66件）をローテーション（新規系統専用
+キー goatn_talk_tips_v1 に保存）し一巡するまで重複なし。②の敵情報は
+main／弱点／条件／備え／背景の5セグメント制で、同一会話内では一度出た
+セグメントを繰り返さない。挨拶・続きの促し・相槌・セグメントの前置きも
+プールから「その会話で未使用のもの」を優先して選ぶ。
+- エリア固有: 敵情報はエリアごとの nextTarget（親から同期される実データ）
+が土台。挨拶には土地の話題（TALK_AREA_FLAVOR）、コツには土地の切り口
+（TALK_TIP_INTROS）を混ぜ、全エリア＋神域で使い回し感を出さない。
+- 性能: 会話データの生成は会話中（ボタン押下時）のみ。毎フレーム処理には
+何も足さない（通行人のランドマーク追随は既存の歩行更新の中で座標を
+書き写すだけ）。ポーリング／常駐タイマーは追加しない。会話ランドマークは
+N4 の townLandmarks 破棄経路に乗り、エリア移動で確実に解放される。
+- 歩行中の住人は会話中 talkHold で停止し、立ち住人は会話中プレイヤーを向く
+（閉じると元の向きに戻す）。会話中は STATE.paused でワールドを止める
+（N3 のライバル選択ダイアログと同じ作法）。
+- 施設・ショップ・宿屋・ライバル遭遇・対戦・セーブ形式には触れない。
+========================================================================= */
+
+/* ---- ① リアルゴルフ上達のコツ集（66件: DR10/IR10/AP10/PT12/CM8/MT7/PR9） ---- */
+var TALK_TIPS = [
+/* ドライバー */
+{ c: "ドライバー", t: "ティーアップは、ボールの半分がドライバーのクラウン（上部）より上に出る高さが目安です。低すぎると擦って飛距離を失い、高すぎると天ぷか（高く上がって飛ばない球）の原因になります。", d: "迷ったら少し高めから始めて、打痕がフェースの少し上に付く高さに調整すると安定します。練習場では毎回同じ高さにセットする習慣をつけると、本番でも再現性が上がります。"},
+{ c: "ドライバー", t: "ドライバーは『振り急がない』が鉄則。切り返しで一瞬タメを作る意識を持つと、ヘッドが自然に加速して飛距離も方向性も安定します。力むほどヘッドスピードは落ちるんですよ。", d: "素振りで『スーッ』と風切り音が一番大きくなる位置が、ボールのある位置と重なるか確認してみてください。音が手前で鳴る人は、体が突っ込んでいるサインです。"},
+{ c: "ドライバー", t: "アドレスではボールを左足かかとの内側に置き、頭はボールの少し右後ろに残すのが基本。ドライバーはアッパーブロー（上昇軌道）で当てるクラブです。", d: "上体をほんの少し右に傾ける『逆K字』のアドレスにすると、アッパー軌道になりやすくスピンが減ってランも出ます。ただし傾けすぎはダフリの原因。鏡で確認しましょう。"},
+{ c: "ドライバー", t: "スライスに悩むなら、まずグリップを点検。左手の甲が自分から見てナックル2〜3個見える『ストロンググリップ』気味にすると、インパクトでフェースが返りやすくなります。", d: "グリップは唯一クラブと体が触れる場所です。アドレスでは先にフェースを目標へ合わせ、それからグリップをそっと握る。この順序だけでも方向性が安定します。"},
+{ c: "ドライバー", t: "飛距離アップの近道は、実はヘッドスピードより『芯に当てること』。速く振っても芯を外せば飛びません。短いスイングで芯に当て続ける練習から始めるのが、結局一番速いんです。", d: "フェースに打痕シールやパウダーを付けて打つと打点が一目瞭然。打点が安定してきたら、少しずつスイングを大きくしていきましょう。"},
+{ c: "ドライバー", t: "ティーショットは『狙いを広く』取るのがコースマネジメントの基本。フェアウェイの真ん中ではなく、ミスしても次が打てる側を広く使ってください。OBのある側だけは絶対に避けること。", d: "例えば右がOBなら、左サイドのラフまでを許容範囲として狙いを左寄りに。『曲がる前提』で狙いを決めるだけで、大叩きのホールが激減しますよ。"},
+{ c: "ドライバー", t: "アドレスで肩・腰・膝のラインが目標と平行か、意識していますか？ 体は右を向いているのに手だけ目標に合わせる構えは、引っかけとスライスの両方を招きます。", d: "練習場ではスタンスラインにクラブを1本置いて平行を確認。本番ではボールと目標の間にスパット（小さな目印）を見つけ、その真上にフェースを合わせると方向が定まります。"},
+{ c: "ドライバー", t: "バックスイングは『クラブを上げる』のではなく、肩の回転で運ぶ意識を。右腰が後ろに引ける深いトップが作れれば、下半身リードの切り返しが自然にできるようになります。", d: "トップで一瞬止まるくらいのゆったりしたテンポがおすすめ。プロの多くはバックスイングとダウンスイングの時間比率が3対1と言われています。"},
+{ c: "ドライバー", t: "風の強い日はティーを低くし、コンパクトなスイングで低い球を。飛距離を欲張らず『風に喧嘩しない』球筋を選ぶことが、そのままスコアを守ります。", d: "アゲンスト（向かい風）では番手を上げるのではなく、7〜8割の力感で振ること。力むとスピンが増えて、風に押し戻されてしまいます。"},
+{ c: "ドライバー", t: "ドライバーのミスが続く日は、無理に使い続けない勇気も実力のうち。3番ウッドやユーティリティで確実にフェアウェイへ置く選択が、結果的にスコアを伸ばします。", d: "『今日はドライバーが曲がる日』と認めるのはマネジメントの第一歩。ティーショットの目的は飛ばすことではなく、次の一打を打ちやすくすることですからね。"},
+/* アイアン */
+{ c: "アイアン", t: "アイアンは、ボール→芝の順に当たるダウンブローを意識。アドレスでハンドファースト（手が少し目標側）に構えるのが基本形です。すくい上げる打ち方では、距離も方向も安定しません。", d: "練習ではボールの少し先にティーを倒して置き、ボールとティーを一緒に払うドリルが効果的。ターフ（芝）がボールの先から取れていれば正解です。"},
+{ c: "アイアン", t: "距離が合わない人の多くは、番手ごとの飛距離を正確に把握していません。各番手10球の『平均キャリー』を測ってメモするだけで、コースマネジメントが劇的に変わりますよ。", d: "大切なのは最高飛距離ではなく平均キャリー。グリーンを狙うときは、奥のピンでも平均値で番手を選ぶと大叩きが減ります。"},
+{ c: "アイアン", t: "アイアンの方向性はアドレスの向きで7割決まります。フェースを目標に合わせたら、足はそのラインと平行に。体を開く癖がある人は、意識して少し右を向くくらいが丁度です。", d: "打ちたい方向にクラブを置いてから構える『ルーティン』を固定しましょう。再現性の高い選手ほど、アドレスまでの手順が毎回同じなんです。"},
+{ c: "アイアン", t: "ダフリが多い日は、ボールの位置が左すぎるか、体重が右足に残っているサイン。ボールを半個分右へ寄せ、左足体重6割で構えると改善しやすいです。", d: "逆にトップが多い日は、頭が早く上がっている可能性が。インパクトの後も一瞬だけ、ボールがあった場所を見続ける意識が効きます。"},
+{ c: "アイアン", t: "グリーンを狙うときはピンではなく『グリーンの安全な広い側』が狙い目。プロでもピンを直接狙うのは絶好調のときだけです。センター狙いこそスコアの近道。", d: "ピンが端にあるときほどセンター狙いの価値が上がります。センターに乗せれば、どのピンの位置に対しても2パットの距離に収まりやすいからです。"},
+{ c: "アイアン", t: "アイアンでフルスイングにこだわる必要はありません。8割の力感で振る『コントロールショット』の方が距離も方向も安定します。番手を上げて優しく打つのは、上級者の技術です。", d: "練習場で各番手『8割で何ヤード飛ぶか』を把握しておくと、風の日や緊張した場面で大きな武器になりますよ。"},
+{ c: "アイアン", t: "ラフからのアイアンは、フェースに芝が絡んでフライヤー（想定より飛ぶ球）が出ることがあります。一つ番手を下げ、少し短く持ってコンパクトに振るのが基本です。", d: "ボールが沈んだ深いラフでは、無理せずウェッジでフェアウェイへ出すのも立派な選択。『出す勇気』が次のホールを救います。"},
+{ c: "アイアン", t: "左足下がりのライではボールを右寄りに置いて傾斜なりの低い球を。右足下がりではその逆。ライなりの球筋をイメージして、傾斜に無理に逆らわないことが大切です。", d: "傾斜地では素振りを2回して、クラブが地面に当たる位置を確認。その位置に合わせてボールを置くと、ダフリとトップが激減します。"},
+{ c: "アイアン", t: "芯を外しがちな人は、テークバックで手首の角度が崩れていることが多いもの。トップでもインパクトでも手首の形をキープする意識を持ちましょう。", d: "ゆっくりした素振りで、手首の形が崩れていないか鏡でチェック。地味ですが、一番効く練習の一つです。"},
+{ c: "アイアン", t: "150ヤード前後の『中途半端な距離』こそ練習の価値があります。得意な番手で打てるよう、ティーショットやレイアップでその距離を残すマネジメントも覚えると強いですよ。", d: "自分の『得意距離』を一つ作ると、勝負どころで迷いが消えます。練習の最後にその距離だけを10球打つ習慣がおすすめです。"},
+/* アプローチ */
+{ c: "アプローチ", t: "寄せの基本は『転がし』です。グリーン周りでは、まずパター、次にウェッジで転がす、最後に上げる球の順で考えるのがセオリー。上げる球はミスの幅が大きいからです。", d: "転がしの目安は『落とし場所と転がりの比率』をクラブごとに覚えること。同じフォームでクラブを変えるだけで、距離を使い分けられます。"},
+{ c: "アプローチ", t: "アプローチでは体重を左足に6〜7割乗せたまま小さく振るのが基本。大きな体重移動を使うと距離感が狂い、ザックリやトップの原因になります。", d: "両足の幅は拳一つ分くらいに狭くすると、体の回転が抑えられて手打ちになりにくく、再現性がぐっと上がります。"},
+{ c: "アプローチ", t: "寄せの距離感は『振り幅』で作るのが鉄則。時計の針に例えて9時〜3時、8時〜4時など、振り幅ごとに何ヤード飛ぶか把握しておくと、本番で迷いません。", d: "力加減で調整すると緊張した場面で必ず狂います。振り幅と一定のテンポで打つからこそ、プレッシャーの下でも再現できるんです。"},
+{ c: "アプローチ", t: "バンカーショットはボールを直接打たず、手前2〜3cmの砂を爆発させるように打って、砂ごとボールを運ぶイメージ。フェースを開いてバンス（ソールの出っ張り）を使います。", d: "砂が柔らかいときはバンスが効くので思い切って振り抜くこと。硬い砂ではフェースを開きすぎず、少し立てて打つと対応できます。"},
+{ c: "アプローチ", t: "グリーン周りのザックリ（ダフリ）は、手首を使ってすくい上げる動きが原因。ハンドファーストを保ち、体の回転で運べば、ロフト（フェースの角度）が自然に仕事をしてくれます。", d: "ボール手前にコインを置き、コインも一緒に払うドリルがおすすめ。左手首の角度を保ったまま小さく往復する練習も効きます。"},
+{ c: "アプローチ", t: "高い球で寄せたいときはフェースを開いてボールを少し左へ。低い転がしはボールを右に置いてロフトを立てる。ボール位置だけで、球筋は大きく変わります。", d: "ただしフェースを開くショットは距離感が狂いやすい上級者向け。まずは基本の寄せを安定させてから取り入れましょう。"},
+{ c: "アプローチ", t: "寄せの狙いはカップそのものではなく『次のパットが楽になる場所』。上りのパットが残る側に寄せられれば、3パットのリスクが大きく減ります。", d: "傾斜のあるグリーンでは、ピンの下側にボールを止めるのが鉄則。下りの速いパットを残さないだけで、寄せワンの確率が上がります。"},
+{ c: "アプローチ", t: "ラフからの寄せは、芝の抵抗でヘッドが止まりやすいもの。少し短く握り、手首を固めて、普段より大きめの振り幅で。フェースが芝に負けないよう、構えで腹圧を入れるのもコツです。", d: "ボールが浮いているラフはトップに注意、沈んでいるラフはザックリに注意。まずボールの沈み具合を読むことが、寄せの第一歩です。"},
+{ c: "アプローチ", t: "20〜30ヤードの『中途半端な距離』が一番難しいと言われます。ここは大きな筋肉――体の回転で打ち、手先の調整に頼らないこと。練習量がそのまま結果に出る距離です。", d: "練習場では20・30・40ヤードの目印を作り、振り幅で打ち分ける練習を。10球中何球が半径2mに入るか数えると、上達が目に見えます。"},
+{ c: "アプローチ", t: "寄せに迷ったら『最低限の失敗』を選ぶこと。大きくオーバーする寄せより、少しショートでもグリーンに乗る寄せの方が、スコアへのダメージは小さいです。", d: "実際、アマチュアの寄せはショートするミスが圧倒的に多いというデータもあります。気持ち大きめの振り幅を選ぶ勇気が、寄せワンを増やします。"},
+/* パター */
+{ c: "パター", t: "パットの距離感は『ストロークの大きさ』で合わせるのが基本。インパクトで強弱をつけると再現性が落ちます。振り子のリズムは、距離によらず一定に保ちましょう。", d: "目安はバックスイングとフォローの大きさを1対1に保つこと。距離が遠いほど振り幅だけを大きくすると、タッチが安定します。"},
+{ c: "パター", t: "ライン読みの第一歩は、カップの後ろ側から低い姿勢で傾斜を見ること。ボールの後ろからだけでは分からない全体の傾斜が、反対側からだと見えてきます。", d: "グリーンに上がったら、歩きながら足裏で傾斜を感じることも大切。プロは『足で読む』と言われるほど、歩行中の情報収集を大事にしています。"},
+{ c: "パター", t: "ショートパット（1m前後）は、ラインを消して『真っ直ぐ強め』が正解の場面が多いもの。カップの奥の壁に当てるイメージで、弱気にならないことが一番のコツです。", d: "弱いパットは傾斜に流されて外れますが、適度な強さなら多少の傾斜は無力化できます。ただし返しのパットが長くならない強さの見極めは、練習で身につけるものです。"},
+{ c: "パター", t: "パットで頭を上げてしまう人は、ボールの行方を目で追いすぎ。『インパクトの音を聞くまで顔を残す』意識で、結果はカップインの音で知るくらいが丁度いいんです。", d: "練習ではカップを見ずに打つドリルも有効。頭の位置が安定するとフェースの向きも安定して、ボールが真っ直ぐ転がり始めます。"},
+{ c: "パター", t: "パットのグリップ圧は『歯磨き粉のチューブを少しだけ押す程度』が目安。強く握ると手首が固まってストロークがギクシャクします。肩と腕の三角形を保って、振り子のように。", d: "両手の親指をグリップの上に揃えると、フェースの向きを感じやすくなります。自分に合う握りを探すのも、大切な練習の一つです。"},
+{ c: "パター", t: "ロングパットは『2パットで収める円』をイメージ。カップを中心に半径1mの円に入れば成功、と考えるだけでプレッシャーが減り、結果的にも寄るようになります。", d: "10mのパットが1回で入る確率はプロでも1割ほど。『寄せ』に徹する割り切りが、3パット撲滅の近道です。"},
+{ c: "パター", t: "下りのパットは、転がり始めの3分の1で傾斜の影響を最も受けます。出だしは優しく、しかしラインは多めに読むのが下り攻略のセオリーです。", d: "上りのパットは逆に『強め・ライン少なめ』。上りと下りで読みの原則を切り替えるだけで、グリーン上の判断が速くなります。"},
+{ c: "パター", t: "パットのアドレスでは、目の真下にボールが来る位置が基本。目線がボールの内側や外側にずれると、ラインの見え方そのものが歪んでしまいます。", d: "確認は簡単で、アドレスの姿勢のまま目の下からもう1個ボールを真下に落とすだけ。着地点が元のボールに近ければ、正しい目の位置です。"},
+{ c: "パター", t: "フックライン・スライスラインは、曲がりの頂点ではなく『カップに入る入口』をイメージして狙うのが上級テクニック。入口に仮想の小さなカップを描くと、読みが冴えます。", d: "傾斜の読みに迷ったら、カップ周辺の傾斜を最優先に。ボールは速度が落ちる終盤ほど、傾斜の影響を強く受けるからです。"},
+{ c: "パター", t: "パット前のルーティンを固定化しましょう。ラインを読む→素振り2回→アドレス→すぐに打つ。この流れを毎回同じにすると、緊張した場面でも体が勝手に動いてくれます。", d: "考えすぎはパットの大敵。アドレスしてから打つまでは5秒以内が目安とされます。迷いは素振りまでに終わらせるのがコツです。"},
+{ c: "パター", t: "芝目（しばめ）の影響は、順目では速く、逆目では重くなります。グリーンが明るく見える方向が順目、暗く見える方向が逆目。色の違いで読むのが基本です。", d: "特に高麗グリーンは芝目の影響が大きい。カップの切り口を見ると、芝の生えている方向が分かることもありますよ。"},
+{ c: "パター", t: "ファーストパットで大きくオーバーする人は、ボールをすくい上げようとしている可能性が。パターは水平か、ほんの少しダウンブローで転がす意識で十分。上げる必要はありません。", d: "インパクトで左手首が折れる『すくい打ち』は距離感を狂わせます。左手の甲を目標へ向け続けるイメージでストロークしましょう。"},
+/* コースマネジメント */
+{ c: "コースマネジメント", t: "ティーショットの狙いは『フェアウェイの真ん中』ではなく『ミスしても安全な側』。自分の球筋の曲がり幅を考慮して狙い点を設定するのが、マネジメントの基本です。", d: "球筋が右に曲がるなら狙いは左寄りに。『曲がらない前提』の狙いほど、コースに翻弄されてしまいます。"},
+{ c: "コースマネジメント", t: "パー5は3打で届く前提で組み立てるのが基本。2打目で無理に狙わず、得意な距離を残すレイアップの方が、結果的にバーディチャンスが増えます。", d: "『あと100ヤード残し』のように得意距離を残す設計ができると、パー5がスコアを作るホールに変わりますよ。"},
+{ c: "コースマネジメント", t: "ピンの位置が端にあるときほど、グリーンセンター狙いの価値が上がります。端ピンを狙って外し、難しい寄せを残すのが一番の悪手。センターから2パットで正解です。", d: "統計でも、アマチュアはピンを狙いすぎてバンカーや深いラフに入れる損失が大きいと言われます。『狙わない勇気』がスコアを作るんです。"},
+{ c: "コースマネジメント", t: "トラブル時は『一打で確実に脱出』が絶対条件。木の間を抜くような賭けは成功率が低く、大叩きの元です。確実にフェアウェイへ戻して次で勝負するのが、結局一番速い。", d: "『出せばボギーで済む』場面をパー狙いに変えない冷静さ。それこそがマネジメント力そのものです。"},
+{ c: "コースマネジメント", t: "風を読むときは、旗の揺れだけでなく、空の雲の流れと木々の音も手がかりに。ホール全体の風は、ティーグラウンドの風と違うことがよくあります。", d: "芝をちぎって投げる古典的な方法も有効です。落ち際の流れで、ボールが飛ぶ高さの風の向きを推測できます。"},
+{ c: "コースマネジメント", t: "ドッグレッグホールでは、曲がり角までの距離を把握して番手選びを。飛びすぎて突き抜けるのも、届かずに角が使えないのも、どちらもマネジメントミスです。", d: "距離表示や150ヤード杭から逆算する習慣を。『残り距離』ではなく『打ちたい距離』から考えるのがコツです。"},
+{ c: "コースマネジメント", t: "朝イチのティーショットは体が回りにくいもの。いきなりフルスイングせず、8割の力感でフェアウェイに置くことを優先すると、その後のリズムが整います。", d: "スタート前の素振りは、大きくゆっくり回すことを意識して。体を温める素振りと、リズムを作る素振りは分けて行うと効果的です。"},
+{ c: "コースマネジメント", t: "スコアが崩れ始めたら『ボギーでいい』と目標を切り替えること。一つの大叩きを引きずると、次のホールまで連鎖します。ホールの途中でも再設計できるのがマネジメントです。", d: "『パーオンしなくても、寄せワンか2パットでボギー』という現実的な組み立てに戻すと、不思議とショットも安定し始めますよ。"},
+/* メンタル */
+{ c: "メンタル", t: "緊張は『悪いもの』ではなく、体が準備を整えている証拠。心拍が上がったら、ゆっくり長く息を吐く呼吸を2回。それだけで手の震えが収まります。", d: "吐く息を、吸う息の倍の長さにするのがコツ。ティーグラウンドへ上がる前の歩行中に済ませておくと、アドレスで焦りません。"},
+{ c: "メンタル", t: "ミスショットの後は『次の1打』だけに集中を切り替える合言葉を持ちましょう。『終わったことは変えられない。変えられるのは次だけ』――これが勝負どころの思考法です。", d: "プロは『10歩歩く間に引きずらない』など、自分なりの区切り方を持っています。歩数でも、クラブを戻す動作でも、何でも構いません。"},
+{ c: "メンタル", t: "プレッシャーは『結果』を考えると強くなり、『動作』に集中すると弱くなります。勝負どころでは『肩を回す』『フィニッシュを取る』など、体の動き一つに意識を絞りましょう。", d: "結果はコントロールできませんが、動作はコントロールできます。コントロールできるものに集中する――それがメンタルトレーニングの核心です。"},
+{ c: "メンタル", t: "ラウンド前のイメージトレーニングは効果的です。前の晩に各ホールを思い浮かべ、良いショットを打つ自分を映像で見るだけで、当日の迷いが減ります。", d: "特に1番ホールのティーショットは入念に。スタートの成功イメージが、その日の流れを作ります。"},
+{ c: "メンタル", t: "同伴者と比べて落ち込むのは一番の毒。ゴルフは『自分とコースの対話』です。他人のナイスショットは拍手で流して、自分のプランに集中しましょう。", d: "スコアカードも、他人の欄は見ないくらいで丁度いい。自分の数字だけを追うと、プレーの質が安定します。"},
+{ c: "メンタル", t: "『今日は調子が悪い』と感じた日は、目標を『丁寧にアドレスすること』のような過程の目標に切り替えること。結果目標を下げると、かえってプレーが締まります。", d: "過程目標は達成感を細かく得られるので、自信の回復にもつながります。悪いはずの日に好スコアが出るのは、だいたいこのパターンです。"},
+{ c: "メンタル", t: "最終ホールや勝負どころで力むのは自然なこと。そんなときほど『いつものルーティン』を丁寧に繰り返すこと。平常心とは特別な状態ではなく、いつもの手順の繰り返しなんです。", d: "ルーティンが崩れたと感じたら、一度アドレスを解いてやり直す勇気を。それだけでミスの大半は防げます。"},
+/* 練習法 */
+{ c: "練習法", t: "練習の質は『1球ごとの目的』で決まります。漫然と打ち続ける100球より、狙いを定めた30球。球ごとに狙いと結果を確認する習慣をつけましょう。", d: "プロの練習は『技術練習』と『実戦練習』に分かれています。後半は本番形式で、1球ごとにクラブを変えて打つと実戦力がつきます。"},
+{ c: "練習法", t: "ドライバーばかり打つ練習は、上達を遠回りさせます。スコアの約6割は100ヤード以内とパット。練習時間の半分はショートゲームに割くのが、スコアアップの王道です。", d: "アプローチとパットは、才能より練習量がものを言う分野。地味な反復が、確実にスコアを削ってくれます。"},
+{ c: "練習法", t: "ハーフスイングのドリルは万能薬。腰から腰の振り幅で芯に当てる練習は、インパクトの形を体に覚え込ませ、フルスイングの精度まで底上げします。", d: "ハーフスイングで真っ直ぐ飛ばない人は、フルスイングでも飛びません。まずは小さなスイングで『当たる感覚』を作るのが順序です。"},
+{ c: "練習法", t: "素振りは毎日5分でも効果があります。鏡の前でゆっくり、トップとフィニッシュの形を確認するだけでも、スイングの土台は整っていきます。", d: "室内では短いクラブや素振り用スティックで。速く振る素振りは、風切り音でヘッドスピードの確認にもなります。"},
+{ c: "練習法", t: "パット練習は『距離感』と『方向』を分けて行うこと。ロングパットは距離だけ、ショートパットは真っ直ぐ打つことだけに集中すると、効率よく上達します。", d: "自宅のパターマットでも、1mを真っ直ぐ転がす練習は本物です。『カップに入れる』より『真っ直ぐ出す』反復が、本番のショートパットを救います。"},
+{ c: "練習法", t: "ラウンドの反省は『良かった点』から記録すること。ミスの原因追及ばかりでは自信が削られます。良かったショットの感覚を言葉にすると、再現性が上がります。", d: "スコアカードの余白に一言メモを残す習慣を。『7番の寄せ、振り幅9時で成功』のような具体的な記録が、次のラウンドの財産になります。"},
+{ c: "練習法", t: "苦手クラブの克服は『短く持って、短いスイング』から。いきなりフルスイングで直そうとせず、当たる形を小さく作ってから、徐々に大きくするのが近道です。", d: "どうしても合わないクラブは、思い切って抜いてしまうのも手。バッグの構成を考えることも、実力のうちです。"},
+{ c: "練習法", t: "練習場では『コースを想定した1球』を混ぜましょう。ティーショット→アプローチ→パットの順に、本番の流れで打つ練習が、実戦とのギャップを埋めます。", d: "特にラウンド前日の練習は、量よりリズム。新球を気持ちよく打って終わるくらいが、当日の調子を整えます。"},
+{ c: "練習法", t: "動画で自分のスイングを撮るなら、正面と後方の2方向から。特に後方からは、スイングプレーン（軌道）とアドレスの向きが一目で分かります。", d: "ただし動画チェックは『1回に1つの課題』まで。直す点を欲張るとスイング全体が崩れます。課題を決めたら、2週間はそれだけに集中しましょう。"}
+];
+
+/* 相槌・促し・前置きのプール（同一会話内では未使用を優先して選ぶ） */
+var TALK_TIP_CHEERS = [
+"その意気やよし！ 次のラウンドでさっそく試してみてください。",
+"うんうん、素直に試せる人が一番伸びるんですよ。",
+"いいねえ。体に染み込むまで、練習場で3球だけでも繰り返すといいですよ。",
+"おお、やる気ですね。その調子で一つずつ身につけていきましょう。",
+"ふむふむ、その前向きさこそ上達の証拠です。",
+"いい返事だ。あとは体が覚えるまで、反復あるのみですよ。"
+];
+var TALK_CONT_PROMPTS = [
+"他に聞きたいことはありますか？",
+"さて、次は何を話そうか。",
+"まだまだ話は尽きないね。他には？",
+"うん、それで――他に気になることは？"
+];
+var TALK_ENEMY_DONE = [
+"敵については、知っていることは全部話しましたよ。",
+"敵の話はここまで。あとはあんたの一打が語る番だ。",
+"うむ、敵情報は出し尽くした。他の話ならまだあるがね。"
+];
+var TALK_SEG_PREFIX = {
+weak: ["よくぞ聞いてくれた。", "ここだけの話だ。", "相手の弱みなら――", ""],
+cond: ["決戦の段取りなら、こうだ。", "場所と条件をまとめるよ。", ""],
+prep: ["備えの話もしておこう。", "戦う前の準備なら――", ""],
+lore: ["そういえば、こんな話もあってね。", "背景を知ると、相手の見方が変わる。", ""]
+};
+/* 土地の話題（挨拶・続きの促しに混ぜる）と、コツの土地の切り口 */
+var TALK_AREA_FLAVOR = [
+["この古都は、夕方の風が読みにくいんです。", "京都のグリーンは、山からの傾斜が効くと言いますね。"],
+["パリの空気は芸術的でも、風は気まぐれでね。", "この街では、美しい景色に気を取られると足元をすくわれます。"],
+["ローマの陽射しは強い。水分補給も立派なマネジメントです。", "闘技場の風は、渦を巻くそうですよ。"],
+["アメリカの大地は広い。距離感を掴むのが一番の課題でね。", "この地では、思い切りの良さがそのまま武器になります。"],
+["江戸の空は黄泉の霧に近い。視界が悪い日ほど、確実な一打を。", "この城下では、静けさが一番のプレッシャーだそうです。"],
+["神域の空気は澄んでいて、嘘がつけない気がします。", "ここでは運命の糸の音が聞こえる、と古老が言います。"]
+];
+var TALK_TIP_INTROS = [
+["この古都でも通じる話ですが――", "京都の先輩ゴルファーに教わったのですが――"],
+["パリの宮廷でも評判の話でね――", "この街の常連がよく言うのですが――"],
+["ローマの鉄人たちも実践しているそうで――", "闘技場の常連の知恵ですが――"],
+["アメリカのツアーでは常識らしくて――", "この大地のゴルファーはよく言うんです――"],
+["江戸の達人の教えでは――", "この城下に伝わる話では――"],
+["神域の古老の言葉では――", "運命の糸のほとりで聞いた話では――"]
+];
+
+/* ---- ② 敵キャラ情報の素材（ゲーム内データ＝ボス編成・ライバル特性） ---- */
+var TALK_AREA_NAMES = ["京都", "パリ", "ローマ", "アメリカ", "江戸城", "天空の神域"];
+var TALK_RIVAL_TRAITS = {
+Watu: { strong: "経験に裏打ちされた安定感と、ここ一番の勝負強さが武器。", weak: "飛距離勝負に持ち込めば若さで上回れる。ロングホールで先にバーディを奪って揺さぶるのが有効だ。"},
+Matuya: { strong: "静かな集中力と、乱れないスイングリズムが武器。", weak: "ペースを乱されるのが苦手。先行してプレッシャーをかけ続けると、終盤にミスが出やすい。"},
+TIiger: { strong: "圧倒的な飛距離と、勝負どころでの爆発力が武器。", weak: "パワー消費の激しい戦い方をする。長期戦に持ち込んでミスを誘い、自滅を待つのも手だ。"},
+Junbo: { strong: "地の帝王の豪快な飛距離と、衰えないパワーが武器。", weak: "繊細なアプローチ勝負なら分がある。短いホールやグリーン周りで差をつけよう。"},
+McIlro: { strong: "高弾道のドライバーと、流れるようなスイングが武器。", weak: "パッティングが乱れると全体のリズムを崩す。グリーン上で先にプレッシャーをかけよう。"},
+DeCham: { strong: "科学的に計算し尽くされた一打と、圧倒的なヘッドスピードが武器。", weak: "計算外の状況――強風や悪ライでは精度が落ちる。天候の荒れたホールで勝負しよう。"}
+};
+var TALK_BOSS_WEAK = {
+Junbo: "豪快な飛距離が武器だが、勝負は3ホールマッチ。グリーン周りの精度で対抗し、パワーを温存して最終ホールに勝負を持ち込むのが定石だ。",
+Player: "正確無比だが、飛距離ではこちらが上回れる。ロングホールで先行し、短いホールは堅くパーで凌ぐのが攻略の型だ。",
+Palmer: "大胆不敵なチャージが持ち味だが、攻めすぎて自ら崩れることもある。堅実にパーを重ねて、相手のミスを待つのがいい。",
+Niklaus: "弱点らしい弱点はない。だが帝王は『守るゴルフ』に徹すると強い。先にバーディを奪って、攻めざるを得ない展開に持ち込もう。",
+DarkTIiger: "闇の力で底上げされた絶対王者。だが宿主の心はまだ完全に闇に染まっていない。会心の一打で揺さぶれば、ほころびが見えるはずだ。",
+DarkNiklaus: "全盛期の闘争本能を呼び覚まされた帝王。真っ向勝負では分が悪い。コースの罠と天候を味方につけ、ミスを誘うゴルフで崩そう。",
+VesselBerserk: "暴走した器は力任せで精度に欠ける。盟友のクラブで冷静に対処し、暴走の隙を突くのが救出の鍵だ。",
+Nox: "一度も負けたことのない原初神。だが『負ける感覚』を求めて人を育てた神だ――その願いこそが、唯一のほころびかもしれない。",
+TrueWatu: "創世の追放神。勝敗以上に、神の遊戯を人に託した者の『約束のラウンド』だ。全力の一打一打で応えることが何よりの攻略だ。",
+Hagen: "華麗なショーマンは、派手な勝負を好む。堅実に刻む相手を退屈がる――地味にパーを重ねると焦れてくる。",
+Hogan: "彫刻のような完璧なスイングの匠。だが完璧主義ゆえ、悪天候や悪ライでは普段の再現性が揺らぐ。",
+Watson: "リンクスの風を愛する達人。風のない穏やかなホールでは、持ち味の低く強い球が活きない場面もある。",
+Vardon: "近代グリップの祖である紳士。クラシックな攻め筋ゆえ、現代的な高弾道の攻めには対応が遅れることがある。",
+BJones: "アマチュアの皇帝。品格あるゴルフをする分、泥臭いトラブル対応では賭けに出ない。際どい場面で揺さぶろう。",
+Snead: "流麗なスイングの麦わら帽。リズムが崩れると立て直しに時間がかかる。先行してリズムを狂わせるのが有効だ。",
+Sarazen: "バンカーの魔術師。砂からは出てくるが、深いラフやベアグラウンドでは魔術は使えない。",
+Trevino: "陽気な話術と低く強い球の名手。高い球を要求されるホールでは、本来の弾道が使いにくい。",
+Faldo: "精密機械のような再現性の人。だがプレッシャー下の勝負パットでは、計算が静かに狂うことがある。",
+Seve: "林や駐車場からでも奇跡を放つ魔術師。普通の状況では魔術は不要――平凡なホールの積み重ねで差をつけよう。",
+Lefty: "左打ちの勝負師。ピンチでもロブショットでピンを狙う大胆さが、裏を返せば無謀な攻めで崩れる隙でもある。",
+Nelson: "機械の如き正確さ『アイアン・バイロン』。正確さで真っ向勝負は避け、距離の違うホールでリズムを外そう。",
+Braid: "全英5勝の設計巨匠。コースを読む力は随一だが、設計者の想定を超える大胆な攻めには驚かされることがある。",
+Taylor: "嵐を切り裂くアイアンの名手。風には滅法強いが、穏やかな日はその武器が半分眠る。",
+Thomson: "南半球の冷静な王者。地面の転がりを計算し尽くす分、空中戦――高く止める球が必要なホールでは計算が狂う。",
+Massi: "フランスの地元英雄。地元の声援が力になる分、静かな異国の空気では平常心が試される。",
+Roca: "『罪の谷』の奇跡を起こした情熱家。熱くなりすぎると大味なミスも出る。冷静なプレーで熱を空回りさせよう。"
+};
+var TALK_BOSS_LORE = {
+Junbo: "日本ツアー94勝という空前絶後の金字塔を打ち立てた帝王。圧倒的な飛距離と繊細なアプローチで、一時代を築いた人だ。",
+Player: "世界中のツアーを転戦し、総移動距離は地球何百周分にも及ぶ『ブラック・ナイト』。鍛え抜かれた肉体と不屈の精神で、生涯グランドスラムを達成した求道者だ。",
+Palmer: "『アーニーズ・アーミー』と呼ばれる大観衆を熱狂させたカリスマ王。大胆不敵なチャージで、ゴルフを世界中の人々に愛されるスポーツへ変えた人だ。",
+Niklaus: "4大メジャー通算18勝、人類史上最高峰の記録を持つ『ゴールデン・ベア』。本作では神器の守り人の血筋として、器の真価を問う役どころだ。",
+DarkTIiger: "数々の奇跡を起こした現代の絶対王者。さらなる完全無欠を求める野心の隙をノクスの予言に突かれ、黄泉の門を開いたダークチャンピオンだ。",
+DarkNiklaus: "器の成長を見たノクスが『より強き人形』として、全盛期の闘争本能を呼び覚ました18勝の帝王の姿だという。",
+VesselBerserk: "誘惑の契約を重ねたことでノクスに肉体の主導権を奪われた、主人公自身の姿。盟友のクラブだけが、その魂を呼び戻せる。",
+Nox: "夜の女神ニュクスと黄泉のイザナミをルーツに持つ二重の追放神。一度も負けたことがない孤独ゆえに、自らを打ち破る『人間』を育て上げたという。",
+TrueWatu: "高天原とオリンポスの『最初のラウンド』に立ち会い、神の遊戯ゴルフを人間へ分け与えた真の恩人。天空の神域で、約束のラウンドを待っている。"
+};
+/* nextTarget が無い単独起動時などのための、エリア別ボス情報（編成マスター準拠） */
+var TALK_AREA_BOSS = [
+{ name: "Junbo（地の帝王）", where: "京都の決戦の門の先", strong: "日本ツアー94勝の帝王。豪快な飛距離が武器。", weak: TALK_BOSS_WEAK.Junbo, lore: TALK_BOSS_LORE.Junbo},
+{ name: "運命の間の主（正体不明）", where: "パリ宮廷の決戦の門の先", strong: "往年の名選手が運命の糸で入れ替わり現れる。誰が出るかは、その巡り合わせ次第。", weak: "正体は19番ホールや町の噂で少しずつ分かる。相手のスタイルを知れば、攻略法も見えてくる。", lore: "宮廷の主は正体を隠すのが習わし。19番ホールの予想ビンゴに登録しておくと、莫大な報酬の噂もある。"},
+{ name: "G.Player（黒衣の騎士）", where: "ローマ闘技場の決戦の門の先", strong: "メジャー9勝・生涯グランドスラムの鉄人。正確無比なショットが武器。", weak: TALK_BOSS_WEAK.Player, lore: TALK_BOSS_LORE.Player},
+{ name: "A.Palmer → J.Niklaus", where: "アメリカの決戦の門の先", strong: "民衆の王と18冠の帝王による2連戦。体力とボールの残量が試される。", weak: "まずパーマーのチャージを堅実に受け止め、温存した力で帝王に挑む配分が鍵だ。", lore: "帝王ニクラスは『帝王の門番』。格では上だが門を守り、その先に現役最強が待つ構図だという。"},
+{ name: "Dark TIiger（闇の傀儡王）", where: "江戸城の決戦の門の先", strong: "闇に操られた絶対王者。その先には、糸を引く原初神ノクスが待つという。", weak: TALK_BOSS_WEAK.DarkTIiger, lore: TALK_BOSS_LORE.DarkTIiger},
+{ name: "創世神 Watu（裏ボス）", where: "天空の神域の最奥", strong: "最初のラウンドに立ち会った創世の神。その強さは全ボスの中でも最高峰。", weak: TALK_BOSS_WEAK.TrueWatu, lore: TALK_BOSS_LORE.TrueWatu}
+];
+
+/* 話者ごとの挨拶（会話の入口。毎回ランダムに1つ） */
+var TALK_GREETINGS = {
+receptionist: ["お疲れさまです、旅のゴルファー様。少しお話ししていきませんか？", "いらっしゃいませ。ラウンドの調子はいかがですか？", "本日もお疲れさまです。お時間よければ、お話し相手になりますよ。"],
+shopkeeper: ["いらっしゃいませ！ ギアを見るついでに、耳寄りな話はいかがです？", "おや、お客さん。道具の話もいいですが、世間話もどうぞ。", "やあ、いらっしゃい。今日は道具より話が目当てかな？"],
+guest: ["やあ、いいラウンドだったかい？ 一杯やりながら話そうじゃないか。", "おっと、旅のゴルファーさんだね。ここだけの話があるんだが……", "おっ、いいところに来た。ちょうど昔の武勇伝を話していたところでね。"],
+pair: ["ねえねえ、今の聞いた？ ……おっと、あんたにも教えてあげようか。", "ちょいと、あんたもゴルファーだろ？ 耳寄りな話があるんだ。", "あんたもゴルフをやるんだろ？ ちょうどいい、聞いてくよ。"],
+walker: ["おや、旅の方ですか？ 立ち止まってでよければ、お話ししましょう。", "こんにちは。この道はよく通るんですよ。何かお探しですか？", "やあ、散歩日和だね。歩くついでに話でもどうだい。"],
+moirai: ["「運命の糸に導かれし者よ。聞きたいことがあるのだろう？」", "「三女神はすべてを見ている。……さあ、何を問う？」", "「問いの糸口は、すでに汝の手の中にある。さあ、選ぶがよい。」"]
+};
+
+/* ---- コツのローテーション（一巡するまで重複なし。新規系統専用キーに保存） ---- */
+var TALK_TIP_KEY = "goatn_talk_tips_v1";
+var talkTipMem = null; /* localStorage が使えない環境向けの保険（同一セッション内のみ） */
+function talkLoadTipState() {
+try {
+var raw = localStorage.getItem(TALK_TIP_KEY);
+if (raw) { var s = JSON.parse(raw); if (s && Object.prototype.toString.call(s.order) === "[object Array]" && typeof s.pos === "number") { talkTipMem = s; return s;}}
+} catch (e) {}
+return talkTipMem;
+}
+function talkSaveTipState(s) {
+talkTipMem = s;
+try { localStorage.setItem(TALK_TIP_KEY, JSON.stringify(s));} catch (e) {}
+}
+function talkDrawTip() {
+var st = talkLoadTipState();
+if (!st || st.order.length!== TALK_TIPS.length || st.pos >= st.order.length) {
+var order = TALK_TIPS.map(function (_, i) { return i;});
+for (var i = order.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = order[i]; order[i] = order[j]; order[j] = t;}
+if (st && order.length > 1 && order[0] === st.last) { var t2 = order[0]; order[0] = order[1]; order[1] = t2;}
+st = { order: order, pos: 0, last: st? st.last: -1};
+}
+var idx = st.order[st.pos];
+st.pos += 1; st.last = idx;
+talkSaveTipState(st);
+return { idx: idx, tip: TALK_TIPS[idx]};
+}
+
+/* ---- ② 敵情報の組み立て（nextTarget＝未撃破の相手が常に先頭の実データ）
+5セグメント（main／weak／cond／prep／lore）を返す。同一会話内では
+一度出したセグメントを繰り返さない（呼び出し側で seen 管理）。 ---- */
+function talkPowPhrase(p) {
+if (typeof p!== "number") return "実力は未知数";
+if (p >= 5.5) return "神の領域の強さ";
+if (p >= 5.0) return "最強クラスの強さ";
+if (p >= 4.5) return "極めて強い";
+if (p >= 4.0) return "強敵と呼ぶにふさわしい強さ";
+if (p >= 3.4) return "手強い相手";
+return "油断は禁物の相手";
+}
+var TALK_WEATHER_JA = { sunny: "晴れ", clear: "快晴", cloudy: "曇り", rain: "雨", fog: "霧", storm: "嵐", snow: "雪", sunset: "夕景"};
+function talkEnemyInfo(kind) {
+var nt = STATE.nextTarget;
+var areaName = TALK_AREA_NAMES[AREA_IDX] || "";
+var prefix = (kind === "moirai")? "「糸の先に見えるのは――」": (kind === "pair" || kind === "guest")? "噂ではね、": "";
+if (nt && nt.kind === "rival") {
+var rid = STATE.rivalId || nt.id;
+var tr = TALK_RIVAL_TRAITS[rid] || { strong: "闇に囚われた好敵手としての実力は本物。", weak: "パワーを温存し、同点判定（ショットポイント→残りパワー）まで見据えて戦おう。"};
+var rlines = RIVAL_LINES[rid];
+return {
+main: prefix + "この" + areaName + "で次に立ちはだかるのは、好敵手 " + rid + " だ。" + (nt.title? "「" + nt.title + "」として、": "") + "決戦の門の手前で待ち構えている。強みは――" + tr.strong,
+weak: tr.weak + " ライバル戦は1ホール勝負だから、最初の一打から集中を切らすな。",
+cond: "決戦の場所は " + (nt.courseName || "この地の決戦コース") + "、1ホールマッチだ。同点ならショットポイント、それも同点なら残りパワーで決着する。門とライバルへの挑戦は、聖地の残影を2体浄化すると解かれる。",
+prep: "備えとしては、得意クラブの確認とボールの残数チェックだ。1ホール勝負は出だしが全て――最初のティーショットを安全に置く準備をしておこう。パワーは同点判定にも関わるから、温存も立派な戦術だ。",
+lore: rlines? (rid + " は門の手前で、こう言い放っているらしい――" + rlines.challenge): (rid + " は闇に囚われながらも、ゴルファーとしての誇りを失っていないという。")
+};
+}
+if (nt && nt.isBoss) {
+var wk = TALK_BOSS_WEAK[nt.id] || "真っ向勝負だけでなく、コースの罠と天候を読むこと。相手の強さに臆さず、自分のゴルフを貫くのが一番の攻略だ。";
+var bossMain = prefix + "この" + areaName + "の次の相手は " + nt.name + "。" + (nt.title? "「" + nt.title + "」――": "") + talkPowPhrase(nt.powTier) + "だ。決戦の門の先で待っている。";
+var lore = TALK_BOSS_LORE[nt.id] || "";
+if (nt.kind === "paris_boss") {
+if (String(nt.name).indexOf("？？？") === 0) {
+bossMain = prefix + "パリ宮廷の主は、まだ正体を明かしていない。往年の名選手が運命の糸で入れ替わり現れる――誰が出るかは、19番ホールの予想や町の噂で少しずつ見えてくる。強さはメジャー勝者の格そのもの、" + talkPowPhrase(nt.powTier) + "だ。";
+}
+lore = "宮廷の主の肩書きは『" + (nt.title || "") + "』。" + (nt.realBossName? "正体は " + nt.realBossName + " と目されている。": "") + "19番ホールの『予想ビンゴ』に登録しておくと、莫大な報酬の噂もある。";
+}
+if (!lore) lore = (nt.title? "『" + nt.title + "』の肩書きは伊達ではない。": "") + "決戦の門をくぐる者への試練として、この地に君臨している。";
+return {
+main: bossMain,
+weak: wk,
+cond: "決戦は " + (nt.courseName || "決戦のコース") + " で、" + (nt.holes || 3) + "ホールのマッチプレー（先取2勝・2連勝コールド、同点ホールはハーフ、オールスクエアならPar3ニアピン1打で決着）。天候は" + (TALK_WEATHER_JA[nt.weather] || nt.weather || "晴れ") + "の見込みだ。挑むには、まずこの地のライバルを倒し、決戦の門を開くこと。",
+prep: "備えとしては、天候（" + (TALK_WEATHER_JA[nt.weather] || nt.weather || "晴れ") + "）に合うギアの見直しと、ボールの残数を多めに確保すること。" + (nt.holes || 3) + "ホールの長丁場だから、パワーとメンタルの配分を先に決めておくと崩れない。クラブハウスで回復してから門へ向かうのが定石だ。",
+lore: lore
+};
+}
+var ab = TALK_AREA_BOSS[AREA_IDX] || TALK_AREA_BOSS[0];
+return {
+main: prefix + "この" + areaName + "の門番は " + ab.name + "。" + ab.where + "で待っている。" + ab.strong,
+weak: ab.weak,
+cond: "決戦は3ホールのマッチプレー（先取2勝・2連勝コールド、同点ホールはハーフ、オールスクエアならPar3ニアピン1打で決着）。挑むには、この地のライバルを倒して決戦の門を開くことだ。",
+prep: "備えとしては、ボールの残数を多めに確保し、クラブハウスで回復してから挑むこと。長丁場ではパワーとメンタルの配分が勝敗を分ける。",
+lore: ab.lore
+};
+}
+
+/* ---- 会話ダイアログの制御（対話ループ） ---- */
+var talkState = null; /* { def, name, kind, phase, line, buttons, tipDraw, enemySegs, enemySeen, history, rounds, used, recs, walker, greeting} */
+function talkLog() { try { console.log.apply(console, ["[GOAT-N5]"].concat([].slice.call(arguments)));} catch (e) {}}
+function talkPick(arr) { return arr[Math.floor(Math.random() * arr.length)];}
+/* その会話で未使用の要素を優先して選ぶ（プールを使い切ったら使用済みをリセット） */
+function talkPickFresh(pool, usedKey) {
+if (!pool ||!pool.length) return "";
+var used = talkState.used[usedKey] || (talkState.used[usedKey] = {});
+var avail = pool.filter(function (_, i) { return!used[i];});
+if (!avail.length) { talkState.used[usedKey] = {}; used = talkState.used[usedKey]; avail = pool.slice();}
+var pick = talkPick(avail);
+used[pool.indexOf(pick)] = true;
+return pick;
+}
+
+function talkSetButtons(list) {
+talkState.buttons = list;
+var box = document.getElementById("tkBtns");
+box.innerHTML = "";
+list.forEach(function (b, i) {
+var btn = document.createElement("button");
+btn.type = "button";
+btn.textContent = b.label;
+if (b.main) btn.className = "tk-main";
+btn.setAttribute("data-talk-idx", String(i));
+btn.onclick = function () { if (talkState && talkState.buttons[i]) talkState.buttons[i].fn();};
+box.appendChild(btn);
+});
+}
+function talkShow(line) {
+talkState.line = line;
+talkState.history.push(line);
+document.getElementById("tkLine").textContent = line;
+}
+/* 話題選択（常に二択）。戻ってきたときは促し文＋土地の話題を混ぜて新鮮に保つ */
+function talkPhaseTopic(again) {
+talkState.phase = "topic";
+var line = talkState.greeting;
+if (again) {
+line = talkPickFresh(TALK_CONT_PROMPTS, "cont");
+if (talkState.rounds % 2 === 1) {
+var fl = talkPickFresh(TALK_AREA_FLAVOR[AREA_IDX] || TALK_AREA_FLAVOR[0], "flavor");
+if (fl) line += " " + fl;
+}
+}
+talkShow(line);
+talkSetButtons([
+{ label: "🏌️ ゴルフ上達のコツを聞く", main: true, fn: talkShowTip},
+{ label: "⚔ 敵キャラの情報を聞く", fn: talkPhaseEnemy}
+]);
+}
+/* ① コツ: 土地の切り口＋コツ本文。反応二択→返し→続きの二択、でループする */
+function talkShowTip() {
+var draw = talkDrawTip();
+talkState.phase = "tip";
+talkState.tipDraw = draw;
+talkState.rounds += 1;
+var intro = talkPickFresh(["", ""].concat(TALK_TIP_INTROS[AREA_IDX] || []), "intro");
+talkShow((intro? intro + "\n": "") + "\u3010" + draw.tip.c + "\u3011" + draw.tip.t);
+talkSetButtons([
+{ label: "「なるほど！ 試してみます」", main: true, fn: function () {
+talkState.phase = "tipAfter";
+talkShow(talkPickFresh(TALK_TIP_CHEERS, "cheer"));
+talkSetButtons(talkTipNavButtons());
+}},
+{ label: "「もう少し詳しく教えて」", fn: function () {
+talkState.phase = "tipAfter";
+talkShow(draw.tip.d);
+talkSetButtons(talkTipNavButtons());
+}}
+]);
+}
+function talkTipNavButtons() {
+return [
+{ label: "🏌️ もう一つコツを聞く", main: true, fn: talkShowTip},
+{ label: "💬 別の話題にする", fn: function () { talkPhaseTopic(true);}}
+];
+}
+/* ② 敵情報: 5セグメントを同一会話内で一度ずつ出す */
+function talkPhaseEnemy() {
+if (!talkState.enemySegs) talkState.enemySegs = talkEnemyInfo(talkState.kind);
+if (!talkState.enemySeen.main) { talkShowEnemySeg("main"); return;}
+talkEnemyNext();
+}
+function talkEnemyNext() {
+var order = ["weak", "cond", "prep", "lore"];
+for (var i = 0; i < order.length; i++) {
+if (!talkState.enemySeen[order[i]]) { talkShowEnemySeg(order[i]); return;}
+}
+talkState.phase = "enemyAfter";
+talkShow(talkPickFresh(TALK_ENEMY_DONE, "done"));
+talkSetButtons([
+{ label: "🏌️ ゴルフ上達のコツを聞く", main: true, fn: talkShowTip},
+{ label: "👋 会話を終える", fn: function () { closeNpcTalk();}}
+]);
+}
+function talkShowEnemySeg(key) {
+var segs = talkState.enemySegs;
+talkState.enemySeen[key] = true;
+talkState.phase = (key === "main")? "enemy": "enemyAfter";
+talkState.rounds += 1;
+var pre = (key === "main")? "": talkPickFresh(TALK_SEG_PREFIX[key] || [""], "pre_" + key);
+talkShow(pre + segs[key]);
+if (key === "main") {
+talkSetButtons([
+{ label: "「弱点や攻略法はある？」", main: true, fn: function () { talkShowEnemySeg("weak");}},
+{ label: "「決戦の場所と条件は？」", fn: function () { talkShowEnemySeg("cond");}}
+]);
+return;
+}
+var remain = ["weak", "cond", "prep", "lore"].some(function (k) { return!talkState.enemySeen[k];});
+if (remain) {
+talkSetButtons([
+{ label: "⚔ もっと敵の話を聞く", main: true, fn: talkEnemyNext},
+{ label: "💬 別の話題にする", fn: function () { talkPhaseTopic(true);}}
+]);
+} else {
+talkSetButtons([
+{ label: "💬 別の話題にする", main: true, fn: function () { talkPhaseTopic(true);}},
+{ label: "👋 会話を終える", fn: function () { closeNpcTalk();}}
+]);
+}
+}
+
+function talkFaceRecs(recs, face) {
+(recs || []).forEach(function (rec) {
+if (!rec ||!rec.grp) return;
+if (face) {
+if (rec._talkPrevYaw === undefined) rec._talkPrevYaw = rec.grp.rotation.y;
+rec.grp.rotation.y = Math.atan2(player.x - rec.grp.position.x, player.z - rec.grp.position.z);
+} else if (rec._talkPrevYaw!== undefined) {
+rec.grp.rotation.y = rec._talkPrevYaw;
+rec._talkPrevYaw = undefined;
+}
+});
+}
+function talkResolveRecs(def, lm) {
+if (lm && lm.talkRecs) return lm.talkRecs;
+if (def.kind === "moirai" || def.kind === "pair") return townNpcs.filter(function (r) { return r.kind === def.kind;});
+if (def.kind === "guest") {
+var near = null, bd = 1e9;
+townNpcs.forEach(function (r) { if (r.kind!== "guest") return; var d = Math.hypot(player.x - r.x, player.z - r.z); if (d < bd) { bd = d; near = r;}});
+return near? [near]: [];
+}
+return [];
+}
+
+function openNpcTalk(def, lm) {
+if (talkState ||!def) return;
+if (rivalDialogOpen) return;
+var recs = (def.kind === "role")? []: talkResolveRecs(def, lm);
+var walker = (lm && lm.talkWalker)? lm.talkWalker: null;
+talkState = {
+def: def, name: def.name || "💬 住人", kind: def.kind || "pair", phase: "topic",
+line: "", buttons: [], tipDraw: null, enemySegs: null,
+enemySeen: {}, history: [], rounds: 0, used: {},
+greeting: talkPick(TALK_GREETINGS[def.kind === "role"? def.role: def.kind] || TALK_GREETINGS.pair),
+recs: recs, walker: walker
+};
+if (walker) {
+walker.talkHold = true;
+if (walker.rec && walker.rec.grp) walker.rec.grp.rotation.y = Math.atan2(player.x - walker.rec.grp.position.x, player.z - walker.rec.grp.position.z);
+}
+talkFaceRecs(recs, true);
+document.getElementById("tkName").textContent = talkState.name;
+document.getElementById("talkDialog").style.display = "flex";
+var pr = document.getElementById("interactPrompt");
+if (pr) pr.style.display = "none";
+_lastPromptLM = null; /* 閉じた後にプロンプトを再表示させる */
+STATE.paused = true; /* 会話中はワールドを止める（N3 ライバルダイアログと同じ作法） */
+talkPhaseTopic(false);
+talkLog("talk open:", talkState.name, talkState.kind);
+}
+function closeNpcTalk() {
+if (!talkState) return;
+if (talkState.walker) talkState.walker.talkHold = false;
+talkFaceRecs(talkState.recs, false);
+talkState = null;
+document.getElementById("talkDialog").style.display = "none";
+STATE.paused = false;
+talkLog("talk close");
+}
+document.getElementById("tkClose").onclick = function () { closeNpcTalk();};
+
+/* 客・通行人の会話ランドマーク（生成済みNPCに後付けする。破棄は townLandmarks 経由で既存経路に乗る） */
+function talkAttachExtraLandmarks() {
+townNpcs.forEach(function (rec) {
+if (rec.kind!== "guest") return;
+var lm = { x: rec.x, z: rec.z, r: 2.1, label: "💬 19番ホールの客と話す", color: 0xffe9a8, isNpcTalk: true,
+action: { type: "npcTalk", title: "🍸 19番ホールの客", talk: { kind: "guest", name: "🍸 19番ホールの客"}}};
+lm.talkRecs = [rec];
+LANDMARKS.push(lm); townLandmarks.push(lm);
+});
+townWalkers.forEach(function (w) {
+var lm = { x: w.rec.x, z: w.rec.z, r: 2.3, label: "💬 通行人と話す", color: 0xffe9a8, isNpcTalk: true,
+action: { type: "npcTalk", title: "🚶 通行人", talk: { kind: "walker", name: "🚶 通行人"}}};
+lm.talkWalker = w; w.talkLm = lm;
+LANDMARKS.push(lm); townLandmarks.push(lm);
+});
+talkLog("extra talk landmarks attached. talk total:", LANDMARKS.filter(function (l) { return l.action && l.action.type === "npcTalk";}).length);
+}
+
+/* 検証・診断用ハンドル（N3/N4 と同型） */
+window.__GOATN5 = {
+get open() { return!!talkState;},
+get phase() { return talkState? talkState.phase: null;},
+get speaker() { return talkState? talkState.name: null;},
+get line() { return talkState? talkState.line: "";},
+get buttons() { return talkState? talkState.buttons.map(function (b) { return b.label;}): [];},
+get history() { return talkState? talkState.history.slice(): [];},
+get rounds() { return talkState? talkState.rounds: 0;},
+get enemySeen() { return talkState? Object.assign({}, talkState.enemySeen): {};},
+get lastTip() { return (talkState && talkState.tipDraw)? { idx: talkState.tipDraw.idx, cat: talkState.tipDraw.tip.c, text: talkState.tipDraw.tip.t}: null;},
+tipsTotal: TALK_TIPS.length,
+tipState: function () { var s = talkLoadTipState(); return s? { pos: s.pos, total: s.order.length, seen: s.order.slice(0, s.pos)}: null;},
+press: function (i) { if (talkState && talkState.buttons[i]) talkState.buttons[i].fn();},
+pressLabel: function (sub) {
+if (!talkState) return false;
+for (var i = 0; i < talkState.buttons.length; i++) {
+if (talkState.buttons[i].label.indexOf(sub) >= 0) { talkState.buttons[i].fn(); return true;}
+}
+return false;
+},
+close: function () { closeNpcTalk();},
+openKind: function (kind) {
+for (var i = 0; i < LANDMARKS.length; i++) {
+var lm = LANDMARKS[i];
+if (lm.action && lm.action.type === "npcTalk" && lm.action.talk && lm.action.talk.kind === kind) { openNpcTalk(lm.action.talk, lm); return true;}
+}
+return false;
+},
+talkLandmarks: function () { return LANDMARKS.filter(function (l) { return l.action && l.action.type === "npcTalk";}).length;},
+walkerHold: function (i) { var w = townWalkers[i]; return w?!!w.talkHold: null;},
+walkerPos: function (i) { var w = townWalkers[i]; return (w && w.rec && w.rec.grp)? { x: w.rec.grp.position.x, z: w.rec.grp.position.z}: null;},
+walkerInfo: function (i) { var w = townWalkers[i]; return (w && w.rec && w.rec.grp)? { x: w.rec.grp.position.x, z: w.rec.grp.position.z, hold: !!w.talkHold, pauseT: w.pauseT, moving: !!w.moving}: null;}
+};
+
     spawnTownNpcs();
+    talkAttachExtraLandmarks(); /* N5: 客・通行人の会話ランドマークを後付け */
     /* スタンドアロン時のフォールバック: 親の同期（ライバル確定）が来ていれば何もしない。
        同期が来ない直接起動では約12秒後に主人公だけを除外して生やす（重い環境で同期が遅れても、
        ライバルと同顔の役割住人が生える競合を避けるため段階的に待つ）。 */
