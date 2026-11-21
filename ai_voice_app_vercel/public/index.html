@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.7.3)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.7.4)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -318,6 +318,10 @@
     /* v3.6.0 ログイン画面 */
     .login-overlay { position: fixed; inset: 0; z-index: 1500; display: flex; align-items: center; justify-content: center; background: var(--bg); padding: 20px; }
     .login-overlay[hidden] { display: none; }
+    /* v3.7.4: 認証確認中はフォームを見せず、ログイン画面のちらつきを防ぐ。 */
+    .login-checking { display: none; color: var(--muted); font-size: .95rem; }
+    .login-overlay.auth-checking .login-card { visibility: hidden; }
+    .login-overlay.auth-checking .login-checking { display: block; position: absolute; }
     .login-card { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 30px 24px 26px; box-shadow: 0 12px 40px rgba(30,28,26,.10); text-align: center; }
     .login-card .brand-mark { margin: 0 auto 10px; }
     .login-title { font-size: 1.6rem; font-weight: 900; margin: 0; }
@@ -593,7 +597,8 @@
 <body>
 
   <!-- v3.6.0 ログイン画面（API利用のためログイン必須） -->
-  <div id="login-overlay" class="login-overlay" role="dialog" aria-modal="true" aria-label="ログイン">
+  <div id="login-overlay" class="login-overlay auth-checking" role="dialog" aria-modal="true" aria-label="ログイン">
+    <p class="login-checking" aria-hidden="true">確認中…</p>
     <div class="login-card">
       <div class="brand-mark" aria-hidden="true">話</div>
       <h1 class="login-title">AIボイス</h1>
@@ -675,7 +680,7 @@
       <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい選べるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.7.3 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.7.4 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -1473,7 +1478,10 @@
         if (UI.pitchVal) UI.pitchVal.textContent = char.pitch > 0 ? `+${char.pitch} cents` : `${char.pitch} cents`;
       }
       UI.avatarImage.style.opacity = '0';
+      // v3.7.4: 高速切替時に古いキャラの写真が後から上書きしないよう順序を守る。
+      const heroSeq = (appState._heroSeq = (appState._heroSeq || 0) + 1);
       const applyHero = () => {
+        if (heroSeq !== appState._heroSeq) return;
         UI.avatarImage.src = resolveCharImage(char);
         UI.avatarImage.alt = char.name + 'の写真';
         UI.avatarImage.style.opacity = '1';
@@ -2713,11 +2721,18 @@
         const emoNames = { joy: '喜び', anger: '怒り', sadness: '悲しみ', fun: '楽しさ' };
 
         // v3.4: RESTフォールバックは /api/rest プロキシ経由（生キーはブラウザに渡らない）。
+        // v3.7.4: 直近の会話履歴を添えて、フォールバックでも文脈が続くようにする。
+        const hist = (appState.history || []).slice(-11);
+        const turns = hist
+          .filter((h, i) => !(i === hist.length - 1 && h.role === 'user' && h.text === userPrompt))
+          .slice(-10)
+          .map(h => ({ role: h.role === 'user' ? 'user' : 'model', text: h.text }));
         const res = await fetch('/api/rest', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             prompt: userPrompt,
+            history: turns,
             systemInstruction: `${char.systemPrompt}\n現在の感情: ${emoNames[appState.emotion]} (強度: ${appState.intensity}%)\n1〜2文で短く日本語で返答してください。`
           })
         });
@@ -2922,6 +2937,11 @@
     UI.btnClearChat.addEventListener('click', () => {
       UI.chatView.innerHTML = '';
       appState.history = [];
+      // v3.7.4: 表示中のAI吹き出し参照も切る（切り離されたノードを指し続けない）。
+      appState.aiTextBubble = null;
+      appState.aiTextBubbleBody = null;
+      appState.aiTextAccum = '';
+      appState._userTextAccum = '';
       popToast('会話履歴を消去しました');
     });
 
@@ -2979,7 +2999,7 @@
     // ===== v3.6.0 ログイン =====
     function showLogin(message) {
       const ov = document.getElementById('login-overlay');
-      if (ov) ov.hidden = false;
+      if (ov) { ov.hidden = false; ov.classList.remove('auth-checking'); }
       const err = document.getElementById('login-error');
       if (err) {
         if (message) { err.textContent = message; err.hidden = false; }
@@ -2988,7 +3008,7 @@
     }
     function hideLogin() {
       const ov = document.getElementById('login-overlay');
-      if (ov) ov.hidden = true;
+      if (ov) { ov.hidden = true; ov.classList.remove('auth-checking'); }
     }
     async function checkAuth() {
       try {
@@ -3045,7 +3065,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.7.3 を起動しました', 'info');
+      logMessage('AIボイス v3.7.4 を起動しました', 'info');
       checkAuth();
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
@@ -3115,9 +3135,12 @@
       releaseWakeLock();
       if (sessionTimerId) { clearInterval(sessionTimerId); sessionTimerId = null; }
       const startedAt = appState._sessionStartedAt;
-      appState._sessionStartedAt = null;
-      const elapsedEl = document.getElementById('session-elapsed');
-      if (elapsedEl) elapsedEl.textContent = '00:00';
+      // v3.7.4: 内部再接続（パートナー切替など）ではセッションタイマーを継続する。
+      if (!appState._internalReconnect) {
+        appState._sessionStartedAt = null;
+        const elapsedEl = document.getElementById('session-elapsed');
+        if (elapsedEl) elapsedEl.textContent = '00:00';
+      }
       syncHeroState('待機中');
       // パートナー切替などの内部再接続では要約を出さない。短すぎる接続失敗でも出さない。
       if (appState._internalReconnect || !startedAt) return;
