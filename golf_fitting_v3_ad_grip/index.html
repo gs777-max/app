@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FIT LAB v3.0 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ）</title>
+<title>FIT LAB v3.0.1 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ）</title>
 <meta name="description" content="絵を選ぶだけ。あなたの振りに合うドライバー（ヘッド14モデル×シャフト115本×グリップ19モデル）を物理アルゴリズムと因果ロジックツリーで総合診断し、ベスト10でお渡しします。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -155,7 +155,9 @@ img,svg{max-width:100%}
 #impact-buttons button{margin-bottom:10px;min-height:56px;width:100%}
 
 /* ---- step nav (sticky bottom bar) ---- */
-.step-nav{position:sticky;bottom:0;z-index:30;display:flex;gap:10px;margin:32px -16px 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(246,241,231,0),var(--paper) 30%);border-top:1px solid var(--line)}
+.step-nav{position:sticky;bottom:0;z-index:30;display:flex;gap:10px;margin:32px -16px 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:var(--paper);border-top:1px solid var(--line)}
+/* v3.0.1: step-4 bottom padding so the last result card can scroll fully above the sticky nav */
+#step-4{padding-bottom:96px}
 .btn{min-height:56px;border-radius:14px;font-weight:700;font-size:17px;padding:12px 22px;border:1.5px solid var(--green)}
 .btn-primary{background:var(--green);color:#F6F1E7;flex:1}
 .btn-primary:hover{background:var(--green2)}
@@ -350,7 +352,7 @@ footer b{color:var(--ink2)}
 <header class="masthead">
   <div class="wrap masthead-in">
     <div class="brand">FIT LAB <span>— Driver Fitting</span></div>
-    <div class="masthead-note">2026.11 最新版 v3.0 ・ <b>ヘッド14 / シャフト115 / グリップ19</b>を収録</div>
+    <div class="masthead-note">2026.11 最新版 v3.0.1 ・ <b>ヘッド14 / シャフト115 / グリップ19</b>を収録</div>
     <span class="masthead-pill">診断は無料</span>
   </div>
 </header>
@@ -359,7 +361,7 @@ footer b{color:var(--ink2)}
 
   <!-- ================= HERO ================= -->
   <section class="hero">
-    <div class="kicker">Driver Total Fitting v3.0 · Head × Shaft × Grip Physics Engine</div>
+    <div class="kicker">Driver Total Fitting v3.0.1 · Head × Shaft × Grip Physics Engine</div>
     <h1>絵を選ぶだけ。<br>あなたの振りに合う<em>ドライバー</em>を、物理で選ぶ。</h1>
     <p class="lede">計測器の数値がなくても大丈夫です。普段の球の高さと球筋を絵で選ぶだけで、<b>ヘッド×シャフト×グリップ（下巻き枚数・巻き方・口径・BL有無）</b>まで一気通貫で物理演算し、トータル最適セッティングをベスト10でお渡しします。所要時間は約2分です。</p>
     <div class="hero-stats">
@@ -969,7 +971,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Total Fitting v3.0 (Head × Shaft × Grip)</b><br>
+<b>FIT LAB — Driver Total Fitting v3.0.1 (Head × Shaft × Grip)</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
