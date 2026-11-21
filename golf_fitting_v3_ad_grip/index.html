@@ -1,0 +1,2944 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIT LAB v3.0 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ）</title>
+<meta name="description" content="絵を選ぶだけ。あなたの振りに合うドライバー（ヘッド14モデル×シャフト115本×グリップ19モデル）を物理アルゴリズムと因果ロジックツリーで総合診断し、ベスト10でお渡しします。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Serif+JP:wght@600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============ FIT LAB v3.0 — paper x deep green x brass editorial, mobile-first (Head x Shaft x Grip) ============ */
+:root{
+  --paper:#F6F1E7; --card:#FFFDF8; --ink:#14201B; --ink2:#2E3B34; --muted:#4A5A51;
+  --green:#0B352A; --green2:#072A20; --green-soft:#E4EFE7; --green-line:#7FA98C;
+  --brass:#B9975B; --brass-dark:#7A5F22; --brass-soft:#F3E9CF;
+  --line:#D5C9A8; --line-soft:#E8DFCB;
+  --red:#9E3524; --blue:#2F5D7A; --purple:#5B4A7A;
+}
+*{box-sizing:border-box}
+html,body{overflow-x:clip}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:'Inter','Noto Sans JP',sans-serif;font-size:17px;line-height:1.75;}
+h1,h2,h3,.serif{font-family:'Fraunces','Noto Serif JP',serif;}
+a{color:var(--green)}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+input,select{font-family:inherit;font-size:17px;color:var(--ink)}
+img,svg{max-width:100%}
+.wrap{max-width:680px;margin:0 auto;padding:0 16px}
+.rule{border:0;border-top:1px solid var(--line);margin:0}
+.rule-heavy{border:0;border-top:2px solid var(--ink);margin:0}
+
+/* ---- masthead ---- */
+.masthead{border-bottom:2px solid var(--ink);padding:12px 0}
+.masthead-in{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{font-family:'Fraunces','Noto Serif JP',serif;font-weight:700;font-size:24px;letter-spacing:.04em;color:var(--ink)}
+.brand span{color:var(--brass-dark)}
+.masthead-note{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.masthead-note b{color:var(--green)}
+.masthead-pill{display:inline-block;background:var(--green);color:#F6F1E7;font-size:12px;font-weight:700;border-radius:999px;padding:6px 12px;letter-spacing:.06em}
+
+/* ---- hero (deep-green band) ---- */
+.hero{margin:0 -16px;padding:42px 20px 28px;background:var(--green);color:#F6F1E7;border-bottom:4px solid var(--brass)}
+.kicker{font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#D9BC7A}
+.hero h1{font-size:clamp(36px,9.5vw,58px);line-height:1.28;margin:14px 0 12px;font-weight:600;color:#F6F1E7}
+.hero h1 em{font-style:normal;color:#E9CE8E}
+.hero .lede{font-size:17px;line-height:1.9;color:#DCE8DF;max-width:600px;margin:0}
+.hero .lede b{color:#F6F1E7}
+.hero-stats{display:flex;margin:24px 0 0;border-top:1px solid rgba(246,241,231,.28);padding-top:18px}
+.hero-stats div{flex:1;min-width:0}
+.hero-stats b{display:block;font-family:'Fraunces','Noto Serif JP',serif;font-size:30px;line-height:1.1;color:#F6F1E7}
+.hero-stats span{font-size:12px;color:#B9CDBF}
+.preset-block{margin:26px 0 0;padding:20px;border-radius:16px;background:var(--card);color:var(--ink)}
+.preset-block h2{font-size:20px;margin:0 0 4px}
+.preset-block p{margin:0 0 14px;font-size:14.5px;color:var(--ink2)}
+.preset-row{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:640px){.preset-row{grid-template-columns:repeat(3,1fr)}}
+.preset-btn{min-height:96px;text-align:left;border:1.5px solid var(--line);border-radius:14px;background:#fff;
+  padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.preset-btn:hover{border-color:var(--green)}
+.preset-btn .p-no{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--brass-dark)}
+.preset-btn .p-name{font-weight:700;font-size:17px;line-height:1.4}
+.preset-btn .p-sub{font-size:13px;color:var(--muted);line-height:1.55}
+.preset-btn .p-go{font-size:13px;font-weight:700;color:var(--green);margin-top:8px}
+.free-note{font-size:13.5px;color:var(--muted);margin:14px 0 0}
+.free-note b{color:var(--green)}
+
+/* ---- progress ---- */
+.progress{position:sticky;top:0;z-index:20;background:var(--paper);padding:12px 0 10px;border-bottom:1px solid var(--line)}
+.progress-label{display:flex;justify-content:space-between;font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--ink2);margin-bottom:8px}
+.progress-label .cur{color:var(--green)}
+.progress-bar{display:flex;gap:6px}
+.progress-bar i{flex:1;height:6px;border-radius:3px;background:var(--line);display:block}
+.progress-bar i.on{background:var(--green)}
+.progress-bar i.now{background:var(--brass)}
+.progress-steps{display:flex;gap:4px;margin-top:8px}
+.progress-steps span{flex:1;min-width:0;font-size:10.5px;font-weight:700;color:var(--muted);text-align:center;white-space:nowrap}
+.progress-steps span.cur{color:var(--green)}
+
+/* ---- wizard steps ---- */
+.wiz{display:none;padding:30px 0 8px;scroll-margin-top:96px}
+.wiz.on{display:block}
+.step-kicker{font-size:13px;font-weight:700;letter-spacing:.2em;color:var(--brass-dark);text-transform:uppercase}
+.wiz h2{font-size:clamp(28px,6.4vw,36px);line-height:1.35;margin:10px 0 8px;font-weight:600}
+.wiz .why{font-size:16px;color:var(--ink2);margin:0 0 4px;max-width:600px}
+.wiz .why b{color:var(--ink)}
+.wiz .dontknow{font-size:14px;color:var(--ink2);background:var(--brass-soft);border-radius:12px;padding:12px 14px;margin:16px 0 22px;max-width:600px}
+.q-group{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:18px;margin-bottom:18px}
+.q-group .q-label{font-size:12px;font-weight:700;letter-spacing:.18em;color:var(--brass-dark);text-transform:uppercase;margin-bottom:14px}
+.q-group .field{margin-bottom:18px}
+.q-group .field:last-child{margin-bottom:0}
+.field-grid{display:grid;grid-template-columns:1fr;gap:0}
+.field label{display:block;font-size:15px;font-weight:700;margin-bottom:8px}
+.field .help{display:block;font-size:13.5px;font-weight:400;color:var(--muted);margin-top:4px;line-height:1.65}
+.field select,.field input[type=number],.field input[type=text]{width:100%;min-height:56px;border:1.5px solid var(--line);
+  border-radius:12px;background:#fff;padding:12px 14px}
+.field select:focus,.field input:focus{outline:2px solid var(--green);outline-offset:1px;border-color:var(--green)}
+.field input:disabled{background:#EFEAE0;color:var(--muted)}
+.field select.visually-hidden-select,.visually-hidden-select{position:absolute!important;width:1px!important;min-height:0!important;height:1px!important;padding:0!important;border:0!important;opacity:0;pointer-events:none}
+.grip-box{margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(185,151,91,.10);border:1px solid rgba(185,151,91,.35)}
+.grip-rules{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.rule-tag{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:6px;background:var(--green-soft);color:var(--green);border:1px solid var(--green-line);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.ng-tag{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:6px;background:#FDECEC;color:#9E3524;border:1px solid #E5B4AC}
+.causal-box{margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(14,59,46,.05);border-left:3px solid var(--brass);font-size:12px;line-height:1.7}
+.weather-api-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 14px}
+.weather-api-btn{min-height:44px;border:1.5px solid var(--green-line);background:var(--card);color:var(--green);border-radius:10px;font-weight:700;font-size:13px;padding:6px 14px}
+.weather-api-btn:hover{background:var(--green-soft)}
+.weather-api-status{font-size:12.5px;color:var(--muted)}
+
+/* segmented controls */
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg-btn{flex:1 1 0;min-width:0;min-height:56px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-weight:700;font-size:15px;line-height:1.35;padding:10px 8px;color:var(--ink2)}
+.seg-btn.active{border-color:var(--green);background:var(--green);color:#F6F1E7}
+.seg-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.seg-scroll .seg-btn{flex:0 0 auto;min-width:78px;scroll-snap-align:start}
+.opt-cards{display:grid;gap:10px}
+.opt-card{min-height:68px;text-align:left;border:1.5px solid var(--line);border-radius:14px;background:#fff;padding:14px 16px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.opt-card .t{font-weight:700;font-size:16px;line-height:1.4}
+.opt-card .s{font-size:13px;color:var(--muted);line-height:1.5}
+.opt-card.active{border:2px solid var(--green);background:var(--green-soft)}
+
+.unk{display:inline-flex;align-items:center;gap:10px;margin-top:10px;font-size:14px;font-weight:700;color:var(--green);background:var(--brass-soft);border:1.5px solid #D9C08A;border-radius:999px;padding:10px 16px;min-height:48px;cursor:pointer}
+.unk input{width:22px;height:22px;accent-color:var(--green);flex:none;margin:0}
+.num-row{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:640px){.num-row{grid-template-columns:1fr 1fr}}
+.mini-btn{min-height:52px;border:1.5px solid var(--green);background:#fff;color:var(--green);border-radius:12px;
+  font-weight:700;font-size:15px;padding:10px 16px}
+.mini-btn:hover{background:var(--green-soft)}
+.converter{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.converter input{width:110px;min-height:52px;border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:8px 10px}
+
+/* ---- selectable cards / svg ---- */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.selectable-card{min-height:76px;border:1.5px solid var(--line);border-radius:14px;background:#fff;
+  padding:14px 16px;cursor:pointer;text-align:left;font-size:15px;line-height:1.55}
+.selectable-card:hover{border-color:var(--green)}
+.selectable-card.active{border:2px solid var(--green);background:var(--green-soft);box-shadow:0 0 0 1px var(--green)}
+.selectable-card .t{font-weight:700;display:block;font-size:16px}
+.selectable-card .s{color:var(--muted);font-size:13px;display:block;margin-top:2px}
+.svg-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:16px}
+.face-cap,.flight-cap{font-size:13px;color:var(--ink2);text-align:center;margin:-6px 0 16px}
+.svg-box svg{width:100%;height:auto;display:block}
+.svg-box text{paint-order:stroke;stroke:#FFFDF8;stroke-width:3px;stroke-linejoin:round}
+.face-zone{transition:fill .15s;cursor:pointer}
+.face-zone:hover{fill:rgba(185,151,91,.45)}
+.face-zone.active{fill:rgba(14,59,46,.55);stroke:var(--green);stroke-width:2.5px}
+.flight-path{transition:stroke-width .2s;cursor:pointer}
+.flight-path:hover{stroke-width:4.5px}
+.flight-path.active{stroke-width:5px}
+.readout{border:1px solid var(--green-line);background:var(--green-soft);border-radius:14px;
+  padding:14px 16px;font-size:15px;line-height:1.7}
+.readout b{color:var(--green)}
+.sub-h{font-size:18px;font-weight:700;margin:28px 0 12px;border-left:4px solid var(--brass);padding-left:10px}
+#impact-buttons button{margin-bottom:10px;min-height:56px;width:100%}
+
+/* ---- step nav (sticky bottom bar) ---- */
+.step-nav{position:sticky;bottom:0;z-index:30;display:flex;gap:10px;margin:32px -16px 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(246,241,231,0),var(--paper) 30%);border-top:1px solid var(--line)}
+.btn{min-height:56px;border-radius:14px;font-weight:700;font-size:17px;padding:12px 22px;border:1.5px solid var(--green)}
+.btn-primary{background:var(--green);color:#F6F1E7;flex:1}
+.btn-primary:hover{background:var(--green2)}
+.btn-ghost{background:#fff;color:var(--green)}
+.btn-ghost:hover{background:var(--green-soft)}
+.btn-brass{background:var(--brass);border-color:var(--brass-dark);color:#1A2420;flex:1}
+.btn-brass:hover{background:#C8A96B}
+
+/* ---- season tabs ---- */
+.season-row{display:grid;grid-template-columns:1fr;gap:8px;margin:6px 0 18px}
+@media(min-width:640px){.season-row{grid-template-columns:repeat(3,1fr)}}
+.season-tab{min-height:56px;border:1.5px solid var(--line);background:#fff;border-radius:12px;
+  padding:10px 14px;font-weight:700;font-size:14.5px;color:var(--ink2);text-align:left}
+.season-tab.active{background:var(--green);border-color:var(--green);color:#F6F1E7}
+
+/* ---- results ---- */
+.badge{display:inline-block;font-size:13px;font-weight:700;border-radius:999px;padding:7px 12px;border:1px solid var(--green-line);background:var(--green-soft);color:var(--green)}
+.badge.warn{background:var(--brass-soft);border-color:#D9C08A;color:var(--brass-dark)}
+.sec-head{margin:34px 0 14px}
+.sec-head .kicker{font-size:11px}
+.sec-head h2{font-size:clamp(26px,5.6vw,32px);margin:6px 0 4px}
+.sec-head p{margin:0;font-size:15px;color:var(--ink2)}
+#physics-summary-cards>div{border-radius:16px!important;padding:18px!important}
+#physics-summary-cards .text-lg{font-size:28px}
+#physics-summary-cards .text-sm{font-size:17px}
+#physics-summary-cards .text-xs{font-size:14px}
+#physics-summary-cards .text-\[11px\]{font-size:13px}
+.sum-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:640px){.sum-grid{grid-template-columns:1fr 1fr}}
+.sens-grid{grid-template-columns:1fr}
+@media(min-width:640px){.sens-grid{grid-template-columns:repeat(3,1fr)}}
+#sensitivity-container>div{border-radius:16px!important;padding:18px!important;font-size:14.5px!important}
+#sensitivity-container .text-sm{font-size:15px}
+.sum-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+#top10-container .rank-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px;position:relative}
+#top10-container .rank-card.top1{border:2px solid var(--brass);background:var(--green);color:#F6F1E7;box-shadow:0 16px 40px rgba(11,53,42,.28)}
+.rank-card.locked .lockable{filter:blur(7px);pointer-events:none;user-select:none}
+.rank-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.rank-no{font-family:'Fraunces','Noto Serif JP',serif;font-size:30px;font-weight:700;line-height:1;color:var(--green)}
+.rank-no small{font-size:13px;font-family:'Inter','Noto Sans JP',sans-serif;font-weight:700;color:var(--muted);letter-spacing:.1em}
+#top10-container .rank-card.top1 .rank-no{color:#E9CE8E}
+#top10-container .rank-card.top1 .rank-no small{color:#B9CDBF}
+.rank-title{font-size:18px;font-weight:700;line-height:1.5;margin:2px 0 0}
+.score{font-size:13px;color:var(--muted);text-align:right}
+.score b{font-size:26px;color:var(--green);font-family:'Fraunces',serif}
+.lock-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  text-align:center;padding:20px;background:var(--green);border-radius:18px;cursor:pointer}
+.lock-overlay .lock-t{font-weight:700;font-size:18px;color:#E9CE8E}
+.lock-overlay .lock-s{font-size:14px;color:#DCE8DF;max-width:420px}
+.pw-modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(11,53,42,.72)}
+.pw-modal[hidden]{display:none}
+.pw-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;max-width:420px;width:100%}
+.pw-card h3{margin:0 0 6px;font-size:21px}
+.pw-card p{margin:0 0 14px;font-size:14.5px;color:var(--ink2)}
+.pw-card input{width:100%;min-height:52px;font-size:18px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+.pw-err{color:#B3261E;font-size:14px;font-weight:700;min-height:20px;margin:10px 0 0}
+.pw-row{display:flex;gap:10px;margin-top:14px}
+.pw-row .btn{flex:1}
+.score-bar{height:6px;background:var(--line-soft);border-radius:3px;overflow:hidden;margin-top:6px}
+.score-bar i{display:block;height:100%;background:var(--green)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+#top10-container>article{animation:rise .5s ease both}
+@media (prefers-reduced-motion:reduce){#top10-container>article{animation:none}}
+.score-dial{display:flex;align-items:center;gap:12px}
+.score-dial .dial-num{font-family:'Fraunces','Noto Serif JP',serif;font-size:36px;font-weight:700;line-height:1;color:var(--green)}
+#top10-container .rank-card.top1 .score-dial .dial-num{color:#E9CE8E}
+.rank-chip{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;padding:3px 10px;border-radius:999px;border:1.5px solid var(--green);color:var(--green);margin-bottom:6px}
+#top10-container .rank-card.top1 .rank-chip{border-color:#E9CE8E;color:#E9CE8E}
+#top10-container .rank-card.top1 h3[class~="text-white"]{color:#F6F1E7}
+#top10-container article .flex.items-center.gap-2\.5>span{white-space:nowrap}
+.score-dial .dial-of{font-size:13px;color:var(--muted);font-weight:700}
+#top10-container .rank-card.top1 .score-dial .dial-of{color:#B9CDBF}
+.top3-compare{background:var(--green);color:#F6F1E7;border-radius:18px;padding:22px;margin-bottom:18px}
+.top3-compare h3{color:#F6F1E7;margin:0 0 4px;font-size:21px}
+.top3-compare p{color:#B9CDBF;font-size:13.5px;margin:0 0 8px}
+.top3-row{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-top:1px solid rgba(246,241,231,.22)}
+.top3-row .r{font-family:'Fraunces','Noto Serif JP',serif;font-size:24px;color:#E9CE8E;line-height:1}
+.top3-row .m{font-weight:700;font-size:15px;line-height:1.5}
+.top3-row .m small{display:block;font-weight:400;font-size:12.5px;color:#B9CDBF}
+.top3-row .s{font-family:'Fraunces','Noto Serif JP',serif;font-size:24px;font-weight:700;white-space:nowrap}
+.traj{margin-top:18px;background:rgba(246,241,231,.08);border:1px solid rgba(246,241,231,.28);border-radius:14px;padding:16px}
+.traj h4{margin:0 0 8px;font-size:16px;color:#F6F1E7}
+.traj p{margin:8px 0 0;font-size:14px;color:#DCE8DF;line-height:1.7}
+.pro-panel{border:2px solid var(--brass);border-radius:18px;background:#fff;padding:24px;margin:24px 0}
+.pro-panel h3{margin:0 0 6px;font-size:24px}
+.pro-panel p{margin:0 0 12px;font-size:15px;color:var(--ink2)}
+.pro-panel.unlocked>.kicker,.pro-panel.unlocked>h3,.pro-panel.unlocked>.sell-copy,.pro-panel.unlocked>.price-row{display:none}
+.pro-panel.unlocked #btn-pro-unlock{display:none}
+.unlocked-note{font-size:15px;font-weight:700;color:var(--green)}
+.price-row{display:grid;grid-template-columns:1fr;gap:12px;margin:16px 0}
+@media(min-width:640px){.price-row{grid-template-columns:1fr 1fr}}
+.price-card{border:1px solid var(--line);border-radius:14px;padding:20px;background:var(--card)}
+.price-card.pro{border:2px solid var(--green);background:var(--green);color:#F6F1E7;cursor:pointer}
+.pro-tap-hint{margin-top:12px;font-size:13px;font-weight:700;color:#E9CE8E}
+.price-card.pro ul{color:#DCE8DF}
+.price-card.pro .plan{color:#E9CE8E}
+.price-card .plan{font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--brass-dark)}
+.price-card .yen{font-family:'Fraunces',serif;font-size:36px;font-weight:700;margin:6px 0 2px}
+.price-card .plan-sub{font-size:13px;color:var(--muted)}
+.price-card.pro .plan-sub{color:#B9CDBF}
+.price-card ul{margin:10px 0 0;padding-left:18px;font-size:14.5px;color:var(--ink2)}
+.price-card ul li{margin-bottom:4px}
+.action-row{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.action-row .btn{flex:1;min-width:200px}
+.demo-note{font-size:13px;color:var(--muted)}
+
+/* ---- catalog ---- */
+.cat-tools{display:grid;grid-template-columns:1fr;gap:10px;margin:12px 0}
+@media(min-width:640px){.cat-tools{grid-template-columns:2fr 1fr 1fr}}
+.cat-tools input,.cat-tools select{min-height:52px;border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:10px 12px;width:100%}
+.cat-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
+table.cat{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+table.cat th{text-align:left;font-size:12px;letter-spacing:.06em;color:var(--muted);border-bottom:2px solid var(--ink);padding:10px 12px;white-space:nowrap}
+table.cat td{border-bottom:1px solid var(--line-soft);padding:10px 12px;vertical-align:top}
+table.cat tr:last-child td{border-bottom:0}
+.cat-note{font-size:13px;color:var(--muted);margin-top:10px}
+
+/* ---- method / footer ---- */
+.method{counter-reset:stage}
+.method-step{display:flex;gap:14px;margin-bottom:18px}
+.method-step .n{flex:none;width:42px;height:42px;border-radius:50%;background:var(--green);color:#F6F1E7;
+  display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:18px}
+.method-step h3{margin:2px 0 4px;font-size:17px}
+.method-step p{margin:0;font-size:15px;color:var(--ink2)}
+.method-step code{background:#EFE7D3;border-radius:6px;padding:1px 6px;font-size:13px}
+footer{border-top:2px solid var(--ink);margin-top:44px;padding:22px 0 40px;font-size:13.5px;color:var(--muted);line-height:1.9}
+footer b{color:var(--ink2)}
+@media print{
+  .no-print,.progress,.step-nav,.masthead,.hero,.preset-block{display:none!important}
+  body{background:#fff}
+  .wiz{display:block!important}
+}
+/* ---- utility layer: classes emitted by the preserved v1 engine ---- */
+.flex{display:flex}.grid{display:grid}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-between{justify-content:space-between}
+.grid-cols-1{grid-template-columns:1fr}
+.gap-2{gap:8px}.gap-2\.5{gap:10px}.gap-4{gap:16px}
+.p-3{padding:12px}.p-4{padding:16px}
+.px-1\.5{padding-left:6px;padding-right:6px}.px-2\.5{padding-left:10px;padding-right:10px}.px-3{padding-left:12px;padding-right:12px}
+.px-3\.5{padding-left:14px;padding-right:14px}.py-0\.5{padding-top:2px;padding-bottom:2px}.py-1{padding-top:4px;padding-bottom:4px}.py-2{padding-top:8px;padding-bottom:8px}
+.pb-3{padding-bottom:12px}.mb-3{margin-bottom:12px}
+.space-y-1\.5>*+*{margin-top:6px}.space-y-2>*+*{margin-top:8px}
+.rounded{border-radius:6px}.rounded-lg{border-radius:10px}.rounded-xl{border-radius:14px}.rounded-2xl{border-radius:18px}.rounded-full{border-radius:999px}
+.border{border:1px solid var(--line)}.border-b{border-bottom:1px solid var(--line)}
+.text-xs{font-size:12px;line-height:1.55}.text-sm{font-size:14px;line-height:1.6}.text-base{font-size:16px}.text-lg{font-size:18px}.text-xl{font-size:20px}
+.text-\[11px\]{font-size:11px;line-height:1.55}
+.text-\[10px\]{font-size:10px;line-height:1.55}
+.block{display:block}
+.mt-0\.5{margin-top:2px}
+.font-bold{font-weight:700}.font-semibold{font-weight:600}.font-extrabold{font-weight:800}.font-normal{font-weight:400}
+.uppercase{text-transform:uppercase;letter-spacing:.08em}.leading-relaxed{line-height:1.8}
+.shadow-lg{box-shadow:0 10px 30px rgba(14,59,46,.12)}
+.glass-card{background:var(--card);border:1px solid var(--line);border-radius:18px}
+[class~="text-white"]{color:var(--ink)}
+[class~="text-slate-200"]{color:#2A3530}[class~="text-slate-300"]{color:var(--ink2)}[class~="text-slate-400"]{color:var(--muted)}
+[class~="text-slate-950"]{color:#F6F1E7}
+[class~="text-emerald-300"],[class~="text-emerald-400"]{color:#0E6B4A}
+[class~="text-amber-300"],[class~="text-amber-400"]{color:var(--brass-dark)}
+[class~="text-cyan-300"],[class~="text-cyan-400"]{color:var(--blue)}
+[class~="text-rose-300"]{color:var(--red)}[class~="text-purple-400"]{color:var(--purple)}
+/* v2.5: 9弾道カードの残り6色が未定義で既定色になっていたため追加（白背景で読める700番台の濃色） */
+[class~="text-orange-300"]{color:#C2410C}[class~="text-pink-300"]{color:#BE185D}[class~="text-sky-300"]{color:#0369A1}
+[class~="text-purple-300"]{color:#6D28D9}[class~="text-blue-300"]{color:#1D4ED8}[class~="text-indigo-300"]{color:#4338CA}
+[class~="bg-slate-900/95"],[class~="bg-slate-900/90"],[class~="bg-slate-900/80"]{background:var(--card)}
+[class~="bg-slate-800"]{background:#EFE7D3}
+[class~="bg-slate-950"]{background:var(--green)}
+[class~="bg-emerald-500/20"]{background:#DCEADF}
+[class~="bg-amber-500/20"]{background:var(--brass-soft)}
+[class~="bg-emerald-500"]{background:var(--green);color:#F6F1E7}
+[class~="bg-gradient-to-r"]{background:linear-gradient(90deg,var(--brass),#D9BC7A);color:var(--ink)}
+[class~="border-slate-700"],[class~="border-slate-800"],[class~="border-slate-800/80"],[class~="border-slate-800/90"]{border-color:var(--line)}
+[class~="border-amber-500/30"]{border-color:#D9C08A}
+[class~="border-emerald-500/30"]{border-color:var(--green-line)}
+[class~="border-amber-400/60"]{border-color:var(--brass)}
+[class~="border-emerald-500/40"]{border-color:var(--green)}
+@media(min-width:640px){.sm\:p-5{padding:20px}.sm\:text-lg{font-size:18px}}
+@media(min-width:768px){
+  .md\:grid-cols-12{grid-template-columns:repeat(12,minmax(0,1fr))}
+  .md\:col-span-4{grid-column:span 4/span 4}
+  .md\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+/* v2.5: 球の高さカードは意図通り3列に（cols3 の定義が無く2列になっていた）。390px幅では2列のまま */
+@media(min-width:640px){.cards.cols3{grid-template-columns:repeat(3,1fr)}}
+@media print{
+  .no-print,.progress,.step-nav,.masthead,.hero,.preset-block{display:none!important}
+  body{background:#fff}
+  .wiz{display:block!important}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap masthead-in">
+    <div class="brand">FIT LAB <span>— Driver Fitting</span></div>
+    <div class="masthead-note">2026.11 最新版 v3.0 ・ <b>ヘッド14 / シャフト115 / グリップ19</b>を収録</div>
+    <span class="masthead-pill">診断は無料</span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="kicker">Driver Total Fitting v3.0 · Head × Shaft × Grip Physics Engine</div>
+    <h1>絵を選ぶだけ。<br>あなたの振りに合う<em>ドライバー</em>を、物理で選ぶ。</h1>
+    <p class="lede">計測器の数値がなくても大丈夫です。普段の球の高さと球筋を絵で選ぶだけで、<b>ヘッド×シャフト×グリップ（下巻き枚数・巻き方・口径・BL有無）</b>まで一気通貫で物理演算し、トータル最適セッティングをベスト10でお渡しします。所要時間は約2分です。</p>
+    <div class="hero-stats">
+      <div><b>14</b><span>ヘッド</span></div>
+      <div><b>115</b><span>シャフト</span></div>
+      <div><b>19</b><span>グリップ</span></div>
+      <div><b>無料</b><span>5〜10位まで</span></div>
+    </div>
+
+    <div class="preset-block">
+      <h2>まずは、近い例で試してみる</h2>
+      <p>プリセットを押すと、そのゴルファーの条件がそのまま入ります。あとで自分の条件に書き換えられます。</p>
+      <div class="preset-row">
+        <button type="button" id="preset-hard" class="preset-btn">
+          <span class="p-no">PRESET 01</span>
+          <span class="p-name">ハードヒッター</span>
+          <span class="p-sub">HS 47m/s・左ミス・ローヒールに悩む方</span>
+          <span class="p-go">この条件で診断する →</span>
+        </button>
+        <button type="button" id="preset-avg" class="preset-btn">
+          <span class="p-no">PRESET 02</span>
+          <span class="p-name">アベレージ・スライサー</span>
+          <span class="p-sub">HS 40.5m/s・右へ吹ける球にお悩みの方</span>
+          <span class="p-go">この条件で診断する →</span>
+        </button>
+        <button type="button" id="preset-light" class="preset-btn">
+          <span class="p-no">PRESET 03</span>
+          <span class="p-name">シニア／女性・高弾道志向</span>
+          <span class="p-sub">HS 35m/s・キャリーで飛ばしたい方</span>
+          <span class="p-go">この条件で診断する →</span>
+        </button>
+      </div>
+      <p class="free-note">診断結果の <b>5〜10位は無料</b>でご覧いただけます。ベスト1〜4と感度分析の全文は Pro（¥480/月・¥3,800/年、準備中）でご覧いただけます。</p>
+    </div>
+  </section>
+
+  <!-- ================= PROGRESS ================= -->
+  <div class="progress no-print" id="progress">
+    <div class="progress-label"><span class="cur" id="progress-text">ステップ 1 / 4 — あなたについて</span><span>約2分</span></div>
+    <div class="progress-bar"><i class="now" data-bar="1"></i><i data-bar="2"></i><i data-bar="3"></i><i data-bar="4"></i></div>
+    <div class="progress-steps"><span data-ps="1" class="cur">1 あなたについて</span><span data-ps="2">2 球の高さ</span><span data-ps="3">3 球筋・打点</span><span data-ps="4">4 診断結果</span></div>
+  </div>
+
+  <!-- ================= STEP 1 ================= -->
+  <section class="wiz on" data-step="1" id="step-1">
+    <div class="step-kicker">Step 1 · Screening</div>
+    <h2>あなたについて教えてください</h2>
+    <p class="why">クラブの<b>重さと硬さの大枠</b>を決めるための質問です。体格と今使っているアイアンから、「振れるシャフトの重さ」を総重量フローで逆算します。</p>
+    <p class="dontknow">分からない項目は、そのままで大丈夫です。空欄のまま進むと、ほかの答えから自動で推計します。</p>
+
+    <div class="field-grid">
+      <div class="field span2">
+        <div class="q-group">
+          <div class="q-label">体格 — 体の大きさ</div>
+          <div class="field">
+            <label>性別</label>
+            <div class="seg" id="seg-gender" role="group" aria-label="性別">
+              <button type="button" class="seg-btn" data-value="male">男性</button>
+              <button type="button" class="seg-btn" data-value="female">女性</button>
+              <button type="button" class="seg-btn" data-value="other">その他</button>
+            </div>
+            <select id="inp-gender" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="male" selected>男性</option>
+              <option value="female">女性</option>
+              <option value="other">その他</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>年代</label>
+            <div class="seg-scroll" id="seg-age" role="group" aria-label="年代">
+              <button type="button" class="seg-btn" data-value="20">20代</button>
+              <button type="button" class="seg-btn" data-value="30">30代</button>
+              <button type="button" class="seg-btn" data-value="40">40代</button>
+              <button type="button" class="seg-btn" data-value="50">50代</button>
+              <button type="button" class="seg-btn" data-value="60">60代</button>
+              <button type="button" class="seg-btn" data-value="70">70代以上</button>
+            </div>
+            <select id="inp-age" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="20">20代</option>
+              <option value="30">30代</option>
+              <option value="40">40代</option>
+              <option value="50" selected>50代</option>
+              <option value="60">60代</option>
+              <option value="70">70代以上</option>
+            </select>
+          </div>
+          <div class="num-row">
+            <div class="field">
+              <label for="inp-height">身長 (cm)</label>
+              <input type="number" inputmode="decimal" inputmode="decimal" id="inp-height" value="172" min="140" max="205">
+            </div>
+            <div class="field">
+              <label for="inp-weight">体重 (kg)</label>
+              <input type="number" inputmode="decimal" inputmode="decimal" id="inp-weight" value="68" min="35" max="130">
+            </div>
+          </div>
+        </div>
+        <div class="q-group">
+          <div class="q-label">スイングのクセ — なぜ聞くか</div>
+          <div class="field">
+            <label>これまでのスポーツ経験</label>
+            <span class="help" style="margin-bottom:8px">手首を返すスポーツ（野球・テニス等）はフェースの開閉が大きいタイプ、体幹で振るスポーツは開閉が小さいタイプと判定し、ヘッドの重心設計に使います。</span>
+            <div class="opt-cards" id="seg-sport" role="group" aria-label="スポーツ経験">
+              <button type="button" class="opt-card" data-value="baseball"><span class="t">野球・ソフトボール</span><span class="s">リスト解放・強打撃系</span></button>
+              <button type="button" class="opt-card" data-value="tennis"><span class="t">テニス・卓球・バドミントン</span><span class="s">フェース開閉・回旋系</span></button>
+              <button type="button" class="opt-card" data-value="kendo"><span class="t">剣道・柔道・武道</span><span class="s">縦振り・手元減速系</span></button>
+              <button type="button" class="opt-card" data-value="swim"><span class="t">水泳・陸上・サッカー・バスケ</span><span class="s">体幹ボディターン系</span></button>
+              <button type="button" class="opt-card" data-value="golf"><span class="t">ゴルフ専念・特になし</span><span class="s">標準オンプレーン系</span></button>
+            </div>
+            <select id="inp-sport" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="baseball" selected>野球・ソフトボール（リスト解放・強打撃系）</option>
+              <option value="tennis">テニス・卓球・バドミントン・ホッケー（フェース開閉・回旋系）</option>
+              <option value="kendo">剣道・柔道・武道（縦振り・手元減速系）</option>
+              <option value="swim">水泳・陸上・サッカー・バスケ（体幹ボディターン系）</option>
+              <option value="golf">ゴルフ専念・特になし（標準オンプレーン系）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>切り返しのテンポ・タメの強さ</label>
+            <span class="help" style="margin-bottom:8px">トップから切り返すときの「間」の取り方です。タメが強いほど、手元がしなって先端が硬いシャフト（元調子）が合います。</span>
+            <div class="seg" id="seg-tempo" role="group" aria-label="切り返しのテンポ">
+              <button type="button" class="seg-btn" data-value="smooth">ゆったり</button>
+              <button type="button" class="seg-btn" data-value="standard">標準</button>
+              <button type="button" class="seg-btn" data-value="fast">速い・タメが強い</button>
+            </div>
+            <select id="inp-tempo" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="smooth">ゆったり・スムーズ（トップで間を待つ）</option>
+              <option value="standard">標準テンポ（平均的なリズム）</option>
+              <option value="fast" selected>速い・タメが強い（右踵ベタ足意識・強振タイプ）</option>
+            </select>
+          </div>
+        </div>
+        <div class="q-group">
+          <div class="q-label">今のアイアン — 重さの基準</div>
+          <div class="field">
+            <label>今使っている7番アイアンの種類</label>
+            <span class="help" style="margin-bottom:8px">アイアンの重さが分かると、ドライバーの目標総重量（約270〜335g）とシャフト重量を一意に決められます。分からなければ「分からない」を選んでください。</span>
+            <div class="opt-cards" id="seg-iron" role="group" aria-label="7番アイアンの種類">
+              <button type="button" class="opt-card" data-value="ultralight_carbon"><span class="t">超軽量カーボン</span><span class="s">L/R2・40g台 ｜ 7I総重量 約352g</span></button>
+              <button type="button" class="opt-card" data-value="std_carbon"><span class="t">標準カーボン</span><span class="s">R/SR・50〜60g台 ｜ 7I総重量 約378g</span></button>
+              <button type="button" class="opt-card" data-value="light_steel"><span class="t">軽量スチール</span><span class="s">N.S.PRO 850/950GH neo等 ｜ 7I総重量 約405g</span></button>
+              <button type="button" class="opt-card" data-value="mid_steel"><span class="t">中量スチール</span><span class="s">MODUS3 105 / 115 / 120 S等 ｜ 7I総重量 約422g</span></button>
+              <button type="button" class="opt-card" data-value="heavy_steel"><span class="t">重量スチール</span><span class="s">MODUS3 125 / DG S200・X100 ｜ 7I総重量 約438g</span></button>
+              <button type="button" class="opt-card" data-value="unknown"><span class="t">分からない</span><span class="s">HSと体格から自動推計します</span></button>
+            </div>
+            <select id="inp-iron" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="ultralight_carbon">超軽量カーボン (L/R2・40g台｜7I総重量 約352g)</option>
+              <option value="std_carbon">標準カーボン (R/SR・50〜60g台｜7I総重量 約378g)</option>
+              <option value="light_steel">軽量スチール (N.S.PRO 850/950GH neo等｜7I総重量 約405g)</option>
+              <option value="mid_steel" selected>中量スチール (MODUS3 105 / 115 / 120 S等｜7I総重量 約422g)</option>
+              <option value="heavy_steel">重量スチール (MODUS3 125 / DG S200・X100｜7I総重量 約438g)</option>
+              <option value="unknown">分からない（HSと体格から自動推計）</option>
+            </select>
+          </div>
+        </div>
+        <div class="q-group">
+          <div class="q-label">グリップ — 手サイズ・天候・コード許容度・握り方</div>
+          <div class="field">
+            <label for="inp-glove">グローブサイズ (cm)</label>
+            <input type="number" inputmode="decimal" id="inp-glove" value="23" min="18" max="28">
+            <span class="help">基準外径（M60 vs M58・左手1巻 vs 2巻）の算出に使います（22〜24cm標準、25cm以上は大柄手判定）。</span>
+          </div>
+          <div class="field">
+            <label>手汗・雨天・好みのグリップ感</label>
+            <div class="seg" id="seg-sweat" role="group" aria-label="グリップ感">
+              <button type="button" class="seg-btn" data-value="rubber">標準・しっとり派</button>
+              <button type="button" class="seg-btn" data-value="cord">手汗多め・雨天重視</button>
+              <button type="button" class="seg-btn" data-value="thick_right">右手太め(左防止)</button>
+            </div>
+            <select id="inp-sweat" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="rubber" selected>標準・しっとり派</option>
+              <option value="cord">手汗多め・雨天重視</option>
+              <option value="thick_right">右手太め(左防止)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>コード（糸入り）の許容度</label>
+            <span class="help" style="margin-bottom:8px">手荒れしやすい方は「コードNG」を選ぶと、雨天でも滑りにくいシリカゴム／撥水樹脂へ自動切替します。</span>
+            <div class="seg" id="seg-cord-ok" role="group" aria-label="コード許容度">
+              <button type="button" class="seg-btn" data-value="ok">コードOK（高剛性・高摩擦）</button>
+              <button type="button" class="seg-btn" data-value="ng">コードNG（手荒れ防止）</button>
+            </div>
+            <select id="inp-cord-ok" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="ok" selected>コードOK</option>
+              <option value="ng">コードNG</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>クラブを短く握る（チョークダウン）頻度</label>
+            <span class="help" style="margin-bottom:8px">短く握る頻度が高い場合、右手側の細りを防ぐテーパーレス（Plus4等）を優先評価します。</span>
+            <div class="seg" id="seg-choke" role="group" aria-label="短持ち頻度">
+              <button type="button" class="seg-btn" data-value="none">標準（エンド近く）</button>
+              <button type="button" class="seg-btn" data-value="high">短く握ることが多い</button>
+            </div>
+            <select id="inp-choke" class="visually-hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="none" selected>標準</option>
+              <option value="high">短く握ることが多い</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-nav no-print">
+      <button type="button" class="btn btn-primary" data-next="2">次へ：球の高さと飛距離 →</button>
+    </div>
+  </section>
+
+  <!-- ================= STEP 2 ================= -->
+  <section class="wiz" data-step="2" id="step-2">
+    <div class="step-kicker">Step 2 · Launch &amp; Spin</div>
+    <h2>普段の球の高さと、飛距離を教えてください</h2>
+    <p class="why">あなたの球が<b>今どれくらい上がり、どれくらい転がるか</b>から、理想の打ち出し角・スピンとの差を測ります。数字が分からなくても、絵だけで診断できます。</p>
+    <p class="dontknow">「わからない」にチェックを入れると、その項目は空欄のまま自動推計します。ヘッドスピードが分からない方は、7番アイアンの飛距離から換算できます。</p>
+
+    <h3 class="sub-h">普段のドライバーの「球の高さ」を絵から選んでください</h3>
+    <div class="svg-box"><svg viewBox="0 0 500 115" class="w-full h-24 overflow-visible">
+                <!-- Ground line -->
+                <line x1="20" y1="100" x2="480" y2="100" stroke="#334155" stroke-width="2" />
+                <circle cx="25" cy="100" r="4" fill="#10b981" />
+                <text x="18" y="112" fill="#94a3b8" font-size="12">Tee</text>
+                <!-- 1: Low Liner -->
+                <path id="svg-h-low" d="M 25 100 Q 170 68 350 100" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="4 2" />
+                <!-- 2: Mid-Low Penetrating -->
+                <path id="svg-h-midlow" d="M 25 100 Q 230 38 435 100" fill="none" stroke="#10b981" stroke-width="3.5" />
+                <!-- 3: Optimal Mid -->
+                <path id="svg-h-mid" d="M 25 100 Q 245 24 450 100" fill="none" stroke="#64748b" stroke-width="2" />
+                <!-- 4: High -->
+                <path id="svg-h-high" d="M 25 100 Q 250 10 430 100" fill="none" stroke="#64748b" stroke-width="2" />
+                <!-- 5: Ballooning Hop -->
+                <path id="svg-h-balloon" d="M 25 100 C 140 55, 290 -5, 365 25 C 395 38, 405 75, 410 100" fill="none" stroke="#f43f5e" stroke-width="2" stroke-dasharray="3 3" />
+                <text x="305" y="14" fill="#f43f5e" font-size="12" font-weight="bold">⑤ 吹き上がり(ホップ失速)</text>
+                <text x="200" y="34" fill="#10b981" font-size="12" font-weight="bold">②〜③ 強弾道・適正放物線</text>
+                <text x="155" y="85" fill="#94a3b8" font-size="12">① 低弾道ドロップ</text>
+              </svg></div>
+    <div class="cards cols3" id="height-cards">
+              <div data-height="low" class="selectable-card rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
+                <div class="font-bold text-white">① ライナー・低弾道</div>
+                <div class="text-slate-400 text-[11px] mt-0.5">浮力がつかず早めに落ちる</div>
+              </div>
+              <div data-height="midlow" class="selectable-card active rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
+                <div class="font-bold text-white">② 中低弾道・強弾道</div>
+                <div class="text-slate-400 text-[11px] mt-0.5">風に強くライナー性で伸びる</div>
+              </div>
+              <div data-height="mid" class="selectable-card rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
+                <div class="font-bold text-white">③ 標準・中弾道</div>
+                <div class="text-slate-400 text-[11px] mt-0.5">理想的な放物線で飛ぶ</div>
+              </div>
+              <div data-height="high" class="selectable-card rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
+                <div class="font-bold text-white">④ 高弾道</div>
+                <div class="text-slate-400 text-[11px] mt-0.5">高く上がってキャリーが出る</div>
+              </div>
+              <div data-height="balloon" class="selectable-card rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
+                <div class="font-bold text-rose-300">⑤ 吹き上がり・ホップ</div>
+                <div class="text-slate-400 text-[11px] mt-0.5">急上昇して真上から落ちる</div>
+              </div>
+              <div data-height="unknown" class="selectable-card rounded-xl p-2.5 bg-slate-900 border border-slate-700 text-xs">
+                <div class="font-bold text-cyan-300">⑥ 分からない・バラバラ</div>
+                <div class="text-slate-400 text-[11px] mt-0.5">ラン＆ミート率から自動推計</div>
+              </div>
+            </div>
+
+    <h3 class="sub-h">ヘッドスピード・初速・飛距離</h3>
+    <div class="num-row">
+      <div class="field">
+        <label for="inp-hs">ヘッドスピード HS (m/s)</label>
+        <input type="number" inputmode="decimal" id="inp-hs" value="47.0" step="0.5" min="25" max="60">
+        <label class="unk"><input type="checkbox" id="unk-hs"> わからない（7番アイアンか総飛距離から推計）</label>
+        <div class="converter" style="margin-top:8px">
+          <span style="font-size:13px;color:var(--muted)">7I飛距離</span>
+          <input type="number" inputmode="decimal" id="inp-7i-dist" placeholder="155" aria-label="7番アイアンの飛距離（ヤード）">
+          <span style="font-size:13px;color:var(--muted)">yd →</span>
+          <button type="button" id="btn-calc-hs" class="mini-btn">HSに換算する</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="inp-bs">ボールスピード BS (m/s) <span style="font-weight:400;color:var(--muted)">— 任意</span></label>
+        <input type="number" inputmode="decimal" id="inp-bs" value="68.5" step="0.5" placeholder="未入力なら自動推計">
+        <label class="unk"><input type="checkbox" id="unk-bs"> わからない（自動推計する）</label>
+      </div>
+      <div class="field">
+        <label for="inp-Carry">平均キャリー (yd) <span style="font-weight:400;color:var(--muted)">— 任意</span></label>
+        <input type="number" inputmode="decimal" id="inp-Carry" value="258" step="1" placeholder="未入力なら自動推計">
+        <label class="unk"><input type="checkbox" id="unk-carry"> わからない（自動推計する）</label>
+      </div>
+      <div class="field">
+        <label for="inp-Total">総飛距離 (yd) <span style="font-weight:400;color:var(--muted)">— 任意</span></label>
+        <input type="number" inputmode="decimal" id="inp-Total" value="276" step="1" placeholder="未入力なら自動推計">
+        <label class="unk"><input type="checkbox" id="unk-total"> わからない（自動推計する）</label>
+      </div>
+      <div class="field">
+        <label for="inp-fw">18ホールの平均FWキープ数 (0〜14)</label>
+        <input type="number" inputmode="decimal" id="inp-fw" value="6" min="0" max="14">
+        <span class="help">フェアウェイを外すほど打点が散らばっていると判定し、高MOIヘッドを優先します。</span>
+        <label class="unk"><input type="checkbox" id="unk-fw"> わからない（平均的な値で診断）</label>
+      </div>
+      <div class="field">
+        <label for="inp-ob">18ホールの平均OB数 (発)</label>
+        <input type="number" inputmode="decimal" id="inp-ob" value="1.8" step="0.5" min="0" max="15">
+        <span class="help">OBが多いほど方向の安定性を最優先します。</span>
+        <label class="unk"><input type="checkbox" id="unk-ob"> わからない（平均的な値で診断）</label>
+      </div>
+    </div>
+
+    <div class="step-nav no-print">
+      <button type="button" class="btn btn-ghost" data-back="1">← 戻る</button>
+      <button type="button" class="btn btn-primary" data-next="3">次へ：球筋と打点 →</button>
+    </div>
+  </section>
+
+<!-- ================= STEP 3 ================= -->
+<section class="wiz" data-step="3" id="step-3">
+<div class="step-kicker">Step 3 · Direction &amp; Impact</div>
+<h2>球筋と、フェースの当たり場所を教えてください</h2>
+<p class="why">球筋の絵から<b>出球の方向・フェースの向き・スイング軌道</b>を逆算し、打点の絵から<b>重心設計とシャフトの調子</b>を決めます。どちらも「よく出る球」を1つ選ぶだけです。</p>
+
+<h3 class="sub-h">普段いちばんよく出る球筋を選んでください</h3>
+<div class="svg-box"><svg viewBox="0 0 360 210" class="w-full h-44 overflow-visible">
+              <!-- Fairway Center Line & Grid -->
+              <polygon points="145,200 75,15 285,15 215,200" fill="rgba(16, 185, 129, 0.06)" />
+              <line x1="180" y1="200" x2="180" y2="12" stroke="#475569" stroke-width="1.5" stroke-dasharray="4 4" />
+              <text x="180" y="10" text-anchor="middle" fill="#94a3b8" font-size="12">目標方向 (Target 0°)</text>
+              <text x="55" y="16" text-anchor="middle" fill="#f43f5e" font-size="12">◀ 左 (Left)</text>
+              <text x="305" y="16" text-anchor="middle" fill="#38bdf8" font-size="12">右 (Right) ▶</text>
+
+              <!-- 9 Ball Flight Paths -->
+              <!-- 1: Pull Hook -->
+              <path data-flight="1" class="flight-path active" d="M 180 198 Q 130 110 42 28" fill="none" stroke="#f43f5e" stroke-width="3" />
+              <text x="42" y="34" text-anchor="middle" fill="#f43f5e" font-size="12" font-weight="bold">①</text>
+
+              <!-- 2: Pull Straight -->
+              <path data-flight="2" class="flight-path" d="M 180 198 L 95 22" fill="none" stroke="#fb923c" stroke-width="2.5" />
+              <text x="95" y="34" text-anchor="middle" fill="#fb923c" font-size="12" font-weight="bold">②</text>
+
+              <!-- 3: Pull Fade -->
+              <path data-flight="3" class="flight-path" d="M 180 198 Q 115 95 162 24" fill="none" stroke="#facc15" stroke-width="2.5" />
+              <text x="162" y="34" text-anchor="middle" fill="#facc15" font-size="12" font-weight="bold">③</text>
+
+              <!-- 4: Straight Draw -->
+              <path data-flight="4" class="flight-path" d="M 180 198 Q 180 100 122 25" fill="none" stroke="#fb7185" stroke-width="2.5" />
+              <text x="122" y="34" text-anchor="middle" fill="#fb7185" font-size="12" font-weight="bold">④</text>
+
+              <!-- 5: Straight -->
+              <path data-flight="5" class="flight-path" d="M 180 198 L 180 20" fill="none" stroke="#10b981" stroke-width="2.5" />
+              <text x="180" y="34" text-anchor="middle" fill="#10b981" font-size="12" font-weight="bold">⑤</text>
+
+              <!-- 6: Straight Fade -->
+              <path data-flight="6" class="flight-path" d="M 180 198 Q 180 100 238 25" fill="none" stroke="#38bdf8" stroke-width="2.5" />
+              <text x="238" y="34" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="bold">⑥</text>
+
+              <!-- 7: Push Draw -->
+              <path data-flight="7" class="flight-path" d="M 180 198 Q 245 95 198 24" fill="none" stroke="#a78bfa" stroke-width="2.5" />
+              <text x="198" y="34" text-anchor="middle" fill="#a78bfa" font-size="12" font-weight="bold">⑦</text>
+
+              <!-- 8: Push Straight -->
+              <path data-flight="8" class="flight-path" d="M 180 198 L 265 22" fill="none" stroke="#60a5fa" stroke-width="2.5" />
+              <text x="265" y="34" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="bold">⑧</text>
+
+              <!-- 9: Push Slice -->
+              <path data-flight="9" class="flight-path" d="M 180 198 Q 230 110 318 28" fill="none" stroke="#818cf8" stroke-width="2.5" />
+              <text x="318" y="34" text-anchor="middle" fill="#818cf8" font-size="12" font-weight="bold">⑨</text>
+
+              <!-- Tee Box -->
+              <circle cx="180" cy="198" r="5" fill="#10b981" stroke="#0f172a" stroke-width="2" />
+            </svg></div>
+<p class="flight-cap">図の番号と色は、下のカードと同じです</p>
+<div class="cards" id="flight-cards">
+            <div data-flight="1" class="selectable-card active rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-rose-300">① 左へ出て、さらに左へ巻く</span>
+              <span class="block text-[10px] text-slate-400">プルフック・チーピン (出球:左)</span>
+            </div>
+            <div data-flight="2" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-orange-300">② 左へ出て、そのまま真っ直ぐ左</span>
+              <span class="block text-[10px] text-slate-400">プルストレート (出球:左)</span>
+            </div>
+            <div data-flight="3" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-amber-300">③ 左へ出て、右へ曲がって戻る</span>
+              <span class="block text-[10px] text-slate-400">プルフェード・スライス (出球:左)</span>
+            </div>
+            <div data-flight="4" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-pink-300">④ 真っ直ぐ出て、左へ曲がる</span>
+              <span class="block text-[10px] text-slate-400">ストレートドロー・フック (出球:中)</span>
+            </div>
+            <div data-flight="5" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-emerald-300">⑤ 真っ直ぐ出て、真っ直ぐ飛ぶ</span>
+              <span class="block text-[10px] text-slate-400">ストレート (出球:中)</span>
+            </div>
+            <div data-flight="6" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-sky-300">⑥ 真っ直ぐ出て、右へ曲がる</span>
+              <span class="block text-[10px] text-slate-400">ストレートフェード・スライス (出球:中)</span>
+            </div>
+            <div data-flight="7" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-purple-300">⑦ 右へ出て、左へ曲がって戻る</span>
+              <span class="block text-[10px] text-slate-400">プッシュドロー・フック (出球:右)</span>
+            </div>
+            <div data-flight="8" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-blue-300">⑧ 右へ出て、そのまま真っ直ぐ右</span>
+              <span class="block text-[10px] text-slate-400">プッシュストレート (出球:右)</span>
+            </div>
+            <div data-flight="9" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-indigo-300">⑨ 右へ出て、さらに右へ曲がる</span>
+              <span class="block text-[10px] text-slate-400">プッシュスライス (出球:右)</span>
+            </div>
+            <div data-flight="10" class="selectable-card rounded-lg p-2 bg-slate-900 border border-slate-700">
+              <span class="font-bold text-cyan-300">⑩ 右にも左にも大きく散る</span>
+              <span class="block text-[10px] text-slate-400">逆球・10K高MOIヘッド最優先</span>
+            </div>
+          </div>
+<div style="height:12px"></div>
+<div id="dplane-readout" class="readout">
+<b>自動逆算出球：左打ち出し (-3.0°)</b><br>
+<span>推定フェース角：-3.5°（クローズ）／ 推定軌道：+0.5°（インサイドアウト）</span>
+</div>
+
+<h3 class="sub-h">ドライバーのフェースで、当たりやすい場所をタップしてください</h3>
+<p style="font-size:14px;color:var(--ink2);margin:0 0 12px">フェースの絵をタップするか、下のボタンから選んでください。芯に当たることが多い方は「センター」を選んでください。</p>
+<div class="svg-box"><svg viewBox="0 0 280 155" class="w-full h-36">
+                <!-- Outer Clubface Contour -->
+                <path d="M 25 30 Q 140 12 245 32 Q 268 78 242 128 Q 140 144 35 125 Q 12 80 25 30 Z" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+                <!-- Hosel -->
+                <rect x="246" y="8" width="14" height="36" rx="4" transform="rotate(-12 246 8)" fill="#475569" stroke="#94a3b8" stroke-width="1.5" />
+                <text x="6" y="20" fill="#94a3b8" font-size="11">◀ トゥ側</text>
+                <text x="274" y="20" text-anchor="end" fill="#94a3b8" font-size="11">ヒール側 ▶</text>
+
+                <!-- 5 Clickable Zones -->
+                <!-- High-Toe -->
+                <path data-impact="high_toe" class="face-zone" d="M 28 33 Q 85 22 138 22 L 138 75 L 22 75 Q 20 50 28 33 Z" fill="rgba(51,65,85,0.5)" stroke="#475569" />
+                <text x="78" y="53" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="bold" pointer-events="none">ハイ・トゥ</text>
+
+                <!-- High-Heel -->
+                <path data-impact="high_heel" class="face-zone" d="M 142 22 Q 195 22 243 33 Q 255 55 253 75 L 142 75 Z" fill="rgba(51,65,85,0.5)" stroke="#475569" />
+                <text x="195" y="53" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="bold" pointer-events="none">ハイ・ヒール</text>
+
+                <!-- Low-Toe -->
+                <path data-impact="low_toe" class="face-zone" d="M 22 79 L 138 79 L 138 134 Q 80 132 36 123 Q 20 105 22 79 Z" fill="rgba(51,65,85,0.5)" stroke="#475569" />
+                <text x="78" y="108" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="bold" pointer-events="none">ロー・トゥ</text>
+
+                <!-- Low-Heel -->
+                <path data-impact="low_heel" class="face-zone active" d="M 142 79 L 253 79 Q 250 105 240 126 Q 195 135 142 134 Z" fill="rgba(51,65,85,0.5)" stroke="#475569" />
+                <text x="195" y="108" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="bold" pointer-events="none">ロー・ヒール</text>
+
+                <!-- Center Sweet Spot -->
+                <ellipse data-impact="center" class="face-zone" cx="140" cy="77" rx="34" ry="22" fill="rgba(30,41,59,0.92)" stroke="#94a3b8" stroke-width="1.5" />
+                <text x="140" y="81" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="bold" pointer-events="none">センター(芯)</text>
+              </svg></div>
+<p class="face-cap">トゥ側 (Toe: 先端) ・ ヒール側 (Heel: 根元)</p>
+<div id="impact-buttons">
+              <button type="button" data-impact="low_heel" class="selectable-card active w-full text-left px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 font-semibold text-white">
+                ● ロー・ヒール (下・根元)
+              </button>
+              <button type="button" data-impact="high_heel" class="selectable-card w-full text-left px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 font-semibold text-white">
+                ● ハイ・ヒール (上・根元)
+              </button>
+              <button type="button" data-impact="center" class="selectable-card w-full text-left px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 font-semibold text-white">
+                ● センター (芯付近)
+              </button>
+              <button type="button" data-impact="high_toe" class="selectable-card w-full text-left px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 font-semibold text-white">
+                ● ハイ・トゥ (上・先)
+              </button>
+              <button type="button" data-impact="low_toe" class="selectable-card w-full text-left px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 font-semibold text-white">
+                ● ロー・トゥ (下・先)
+              </button>
+            </div>
+
+<div class="step-nav no-print">
+<button type="button" class="btn btn-ghost" data-back="2">← 戻る</button>
+<button type="button" class="btn btn-primary" id="btn-to-results">診断する →</button>
+</div>
+</section>
+
+<!-- ================= STEP 4: RESULTS ================= -->
+<section class="wiz" data-step="4" id="step-4">
+<div class="step-kicker">Step 4 · Your Fitting</div>
+<h2>診断結果</h2>
+<p class="why">3段階のフィルタを通して選んだ、あなたに合うセッティングです。条件を変えたくなったら、上のステップに戻って修正し、もう一度「診断する」を押してください。</p>
+
+<p style="font-size:14px;font-weight:700;color:var(--ink2);margin:0 0 8px">季節モード</p>
+<div class="season-row no-print" role="group" aria-label="季節モード">
+<button type="button" data-season="all" class="season-tab active">通年・春秋ベース（15〜23℃）</button>
+<button type="button" data-season="summer" class="season-tab">夏場（28〜35℃・左ミス防止）</button>
+<button type="button" data-season="winter" class="season-tab">冬場（0〜10℃・キャリー補正）</button>
+</div>
+<div class="weather-api-bar no-print">
+<button type="button" id="btn-auto-weather" class="weather-api-btn">現在地の気温・湿度から自動判定（無料気象API）</button>
+<span id="weather-api-status" class="weather-api-status">※ 登録不要の Open-Meteo API で気温・湿度を取得し、季節モードと耐水要件を自動反映できます</span>
+</div>
+
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px">
+<button type="button" id="btn-run-fitting" class="btn btn-primary" style="flex:1;min-width:220px">物理アルゴリズムで最適ベスト10を再算出</button>
+<span id="sanity-badge" class="badge">物理整合性チェック：正常</span>
+</div>
+
+<div class="sec-head">
+<div class="kicker">3-Stage Analysis Summary</div>
+<h2>3段階解析サマリー</h2>
+<p>計算の途中経過です。重さ・方向性・弾道の3つが、それぞれ何を根拠に決まったかが分かります。</p>
+</div>
+<div class="sum-grid" id="physics-summary-cards"></div>
+
+<div class="sec-head">
+<div class="kicker">Top 10 · November 2026 Database</div>
+<h2 id="ranking-title">あなたに最適なドライバーセッティング ベスト10</h2>
+<p>ヘッド14モデル × シャフト115本 × 2026年市販グリップ19モデルを統合採点しました。各順位に最適なグリップ・下巻き枚数・巻き方・ΔSW・因果解説を一体化表示します。スリクソンIFC（4桁 [手元-中元-先中-先端]）は参考値です。</p>
+</div>
+<div id="top10-container"></div>
+
+<div class="pro-panel" id="pro-panel">
+<div class="kicker">Pro — Full Access</div>
+<h3>ベスト1〜4と感度分析の全文は、Proで。</h3>
+<p class="sell-copy">無料では 5〜10位まで。Proではベスト1〜4の全文と「1つだけ変えたらどうなるか」の感度分析、季節別セッティングをすべてご覧いただけます。</p>
+<p class="unlocked-note" id="pro-unlocked-note" hidden>Pro表示を解除中です。下の「デモ解除を取り消す」で再ロックできます。</p>
+<div class="price-row">
+<div class="price-card">
+<div class="plan">FREE — 無料</div>
+<div class="yen">¥0</div>
+<div class="plan-sub">ずっと無料</div>
+<ul><li>ベスト10のうち 5〜10位を表示</li><li>3段階解析サマリー</li><li>診断結果の保存・コピー</li></ul>
+</div>
+<div class="price-card pro">
+<div class="plan">PRO — 準備中</div>
+<div class="yen">¥480<span style="font-size:15px">/月</span></div>
+<div class="plan-sub">または ¥3,800/年（月あたり約¥317・約34%お得）</div>
+<ul><li>ベスト10の全文表示</li><li>感度分析（A/Bテスト指針）の全文</li><li>季節別セッティング・カタログ全件表示</li></ul>
+<div class="pro-tap-hint">タップしてパスワードで解除</div>
+</div>
+</div>
+<div class="action-row">
+<button type="button" id="btn-pro-unlock" class="btn btn-brass">デモ解除で Pro 表示を試す</button>
+<button type="button" id="btn-pro-lock" class="btn btn-ghost">デモ解除を取り消す</button>
+</div>
+<p class="demo-note">※ 決済はまだ実装されていません。「デモ解除」はこの端末だけで表示を切り替えるお試しボタンです。料金は予定価格です。ロック中のカード、またはPROカードをタップするとパスワード入力が開きます。</p>
+</div>
+
+<!-- ============ PASSWORD MODAL ============ -->
+<div class="pw-modal" id="pw-modal" hidden role="dialog" aria-modal="true" aria-labelledby="pw-title">
+<div class="pw-card">
+<h3 id="pw-title">Pro をパスワードで解除</h3>
+<p>ロック中のベスト1〜4と感度分析の全文を表示します。パスワードを入力してください。</p>
+<input type="password" id="pw-input" autocomplete="off" aria-label="パスワード" placeholder="パスワード">
+<p class="pw-err" id="pw-err" aria-live="polite"></p>
+<div class="pw-row">
+<button type="button" id="pw-submit" class="btn btn-brass">解除する</button>
+<button type="button" id="pw-cancel" class="btn btn-ghost">キャンセル</button>
+</div>
+</div>
+</div>
+
+<div class="sec-head">
+<div class="kicker">Sensitivity Analysis</div>
+<h2>感度分析 — 第1位から「1つだけ変えたら」</h2>
+<p id="priority-param-badge" class="badge">最優先改善パラメータ：算出中</p>
+</div>
+<div class="sum-grid sens-grid" id="sensitivity-container"></div>
+<p id="sens-lock-note" class="demo-note" hidden>感度分析の全文は Pro で公開中です。ベスト1〜4のロックを解除すると表示されます。</p>
+
+<div class="action-row no-print">
+<button type="button" id="btn-save-result" class="btn btn-ghost">診断結果を保存する</button>
+<button type="button" id="btn-copy-result" class="btn btn-ghost">結果をコピーする</button>
+<button type="button" id="btn-print-result" class="btn btn-ghost">印刷する</button>
+</div>
+<p id="save-note" class="demo-note" aria-live="polite"></p>
+
+<div class="step-nav no-print">
+<button type="button" class="btn btn-ghost" data-back="3">← 球筋と打点に戻る</button>
+<button type="button" class="btn btn-ghost" data-back="1">最初からやり直す</button>
+</div>
+
+<!-- ============ CATALOG ============ -->
+<div class="sec-head">
+<div class="kicker">Gear Catalogue</div>
+<h2>収録ギア一覧</h2>
+<p id="cat-counts">読み込み中…</p>
+</div>
+<div class="cat-tools no-print">
+<input type="text" id="cat-q" placeholder="モデル名で検索（例：VENTUS、Diamana、Qi35）" aria-label="ギアを検索">
+<select id="cat-brand" aria-label="メーカーで絞り込み"><option value="">すべてのメーカー</option></select>
+<select id="cat-kick" aria-label="調子で絞り込み">
+<option value="">すべての調子</option>
+<option>元調子</option><option>中元調子</option><option>先中調子</option><option>中調子</option><option>元調子(CB)</option><option>先調子</option>
+</select>
+</div>
+<h3 class="sub-h">ヘッド</h3>
+<div class="cat-table-wrap"><table class="cat"><thead><tr><th>メーカー</th><th>モデル</th><th>ロフト</th><th>MOIクラス</th><th>タイプ</th></tr></thead><tbody id="cat-heads"></tbody></table></div>
+<h3 class="sub-h">シャフト</h3>
+<div class="cat-table-wrap"><table class="cat"><thead><tr><th>メーカー</th><th>モデル</th><th>フレックス</th><th>重量</th><th>調子</th><th>トルク</th></tr></thead><tbody id="cat-shafts"></tbody></table></div>
+<h3 class="sub-h">グリップ（2026年版・7メーカー19モデル）</h3>
+<div class="cat-table-wrap"><table class="cat"><thead><tr><th>ID</th><th>メーカー・モデル</th><th>重量</th><th>口径</th><th>素材／硬度</th><th>コード</th><th>BL展開</th><th>内蔵右巻</th><th>耐水</th></tr></thead><tbody id="cat-grips"></tbody></table></div>
+<p class="cat-note">一覧は診断に使うデータベース（HEAD_DB / SHAFT_DB / GRIP_DB）から自動生成しています。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値であり、グリップ実勢価格は2026年11月時点の参考レンジです。購入前に必ずメーカーサイトでご確認ください。</p>
+
+<!-- ============ METHODOLOGY ============ -->
+<div class="sec-head">
+<div class="kicker">How It Works</div>
+<h2>診断の仕組み</h2>
+<p>ブラックボックスにしません。計算の考え方を、3段階で開示します。</p>
+</div>
+<div class="method">
+<div class="method-step"><div class="n">1</div><div><h3>スクリーニング — 振れる重さ・硬さを決める</h3>
+<p>7番アイアンの種類から、仕様書のシャフト重量帯（超軽量36–44g／標準45–53g／軽量54–62g／中量63–74g／重量74–88g）の中央値を最適シャフト重量とし、ヘッド200g・グリップ50g・スリーブ9gを足して目標総重量とします。なお仕様書の総重量式 <code>W₁W = 0.72 × W₇I + 16.0</code> は同書のシャフト帯と両立しない箇所があるため（標準カーボンで29gになってしまう）、適合の主役であるシャフト帯を優先しています。さらに梁理論の固有振動数 <code>f = 4.35 × HS + 62 + 1.8 × テンポ</code> でフレックスを絞ります。</p></div></div>
+<div class="method-step"><div class="n">2</div><div><h3>方向性・打点補正 — 曲がりを直す重心と調子を決める</h3>
+<p>9つの球筋の絵から D-Plane 式 <code>出球角 = 0.85 × フェース角 + 0.15 × クラブパス</code> でフェースと軌道を逆算。打点の散らばり（FWキープ数・OB数）から 10,000g·cm²級の高MOIヘッドが必要かを判定します。ローヒールの打点は、ハードヒッター（縦ギア効果スピン増）とスライサー（ヒール擦り）で対策を分けます。</p></div></div>
+<div class="method-step"><div class="n">3</div><div><h3>飛距離最大化 — 理想の弾道に合わせる</h3>
+<p>ヘッドスピード別の理想ウィンドウ（例：HS 40m/s なら打ち出し 14〜16°・スピン 2250〜2600rpm、HS 47m/s なら 11〜13°・2000〜2350rpm）と今の球の高さの差から、ロフト・スリーブ・ウェイト配分を決定木で調整します。夏はHSが上がり、冬はHSが約1.2m/s下がるため、季節モードで補正します。</p></div></div>
+<div class="method-step"><div class="n">4</div><div><h3>グリップ因果ロジックツリー統合 — ギアトータル最適化</h3>
+<p>各ヘッド×シャフト候補ごとに、2026年版グリップ選定エンジン（5ステージ・2系統決定木）を実行します。可変スリーブ時のBL無強制 <code>R-BL01</code>、シャフト重量連動の目標重量帯 <code>R-WT01/02</code>、天候・コード許容度 <code>R-MT01/02</code>、フェース角からの右手相当巻数 <code>R-TP01/02/03</code> を発火させ、実追加テープ枚数 <code>Add_L / Add_R_extra</code>・巻き方（全面らせん／ハイブリッド／全面縦）・バランス変動 <code>ΔSW = −(W_new − W_base) ÷ 5.0</code> を確定算出してギア総合スコア（ヘッド×シャフト88%＋グリップ12%）へ統合します。</p></div></div>
+</div>
+<p style="font-size:14px;color:var(--ink2)">入力に矛盾がある場合（ミート率が物理限界 1.30〜1.515 を外れる、キャリーが総飛距離より長い等）は、値を破棄して打点とヘッドスピードから物理推計した値に置き換えます。置き換えた場合は結果画面のバッジでお知らせします。</p>
+</section>
+
+<footer>
+<b>FIT LAB — Driver Total Fitting v3.0 (Head × Shaft × Grip)</b><br>
+診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
+データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
+© 2026 FIT LAB
+</footer>
+</main>
+
+<script>
+
+    // =========================================================================
+    // 1. 2026年11月時点 ヘッド＆全重量帯・全フレックス シャフトマスターデータベース
+    // =========================================================================
+    const HEAD_DB = [
+      {
+        id: 'elyte_td',
+        brand: 'Callaway',
+        model: 'ELYTE Triple Diamond (♦♦♦)',
+        category: 'Tour_LS',
+        baseLofts: [9.0, 10.5],
+        moiClass: 8900,
+        spinBias: -450,
+        launchBias: -1.2,
+        faceBias: 'anti_left_3',
+        lieBase: 57.0,
+        sleeveSystem: {
+          anti_left: 'OptiFit「D / -1」(ロフト-1.0° / オープンフェース / フラットライ)',
+          neutral: 'OptiFit「N / S」(標準ロフト / スクエア)',
+          draw: 'OptiFit「D / +1」(ロフト+1.0° / ドローバイアス)',
+          winter: 'OptiFit「N / +1」(ロフト+1.0° で冬場の打ち出し角とキャリー確保)'
+        },
+        weightSystem: {
+          low_spin: '前13g / 後2g（浅・低重心化で縦ギア効果スピン増と吹け上がりを遮断）',
+          balanced: '前8g / 後7g（ツアーカスタム中間配分）',
+          high_launch: '前2g / 後13g（深重心化で高打ち出し・高MOIモード）'
+        },
+        desc: '2025-2026ツアー主力モデル。重心角が小さく、前13g設定時の低スピン強弾道とヒールヒット時の左巻き込み防止性能が抜群。'
+      },
+      {
+        id: 'g440_lst',
+        brand: 'PING',
+        model: 'G440 LST',
+        category: 'Tour_LS_HighMOI',
+        baseLofts: [9.0, 10.5],
+        moiClass: 9650,
+        spinBias: -350,
+        launchBias: -0.6,
+        faceBias: 'anti_left_2',
+        lieBase: 58.0,
+        sleeveSystem: {
+          anti_left: 'フラット「-1.0°」(ライ角57°フラット＆オープンフェース)',
+          neutral: 'フラット「±0°」(標準ロフト・ライ角フラット設定)',
+          draw: '標準「+1.0°」(ロフト+1.0°・つかまり補助)',
+          winter: 'フラット「+1.0°」(フラットライを維持しつつ冬用ロフト+1.0°)'
+        },
+        weightSystem: {
+          low_spin: '29g可変ウェイト「Fadeポジション」(トゥ寄り配置で左ミス完全封鎖)',
+          balanced: '29g可変ウェイト「Neutralポジション」(高MOI直進設定)',
+          high_launch: '29g可変ウェイト「Drawポジション」(つかまり＆高打ち出し)'
+        },
+        desc: '低スピンモデルでありながら10Kに迫る超高MOIと58°のフラットライ設計を兼備。芯外し時の初速維持と方向安定性が極めて高い。'
+      },
+      {
+        id: 'gt3',
+        brand: 'Titleist',
+        model: 'GT3',
+        category: 'Tour_LS',
+        baseLofts: [9.0, 10.0],
+        moiClass: 8850,
+        spinBias: -420,
+        launchBias: -1.0,
+        faceBias: 'anti_left_3',
+        lieBase: 58.5,
+        sleeveSystem: {
+          anti_left: 'SureFit「B1」または「C1」(フラット -0.75° ＆ ロフト -0.75°)',
+          neutral: 'SureFit「A1」(標準セッティング)',
+          draw: 'SureFit「A2」または「D4」(+0.75° ロフト/アップライト)',
+          winter: 'SureFit「D4」(ロフト +0.75° で冬のドロップ防止)'
+        },
+        weightSystem: {
+          low_spin: 'SureFit CGトラック「T1 / T2 (Toe寄り)」(打点に重心を一致させ左を消す)',
+          balanced: 'SureFit CGトラック「N (Neutral)」',
+          high_launch: 'SureFit CGトラック「H1 (Heel寄り)」'
+        },
+        desc: 'フェース寄りに配置されたSureFit CGトラックにより、打点位置と重心位置を精密に一致させてボール初速を最大化するツアーモデル。'
+      },
+      {
+        id: 'qi35_ls',
+        brand: 'TaylorMade',
+        model: 'Qi35 LS',
+        category: 'Tour_LS',
+        baseLofts: [9.0, 10.5],
+        moiClass: 8950,
+        spinBias: -480,
+        launchBias: -1.3,
+        faceBias: 'anti_left_3',
+        lieBase: 57.0,
+        sleeveSystem: {
+          anti_left: 'スリーブ「LOWER (-0.75°〜-1.5°)」(オープンフェース化)',
+          neutral: 'スリーブ「STD LOFT」(標準57°ライ)',
+          draw: 'スリーブ「HIGHER (+1.5°)」',
+          winter: 'スリーブ「+0.75° LOFT」(冬場のキャリー維持)'
+        },
+        weightSystem: {
+          low_spin: 'TASウェイト「Toe 13g / Heel 3g / Back 3g」(前・トゥ重心で強弾道)',
+          balanced: 'TASウェイト「前重均等セッティング」',
+          high_launch: 'TASウェイト「Back 13g / Front 3g×2」(後方重で高MOI・高打ち出し)'
+        },
+        desc: 'カーボンフェースと3点TAS可変ウェイトにより、前後左右の重心位置を自在に制御できる超低スピン・高初速ヘッド。'
+      },
+      {
+        id: 'zxi_ls',
+        brand: 'Srixon',
+        model: 'ZXi LS (および 2026 ZXi RKT LS)',
+        category: 'Tour_LS',
+        baseLofts: [9.0, 10.5],
+        moiClass: 9100,
+        spinBias: -380,
+        launchBias: -0.8,
+        faceBias: 'anti_left_2',
+        lieBase: 57.5,
+        sleeveSystem: {
+          anti_left: 'QTSスリーブ「1.0° Flat / -1.0° Loft」',
+          neutral: 'QTSスリーブ「STD」',
+          draw: 'QTSスリーブ「+1.0° Loft / Upright」',
+          winter: 'QTSスリーブ「1.0° Flat / +0.5° Loft」'
+        },
+        weightSystem: {
+          low_spin: 'ソール前後ウェイト「前10g / 後4g」(浅重心・強弾道モード)',
+          balanced: '標準ウェイト配分 (前8g / 後6g)',
+          high_launch: 'ソール前後ウェイト「前4g / 後10g」(深重心・キャリーモード)'
+        },
+        desc: 'i-FLEXフェースによる圧倒的な初速性能とスリクソンアイアン（ZX7 Mk II / ZXi7）からの構えやすさ・流れが完璧な低スピンモデル。'
+      },
+      {
+        id: 'g440_k_max',
+        brand: 'PING',
+        model: 'G440 K / G440 MAX (10K MOIクラス)',
+        category: 'High_MOI_10K',
+        baseLofts: [9.0, 10.5, 12.0],
+        moiClass: 10150,
+        spinBias: 0,
+        launchBias: 0.8,
+        faceBias: 'neutral',
+        lieBase: 59.5,
+        sleeveSystem: {
+          anti_left: 'フラット「-1.0°」(ライ角58.5°フラット化で左巻きを防止)',
+          neutral: 'フラット「±0°」または「STD」',
+          draw: '標準「+1.0°」(高打ち出しドロー)',
+          winter: '標準「+1.0°」(冬場の高キャリー仕様)'
+        },
+        weightSystem: {
+          low_spin: '後部ウェイト「Fadeポジション」',
+          balanced: '後部ウェイト「Neutralポジション」(上下左右MOI 10,000g・cm²超)',
+          high_launch: '後部ウェイト「Drawポジション」'
+        },
+        desc: '上下左右の合計MOIが10,000g・cm²を超える究極の直進安定ヘッド。打点が散らばってもフェースがブレずFWキープ率を劇的に引き上げる。'
+      },
+      {
+        id: 'gt2',
+        brand: 'Titleist',
+        model: 'GT2',
+        category: 'Core_HighMOI',
+        baseLofts: [9.0, 10.0, 11.0],
+        moiClass: 9550,
+        spinBias: -150,
+        launchBias: 0.3,
+        faceBias: 'neutral',
+        lieBase: 58.5,
+        sleeveSystem: {
+          anti_left: 'SureFit「B1」(フラット -0.75°)',
+          neutral: 'SureFit「A1」(標準)',
+          draw: 'SureFit「D4」(+0.75° ロフト＆つかまり)',
+          winter: 'SureFit「C3 / D4」(+0.75° ロフト)'
+        },
+        weightSystem: {
+          low_spin: 'リアウェイト標準9g（低スピン高MOIバランス）',
+          balanced: 'リアウェイト標準9g',
+          high_launch: 'リアウェイト+2g増量（深重心・高打ち出し）'
+        },
+        desc: '高MOIによる抜群の寛容性とタイトリストらしい引き締まった打感・低スピン性能を高次元で融合した万能モデル。'
+      },
+      {
+        id: 'elyte_core',
+        brand: 'Callaway',
+        model: 'ELYTE (スタンダード) / ELYTE X',
+        category: 'Core_HighMOI',
+        baseLofts: [9.0, 10.5, 12.0],
+        moiClass: 9600,
+        spinBias: -100,
+        launchBias: 0.6,
+        faceBias: 'draw_1',
+        lieBase: 58.0,
+        sleeveSystem: {
+          anti_left: 'OptiFit「N / -1」(ロフト-1.0° で捕まりすぎを抑制)',
+          neutral: 'OptiFit「N / S」(標準)',
+          draw: 'OptiFit「D / S」または「D / +1」(ドローバイアス最大化)',
+          winter: 'OptiFit「D / +1」(冬場の右すっぽ抜け＆ドロップ防止)'
+        },
+        weightSystem: {
+          low_spin: 'ディスクリートウェイト「Neutralポジション」',
+          balanced: 'ディスクリートウェイト「Neutralポジション」',
+          high_launch: 'ディスクリートウェイト「Drawポジション」(ヒール寄り)'
+        },
+        desc: 'Ai 10xフェースが打点ブレによるスピンと初速のバラつきを自動補正。適度なつかまりと高い直進性を両立。'
+      },
+      {
+        id: 'qi35_max',
+        brand: 'TaylorMade',
+        model: 'Qi35 / Qi35 MAX (10K MOI)',
+        category: 'High_MOI_10K',
+        baseLofts: [9.0, 10.5, 12.0],
+        moiClass: 10050,
+        spinBias: +50,
+        launchBias: 1.0,
+        faceBias: 'draw_1',
+        lieBase: 58.0,
+        sleeveSystem: {
+          anti_left: 'スリーブ「LOWER (-0.75°)」',
+          neutral: 'スリーブ「STD LOFT」',
+          draw: 'スリーブ「UPRIGHT / HIGHER (+1.0°)」',
+          winter: 'スリーブ「HIGHER (+1.0°)」'
+        },
+        weightSystem: {
+          low_spin: 'TAS前後ウェイト「前重セッティング」(Qi35 Core)',
+          balanced: '10K固定高慣性ウェイト(Qi35 MAX)',
+          high_launch: 'TAS前後ウェイト「後重セッティング」'
+        },
+        desc: 'フェース面上のどこに当たってもヘッドがねじれない10Kクラスの慣性モーメントを実現し、安定したキャリーとFWキープをもたらす。'
+      },
+      {
+        id: 'g440_sft_hl',
+        brand: 'PING',
+        model: 'G440 SFT / G440 HL',
+        category: 'Draw_Light',
+        baseLofts: [10.5, 12.0],
+        moiClass: 9400,
+        spinBias: +250,
+        launchBias: 1.8,
+        faceBias: 'draw_3',
+        lieBase: 59.5,
+        sleeveSystem: {
+          anti_left: '標準「-1.0°」',
+          neutral: '標準「±0°」',
+          draw: '標準「+1.0°」(最大ドロー＆高弾道)',
+          winter: '標準「+1.5°」'
+        },
+        weightSystem: {
+          low_spin: '23gバックウェイト「Drawポジション」',
+          balanced: '23gバックウェイト「Draw+ポジション」(超つかまり設計)',
+          high_launch: 'HL軽量ウェイト仕様（振り抜きスピード最大化）'
+        },
+        desc: '右へのプッシュスライスやヒール擦り球を物理的に解消するドロー設計。軽量HL仕様はHS 38m/s以下のキャリーを劇的に伸ばす。'
+      },
+      {
+        id: 'elyte_x',
+        brand: 'Callaway',
+        model: 'ELYTE X',
+        category: 'Core_HighMOI',
+        baseLofts: [9.0, 10.5, 12.0],
+        moiClass: 9850,
+        spinBias: -50,
+        launchBias: 0.9,
+        faceBias: 'draw_1',
+        lieBase: 58.0,
+        sleeveSystem: {
+          anti_left: 'OptiFit「N / -1」(ロフト-1.0° で捕まりすぎを抑制)',
+          neutral: 'OptiFit「N / S」(標準)',
+          draw: 'OptiFit「D / S」または「D / +1」(ドローバイアス最大化)',
+          winter: 'OptiFit「D / +1」(冬場の右すっぽ抜け＆ドロップ防止)'
+        },
+        weightSystem: {
+          low_spin: 'ディスクリートウェイト「Neutralポジション」',
+          balanced: 'ディスクリートウェイト「Drawポジション」(ヒール寄り・つかまり重視)',
+          high_launch: 'ディスクリートウェイト「Drawポジション」'
+        },
+        desc: 'ELYTEのドローバイアス版。Ai 10xフェースが打点ブレを補正し、右へのミスを物理的に減らす10K級高MOIヘッド。'
+      },
+      {
+        id: 'qi35_std',
+        brand: 'TaylorMade',
+        model: 'Qi35 (スタンダード)',
+        category: 'Core_HighMOI',
+        baseLofts: [9.0, 10.5, 12.0],
+        moiClass: 9600,
+        spinBias: -100,
+        launchBias: 0.7,
+        faceBias: 'draw_1',
+        lieBase: 58.0,
+        sleeveSystem: {
+          anti_left: 'スリーブ「LOWER (-0.75°)」',
+          neutral: 'スリーブ「STD LOFT」',
+          draw: 'スリーブ「UPRIGHT / HIGHER (+1.0°)」',
+          winter: 'スリーブ「HIGHER (+1.0°)」'
+        },
+        weightSystem: {
+          low_spin: 'TAS前後ウェイト「前重セッティング」',
+          balanced: 'TAS前後ウェイト「前後均等セッティング」',
+          high_launch: 'TAS前後ウェイト「後重セッティング」'
+        },
+        desc: 'Qi35の標準モデル。MAXほどの慣性モーメントはないが、TASウェイトで前後重心を動かせる万能コアモデル。'
+      },
+      {
+        id: 'g440_max',
+        brand: 'PING',
+        model: 'G440 MAX',
+        category: 'High_MOI_10K',
+        baseLofts: [9.0, 10.5, 12.0],
+        moiClass: 10100,
+        spinBias: 50,
+        launchBias: 1.0,
+        faceBias: 'neutral',
+        lieBase: 59.5,
+        sleeveSystem: {
+          anti_left: 'フラット「-1.0°」(ライ角58.5°フラット化で左巻きを防止)',
+          neutral: 'フラット「±0°」または「STD」',
+          draw: '標準「+1.0°」(高打ち出しドロー)',
+          winter: '標準「+1.0°」(冬場の高キャリー仕様)'
+        },
+        weightSystem: {
+          low_spin: '後部ウェイト「Fadeポジション」',
+          balanced: '後部ウェイト「Neutralポジション」(上下左右MOI 10,000g・cm²超)',
+          high_launch: '後部ウェイト「Drawポジション」'
+        },
+        desc: '上下左右の合計MOIが10,000g・cm²を超える究極の直進安定ヘッド。打点が散らばってもフェースがブレずFWキープ率を引き上げる。'
+      },
+      {
+        id: 'zxi_std',
+        brand: 'Srixon',
+        model: 'ZXi (スタンダード)',
+        category: 'Core_HighMOI',
+        baseLofts: [9.0, 10.5, 12.0],
+        moiClass: 9450,
+        spinBias: -200,
+        launchBias: 0.4,
+        faceBias: 'neutral',
+        lieBase: 57.5,
+        sleeveSystem: {
+          anti_left: 'QTSスリーブ「1.0° Flat / -1.0° Loft」',
+          neutral: 'QTSスリーブ「STD」',
+          draw: 'QTSスリーブ「+1.0° Loft / Upright」',
+          winter: 'QTSスリーブ「1.0° Flat / +0.5° Loft」'
+        },
+        weightSystem: {
+          low_spin: 'ソール前後ウェイト「前10g / 後4g」(浅重心・強弾道モード)',
+          balanced: '標準ウェイト配分 (前8g / 後6g)',
+          high_launch: 'ソール前後ウェイト「前4g / 後10g」(深重心・キャリーモード)'
+        },
+        desc: 'ZXiの標準モデル。i-FLEXフェースの初速性能と高MOIの寛容性を両立し、幅広い層に合うコアモデル。'
+      }
+    ];
+
+    // 全重量帯(30g〜80g)・全フレックス(R2〜TX)対応シャフトマスターデータベース
+    const SHAFT_DB = [
+      // --- Fujikura 26 VENTUS TR BLACK ---
+      { id: '26v_tr_bk_5s', brand: 'Fujikura', model: '26 VENTUS TR BLACK 5', flex: 'S', weight: 61.0, torque: 3.5, kick: '元調子', cpm: 262, tipStiff: 96, cb: false, ifc: '[7-7-8-8]', note: '2026年最新世代。VeloCore+と手元Spread Tow Fabricで50g台ながら当たり負けゼロ。' },
+      { id: '26v_tr_bk_6s', brand: 'Fujikura', model: '26 VENTUS TR BLACK 6', flex: 'S', weight: 69.5, torque: 3.1, kick: '元調子', cpm: 270, tipStiff: 98, cb: false, ifc: '[8-8-8-9]', note: '2026年6月発売。初代TR BLACKより振動収束が速く、強振しても左へ行かない。' },
+      { id: '26v_tr_bk_6x', brand: 'Fujikura', model: '26 VENTUS TR BLACK 6', flex: 'X', weight: 69.5, torque: 2.9, kick: '元調子', cpm: 280, tipStiff: 99, cb: false, ifc: '[9-9-9-9]', note: 'VeloCore+とSpread Towで切り返しの扁平を完全抑制。HS46〜50m/sの左ミスを完全封鎖。' },
+      { id: '26v_tr_bk_7x', brand: 'Fujikura', model: '26 VENTUS TR BLACK 7', flex: 'X', weight: 79.5, torque: 2.7, kick: '元調子', cpm: 288, tipStiff: 100, cb: false, ifc: '[9-9-9-9]', note: 'ツアー最高峰のねじれ剛性(2.7°)。ハードヒッターが全力で叩ける絶対的直進シャフト。' },
+
+      // --- Fujikura 26 VENTUS TR BLUE ---
+      { id: '26v_tr_bl_5r', brand: 'Fujikura', model: '26 VENTUS TR BLUE 5', flex: 'R', weight: 61.0, torque: 3.6, kick: '中元調子', cpm: 244, tipStiff: 88, cb: false, ifc: '[5-5-6-7]', note: '2026年新型TR BLUEの5R。手元剛性が高く切り返しが速いHS40〜43m/s層に最適。' },
+      { id: '26v_tr_bl_5s', brand: 'Fujikura', model: '26 VENTUS TR BLUE 5', flex: 'S', weight: 61.0, torque: 3.4, kick: '中元調子', cpm: 255, tipStiff: 91, cb: false, ifc: '[6-6-7-8]', note: '中弾道・低スピンで振り抜きと方向安定性を高次元で両立する2026年最新50g台。' },
+      { id: '26v_tr_bl_6s', brand: 'Fujikura', model: '26 VENTUS TR BLUE 6', flex: 'S', weight: 69.5, torque: 3.1, kick: '中元調子', cpm: 265, tipStiff: 94, cb: false, ifc: '[7-6-8-8]', note: 'ヒールヒット時でもヘッドが当たり負けずストレートに運んでくれる2026年主力モデル。' },
+      { id: '26v_tr_bl_6x', brand: 'Fujikura', model: '26 VENTUS TR BLUE 6', flex: 'X', weight: 69.5, torque: 2.9, kick: '中元調子', cpm: 275, tipStiff: 96, cb: false, ifc: '[8-7-8-9]', note: 'Spread Tow Fabricで中間〜手元のねじれを2.9°に抑制。中元のしなり感と先端の圧倒的強さを両立。' },
+      { id: '26v_tr_bl_7s', brand: 'Fujikura', model: '26 VENTUS TR BLUE 7', flex: 'S', weight: 79.5, torque: 2.9, kick: '中元調子', cpm: 272, tipStiff: 96, cb: false, ifc: '[8-7-8-9]', note: '70g台の重さで軌道を安定させつつ、中元のタメで適正スピン・中弾道を生む。' },
+
+      // --- Fujikura 24 VENTUS BLACK ---
+      { id: '24v_bk_5s', brand: 'Fujikura', model: '24 VENTUS BLACK 5', flex: 'S', weight: 59.5, torque: 3.5, kick: '元調子', cpm: 258, tipStiff: 93, cb: false, ifc: '[6-7-8-8]', note: 'VeloCore Plus搭載。50g台でシャープに振り抜きながら吹け上がりと左ミスを抑える。' },
+      { id: '24v_bk_6s', brand: 'Fujikura', model: '24 VENTUS BLACK 6', flex: 'S', weight: 66.0, torque: 3.2, kick: '元調子', cpm: 266, tipStiff: 95, cb: false, ifc: '[7-7-8-9]', note: '初代より手元のしなり感を残してタイミングが取りやすく、先端剛性で直進性を最大化。' },
+      { id: '24v_bk_6x', brand: 'Fujikura', model: '24 VENTUS BLACK 6', flex: 'X', weight: 66.5, torque: 3.0, kick: '元調子', cpm: 276, tipStiff: 97, cb: false, ifc: '[8-8-9-9]', note: '66.5g・トルク3.0°。MODUS 120 Sからの重量フローにピタリと合い、ベタ足強振でも左へ巻かない。' },
+      { id: '24v_bk_7s', brand: 'Fujikura', model: '24 VENTUS BLACK 7', flex: 'S', weight: 75.0, torque: 3.0, kick: '元調子', cpm: 273, tipStiff: 97, cb: false, ifc: '[8-8-8-9]', note: '75gの重量感とVeloCore Plusの復元力でオフセンターヒット時のフェースブレを完封。' },
+      { id: '24v_bk_7x', brand: 'Fujikura', model: '24 VENTUS BLACK 7', flex: 'X', weight: 75.5, torque: 2.9, kick: '元調子', cpm: 284, tipStiff: 99, cb: false, ifc: '[8-8-9-9]', note: 'HS 47〜50m/sの本命スペック。ローヒール打点でもトゥダウンせず低スピン強弾道を維持。' },
+
+      // --- Fujikura 24 VENTUS BLUE & RED ---
+      { id: '24v_bl_5r', brand: 'Fujikura', model: '24 VENTUS BLUE 5', flex: 'R', weight: 58.5, torque: 3.7, kick: '中元調子', cpm: 238, tipStiff: 84, cb: false, ifc: '[5-4-6-7]', note: 'HS 40m/s前後から使えるVeloCore Plus搭載モデル。芯を外しても初速が落ちない。' },
+      { id: '24v_bl_5s', brand: 'Fujikura', model: '24 VENTUS BLUE 5', flex: 'S', weight: 58.5, torque: 3.5, kick: '中元調子', cpm: 250, tipStiff: 87, cb: false, ifc: '[6-5-7-7]', note: '中間のしなりでタイミングが取りやすく、先端剛性で左右のバラつきを抑える万能5S。' },
+      { id: '24v_bl_6s', brand: 'Fujikura', model: '24 VENTUS BLUE 6', flex: 'S', weight: 65.5, torque: 3.3, kick: '中元調子', cpm: 260, tipStiff: 90, cb: false, ifc: '[7-6-7-8]', note: '高MOIヘッドと相性抜群の王道6S。冬場のゴルフや力みを抜きたいラウンドにも最適。' },
+      { id: '24v_bl_6x', brand: 'Fujikura', model: '24 VENTUS BLUE 6', flex: 'X', weight: 66.0, torque: 3.1, kick: '中元調子', cpm: 271, tipStiff: 93, cb: false, ifc: '[8-7-8-9]', note: '66g・トルク3.1°。中元の適度なタメと先端のVeloCore Plusで安定したキャリーを稼ぐ。' },
+      { id: '24v_rd_5r', brand: 'Fujikura', model: '24 VENTUS RED 5', flex: 'R', weight: 53.0, torque: 4.0, kick: '先中調子', cpm: 232, tipStiff: 80, cb: false, ifc: '[5-4-4-5]', note: 'VeloCore Plusで先端の当たり負けを防ぎつつ、スピード感ある走りで高打ち出し・つかまりを実現。' },
+      { id: '24v_rd_6x', brand: 'Fujikura', model: '24 VENTUS RED 6', flex: 'X', weight: 67.5, torque: 3.2, kick: '先中調子', cpm: 269, tipStiff: 88, cb: false, ifc: '[8-7-7-7]', note: 'ハードヒッターが低スピンヘッドで球を上げてキャリーを伸ばせる叩ける先中調子。' },
+
+      // --- Mitsubishi Chemical Diamana PD / WB / BB / RB / D-LIMITED ---
+      { id: 'dia_pd_50s', brand: 'Mitsubishi', model: 'Diamana PD 50', flex: 'S', weight: 54.5, torque: 4.8, kick: '中元調子', cpm: 251, tipStiff: 86, cb: false, ifc: '[5-5-6-7]', note: '50g台でシャープに振り抜け、先端剛性で打点ブレを抑える中元調子。' },
+      { id: 'dia_pd_60s', brand: 'Mitsubishi', model: 'Diamana PD 60', flex: 'S', weight: 64.5, torque: 3.3, kick: '中元調子', cpm: 263, tipStiff: 92, cb: false, ifc: '[7-7-8-8]', note: 'MR70とボロン繊維を配合。切り返しのスムーズさとインパクトの先端安定感を両立。' },
+      { id: 'dia_pd_60x', brand: 'Mitsubishi', model: 'Diamana PD 60', flex: 'X', weight: 66.5, torque: 3.2, kick: '中元調子', cpm: 274, tipStiff: 95, cb: false, ifc: '[8-7-8-9]', note: '66.5g・トルク3.2°。MODUS 120 Sからの重量フローに完全合致し、左へのミスを抑えて強弾道を生む。' },
+      { id: 'dia_pd_70s', brand: 'Mitsubishi', model: 'Diamana PD 70', flex: 'S', weight: 74.0, torque: 3.0, kick: '中元調子', cpm: 270, tipStiff: 95, cb: false, ifc: '[7-7-8-9]', note: '74g・トルク3.0°。重さでスイングプレーンを安定させ、ローヒール打点の当たり負けを防止。' },
+      { id: 'dia_pd_70x', brand: 'Mitsubishi', model: 'Diamana PD 70', flex: 'X', weight: 75.0, torque: 3.0, kick: '中元調子', cpm: 281, tipStiff: 97, cb: false, ifc: '[8-7-8-9]', note: 'ボロン繊維補強の先端剛性(Tip 9)がローヒール打点のトゥダウンと左巻きを完封する本命モデル。' },
+
+      { id: 'dia_wb_53s', brand: 'Mitsubishi', model: 'Diamana WB 53', flex: 'S', weight: 54.0, torque: 4.6, kick: '元調子', cpm: 250, tipStiff: 87, cb: false, ifc: '[5-6-7-7]', note: '第6世代白マナ50g台。手元のしなりでタイミングが取りやすく先端が走らない。' },
+      { id: 'dia_wb_63s', brand: 'Mitsubishi', model: 'Diamana WB 63', flex: 'S', weight: 61.0, torque: 3.1, kick: '元調子', cpm: 263, tipStiff: 93, cb: false, ifc: '[6-7-8-8]', note: 'NEW TIP TECで先端ねじれを3.1°に最適化。手元がしなって左への引っかけを消す。' },
+      { id: 'dia_wb_63x', brand: 'Mitsubishi', model: 'Diamana WB 63', flex: 'X', weight: 63.5, torque: 3.1, kick: '元調子', cpm: 274, tipStiff: 95, cb: false, ifc: '[7-8-8-9]', note: '手元DIALEADとMR70により、切り返しが速いゴルファーでもフェースが被らず強弾道が打てる。' },
+      { id: 'dia_wb_73x', brand: 'Mitsubishi', model: 'Diamana WB 73', flex: 'X', weight: 72.0, torque: 2.9, kick: '元調子', cpm: 282, tipStiff: 97, cb: false, ifc: '[8-8-8-9]', note: '72g・トルク2.9°。高MOI・低スピンヘッドと組んで左を恐れず叩き込める第6世代白マナ。' },
+
+      { id: 'dia_bb_43r', brand: 'Mitsubishi', model: 'Diamana BB 43', flex: 'R', weight: 44.5, torque: 5.1, kick: '中元調子', cpm: 222, tipStiff: 78, cb: false, ifc: '[3-3-4-5]', note: '第6世代青マナ40g台。変曲点のない滑らかなしなり戻りでミート率とキャリーを向上。' },
+      { id: 'dia_bb_53s', brand: 'Mitsubishi', model: 'Diamana BB 53', flex: 'S', weight: 53.5, torque: 4.9, kick: '中元調子', cpm: 248, tipStiff: 85, cb: false, ifc: '[5-5-6-7]', note: 'クセのない中元調子でボディターン・リストターン問わず芯に集まる50g台。' },
+      { id: 'dia_bb_63s', brand: 'Mitsubishi', model: 'Diamana BB 63', flex: 'S', weight: 61.0, torque: 3.2, kick: '中元調子', cpm: 261, tipStiff: 90, cb: false, ifc: '[6-6-7-8]', note: 'MODUS 105/120ユーザーに好相性。自然なしなり戻りで初速と方向性を両立。' },
+      { id: 'dia_bb_63x', brand: 'Mitsubishi', model: 'Diamana BB 63', flex: 'X', weight: 61.5, torque: 3.2, kick: '中元調子', cpm: 271, tipStiff: 92, cb: false, ifc: '[7-7-8-8]', note: 'ハードすぎない61.5gのXフレックス。冬場のラウンドやタイミング重視のセッティングに最適。' },
+      { id: 'dia_bb_73x', brand: 'Mitsubishi', model: 'Diamana BB 73', flex: 'X', weight: 70.5, torque: 2.9, kick: '中元調子', cpm: 279, tipStiff: 94, cb: false, ifc: '[7-7-8-9]', note: '70.5g・トルク2.9°。青マナの素直な挙動にツアーレベルの先端安定性をプラス。' },
+
+      { id: 'dia_dlim_60x', brand: 'Mitsubishi', model: 'Diamana D-LIMITED 60', flex: 'X', weight: 66.0, torque: 3.3, kick: '元調子', cpm: 275, tipStiff: 95, cb: false, ifc: '[8-8-8-9]', note: '手元DIALEAD搭載。メジャー制覇の実績を持つ左ミス完全抑制の元調子。' },
+      { id: 'dia_dlim_70x', brand: 'Mitsubishi', model: 'Diamana D-LIMITED 70', flex: 'X', weight: 75.5, torque: 2.9, kick: '元調子', cpm: 283, tipStiff: 97, cb: false, ifc: '[8-8-9-9]', note: '75.5g・トルク2.9°。圧倒的な方向安定性でフェード・ストレートを自在に操れる。' },
+
+      // --- Mitsubishi TENSEI 1K Series ---
+      { id: 'ten_wh_60s', brand: 'Mitsubishi', model: 'TENSEI Pro White 1K 60', flex: 'S', weight: 61.5, torque: 3.8, kick: '元調子', cpm: 263, tipStiff: 93, cb: false, ifc: '[6-7-8-9]', note: '手元1Kクロスのしなやかなタメと強靭な先端剛性で芯を食うインパクトを実現。' },
+      { id: 'ten_wh_60x', brand: 'Mitsubishi', model: 'TENSEI Pro White 1K 60', flex: 'X', weight: 65.0, torque: 3.8, kick: '元調子', cpm: 274, tipStiff: 95, cb: false, ifc: '[7-8-8-9]', note: '切り返しで深いタメを作り、インパクトでヘッドが走らず左への巻き込みを防ぐ。' },
+      { id: 'ten_wh_70x', brand: 'Mitsubishi', model: 'TENSEI Pro White 1K 70', flex: 'X', weight: 74.5, torque: 2.7, kick: '元調子', cpm: 283, tipStiff: 98, cb: false, ifc: '[7-8-9-9]', note: '70g台でトルクが2.7°へ一気に絞られる特別設計。Diamana PD 7Xと同等の高い先端安定性。' },
+
+      { id: 'ten_or_60s', brand: 'Mitsubishi', model: 'TENSEI Pro Orange 1K 60', flex: 'S', weight: 68.0, torque: 3.0, kick: '元調子(CB)', cpm: 264, tipStiff: 95, cb: true, ifc: '[6-7-8-9]', note: 'カウンターバランス設計で重ヘッドのトゥダウンを抑制。トルク3.0°で方向性抜群。' },
+      { id: 'ten_or_60x', brand: 'Mitsubishi', model: 'TENSEI Pro Orange 1K 60 (および RIP+)', flex: 'X', weight: 72.5, torque: 3.0, kick: '元調子(CB)', cpm: 276, tipStiff: 97, cb: true, ifc: '[7-8-9-9]', note: 'カウンターバランスによりダウンスイングでのトゥダウン（ローヒール打点の主因）を劇的に軽減。' },
+      { id: 'ten_or_70x', brand: 'Mitsubishi', model: 'TENSEI Pro Orange 1K 70', flex: 'X', weight: 81.5, torque: 2.7, kick: '元調子(CB)', cpm: 284, tipStiff: 98, cb: true, ifc: '[7-8-9-9]', note: 'トルク2.7°＆カウンターバランス。高MOIヘッドを振り抜きやすくし、サイドスピンを極小化。' },
+
+      // --- Graphite Design TOUR AD ---
+      { id: 'ad_vf_5s', brand: 'Graphite Design', model: 'TOUR AD VF-5', flex: 'S', weight: 56.0, torque: 4.3, kick: '中元調子', cpm: 252, tipStiff: 88, cb: false, ifc: '[6-5-7-7]', note: '50g台で手元M40Xのシャープな振り抜きと先端T1100Gの強さを両立。' },
+      { id: 'ad_vf_6s', brand: 'Graphite Design', model: 'TOUR AD VF-6', flex: 'S', weight: 65.0, torque: 3.3, kick: '中元調子', cpm: 264, tipStiff: 94, cb: false, ifc: '[7-6-8-9]', note: '手元M40Xと先端T1100Gを採用。強い切り返しでも振り遅れず打点の散らばりを抑える。' },
+      { id: 'ad_vf_6x', brand: 'Graphite Design', model: 'TOUR AD VF-6', flex: 'X', weight: 67.0, torque: 3.3, kick: '中元調子', cpm: 275, tipStiff: 96, cb: false, ifc: '[8-7-8-9]', note: '点で攻める精度と初速を両立。インサイドから叩いてもフェースが被らない進化系中元調子。' },
+      { id: 'ad_vf_7x', brand: 'Graphite Design', model: 'TOUR AD VF-7', flex: 'X', weight: 75.0, torque: 3.0, kick: '中元調子', cpm: 283, tipStiff: 97, cb: false, ifc: '[8-7-8-9]', note: '75g・トルク3.0°。ハードヒッターの強いタメを受け止め、低スピン強弾道へ導く。' },
+
+      { id: 'ad_gc_5s', brand: 'Graphite Design', model: 'TOUR AD GC-5', flex: 'S', weight: 56.0, torque: 4.5, kick: '中調子', cpm: 251, tipStiff: 87, cb: false, ifc: '[5-5-6-6]', note: 'AD SHIELDと先太形状でシャフトの「ねじれとつぶれ」を抑え、ミート率を引き上げる。' },
+      { id: 'ad_gc_6s', brand: 'Graphite Design', model: 'TOUR AD GC-6', flex: 'S', weight: 65.0, torque: 3.1, kick: '中調子', cpm: 263, tipStiff: 92, cb: false, ifc: '[7-6-7-8]', note: '65g・トルク3.1°。剛性差の少ないニュートラル設計でオフセンターヒットに極めて強い。' },
+      { id: 'ad_gc_6x', brand: 'Graphite Design', model: 'TOUR AD GC-6', flex: 'X', weight: 67.0, torque: 3.1, kick: '中調子', cpm: 273, tipStiff: 94, cb: false, ifc: '[8-7-8-8]', note: 'フープ層AD SHIELDがつぶれ変形を防ぎ、ヒール・トゥ打点でも高初速を維持。' },
+      { id: 'ad_fi_6s', brand: 'Graphite Design', model: 'TOUR AD FI-6 (2025/2026)', flex: 'S', weight: 64.0, torque: 3.2, kick: '中調子', cpm: 261, tipStiff: 90, cb: false, ifc: '[7-6-7-8]', note: 'トルネードチップテクノロジー搭載。低スピンヘッドで初速を落とさず高い打ち出しを確保。' },
+
+      // --- UST Mamiya & Nippon Shaft & Project X ---
+      { id: 'linq_wh_6x', brand: 'UST Mamiya', model: 'LIN-Q WHITE EX 6', flex: 'X', weight: 70.0, torque: 3.1, kick: '元調子', cpm: 276, tipStiff: 96, cb: false, ifc: '[8-8-8-9]', note: 'QPly CoreとM40Xを融合。70g・トルク3.1°の重硬設計でフェード・直進弾道の再現性が抜群。' },
+      { id: 'linq_bl_6s', brand: 'UST Mamiya', model: 'LIN-Q BLUE EX 6', flex: 'S', weight: 67.0, torque: 2.9, kick: '中元調子', cpm: 264, tipStiff: 94, cb: false, ifc: '[7-7-8-9]', note: '60g台Sでトルク2.9°の超低トルクを実現。オフセンターヒット時のフェース開閉を徹底抑制。' },
+      { id: 'regio_b_65s', brand: 'Nippon Shaft', model: 'N.S.PRO Regio Formula B+ TYPE65', flex: 'S', weight: 66.5, torque: 2.9, kick: '中調子', cpm: 262, tipStiff: 93, cb: false, ifc: '[6-6-7-8]', note: 'MODUS3 TOUR 120と同一の剛性曲線を持つ専用設計。16軸組布とトルク2.9°で最速のつぶれ戻り。' },
+      { id: 'regio_b_65x', brand: 'Nippon Shaft', model: 'N.S.PRO Regio Formula B+ TYPE65', flex: 'X', weight: 68.5, torque: 2.9, kick: '中調子', cpm: 273, tipStiff: 95, cb: false, ifc: '[7-7-8-9]', note: 'MODUS3 120ユーザーに最高の同調性。先端16軸組布がローヒール打点の当たり負けをブロック。' },
+      { id: 'hzrdus_gn_65', brand: 'Project X', model: 'HZRDUS Smoke Green RDX 60', flex: '6.5(X)', weight: 64.0, torque: 2.8, kick: '元調子(CB)', cpm: 282, tipStiff: 99, cb: true, ifc: '[9-9-9-9]', note: 'トルク2.8°＆カウンターバランス。市場最高クラスのねじれ剛性で左へのミスを物理的にゼロにする。' },
+
+      // --- Lightweight / Mid-Speed Spectrum (30g〜50g R2/R/SR) ---
+      { id: 'vanq_4r2', brand: 'Mitsubishi', model: 'VANQUISH VV 4', flex: 'R2', weight: 47.7, torque: 6.0, kick: '中調子', cpm: 217, tipStiff: 76, cb: false, ifc: '[2-2-3-3]', note: '超精密軽量ブランド最新中調子。NEW TIP TECで軽量ながら打点ブレを抑えHSを+1.5m/s引き上げる。' },
+      { id: 'vanq_4r', brand: 'Mitsubishi', model: 'VANQUISH VV 4', flex: 'R', weight: 47.7, torque: 6.0, kick: '中調子', cpm: 231, tipStiff: 79, cb: false, ifc: '[3-3-3-4]', note: '40g台で先端剛性を高め、吹き上がらず前へ押し出す強弾道を実現する精密軽量シャフト。' },
+      { id: 'vanq_5sr', brand: 'Mitsubishi', model: 'VANQUISH VV 5', flex: 'SR', weight: 55.4, torque: 4.5, kick: '中調子', cpm: 236, tipStiff: 82, cb: false, ifc: '[4-4-4-5]', note: 'HS 38〜42m/s層に最適な50g台SR。重量・振動数公差±1の高精度でミート率が劇的に安定。' },
+      { id: 'nx_vio_40r', brand: 'Fujikura', model: 'SPEEDER NX VIOLET 40', flex: 'R', weight: 48.5, torque: 5.4, kick: '中調子', cpm: 228, tipStiff: 80, cb: false, ifc: '[3-3-3-4]', note: '新技術DHXがバイアス層を強化し、ヘッドスピードアップとオフセンターの安定感を両立。' },
+      { id: 'nx_vio_50sr', brand: 'Fujikura', model: 'SPEEDER NX VIOLET 50', flex: 'SR', weight: 55.0, torque: 4.6, kick: '中調子', cpm: 240, tipStiff: 84, cb: false, ifc: '[4-4-5-5]', note: 'つかまりと高打ち出しを確保しつつ、先端剛性で吹け上がりを防ぐ50g台主力モデル。' },
+      { id: 'nx_vio_50s', brand: 'Fujikura', model: 'SPEEDER NX VIOLET 50', flex: 'S', weight: 56.5, torque: 4.6, kick: '中調子', cpm: 249, tipStiff: 86, cb: false, ifc: '[5-5-5-6]', note: '中調子のタイミングの取りやすさとVTCによる先端・手元の部分トルク制御で直進性抜群。' },
+      // --- v2.0 追加：仕様書マスターテーブルにあって v1 に無かったモデル（代表値） ---
+      { id: '26v_tr_rd_5r', brand: 'Fujikura', model: '26 VENTUS TR RED 5', flex: 'R', weight: 60.0, torque: 3.6, kick: '先中調子', cpm: 234, tipStiff: 84, cb: false, ifc: '[5-5-4-5]', note: '2026年新型TR REDの5R。先端が走って高打ち出し・つかまりを生む。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: '26v_tr_rd_5s', brand: 'Fujikura', model: '26 VENTUS TR RED 5', flex: 'S', weight: 60.5, torque: 3.4, kick: '先中調子', cpm: 258, tipStiff: 86, cb: false, ifc: '[6-6-5-6]', note: '2026年新型TR REDの5S。VeloCore+で先端の当たり負けを防ぐ。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: '26v_tr_rd_6s', brand: 'Fujikura', model: '26 VENTUS TR RED 6', flex: 'S', weight: 69.0, torque: 3.2, kick: '先中調子', cpm: 262, tipStiff: 88, cb: false, ifc: '[7-7-6-7]', note: '2026年新型TR REDの6S。中間のしなりで球を上げつつ左へ巻かない。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: '26v_tr_rd_6x', brand: 'Fujikura', model: '26 VENTUS TR RED 6', flex: 'X', weight: 69.5, torque: 3.0, kick: '先中調子', cpm: 276, tipStiff: 90, cb: false, ifc: '[8-8-7-8]', note: '2026年新型TR REDの6X。叩ける先中調子で低スピンヘッドのキャリーを伸ばす。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: '26v_tr_rd_7s', brand: 'Fujikura', model: '26 VENTUS TR RED 7', flex: 'S', weight: 78.5, torque: 2.9, kick: '先中調子', cpm: 266, tipStiff: 89, cb: false, ifc: '[8-8-7-8]', note: '2026年新型TR REDの7S。70g台の重さで軌道を安定させる先中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: '22v_tr_bk_5s', brand: 'Fujikura', model: 'VENTUS TR BLACK 5 (2022)', flex: 'S', weight: 59.0, torque: 3.5, kick: '元調子', cpm: 260, tipStiff: 94, cb: false, ifc: '[7-7-8-8]', note: '2022年TR BLACKの5S。中間〜手元の高剛性で切り返しのブレを抑える。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: '22v_tr_bk_6s', brand: 'Fujikura', model: 'VENTUS TR BLACK 6 (2022)', flex: 'S', weight: 66.0, torque: 3.2, kick: '元調子', cpm: 266, tipStiff: 96, cb: false, ifc: '[8-8-8-9]', note: '2022年TR BLACKの6S。初代VeloCoreの手元しなりと先端剛性。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: '22v_tr_bk_6x', brand: 'Fujikura', model: 'VENTUS TR BLACK 6 (2022)', flex: 'X', weight: 67.0, torque: 3.0, kick: '元調子', cpm: 277, tipStiff: 98, cb: false, ifc: '[9-9-8-9]', note: '2022年TR BLACKの6X。強振してもフェースが被らない元調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: '22v_tr_bk_7x', brand: 'Fujikura', model: 'VENTUS TR BLACK 7 (2022)', flex: 'X', weight: 76.0, torque: 2.8, kick: '元調子', cpm: 284, tipStiff: 99, cb: false, ifc: '[9-9-8-9]', note: '2022年TR BLACKの7X。ツアー実績のある重硬・低トルク設計。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'nx_blk_50r', brand: 'Fujikura', model: 'SPEEDER NX BLACK 50', flex: 'R', weight: 54.0, torque: 4.6, kick: '先中調子', cpm: 234, tipStiff: 84, cb: false, ifc: '[4-4-4-4]', note: 'NX BLACKの50R。VTC部分トルク制御で先端の走りと安定性を両立。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'nx_blk_50s', brand: 'Fujikura', model: 'SPEEDER NX BLACK 50', flex: 'S', weight: 55.0, torque: 4.4, kick: '先中調子', cpm: 258, tipStiff: 86, cb: false, ifc: '[5-5-5-5]', note: 'NX BLACKの50S。つかまりと高打ち出しを確保する先中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'nx_blk_60s', brand: 'Fujikura', model: 'SPEEDER NX BLACK 60', flex: 'S', weight: 64.0, torque: 3.6, kick: '先中調子', cpm: 262, tipStiff: 88, cb: false, ifc: '[6-6-6-7]', note: 'NX BLACKの60S。60g台の重さで軌道を安定させる先中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'nx_grn_50s', brand: 'Fujikura', model: 'SPEEDER NX GREEN 50', flex: 'S', weight: 55.0, torque: 4.4, kick: '中調子', cpm: 258, tipStiff: 86, cb: false, ifc: '[5-5-5-5]', note: 'NX GREENの50S。クセのない中調子でタイミングが取りやすい。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'nx_grn_60s', brand: 'Fujikura', model: 'SPEEDER NX GREEN 60', flex: 'S', weight: 64.0, torque: 3.6, kick: '中調子', cpm: 262, tipStiff: 88, cb: false, ifc: '[6-6-6-7]', note: 'NX GREENの60S。VTC制御の中調子で直進性と初速を両立。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'nx_gld_50r', brand: 'Fujikura', model: 'SPEEDER NX GOLD 50', flex: 'R', weight: 54.0, torque: 4.6, kick: '中調子', cpm: 234, tipStiff: 84, cb: false, ifc: '[4-4-4-4]', note: 'NX GOLDの50R。DHX強化バイアス層で高初速・高弾道を生む。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'nx_gld_50s', brand: 'Fujikura', model: 'SPEEDER NX GOLD 50', flex: 'S', weight: 55.0, torque: 4.4, kick: '中調子', cpm: 258, tipStiff: 86, cb: false, ifc: '[5-5-5-5]', note: 'NX GOLDの50S。軽快に振り抜けてキャリーを伸ばす中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'nx_gld_60s', brand: 'Fujikura', model: 'SPEEDER NX GOLD 60', flex: 'S', weight: 64.0, torque: 3.6, kick: '中調子', cpm: 262, tipStiff: 88, cb: false, ifc: '[6-6-6-7]', note: 'NX GOLDの60S。60g台で安定したタイミングと高打ち出しを両立。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'dia_rb_43r', brand: 'Mitsubishi', model: 'Diamana RB 43', flex: 'R', weight: 44.0, torque: 5.6, kick: '先中調子', cpm: 232, tipStiff: 78, cb: false, ifc: '[4-3-3-4]', note: '第6世代赤マナ40g台。高打ち出し・捕まり重視の先中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'dia_rb_53s', brand: 'Mitsubishi', model: 'Diamana RB 53', flex: 'S', weight: 54.0, torque: 4.4, kick: '先中調子', cpm: 256, tipStiff: 84, cb: false, ifc: '[5-5-4-5]', note: '第6世代赤マナ50g台。先端の走りで球を上げてキャリーを稼ぐ。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'dia_rb_63s', brand: 'Mitsubishi', model: 'Diamana RB 63', flex: 'S', weight: 62.0, torque: 3.4, kick: '先中調子', cpm: 262, tipStiff: 88, cb: false, ifc: '[7-6-5-6]', note: '第6世代赤マナ60g台。捕まりと先端安定を両立する先中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'dia_rb_63x', brand: 'Mitsubishi', model: 'Diamana RB 63', flex: 'X', weight: 63.0, torque: 3.2, kick: '先中調子', cpm: 275, tipStiff: 90, cb: false, ifc: '[7-7-6-7]', note: '第6世代赤マナ60g台X。叩いても先端が負けない高弾道シャフト。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ten_bl_50s', brand: 'Mitsubishi', model: 'TENSEI Pro Blue 1K 50', flex: 'S', weight: 55.0, torque: 4.4, kick: '中調子', cpm: 256, tipStiff: 86, cb: false, ifc: '[5-5-6-6]', note: 'Blue 1Kの50S。タイミングの取りやすさと飛距離を両立する中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ten_bl_60s', brand: 'Mitsubishi', model: 'TENSEI Pro Blue 1K 60', flex: 'S', weight: 63.0, torque: 3.6, kick: '中調子', cpm: 262, tipStiff: 89, cb: false, ifc: '[6-6-7-7]', note: 'Blue 1Kの60S。1Kクロスの先端剛性で方向性を高める中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ten_bl_60x', brand: 'Mitsubishi', model: 'TENSEI Pro Blue 1K 60', flex: 'X', weight: 65.0, torque: 3.3, kick: '中調子', cpm: 275, tipStiff: 91, cb: false, ifc: '[7-7-8-8]', note: 'Blue 1Kの60X。重硬ながらしなり戻りが速い中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ten_rd_50s', brand: 'Mitsubishi', model: 'TENSEI Pro Red 1K 50', flex: 'S', weight: 55.0, torque: 4.4, kick: '先中調子', cpm: 256, tipStiff: 86, cb: false, ifc: '[5-5-5-6]', note: 'Red 1Kの50S。先端の走りで球を捕まえる先中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ten_rd_60s', brand: 'Mitsubishi', model: 'TENSEI Pro Red 1K 60', flex: 'S', weight: 63.0, torque: 3.6, kick: '先中調子', cpm: 262, tipStiff: 89, cb: false, ifc: '[6-6-7-7]', note: 'Red 1Kの60S。高打ち出しとつかまりを両立する先中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ten_rd_60x', brand: 'Mitsubishi', model: 'TENSEI Pro Red 1K 60', flex: 'X', weight: 65.0, torque: 3.3, kick: '先中調子', cpm: 275, tipStiff: 91, cb: false, ifc: '[7-7-8-8]', note: 'Red 1Kの60X。叩ける先中調子で低スピンヘッドのキャリーを伸ばす。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'vanq_3r2', brand: 'Mitsubishi', model: 'VANQUISH 3', flex: 'R2', weight: 37.0, torque: 8.5, kick: '中調子', cpm: 215, tipStiff: 70, cb: false, ifc: '[2-2-2-2]', note: 'VANQUISH 3のR2。36g台の超軽量でHSを最大限に引き上げる。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'vanq_3r', brand: 'Mitsubishi', model: 'VANQUISH 3', flex: 'R', weight: 38.5, torque: 7.0, kick: '中調子', cpm: 232, tipStiff: 73, cb: false, ifc: '[3-3-3-3]', note: 'VANQUISH 3のR。超精密軽量で振り抜きとミート率を高める。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'vanq_3s', brand: 'Mitsubishi', model: 'VANQUISH 3', flex: 'S', weight: 42.0, torque: 5.8, kick: '中調子', cpm: 258, tipStiff: 76, cb: false, ifc: '[4-4-4-4]', note: 'VANQUISH 3のS。40g台で先端剛性を高めた精密軽量シャフト。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ad_cq_5s', brand: 'Graphite Design', model: 'TOUR AD CQ-5', flex: 'S', weight: 55.0, torque: 4.8, kick: '先中調子', cpm: 256, tipStiff: 86, cb: false, ifc: '[5-5-4-5]', note: 'TOUR AD CQの5S。捕まり重視の先中調子でドローを打ちやすくする。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ad_cq_6s', brand: 'Graphite Design', model: 'TOUR AD CQ-6', flex: 'S', weight: 64.0, torque: 3.6, kick: '先中調子', cpm: 262, tipStiff: 89, cb: false, ifc: '[7-7-7-7]', note: 'TOUR AD CQの6S。つかまりと直進性を両立する先中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ad_cq_6x', brand: 'Graphite Design', model: 'TOUR AD CQ-6', flex: 'X', weight: 66.0, torque: 3.3, kick: '先中調子', cpm: 275, tipStiff: 91, cb: false, ifc: '[7-7-8-8]', note: 'TOUR AD CQの6X。叩いても左へ巻きにくい捕まり系シャフト。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ad_ub_5s', brand: 'Graphite Design', model: 'TOUR AD UB-5', flex: 'S', weight: 55.0, torque: 4.8, kick: '中調子', cpm: 256, tipStiff: 86, cb: false, ifc: '[5-5-5-5]', note: 'TOUR AD UBの5S。直進性重視のニュートラルな中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ad_ub_6s', brand: 'Graphite Design', model: 'TOUR AD UB-6', flex: 'S', weight: 64.0, torque: 3.6, kick: '中調子', cpm: 262, tipStiff: 89, cb: false, ifc: '[7-7-7-7]', note: 'TOUR AD UBの6S。変曲点のない素直なしなり戻りで再現性が高い。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ad_ub_6x', brand: 'Graphite Design', model: 'TOUR AD UB-6', flex: 'X', weight: 66.0, torque: 3.3, kick: '中調子', cpm: 275, tipStiff: 91, cb: false, ifc: '[7-7-8-8]', note: 'TOUR AD UBの6X。重硬・直進型でフェードも打ちやすい。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ad_di_5s', brand: 'Graphite Design', model: 'TOUR AD DI-5', flex: 'S', weight: 55.0, torque: 4.8, kick: '中調子', cpm: 256, tipStiff: 86, cb: false, ifc: '[5-5-5-5]', note: 'TOUR AD DIの5S。操作性とつかまりを両立する中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ad_di_6s', brand: 'Graphite Design', model: 'TOUR AD DI-6', flex: 'S', weight: 64.0, torque: 3.6, kick: '中調子', cpm: 262, tipStiff: 89, cb: false, ifc: '[7-7-7-7]', note: 'TOUR AD DIの6S。手元のしなりでタイミングを作る中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ad_di_6x', brand: 'Graphite Design', model: 'TOUR AD DI-6', flex: 'X', weight: 66.0, torque: 3.3, kick: '中調子', cpm: 275, tipStiff: 91, cb: false, ifc: '[7-7-8-8]', note: 'TOUR AD DIの6X。叩ける操作系シャフトで左ミスを抑える。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ad_ek_5s', brand: 'Graphite Design', model: 'TOUR AD EK-5', flex: 'S', weight: 55.0, torque: 4.6, kick: '中調子', cpm: 256, tipStiff: 86, cb: false, ifc: '[5-5-5-5]', note: 'TOUR AD EKの5S。トルネードチップで高初速を生む中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ad_ek_6s', brand: 'Graphite Design', model: 'TOUR AD EK-6', flex: 'S', weight: 64.0, torque: 3.5, kick: '中調子', cpm: 262, tipStiff: 89, cb: false, ifc: '[7-7-7-7]', note: 'TOUR AD EKの6S。低スピンヘッドで初速を落とさない中調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'ad_ek_6x', brand: 'Graphite Design', model: 'TOUR AD EK-6', flex: 'X', weight: 66.0, torque: 3.2, kick: '中調子', cpm: 275, tipStiff: 91, cb: false, ifc: '[7-7-8-8]', note: 'TOUR AD EKの6X。重硬・高初速のトルネードチップ搭載モデル。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'attas_red_4r', brand: 'UST Mamiya', model: 'ATTAS RX SUNRISE RED 4', flex: 'R', weight: 46.0, torque: 5.8, kick: '先調子', cpm: 232, tipStiff: 80, cb: false, ifc: '[3-3-2-3]', note: 'ATTAS REDの4R。先端が走って球を捕まえる先調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'attas_red_5s', brand: 'UST Mamiya', model: 'ATTAS RX SUNRISE RED 5', flex: 'S', weight: 56.0, torque: 4.6, kick: '先調子', cpm: 258, tipStiff: 84, cb: false, ifc: '[4-4-3-4]', note: 'ATTAS REDの5S。高打ち出し・高捕まりの先調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'attas_red_6s', brand: 'UST Mamiya', model: 'ATTAS RX SUNRISE RED 6', flex: 'S', weight: 65.0, torque: 3.6, kick: '先調子', cpm: 262, tipStiff: 88, cb: false, ifc: '[6-6-7-7]', note: 'ATTAS REDの6S。60g台で先端の走りと安定性を両立。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'attas_daaas_5s', brand: 'UST Mamiya', model: 'ATTAS DAAAS 5', flex: 'S', weight: 56.0, torque: 4.4, kick: '中元調子', cpm: 256, tipStiff: 86, cb: false, ifc: '[5-5-6-6]', note: 'ATTAS DAAASの5S。手元のしなりでタイミングを作る中元調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'attas_daaas_6s', brand: 'UST Mamiya', model: 'ATTAS DAAAS 6', flex: 'S', weight: 65.0, torque: 3.4, kick: '中元調子', cpm: 262, tipStiff: 89, cb: false, ifc: '[6-6-7-7]', note: 'ATTAS DAAASの6S。中元のタメと先端剛性で直進性を高める。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'attas_daaas_6x', brand: 'UST Mamiya', model: 'ATTAS DAAAS 6', flex: 'X', weight: 67.0, torque: 3.1, kick: '中元調子', cpm: 275, tipStiff: 91, cb: false, ifc: '[7-7-8-8]', note: 'ATTAS DAAASの6X。重硬・中元調子で左ミスを抑える。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'regio_mb_65s', brand: 'Nippon Shaft', model: 'N.S.PRO Regio Formula MB+ TYPE65', flex: 'S', weight: 66.0, torque: 3.2, kick: '中元調子', cpm: 262, tipStiff: 90, cb: false, ifc: '[6-6-7-8]', note: 'Regio MB+ TYPE65のS。16軸組布のつぶれ戻りでミート率を高める。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'regio_mb_65x', brand: 'Nippon Shaft', model: 'N.S.PRO Regio Formula MB+ TYPE65', flex: 'X', weight: 68.0, torque: 3.0, kick: '中元調子', cpm: 273, tipStiff: 92, cb: false, ifc: '[7-7-8-9]', note: 'Regio MB+ TYPE65のX。MODUS3ユーザーに好相性の中元調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'hzr_gen5_60', brand: 'Project X', model: 'HZRDUS Gen 5 60', flex: '6.0', weight: 63.0, torque: 3.2, kick: '元調子', cpm: 265, tipStiff: 95, cb: false, ifc: '[7-7-8-8]', note: 'HZRDUS Gen 5の60・6.0。超低トルクの元調子で左ミスを封じる。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'hzr_gen5_65', brand: 'Project X', model: 'HZRDUS Gen 5 60', flex: '6.5', weight: 64.0, torque: 2.9, kick: '元調子', cpm: 278, tipStiff: 97, cb: false, ifc: '[9-9-9-9]', note: 'HZRDUS Gen 5の60・6.5。米ツアー最硬クラスのねじれ剛性。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'denali_60', brand: 'Project X', model: 'Denali Black 60', flex: '6.0', weight: 63.0, torque: 3.2, kick: '元調子', cpm: 265, tipStiff: 95, cb: false, ifc: '[7-7-8-8]', note: 'Denali Blackの60・6.0。低スピン・直進型の元調子。 仕様書の重量帯・トルク範囲からの代表値。' },
+      { id: 'denali_65', brand: 'Project X', model: 'Denali Black 60', flex: '6.5', weight: 64.0, torque: 2.9, kick: '元調子', cpm: 278, tipStiff: 97, cb: false, ifc: '[9-9-9-9]', note: 'Denali Blackの60・6.5。重硬・低トルクで強弾道を生む。 仕様書の重量帯・トルク範囲からの代表値。' },
+    ];
+
+    // =========================================================================
+    // 2. APPLICATION STATE & D-PLANE / IMPACT DEFINITIONS
+    // =========================================================================
+    const state = {
+      heightChoice: 'midlow', // low, midlow, mid, high, balloon, unknown
+      flightChoice: 1,        // 1..10
+      impactChoice: 'low_heel', // low_heel, high_heel, center, high_toe, low_toe
+      season: 'all'           // all, summer, winter
+    };
+
+
+    // =========================================================================
+    // 2.5. 2026 GRIP MASTER DATABASE (7 Makers / 19 Benchmark Models)
+    //      & 5-STAGE CAUSAL LOGIC TREE ENGINE (2026 Edition Spec)
+    // =========================================================================
+    const GRIP_DB = [
+      { id: 'GP-01', brand: 'Golf Pride', model: 'MCC Plus4 (STD)', weightMin: 52, weightMax: 55, weightMid: 53.5, weightLabel: '52〜55g', core: 'M60', cores: ['M60'], material: '複合 / 硬中', cord: 'HALF', bl: 'NONE', builtRightWraps: 4, water: 5, priceLabel: '1,800〜2,400円', priceAvg: 2100, tol: 2, torqueStiff: 90, feelSoft: 55 },
+      { id: 'GP-02', brand: 'Golf Pride', model: 'MCC Plus4 Align', weightMin: 53, weightMax: 53, weightMid: 53.0, weightLabel: '53g', core: 'M60', cores: ['M60'], material: '複合 / 硬中', cord: 'HALF', bl: 'ALIGN', builtRightWraps: 4, water: 5, priceLabel: '2,200〜2,600円', priceAvg: 2400, tol: 2, torqueStiff: 90, feelSoft: 55 },
+      { id: 'GP-03', brand: 'Golf Pride', model: 'MCC Align (STD)', weightMin: 51, weightMax: 51, weightMid: 51.0, weightLabel: '51g', core: 'M60', cores: ['M60'], material: '複合 / 硬中', cord: 'HALF', bl: 'ALIGN', builtRightWraps: 0, water: 5, priceLabel: '2,000〜2,500円', priceAvg: 2250, tol: 2, torqueStiff: 90, feelSoft: 55 },
+      { id: 'GP-04', brand: 'Golf Pride', model: 'Tour Velvet Plus4', weightMin: 52, weightMax: 53, weightMid: 52.5, weightLabel: '52〜53g', core: 'M60', cores: ['M60'], material: 'ラバー / 中', cord: 'NONE', bl: 'NONE', builtRightWraps: 4, water: 3, priceLabel: '1,200〜1,700円', priceAvg: 1450, tol: 2, torqueStiff: 78, feelSoft: 92 },
+      { id: 'GP-05', brand: 'Golf Pride', model: 'Tour Velvet 360', weightMin: 50, weightMax: 50, weightMid: 50.0, weightLabel: '50g', core: 'M60', cores: ['M60'], material: 'ラバー / 中', cord: 'NONE', bl: 'NONE_360', builtRightWraps: 0, water: 3, priceLabel: '1,100〜1,500円', priceAvg: 1300, tol: 2, torqueStiff: 78, feelSoft: 92 },
+      { id: 'GP-06', brand: 'Golf Pride', model: 'Tour Velvet (M58/M60)', weightMin: 49.5, weightMax: 51.5, weightMid: 50.5, weightLabel: '49.5〜51.5g', core: 'M58/60', cores: ['M58', 'M60'], material: 'ラバー / 中', cord: 'NONE', bl: 'BOTH', builtRightWraps: 0, water: 3, priceLabel: '1,000〜1,500円', priceAvg: 1250, tol: 2, torqueStiff: 78, feelSoft: 92 },
+      { id: 'GP-07', brand: 'Golf Pride', model: 'Tour Velvet Cord', weightMin: 50, weightMax: 50, weightMid: 50.0, weightLabel: '50g', core: 'M60', cores: ['M60'], material: 'コード / 硬', cord: 'FULL', bl: 'BOTH', builtRightWraps: 0, water: 5, priceLabel: '1,600〜2,200円', priceAvg: 1900, tol: 2, torqueStiff: 96, feelSoft: 42 },
+      { id: 'GP-08', brand: 'Golf Pride', model: 'Z-Grip Cord (STD/AL)', weightMin: 49, weightMax: 50.5, weightMid: 49.8, weightLabel: '49〜50.5g', core: 'M60', cores: ['M60'], material: '硬ゴム / 最硬', cord: 'FULL', bl: 'BOTH', builtRightWraps: 0, water: 5, priceLabel: '1,800〜2,500円', priceAvg: 2150, tol: 2, torqueStiff: 100, feelSoft: 30 },
+      { id: 'PM-01', brand: 'PALMAX', model: 'TOUR WAVE (M60)', weightMin: 49, weightMax: 51, weightMid: 50.0, weightLabel: '50±1g', core: 'M60', cores: ['M60'], material: 'ABゴム / 中硬', cord: 'NONE', bl: 'BOTH', builtRightWraps: 0, water: 4, priceLabel: '2,200〜2,750円', priceAvg: 2475, tol: 1, torqueStiff: 88, feelSoft: 85 },
+      { id: 'PM-02', brand: 'PALMAX', model: 'TOUR WAVE GOLD CORD', weightMin: 49, weightMax: 51, weightMid: 50.0, weightLabel: '50±1g', core: 'M60', cores: ['M60'], material: 'ABゴム / 硬', cord: 'FULL', bl: 'BOTH', builtRightWraps: 0, water: 5, priceLabel: '2,500〜2,750円', priceAvg: 2625, tol: 1, torqueStiff: 98, feelSoft: 45 },
+      { id: 'EL-01', brand: 'elite grips', model: 'Y360°s XT', weightMin: 50, weightMax: 51, weightMid: 50.5, weightLabel: '50〜51±1g', core: 'M60', cores: ['M60'], material: 'NK510 / 中硬', cord: 'NONE', bl: 'BOTH', builtRightWraps: 0, water: 5, priceLabel: '1,350〜2,000円', priceAvg: 1675, tol: 1, torqueStiff: 87, feelSoft: 80 },
+      { id: 'EL-02', brand: 'elite grips', model: 'Y360° SV M58', weightMin: 50, weightMax: 51, weightMid: 50.5, weightLabel: '50〜51±1g', core: 'M58', cores: ['M58'], material: 'NK510 / 硬', cord: 'NONE', bl: 'BOTH', builtRightWraps: 0, water: 5, priceLabel: '1,800〜2,400円', priceAvg: 2100, tol: 1, torqueStiff: 91, feelSoft: 72 },
+      { id: 'LK-01', brand: 'SS+Lamkin', model: 'Crossline 2.0 Cord', weightMin: 50, weightMax: 53, weightMid: 51.5, weightLabel: '50〜53g', core: 'M60', cores: ['M60'], material: '合成ゴム / 硬', cord: 'FULL', bl: 'NONE', builtRightWraps: 0, water: 5, priceLabel: '2,000〜2,450円', priceAvg: 2225, tol: 2, torqueStiff: 95, feelSoft: 45 },
+      { id: 'LK-02', brand: 'SS+Lamkin', model: 'Crossline 2.0', weightMin: 50, weightMax: 50, weightMid: 50.0, weightLabel: '50g', core: 'M60', cores: ['M60'], material: '合成ゴム / 中硬', cord: 'NONE', bl: 'NONE', builtRightWraps: 0, water: 4, priceLabel: '1,400〜1,800円', priceAvg: 1600, tol: 2, torqueStiff: 84, feelSoft: 82 },
+      { id: 'LK-03', brand: 'SS+Lamkin', model: 'ST+2 Hybrid', weightMin: 52, weightMax: 53, weightMid: 52.5, weightLabel: '52〜53g', core: 'M60', cores: ['M60'], material: '複合 / 中', cord: 'CORD_LIKE', bl: 'BOTH', builtRightWraps: 2, water: 4, priceLabel: '1,500〜2,000円', priceAvg: 1750, tol: 2, torqueStiff: 84, feelSoft: 78 },
+      { id: 'IO-01', brand: 'IOMIC', model: 'Sticky 2.3 (STD / Hard)', weightMin: 48, weightMax: 52, weightMid: 50.0, weightLabel: '50±2g', core: 'M60', cores: ['M60'], material: '樹脂 / 軟・硬', cord: 'NONE', bl: 'BOTH', builtRightWraps: 0, water: 5, priceLabel: '1,200〜1,650円', priceAvg: 1425, tol: 2, torqueStiff: 80, feelSoft: 88 },
+      { id: 'IO-02', brand: 'IOMIC', model: 'iXX Cord 2.3', weightMin: 48, weightMax: 52, weightMid: 50.0, weightLabel: '50±2g', core: 'M60', cores: ['M60'], material: '樹脂複合 / 硬', cord: 'HALF', bl: 'NONE', builtRightWraps: 0, water: 5, priceLabel: '1,500〜2,000円', priceAvg: 1750, tol: 2, torqueStiff: 91, feelSoft: 58 },
+      { id: 'ST-01', brand: 'STM', model: 'G-Rex (硬度 X:65 / S:55)', weightMin: 49, weightMax: 51, weightMid: 50.0, weightLabel: '50±1g', core: 'M58/60', cores: ['M58', 'M60'], material: '樹脂 / X・S', cord: 'NONE', bl: 'BOTH', builtRightWraps: 0, water: 4, priceLabel: '1,300〜1,700円', priceAvg: 1500, tol: 1, torqueStiff: 92, feelSoft: 75 },
+      { id: 'NO-01', brand: 'NO1 GRIP', model: '50シリーズ Hard', weightMin: 50, weightMax: 54, weightMid: 52.0, weightLabel: '50〜54g', core: 'M58/60', cores: ['M58', 'M60'], material: '高密樹脂 / 硬', cord: 'NONE', bl: 'BOTH', builtRightWraps: 0, water: 4, priceLabel: '1,500〜2,000円', priceAvg: 1750, tol: 2, torqueStiff: 90, feelSoft: 72 }
+    ];
+
+    /**
+     * 2026 Edition 5-Stage Causal Logic Tree Grip Engine
+     * Can evaluate any club category (DR / FW / UT / LI / MI_SI / GW / SW) for full spec compliance & TC-01..03 verification.
+     */
+    function evaluateGripForClub(params) {
+      // Stage 1: Input Normalization
+      const hs = Number(params.club_speed_ms ?? 43.0);
+      const faceAvg = Number(params.face_angle_avg_deg ?? 0.0);
+      const faceMaxClosed = params.face_angle_max_closed !== undefined ? Number(params.face_angle_max_closed) : faceAvg;
+      const sideSpin = Number(params.side_spin_avg_rpm ?? 250);
+      const impactBias = params.impact_bias || 'center'; // center | heel | toe
+      const clubCategory = params.club_category || 'DR';
+      const hoselType = params.hosel_type || 'adjustable'; // adjustable | bonded
+      const headProfile = params.head_profile || 'high_moi'; // high_moi | shallow_td | blade_mb
+      const shaftG = Number(params.shaft_g ?? 60);
+      const shaftFlex = String(params.shaft_flex || 'S');
+      const currentSw = Number(params.current_sw ?? 2.5); // D2.5 -> 2.5
+      const weatherSweat = params.weather_sweat_level || 'normal'; // dry | normal | wet_cold_sweat
+      const faceManip = params.face_manipulation || 'square_only'; // square_only | open_close
+      const chokeFreq = params.choke_down_freq || 'none'; // none | high
+      const handSize = Number(params.hand_size_glove_cm ?? 23);
+      const cordOk = params.cord_ok !== false;
+      const maxJpy = params.max_jpy ? Number(params.max_jpy) : 9999;
+      const preferThickRight = !!params.prefer_thick_right;
+      const isDriverMultiSet = ['LI', 'MI_SI', 'GW'].includes(clubCategory);
+      const measuredFlag = params.measured_source || '弾道イラスト・D-Plane逆算値';
+
+      const firedRules = [];
+      const excludedNg = [];
+
+      // Stage 2 & 3: Logic Tree A (BL, Weight, Material/Cord)
+      // A-1: Backline Rule
+      let requireNoBL = false;
+      let preferBL = false;
+      if (hoselType === 'adjustable' || faceManip === 'open_close') {
+        requireNoBL = true;
+        firedRules.push('R-BL01');
+        excludedNg.push({
+          pattern: 'BL有 / ALIGN',
+          rule: 'R-BL01',
+          reason: hoselType === 'adjustable'
+            ? '可変スリーブ変更時にバックライン背骨がズレてフェース角認識が破綻するため除外'
+            : 'フェース開閉操作（open_close）時に背骨がズレて操作性を阻害するため除外'
+        });
+      } else {
+        preferBL = true;
+        firedRules.push('R-BL02');
+      }
+
+      // A-2: Weight Range Rule
+      let targetWMin = 49, targetWMax = 52;
+      let weightRule = 'R-WT02';
+      if (hs >= 46.0 && (impactBias === 'heel' || shaftG <= 67) && shaftG < 70 && currentSw > 2.0) {
+        targetWMin = 52; targetWMax = 55;
+        weightRule = 'R-WT01';
+        firedRules.push('R-WT01');
+        excludedNg.push({
+          pattern: '超軽量グリップ(≤47g)',
+          rule: 'R-WT01',
+          reason: 'SWが+1.0pt以上重くなり、HS46m/s超での遠心力トゥダウンと60g台の手元浮きを誘発するため除外'
+        });
+      } else {
+        targetWMin = 49; targetWMax = 52;
+        weightRule = 'R-WT02';
+        firedRules.push('R-WT02');
+        excludedNg.push({
+          pattern: '超重量グリップ(≥58g / Midsize標準)',
+          rule: 'R-WT02',
+          reason: '過度なカウンターバランス化（SW -2〜-3pt）によるボール初速低下（約-1.0m/s）を防ぐため除外'
+        });
+      }
+
+      // A-3: Material / Cord Rule (including Conflict 3 resolution)
+      let materialMode = 'STANDARD';
+      if (clubCategory === 'SW' && faceManip === 'open_close') {
+        materialMode = 'SW_SOFT_RUBBER';
+        firedRules.push('R-MT03');
+      } else if ((weatherSweat === 'wet_cold_sweat' || headProfile === 'blade_mb' || sideSpin >= 450) && cordOk) {
+        materialMode = 'CORD_PRIORITY';
+        firedRules.push('R-MT01');
+      } else if (weatherSweat === 'wet_cold_sweat' && !cordOk) {
+        materialMode = 'SILICA_ELASTOMER';
+        firedRules.push('R-MT02');
+        excludedNg.push({
+          pattern: 'フル／ハーフコード',
+          rule: 'R-MT02',
+          reason: 'コードNG（手荒れ防止）のため除外し、NK510シリカゴム／撥水樹脂へ自動昇格'
+        });
+      } else if (!cordOk) {
+        excludedNg.push({
+          pattern: 'フル／ハーフコード',
+          rule: 'R-MT02',
+          reason: 'コードNG設定のためコード入りモデルを除外'
+        });
+      }
+
+      // Stage 3: Logic Tree B (Taper/Right Wraps, Left Wraps/Core, Wrapping Method)
+      let targetRightWrapsEq = 2;
+      let taperRule = 'R-TP03';
+      if (faceAvg <= -1.5 || faceMaxClosed <= -3.5 || preferThickRight) {
+        targetRightWrapsEq = (faceMaxClosed <= -3.5 || faceAvg <= -2.5) ? 6 : 5;
+        taperRule = 'R-TP01';
+        firedRules.push('R-TP01');
+      } else if ((faceAvg > -1.5 && faceAvg <= 0.5) || chokeFreq === 'high' || headProfile === 'blade_mb') {
+        targetRightWrapsEq = 4;
+        taperRule = 'R-TP02';
+        firedRules.push('R-TP02');
+      } else {
+        targetRightWrapsEq = 1;
+        taperRule = 'R-TP03';
+        firedRules.push('R-TP03');
+      }
+
+      // Left hand baseline & core
+      let targetLeftWraps = 1;
+      let preferM58 = false;
+      if (handSize >= 25 || (shaftG >= 58 && shaftG <= 68 && shaftFlex.includes('X') && hs >= 47 && impactBias === 'heel')) {
+        targetLeftWraps = handSize >= 25 ? 2 : 1;
+        preferM58 = handSize >= 25;
+        firedRules.push('R-LH02');
+      } else {
+        targetLeftWraps = 1;
+        firedRules.push('R-LH01');
+      }
+
+      // Stage 2 Filter & Stage 4 Scoring across GRIP_DB
+      const scored = [];
+      for (const g of GRIP_DB) {
+        // Hard constraints
+        if (requireNoBL && g.bl === 'ALIGN') continue;
+        if (!cordOk && (g.cord === 'FULL' || g.cord === 'HALF')) continue;
+        if (g.priceAvg > maxJpy) continue;
+        if (weightRule === 'R-WT01' && g.weightMax <= 47) continue;
+        if (weightRule === 'R-WT02' && g.weightMin >= 58) continue;
+
+        // Core selection for this grip
+        const chosenCore = (preferM58 && g.cores.includes('M58')) ? 'M58' : (g.cores.includes('M60') ? 'M60' : g.cores[0]);
+        const coreEq = chosenCore === 'M58' ? 1.3 : 0.0;
+        const chosenBL = requireNoBL ? (g.bl === 'NONE_360' ? 'BL無(360)' : 'BL無') : (g.bl === 'ALIGN' ? 'ALIGN(BL有)' : (g.bl === 'BOTH' ? 'BL有推奨' : 'BL無'));
+
+        // Chapter 4-1: Exact Tape Formula
+        const addL = Math.max(1, Math.round(targetLeftWraps - coreEq));
+        const addRExtra = Math.max(0, Math.round(targetRightWrapsEq - g.builtRightWraps - coreEq - addL));
+        const totalRightEq = +(addL + addRExtra + g.builtRightWraps + coreEq).toFixed(1);
+        const deltaDmm = +(0.38 * (addL + addRExtra) + (chosenCore === 'M58' ? 0.50 : 0) + g.builtRightWraps * 0.38).toFixed(2);
+
+        // Chapter 4-2: Wrapping Method & ΔSW
+        let wrapMethodCode = 'R-WM01';
+        let wrapMethodName = '全面らせん1巻';
+        let shopInstruction = `全面らせん${addL}巻（追加右巻なし・密着最大化）`;
+        if (addRExtra >= 1) {
+          wrapMethodCode = 'R-WM02';
+          wrapMethodName = 'ハイブリッド巻（最推奨標準）';
+          shopInstruction = `全面らせん${addL}巻 ＋ グリップエンド13cm〜先端側(右手部)のみ縦巻き+${addRExtra}枚（境界0.5cmずらし）`;
+        } else if (addL >= 2) {
+          wrapMethodCode = 'R-WM03';
+          wrapMethodName = '全面縦巻き';
+          shopInstruction = `50mm幅広テープ全面縦${addL}巻（継ぎ目をサイドへ逃がす）`;
+        }
+
+        const tapeWeightAdd = addRExtra * 0.42 + (addL - 1) * 1.5;
+        const deltaSwVal = -((g.weightMid + tapeWeightAdd) - 50.0) / 5.0;
+        const deltaSwText = `${deltaSwVal >= 0 ? '+' : ''}${deltaSwVal.toFixed(1)}pt`;
+
+        // Chapter 5-2: 100-Point Linear Weighted Score
+        // 1) S_taper (25%)
+        let sTaper = 70;
+        if (taperRule === 'R-TP01') {
+          if (g.builtRightWraps >= 4 && addRExtra <= 2) sTaper = 100;
+          else if (g.builtRightWraps === 2 && addRExtra <= 3) sTaper = 88;
+          else sTaper = Math.max(55, 84 - addRExtra * 6);
+        } else if (taperRule === 'R-TP02') {
+          if (g.builtRightWraps >= 4 && addRExtra === 0) sTaper = 98;
+          else if (g.builtRightWraps === 2 && addRExtra <= 1) sTaper = 92;
+          else if (headProfile === 'blade_mb' && g.cord === 'FULL') sTaper = 90;
+          else sTaper = Math.max(60, 86 - Math.abs(addRExtra - 2) * 6);
+        } else {
+          // R-TP03: standard taper preferred
+          if (g.builtRightWraps === 0) sTaper = 98;
+          else if (g.builtRightWraps === 2) sTaper = 78;
+          else sTaper = 52;
+        }
+
+        // 2) S_torque_weight (25%)
+        const wMidTarget = (targetWMin + targetWMax) / 2;
+        const wErr = Math.abs(g.weightMid - wMidTarget);
+        let sTorqueWeight = Math.max(50, 96 - wErr * 9);
+        if (hs >= 46 || sideSpin >= 450 || headProfile === 'blade_mb') {
+          sTorqueWeight = sTorqueWeight * 0.55 + g.torqueStiff * 0.45;
+          if (headProfile === 'blade_mb' && g.cord === 'FULL') sTorqueWeight = Math.min(100, sTorqueWeight + 10);
+        } else if (hs <= 38) {
+          sTorqueWeight = sTorqueWeight * 0.65 + g.feelSoft * 0.35;
+        }
+        sTorqueWeight = Math.min(100, Math.max(0, sTorqueWeight));
+
+        // 3) S_weather_feel (20%)
+        let sWeatherFeel = 60 + g.water * 7;
+        if (materialMode === 'CORD_PRIORITY') {
+          if (g.cord === 'FULL') sWeatherFeel = headProfile === 'blade_mb' ? 100 : 96;
+          else if (g.cord === 'HALF') sWeatherFeel = (taperRule === 'R-TP01') ? 100 : 94;
+          else if (g.cord === 'CORD_LIKE') sWeatherFeel = 80;
+          else sWeatherFeel = 62 + g.water * 3;
+        } else if (materialMode === 'SILICA_ELASTOMER') {
+          if (g.id === 'EL-01' || g.id === 'EL-02') sWeatherFeel = 100;
+          else if (g.id === 'IO-01') sWeatherFeel = 96;
+          else sWeatherFeel = 68 + g.water * 4;
+        } else if (materialMode === 'SW_SOFT_RUBBER') {
+          if (g.cord === 'NONE' && g.material.includes('ラバー')) sWeatherFeel = 100;
+          else if (g.cord === 'NONE') sWeatherFeel = 90;
+          else if (g.cord === 'HALF') sWeatherFeel = 75;
+          else sWeatherFeel = 45;
+        } else {
+          // Standard
+          if (g.cord === 'NONE' && (g.material.includes('ラバー') || g.material.includes('NK510') || g.material.includes('ABゴム'))) {
+            sWeatherFeel = 92;
+          } else if (g.cord === 'HALF') {
+            sWeatherFeel = 86;
+          } else if (g.cord === 'FULL') {
+            sWeatherFeel = hs >= 45 ? 84 : 68;
+          }
+        }
+
+        // 4) S_bl_alignment (15%)
+        let sBl = 80;
+        if (requireNoBL) {
+          if (g.bl === 'NONE_360') sBl = 100;
+          else if (g.bl === 'NONE') sBl = 95;
+          else if (g.bl === 'BOTH') sBl = 85;
+        } else if (preferBL) {
+          if (g.bl === 'ALIGN') sBl = 100;
+          else if (g.bl === 'BOTH') sBl = 92;
+          else sBl = 72;
+        }
+
+        // 5) S_precision_cost (15%)
+        let sPrecCost = 82;
+        if (g.tol === 1) sPrecCost += isDriverMultiSet ? 16 : 10;
+        if (g.priceAvg <= 1650) sPrecCost += 8;
+        else if (g.priceAvg <= 2200) sPrecCost += 4;
+        sPrecCost = Math.min(100, sPrecCost);
+
+        const fitScore = +(0.25 * sTaper + 0.25 * sTorqueWeight + 0.20 * sWeatherFeel + 0.15 * sBl + 0.15 * sPrecCost).toFixed(1);
+        const itemRules = [...firedRules, wrapMethodCode];
+
+        // Stage 5: 4-Stage Deterministic Causal Explanation (Zero speculation)
+        const factPart = `HS ${hs.toFixed(1)}m/s・Face ${faceAvg > 0 ? '+' : ''}${faceAvg.toFixed(1)}°(最大Closed ${faceMaxClosed.toFixed(1)}°)・${hoselType === 'adjustable' ? '可変スリーブ' : '接着ネック'}・シャフト${shaftG}g(${shaftFlex})・手サイズ${handSize}cm（${measuredFlag}）`;
+        const mechPart = (taperRule === 'R-TP01'
+          ? `右手部計${totalRightEq}巻相当(外径+${deltaDmm}mm)が指先の握り込み・回内トルク(左被り)を物理制限`
+          : (taperRule === 'R-TP02'
+            ? `右手部計${totalRightEq}巻相当で短持ち時の細り・急激な返りを抑制`
+            : `標準テーパー(右手計${totalRightEq}巻相当)で自然なリストターンと捕まりを確保`))
+          + (materialMode === 'CORD_PRIORITY'
+            ? `し、${g.cord === 'FULL' ? 'フルコード' : 'ハーフコード'}の高剛性摩擦が滑りによる力みとねじれを遮断`
+            : (materialMode === 'SILICA_ELASTOMER'
+              ? `し、コードNG制約下で${g.material}の高耐水摩擦を確保`
+              : `し、${g.material}の適度な剛性で${targetWMin}〜${targetWMax}g帯のバランスを維持`));
+        const orderPart = `${g.brand} ${g.model}（${chosenCore}/${chosenBL}/${g.weightLabel}）を${wrapMethodName}（左${addL}巻・右追加+${addRExtra}巻 / ΔSW ${deltaSwText}）で装着。${taperRule === 'R-TP01' ? '左被りを約1.5〜2.0°抑制しつつスリーブ調整と完全両立。' : (taperRule === 'R-TP03' ? '右プッシュを防ぎつつ自然なフェースターンを実現。' : '再現性の高いスクエアインパクトを安定維持。')}`;
+
+        const causalExplanation = `【計測・条件事実】${factPart} → 【発火ルール】${itemRules.join(', ')} → 【物理メカニズム】${mechPart} → 【具体的処方＆期待効果】${orderPart}`;
+
+        scored.push({
+          grip: g,
+          fit_score: fitScore,
+          chosenCore,
+          chosenBL,
+          addL,
+          addRExtra,
+          totalRightEq,
+          deltaDmm,
+          wrapMethodCode,
+          wrapMethodName,
+          shopInstruction,
+          deltaSwVal: +deltaSwVal.toFixed(1),
+          deltaSwText,
+          firedRules: itemRules,
+          causalExplanation
+        });
+      }
+
+      scored.sort((a, b) => b.fit_score - a.fit_score);
+      return {
+        fired_rules: firedRules,
+        target_vector: {
+          backline: requireNoBL ? 'NONE_REQUIRED' : 'ALIGN_OR_BL_RECOMMENDED',
+          weight_range_g: [targetWMin, targetWMax],
+          target_left_wraps: targetLeftWraps,
+          target_right_wraps_eq: targetRightWrapsEq,
+          material_mode: materialMode
+        },
+        best: scored[0],
+        top3: scored.slice(0, 3),
+        excluded_ng_patterns: excludedNg
+      };
+    }
+    window.evaluateGripForClub = evaluateGripForClub;
+
+    const DPLANE_MAP = {
+      1:  { name: '① 左へ出て、さらに左へ巻く (プルフック)', launchDir: '左打ち出し (-3.0°)', face: -3.5, path: 0.5, f2p: -4.0, bias: 'anti_left_3' },
+      2:  { name: '② 左へ出て、そのまま真っ直ぐ左 (プル直進)', launchDir: '左打ち出し (-3.0°)', face: -3.0, path: -3.0, f2p: 0.0, bias: 'anti_left_2' },
+      3:  { name: '③ 左へ出て、右へ曲がって戻る (プルフェード)', launchDir: '左打ち出し (-2.0°)', face: -1.5, path: -5.0, f2p: 3.5, bias: 'neutral_fade' },
+      4:  { name: '④ 真っ直ぐ出て、左へ曲がる (ストレートドロー)', launchDir: '中央打ち出し (0.0°)', face: -0.5, path: 3.0, f2p: -3.5, bias: 'anti_left_2' },
+      5:  { name: '⑤ 真っ直ぐ出て、真っ直ぐ飛ぶ (ストレート)', launchDir: '中央打ち出し (0.0°)', face: 0.0, path: 0.0, f2p: 0.0, bias: 'neutral' },
+      6:  { name: '⑥ 真っ直ぐ出て、右へ曲がる (ストレートフェード)', launchDir: '中央打ち出し (0.0°)', face: 0.5, path: -3.0, f2p: 3.5, bias: 'draw_1' },
+      7:  { name: '⑦ 右へ出て、左へ曲がって戻る (プッシュドロー)', launchDir: '右打ち出し (+2.0°)', face: 1.5, path: 5.0, f2p: -3.5, bias: 'anti_left_1' },
+      8:  { name: '⑧ 右へ出て、そのまま真っ直ぐ右 (プッシュ直進)', launchDir: '右打ち出し (+3.0°)', face: 3.0, path: 3.0, f2p: 0.0, bias: 'draw_2' },
+      9:  { name: '⑨ 右へ出て、さらに右へ曲がる (プッシュスライス)', launchDir: '右打ち出し (+3.0°)', face: 3.5, path: -0.5, f2p: 4.0, bias: 'draw_3' },
+      10: { name: '⑩ 球によって右にも左にも散る (逆球・タイミング不安定)', launchDir: '左右散乱 (±3.5°)', face: 0.0, path: 0.0, f2p: 4.5, bias: 'high_moi_10k' }
+    };
+
+    const IRON_WEIGHT_MAP = {
+      ultralight_carbon: { total7i: 352, shaft7i: 45, shaftBand: 40, label: '超軽量カーボン (7I約352g)' },
+      std_carbon:        { total7i: 378, shaft7i: 60, shaftBand: 49, label: '標準カーボン (7I約378g)' },
+      light_steel:       { total7i: 405, shaft7i: 96, shaftBand: 58, label: '軽量スチール 950GH等 (7I約405g)' },
+      mid_steel:         { total7i: 422, shaft7i: 114, shaftBand: 68.5, label: '中量スチール MODUS120等 (7I約422g)' },
+      heavy_steel:       { total7i: 438, shaft7i: 128, shaftBand: 81, label: '重量スチール DG/MODUS125 (7I約438g)' }
+    };
+
+    // =========================================================================
+    // 3. MULTI-LAYER NOBEL-PHYSICS FITTING ENGINE
+    // =========================================================================
+    function runPhysicsEngine() {
+      // Read raw inputs
+      const gender = document.getElementById('inp-gender').value;
+      const age = parseInt(document.getElementById('inp-age').value, 10) || 50;
+      const heightCm = parseFloat(document.getElementById('inp-height').value) || 172;
+      const weightKg = parseFloat(document.getElementById('inp-weight').value) || 68;
+      const sport = document.getElementById('inp-sport').value;
+      const tempo = document.getElementById('inp-tempo').value;
+      const ironKey = document.getElementById('inp-iron').value;
+      const gloveCm = parseFloat(document.getElementById('inp-glove').value) || 23;
+      const sweatPref = document.getElementById('inp-sweat').value;
+      const cordOkVal = document.getElementById('inp-cord-ok') ? document.getElementById('inp-cord-ok').value : 'ok';
+      const chokeVal = document.getElementById('inp-choke') ? document.getElementById('inp-choke').value : 'none';
+      const weatherSweatLevel = (sweatPref === 'cord' || state.season === 'summer' || state.weatherWetFlag) ? 'wet_cold_sweat' : 'normal';
+      const cordOk = cordOkVal !== 'ng';
+      const impactBiasSimple = state.impactChoice.includes('heel') ? 'heel' : (state.impactChoice.includes('toe') ? 'toe' : 'center');
+      const estSideSpin = Math.round(Math.abs(DPLANE_MAP[state.flightChoice].f2p) * 145 + (state.impactChoice === 'center' ? 0 : 120));
+
+      // v2.2: HS未入力時の自動逆算は仕様書 §0-1 通り「7I飛距離÷3.65 または 総飛距離÷5.75」。
+      // 7Iが無く総飛距離だけ分かる場合も、無言の43.0既定値にせず総飛距離から推計する。
+      const rawTotal = parseFloat(document.getElementById('inp-Total').value);
+      let rawHs = parseFloat(document.getElementById('inp-hs').value);
+      let hsImputedNote = '';
+      if (isNaN(rawHs) || rawHs < 25 || rawHs > 60) {
+        const d7 = parseFloat(document.getElementById('inp-7i-dist').value);
+        if (!isNaN(d7) && d7 >= 70 && d7 <= 220) {
+          rawHs = +(d7 / 3.65).toFixed(1);
+        } else if (!isNaN(rawTotal) && rawTotal >= 150 && rawTotal <= 340) {
+          rawHs = +(rawTotal / 5.75).toFixed(1);
+          hsImputedNote = `HS未入力のため総飛距離${Math.round(rawTotal)}yd÷5.75からHS=${rawHs.toFixed(1)}へ自動推計`;
+        } else {
+          rawHs = 43.0;
+        }
+      }
+
+      // Seasonal Effective Head Speed adjustment
+      const effectiveHs = state.season === 'summer' ? rawHs + 0.6 : (state.season === 'winter' ? rawHs - 1.2 : rawHs);
+
+      const rawBs = parseFloat(document.getElementById('inp-bs').value);
+      const rawCarry = parseFloat(document.getElementById('inp-Carry').value);
+      const fwKeep = parseFloat(document.getElementById('inp-fw').value) || 6;
+      const obCount = parseFloat(document.getElementById('inp-ob').value) || 1.5;
+
+      const dplane = DPLANE_MAP[state.flightChoice];
+
+      // -----------------------------------------------------------------------
+      // Layer 0: Sanity Check & Imputation Filter
+      // -----------------------------------------------------------------------
+      const impactOffsetMm = state.impactChoice === 'center' ? 3 : 13;
+      let sanityNotes = [];
+      if (hsImputedNote) sanityNotes.push(hsImputedNote);
+      let trueSf = 1.48;
+
+      if (!isNaN(rawBs) && rawBs > 30) {
+        const calcSf = rawBs / rawHs;
+        if (calcSf >= 1.30 && calcSf <= 1.515) {
+          trueSf = calcSf;
+        } else {
+          trueSf = Math.max(1.34, 1.495 - 0.0035 * impactOffsetMm - 0.0008 * Math.pow(Math.abs(dplane.f2p), 2));
+          sanityNotes.push(`BS/HS(${calcSf.toFixed(2)})が物理限界外のため打点からSF=${trueSf.toFixed(2)}へ自動補正`);
+        }
+      } else {
+        trueSf = Math.max(1.35, 1.495 - 0.0035 * impactOffsetMm - 0.0008 * Math.pow(Math.abs(dplane.f2p), 2));
+        sanityNotes.push(`BS未入力のため打点・軌道からSF=${trueSf.toFixed(2)}を自動推計`);
+      }
+      const trueBs = rawHs * trueSf;
+
+      // Distance validity check
+      let distValid = true;
+      if (isNaN(rawCarry) || isNaN(rawTotal) || rawTotal < rawCarry || (rawTotal - rawCarry) > 65 || rawCarry > rawHs * 6.15 || rawCarry < rawHs * 3.8) {
+        distValid = false;
+        sanityNotes.push('距離データが未入力または物理保存則外のためHS×弾道高低モデルで再構築');
+      }
+      const trueCarry = distValid ? rawCarry : Math.round(rawHs * 5.38 * (trueSf / 1.48));
+      const trueRoll = distValid ? (rawTotal - rawCarry) : (state.heightChoice === 'balloon' ? 8 : (state.heightChoice === 'low' ? 28 : 18));
+
+      const sanityBadge = document.getElementById('sanity-badge');
+      if (sanityNotes.length === 0) {
+        sanityBadge.textContent = `物理整合性チェック: 実測値正常 (ミート率 ${trueSf.toFixed(2)})`;
+        sanityBadge.className = 'text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold';
+      } else {
+        sanityBadge.textContent = `物理フィルタ補正済: ${sanityNotes[0]}`;
+        sanityBadge.className = 'text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold';
+      }
+
+      // -----------------------------------------------------------------------
+      // Stage 1: Weight Flow & Natural Frequency (f_cpm) Screening
+      // -----------------------------------------------------------------------
+      const tempoBonusWeight = tempo === 'fast' ? 2.5 : (tempo === 'smooth' ? -2.5 : 0);
+      const ageWeightAdj = age >= 70 ? -6.0 : (age >= 60 ? -3.5 : (age <= 30 ? 1.5 : 0));
+      const bodyWeightAdj = (weightKg - 65) * 0.12;
+
+      let idealDriverTotalWeight = 310;
+      let idealShaftWeight = 62;
+
+      if (ironKey !== 'unknown' && IRON_WEIGHT_MAP[ironKey]) {
+        const ironInfo = IRON_WEIGHT_MAP[ironKey];
+        // v2.1: シャフト重量は仕様書の重量帯テーブル中央値（超軽量40/標準49/軽量58/中量68.5/重量81g）を基準にする。
+        // 仕様書の総重量式 0.72×W7I+16 は同書のシャフト帯と両立しない（標準カーボン: 288-259=29g vs 帯45-53g、
+        // 超軽量: 269-259=10g vs 帯36-44g）ため、適合の主役であるシャフト帯を優先し、総重量はシャフト+259gで一意化する。
+        idealShaftWeight = Math.min(88, Math.max(30, +(ironInfo.shaftBand + tempoBonusWeight + ageWeightAdj).toFixed(1)));
+        idealDriverTotalWeight = Math.round(idealShaftWeight + 259); // ヘッド200+グリップ50+スリーブ9
+      } else {
+        idealShaftWeight = +(1.45 * rawHs - 2.0 + bodyWeightAdj + tempoBonusWeight + ageWeightAdj).toFixed(1);
+        idealDriverTotalWeight = Math.round(idealShaftWeight + 259); // v2.0: ヘッド200+グリップ50+スリーブ9
+      }
+
+      if (state.season === 'summer') {
+        idealShaftWeight = +(idealShaftWeight + 2.0).toFixed(1);
+      } else if (state.season === 'winter') {
+        idealShaftWeight = +(idealShaftWeight - 4.5).toFixed(1);
+      }
+
+      // Virtual Swing DNA (1-9 scale: Tempo / ToeDown / Kick)
+      const dnaTempo = Math.min(9, Math.max(1, (tempo === 'fast' ? 8 : (tempo === 'smooth' ? 3 : 5)) + (sport === 'baseball' || sport === 'tennis' ? 1 : 0)));
+      const dnaToeDown = Math.min(9, Math.max(1, Math.round((effectiveHs - 32) * 0.35) + (state.impactChoice === 'low_heel' || state.impactChoice === 'high_toe' ? 2 : 0)));
+      const dnaKick = (dplane.bias.startsWith('anti_left') || tempo === 'fast') ? 3 : (dplane.bias.startsWith('draw') ? 8 : 5);
+
+      const targetCpm = Math.round(4.35 * effectiveHs + 62 + 1.8 * dnaTempo + (sport === 'baseball' ? 3 : 0));
+
+      // -----------------------------------------------------------------------
+      // Stage 2: D-Plane Vector & 3D Gear Effect / 10K MOI Analysis
+      // -----------------------------------------------------------------------
+      const antiLeftLevel = dplane.bias === 'anti_left_3' ? 3 : (dplane.bias === 'anti_left_2' ? 2 : (dplane.bias === 'anti_left_1' ? 1 : 0));
+      const offCenterPenalty = state.impactChoice === 'center' ? 0 : 1;
+      const maxTorque = +(Math.max(2.6, 6.8 - 0.08 * effectiveHs - 0.25 * antiLeftLevel - 0.20 * offCenterPenalty)).toFixed(1);
+
+      const need10kMoi = (fwKeep <= 5 || obCount >= 2.5 || state.flightChoice === 10);
+
+      // Recommended club length (60-degree method)
+      let recLength = 45.25;
+      if (state.impactChoice === 'low_heel' || state.impactChoice === 'high_heel' || need10kMoi) {
+        recLength = effectiveHs >= 45 ? 45.25 : 45.0;
+      } else if (state.impactChoice === 'center' && fwKeep >= 9) {
+        recLength = 45.5;
+      }
+
+      // -----------------------------------------------------------------------
+      // Stage 3: Hybrid Ball-Height + Optimal Launch/Spin Window Decision Tree
+      // -----------------------------------------------------------------------
+      const LAUNCH_SPIN_TABLE = [[35, 16.5, 2700], [40, 15.0, 2425], [43, 13.9, 2300], [46, 12.65, 2200], [48, 11.9, 2100], [51, 11.1, 2000]]; // v2.0: 仕様書 §3-1 の6点表（各ウィンドウの中点）
+      const _interpWin = (hs, col) => {
+        const t = LAUNCH_SPIN_TABLE;
+        if (hs <= t[0][0]) return t[0][col];
+        if (hs >= t[t.length - 1][0]) return t[t.length - 1][col];
+        for (let i = 0; i < t.length - 1; i++) {
+          if (hs >= t[i][0] && hs <= t[i + 1][0]) {
+            const f = (hs - t[i][0]) / (t[i + 1][0] - t[i][0]);
+            return t[i][col] + f * (t[i + 1][col] - t[i][col]);
+          }
+        }
+        return t[0][col];
+      };
+      const optLaunch = +_interpWin(effectiveHs, 1).toFixed(1);
+      const optSpin = Math.round(_interpWin(effectiveHs, 2));
+
+      let spinDiagnosis = '適正スピンウィンドウ';
+      let spinAction = 'balanced'; // low_spin, balanced, high_launch
+      let recBaseLoft = effectiveHs >= 45 ? 9.0 : (effectiveHs >= 40 ? 10.5 : 11.5);
+
+      // Primary: Step 1 Visual Ball Height
+      if (state.heightChoice === 'balloon') {
+        spinDiagnosis = '吹き上がり・高スピンロス (推定3,100rpm超)';
+        spinAction = 'low_spin';
+        recBaseLoft = effectiveHs >= 43 ? 9.0 : 9.5;
+      } else if (state.heightChoice === 'low') {
+        spinDiagnosis = '低弾道・揚力不足ドロップ (推定1,850rpm未満)';
+        spinAction = 'high_launch';
+        recBaseLoft = effectiveHs >= 46 ? 10.0 : 10.5;
+      } else {
+        // Secondary Fallback & Cross-check via Roll = Total - Carry and Vertical Gear Effect
+        if (trueRoll <= 12 || (state.impactChoice === 'low_heel' && state.heightChoice === 'high')) {
+          spinDiagnosis = '下部打点・縦ギア効果によるスピン過多 (ラン不足)';
+          spinAction = 'low_spin';
+          recBaseLoft = effectiveHs >= 44 ? 9.0 : 10.0;
+        } else if (trueRoll >= 28 && trueCarry < rawHs * 5.1) {
+          spinDiagnosis = 'スピン不足によるキャリー失速';
+          spinAction = 'high_launch';
+          recBaseLoft = effectiveHs >= 45 ? 10.0 : 10.5;
+        } else if (state.impactChoice === 'low_heel' && effectiveHs >= 44) {
+          spinDiagnosis = 'ローヒール打点による縦ギア効果スピン増＆トゥダウン';
+          spinAction = 'low_spin';
+          recBaseLoft = 9.0;
+        }
+      }
+
+      if (state.season === 'winter' && recBaseLoft < 10.5 && spinAction !== 'low_spin') {
+        recBaseLoft = 10.0;
+      }
+
+      // v3.0: Grip specification is computed dynamically per (Head x Shaft) via 5-Stage Causal Logic Tree
+
+      // -----------------------------------------------------------------------
+      // Score all Head x Shaft combinations
+      // -----------------------------------------------------------------------
+      const candidates = [];
+
+      for (const head of HEAD_DB) {
+        for (const shaft of SHAFT_DB) {
+          // 1. Weight Distance Penalty (Max 22 pts)
+          const wDiff = Math.abs(shaft.weight - idealShaftWeight);
+          const weightScore = Math.max(0, 22 - Math.pow(wDiff / 2.2, 1.55));
+
+          // 2. Frequency (CPM) & Flex Match (Max 22 pts)
+          const cpmDiff = Math.abs(shaft.cpm - targetCpm);
+          const cpmScore = Math.max(0, 22 - Math.pow(cpmDiff / 3.0, 1.5));
+
+          // 3. D-Plane & Kickpoint Match (Max 24 pts)
+          let dplaneScore = 15;
+          if (antiLeftLevel >= 2) {
+            if (head.faceBias.startsWith('anti_left')) dplaneScore += 6;
+            if (shaft.kick.includes('元')) dplaneScore += 3;
+            if (head.faceBias === 'draw_3') dplaneScore -= 12;
+          } else if (dplane.bias.startsWith('draw')) {
+            if (head.faceBias.startsWith('draw') || head.category === 'High_MOI_10K') dplaneScore += 6;
+            if (shaft.kick.includes('先') || shaft.kick === '中調子') dplaneScore += 3;
+            if (head.faceBias === 'anti_left_3') dplaneScore -= 10;
+          } else {
+            if (head.category.includes('HighMOI') || head.category === 'High_MOI_10K') dplaneScore += 6;
+            if (shaft.kick.includes('中')) dplaneScore += 3;
+          }
+          dplaneScore = Math.min(24, Math.max(0, dplaneScore));
+
+          // 4. Impact 5-Zone & 3D Gear Effect / Toe-Down Match (Max 22 pts)
+          let impactScore = 12;
+          if (state.impactChoice === 'low_heel') {
+            if (effectiveHs >= 43 || antiLeftLevel >= 1) {
+              // Hard hitter low-heel route: high tip stiffness + low torque + CB bonus
+              if (shaft.torque <= maxTorque) impactScore += 4;
+              if (shaft.tipStiff >= 94) impactScore += 4;
+              if (shaft.cb) impactScore += 2;
+            } else {
+              // Slicer low-heel route: High MOI + forgiving head
+              if (head.moiClass >= 9400) impactScore += 6;
+            }
+          } else if (state.impactChoice === 'high_toe') {
+            if (head.moiClass >= 9500) impactScore += 6;
+            if (shaft.tipStiff >= 92) impactScore += 4;
+          } else {
+            if (shaft.torque <= maxTorque + 0.4) impactScore += 6;
+          }
+          if (need10kMoi && head.moiClass >= 9600) {
+            impactScore += 4;
+          }
+          impactScore = Math.min(22, Math.max(0, impactScore));
+
+          // 5. Seasonal & Spin Window Match (Max 10 pts)
+          let seasonScore = 6;
+          if (spinAction === 'low_spin' && head.spinBias <= -350) seasonScore += 4;
+          if (spinAction === 'high_launch' && head.launchBias >= 0.3) seasonScore += 4;
+          if (state.season === 'winter' && (shaft.kick === '中元調子' || shaft.kick === '中調子')) seasonScore += 2;
+          if (state.season === 'summer' && shaft.torque <= 3.0) seasonScore += 2;
+          seasonScore = Math.min(10, seasonScore);
+
+          const headShaftScore = Math.min(99, weightScore + cpmScore + dplaneScore + impactScore + seasonScore);
+
+          // v3.0: Evaluate optimal grip for THIS specific (Head x Shaft) setup
+          const headProf = head.moiClass >= 9500 ? 'high_moi' : 'shallow_td';
+          const gripResult = evaluateGripForClub({
+            club_speed_ms: effectiveHs,
+            face_angle_avg_deg: dplane.face,
+            face_angle_max_closed: dplane.face <= -1.5 ? dplane.face - 1.5 : dplane.face,
+            side_spin_avg_rpm: estSideSpin,
+            impact_bias: impactBiasSimple,
+            club_category: 'DR',
+            hosel_type: 'adjustable',
+            head_profile: headProf,
+            shaft_g: shaft.weight,
+            shaft_flex: shaft.flex,
+            current_sw: shaft.cb ? 2.0 : 3.0,
+            weather_sweat_level: weatherSweatLevel,
+            face_manipulation: 'square_only',
+            choke_down_freq: chokeVal,
+            hand_size_glove_cm: gloveCm,
+            cord_ok: cordOk,
+            prefer_thick_right: sweatPref === 'thick_right',
+            measured_source: sanityNotes.length === 0 ? '実測値＋9弾道D-Plane' : '9弾道D-Plane推計'
+          });
+          const bestGrip = gripResult.best;
+          // Gear-Total integrated score: 88% Head×Shaft + 12% Grip Causal Match
+          const totalScore = Math.round(Math.min(99, headShaftScore * 0.88 + bestGrip.fit_score * 0.12));
+
+          // Determine Sleeve & Weight strings
+          let sleeveText = head.sleeveSystem.neutral;
+          if (state.season === 'winter' && antiLeftLevel <= 1) {
+            sleeveText = head.sleeveSystem.winter;
+          } else if (antiLeftLevel >= 1 || state.impactChoice === 'low_heel') {
+            sleeveText = head.sleeveSystem.anti_left;
+          } else if (dplane.bias.startsWith('draw')) {
+            sleeveText = head.sleeveSystem.draw;
+          }
+
+          const weightText = head.weightSystem[spinAction] || head.weightSystem.balanced;
+          const _loftSorted = [...head.baseLofts].sort((a, b) => a - b);
+          const chosenLoftVal = _loftSorted.reduce((best, l) => {
+            const d = Math.abs(l - recBaseLoft), bd = Math.abs(best - recBaseLoft);
+            if (d < bd - 1e-9) return l;
+            if (Math.abs(d - bd) < 1e-9) return (antiLeftLevel >= 1 ? Math.min(best, l) : Math.max(best, l));
+            return best;
+          }, _loftSorted[0]);
+          const chosenLoft = `${chosenLoftVal.toFixed(1)}°`; // v2.0: 推奨ロフトに最も近い設定ロフト
+          const playLength = shaft.cb ? +(recLength + 0.15).toFixed(2) : recLength;
+          const gripSpec = `${bestGrip.grip.brand} ${bestGrip.grip.model} (${bestGrip.chosenCore}・${bestGrip.chosenBL}・${bestGrip.wrapMethodName}: 左${bestGrip.addL}巻/右+${bestGrip.addRExtra}巻)`;
+
+          candidates.push({
+            score: totalScore,
+            headShaftScore: Math.round(headShaftScore),
+            gripFitScore: bestGrip.fit_score,
+            head,
+            shaft,
+            chosenLoft,
+            playLength,
+            sleeveText,
+            weightText,
+            gripSpec,
+            gripBest: bestGrip,
+            gripExcludedNg: gripResult.excluded_ng_patterns
+          });
+        }
+      }
+
+      // Sort descending and pick diverse Top 10 (avoiding 5 identical shafts on the same head)
+      candidates.sort((a, b) => b.score - a.score);
+      const top10 = [];
+      const usedShafts = new Set();
+      const headCounts = {};
+
+      for (const item of candidates) {
+        if (top10.length >= 10) break;
+        const hCount = headCounts[item.head.id] || 0;
+        if (usedShafts.has(item.shaft.id) || hCount >= 3) continue;
+        usedShafts.add(item.shaft.id);
+        headCounts[item.head.id] = hCount + 1;
+        top10.push(item);
+      }
+
+      renderSummary({
+        effectiveHs,
+        trueBs,
+        trueSf,
+        trueCarry,
+        trueRoll,
+        idealDriverTotalWeight,
+        idealShaftWeight,
+        targetCpm,
+        maxTorque,
+        dnaTempo,
+        dnaToeDown,
+        dnaKick,
+        dplane,
+        optLaunch,
+        optSpin,
+        spinDiagnosis,
+        need10kMoi,
+        topGrip: top10[0] ? top10[0].gripBest : null
+      });
+
+      renderTop10(top10, { dplane, spinDiagnosis, idealShaftWeight, effectiveHs });
+      renderSensitivity(top10[0], { antiLeftLevel, need10kMoi, spinAction, effectiveHs });
+    }
+
+    // =========================================================================
+    // 4. UI RENDERING FUNCTIONS
+    // =========================================================================
+    function renderSummary(data) {
+      const container = document.getElementById('physics-summary-cards');
+      const impactNames = {
+        low_heel: 'ロー・ヒール (下・根元)',
+        high_heel: 'ハイ・ヒール (上・根元)',
+        center: 'センター (芯)',
+        high_toe: 'ハイ・トゥ (上・先)',
+        low_toe: 'ロー・トゥ (下・先)'
+      };
+
+      container.innerHTML = `
+        <div class="p-4 rounded-xl bg-slate-900/95 border border-slate-800 space-y-1.5">
+          <div class="text-[11px] font-bold text-cyan-400 uppercase">Stage 1: 総重量フロー ＆ 固有振動数</div>
+          <div class="text-lg font-extrabold text-white">目標総重量 ${data.idealDriverTotalWeight}g <span class="text-xs font-normal text-slate-400">(シャフト ${data.idealShaftWeight}g前後)</span></div>
+          <div class="text-xs text-slate-300">適正振動数: <strong class="text-emerald-300">${data.targetCpm} cpm</strong> ／ 許容トルク上限: <strong class="text-emerald-300">${data.maxTorque}°</strong></div>
+          <div class="text-[11px] text-slate-400">仮想スイングDNA: Tempo[${data.dnaTempo}] / ToeDown[${data.dnaToeDown}] / Kick[${data.dnaKick}]</div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/95 border border-slate-800 space-y-1.5">
+          <div class="text-[11px] font-bold text-emerald-400 uppercase">Stage 2: 9弾道D-Plane逆算ベクトル</div>
+          <div class="text-sm font-extrabold text-white">${data.dplane.launchDir}</div>
+          <div class="text-xs text-slate-300">Face: <strong class="text-rose-300">${data.dplane.face > 0 ? '+' : ''}${data.dplane.face}°</strong> ／ Path: <strong class="text-cyan-300">${data.dplane.path > 0 ? '+' : ''}${data.dplane.path}°</strong></div>
+          <div class="text-[11px] text-slate-400">Face to Path: ${data.dplane.f2p}° (${data.dplane.f2p < 0 ? 'フック傾斜軸' : (data.dplane.f2p > 0 ? 'スライス傾斜軸' : '直進軸')})</div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/95 border border-slate-800 space-y-1.5">
+          <div class="text-[11px] font-bold text-purple-400 uppercase">Stage 2: 3Dギア効果 ＆ 10K MOI判定</div>
+          <div class="text-sm font-extrabold text-white">打点: ${impactNames[state.impactChoice]}</div>
+          <div class="text-xs text-slate-300">${state.impactChoice === 'low_heel' ? '遠心力トゥダウン＋縦ギア効果スピン増を補正' : (state.impactChoice === 'high_toe' ? '縦ギア効果スピン減＋強ドロー回転を補正' : 'オフセンター回転モーメントを最小化')}</div>
+          <div class="text-[11px] text-slate-400">10K MOI要求度: <strong class="${data.need10kMoi ? 'text-amber-300' : 'text-slate-300'}">${data.need10kMoi ? '高 (10,000g・cm²級優先)' : '標準 (操作性・初速両立)'}</strong></div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/95 border border-slate-800 space-y-1.5">
+          <div class="text-[11px] font-bold text-amber-400 uppercase">Stage 3: 黄金ウィンドウ ＆ 弾道効率</div>
+          <div class="text-sm font-extrabold text-white">${data.spinDiagnosis}</div>
+          <div class="text-xs text-slate-300">黄金目標: 打出 <strong class="text-amber-300">${data.optLaunch}°</strong> ／ スピン <strong class="text-amber-300">${data.optSpin} rpm</strong></div>
+          <div class="text-[11px] text-slate-400">実効HS ${data.effectiveHs.toFixed(1)}m/s ｜ 推定キャリー ${data.trueCarry}y (ラン ${data.trueRoll}y)</div>
+          ${data.topGrip ? `<div class="text-[11px] text-emerald-300">グリップ連動 [${data.topGrip.firedRules.slice(0,4).join('/')}]: 右手計${data.topGrip.totalRightEq}巻相当・${data.topGrip.wrapMethodName}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function renderTop10(list, ctx) {
+      const seasonLabels = {
+        all: '通年・春秋ベスト',
+        summer: '夏場モード (高温・左ミス遮断)',
+        winter: '冬場モード (低温・厚着キャリー補正)'
+      };
+      document.getElementById('ranking-title').textContent = `2026年11月最新：最適ドライバーセッティング ベスト10 【${seasonLabels[state.season]}】`;
+
+      const container = document.getElementById('top10-container');
+      container.innerHTML = list.map((item, idx) => {
+        const rank = idx + 1;
+        const isTop3 = rank <= 3;
+        const badgeClass = rank === 1
+          ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950'
+          : (isTop3 ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-200 border border-slate-700');
+
+        return `
+          <article class="glass-card rounded-2xl p-4 sm:p-5 border ${rank === 1 ? 'border-amber-400/60 shadow-lg shadow-amber-500/10' : (isTop3 ? 'border-emerald-500/40' : 'border-slate-800')}">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/90 pb-3 mb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="px-3 py-1 rounded-lg font-extrabold text-sm ${badgeClass}">第${rank}位</span>
+                <span class="text-xs px-2.5 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-700 font-semibold">${seasonLabels[state.season]}</span>
+                <h3 class="text-base sm:text-lg font-extrabold text-white">${item.head.brand} ${item.head.model} <span class="text-emerald-400">×</span> ${item.shaft.brand} ${item.shaft.model} (${item.shaft.flex}) <span class="text-amber-300">×</span> ${item.gripBest.grip.brand} ${item.gripBest.grip.model}</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400">ギア総合スコア</span>
+                <span class="text-xl font-extrabold text-emerald-400">${item.score}<span class="text-xs text-slate-400 font-normal">/100点</span></span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 text-xs">
+              <div class="md:col-span-4 space-y-1.5 bg-slate-900/80 p-3 rounded-xl border border-slate-800/80">
+                <div class="text-slate-400 font-semibold">■ ヘッド ＆ シャフト仕様</div>
+                <div><span class="text-slate-400">ヘッド:</span> <strong class="text-white">${item.head.brand} ${item.head.model} (${item.chosenLoft})</strong></div>
+                <div><span class="text-slate-400">シャフト:</span> <strong class="text-emerald-300">${item.shaft.model} [${item.shaft.flex}]</strong> (${item.shaft.weight}g / トルク ${item.shaft.torque}° / ${item.shaft.kick})</div>
+                <div><span class="text-slate-400">推奨クラブ長:</span> <strong class="text-white">${item.playLength} inch</strong> (60度法)</div>
+                <div><span class="text-slate-400">参考スリクソンIFC:</span> <code class="px-1.5 py-0.5 rounded bg-slate-950 text-cyan-300 font-bold border border-slate-700">${item.shaft.ifc}</code></div>
+                <div class="text-[11px] text-slate-400">内訳: ヘッド×シャフト ${item.headShaftScore}点 ／ グリップ適合 ${item.gripFitScore}点</div>
+              </div>
+
+              <div class="md:col-span-4 space-y-1.5 bg-slate-900/80 p-3 rounded-xl border border-slate-800/80">
+                <div class="text-slate-400 font-semibold">■ スリーブ・ウェイト・最適グリップ処方</div>
+                <div><span class="text-slate-400">スリーブ設定:</span> <strong class="text-amber-300">${item.sleeveText}</strong></div>
+                <div><span class="text-slate-400">ウェイト配分:</span> <span class="text-slate-200">${item.weightText}</span></div>
+                <div class="grip-box">
+                  <div><span class="text-slate-400">最適グリップ:</span> <strong class="text-white">${item.gripBest.grip.brand} ${item.gripBest.grip.model}</strong> (${item.gripBest.chosenCore} / ${item.gripBest.chosenBL} / ${item.gripBest.grip.weightLabel})</div>
+                  <div><span class="text-slate-400">工房オーダー:</span> <strong class="text-emerald-300">${item.gripBest.wrapMethodName}</strong>（${item.gripBest.shopInstruction}）</div>
+                  <div><span class="text-slate-400">外径・SW補正:</span> 右手計${item.gripBest.totalRightEq}巻相当 (+${item.gripBest.deltaDmm}mm) ／ <strong class="text-amber-300">ΔSW ${item.gripBest.deltaSwText}</strong></div>
+                  <div class="grip-rules">
+                    ${item.gripBest.firedRules.map(r => `<span class="rule-tag">${r}</span>`).join('')}
+                    ${item.gripExcludedNg.slice(0,2).map(ng => `<span class="ng-tag">NG除外:${ng.pattern}</span>`).join('')}
+                  </div>
+                </div>
+              </div>
+
+              <div class="md:col-span-4 space-y-1.5 bg-slate-900/80 p-3 rounded-xl border border-slate-800/80">
+                <div class="text-slate-400 font-semibold">■ ギアトータル物理・因果選定根拠</div>
+                <p class="text-slate-200 leading-relaxed">
+                  <strong>【ヘッド×シャフト】</strong>${item.head.desc} ${item.shaft.note}
+                </p>
+                <div class="causal-box text-slate-200">
+                  <strong>【グリップ因果トレース】</strong>${item.gripBest.causalExplanation}
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderSensitivity(topPick, ctx) {
+      if (!topPick) return;
+      let priorityText = '① スリーブ(フェース角・ライ角) ＞ ② 先端剛性(トルク) ＞ ③ 総重量 ＞ ④ ロフト角';
+      if (ctx.need10kMoi) {
+        priorityText = '① ヘッド慣性モーメント(10K MOI) ＞ ② クラブ長(短尺ミート率) ＞ ③ シャフト重量 ＞ ④ ロフト角';
+      } else if (ctx.spinAction === 'high_launch') {
+        priorityText = '① ロフト角＆深重心ウェイト ＞ ② シャフト先中しなり ＞ ③ 総重量フロー';
+      }
+      document.getElementById('priority-param-badge').textContent = `最優先感度パラメータ順: ${priorityText}`;
+
+      // v2.0: 以下の数値はすべて第1位の実際のセッティングから計算する（仕様書 §終段の感度係数を使用）
+      const w = topPick.shaft.weight;
+      const lightW = Math.max(30, Math.round(w - 10));
+      const heavyW = Math.round(w + 10);
+      const carryLight = (0.6 * 5.5).toFixed(1);   // HS +0.6m/s ≒ キャリー +3.3yd
+      const carryHeavy = (-0.5 * 5.5).toFixed(1);  // HS -0.5m/s ≒ キャリー -2.8yd
+      const loftVal = parseFloat(topPick.chosenLoft);
+      const loftDown = (loftVal - 1).toFixed(1);
+      const loftUp = (loftVal + 1).toFixed(1);
+      const kickNow = topPick.shaft.kick;
+      const kickAlt = kickNow.includes('元') ? '中元調子（Diamana PD / TOUR AD VF / VENTUS TR BLUE）'
+        : (kickNow.includes('先') ? '中調子（TOUR AD GC / SPEEDER NX VIOLET）' : '元調子（VENTUS BLACK / Diamana WB）');
+
+      const container = document.getElementById('sensitivity-container');
+      container.innerHTML = `
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
+          <div class="font-bold text-cyan-300 text-sm">Test A：シャフト重量のみ ±10g 変えた場合</div>
+          <p class="text-slate-300"><strong class="text-white">・-10g 軽量化（${w}g → ${lightW}g帯へ）：</strong> HSは +0.6m/s、キャリーは約 +${carryLight}yd 伸びる一方、切り返しで手元が浮きやすくなりローヒール・トゥへの打点分散が約 +12% 増加（冬場の厚着時のみ有効）。</p>
+          <p class="text-slate-300"><strong class="text-white">・+10g 重量化（${w}g → ${heavyW}g帯へ）：</strong> HSは -0.5m/s、キャリーは約 ${carryHeavy}yd 縮むが、スイングプレーンが安定しサイドスピン分散が -18% 縮小。後半ハーフの疲労には注意。</p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
+          <div class="font-bold text-emerald-300 text-sm">Test B：スリーブでロフトのみ ±1.0° 変えた場合（現在 ${topPick.chosenLoft}）</div>
+          <p class="text-slate-300"><strong class="text-white">・-1.0° 立てる（${loftDown}°・オープンフェース +1.5°）：</strong> 打ち出し角 -0.8°・バックスピン -250rpm。左打ち出し角が約1.3°右へ補正され、左OB確率が大幅減少。</p>
+          <p class="text-slate-300"><strong class="text-white">・+1.0° 寝かせる（${loftUp}°・クローズフェース -1.5°）：</strong> 打ち出し角 +0.8°・スピン +250rpm。冬場のドロップ防止には有効だが、夏場は左へのフック幅が +10yd 増加。</p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
+          <div class="font-bold text-amber-300 text-sm">Test C：キックポイント（調子）のみ変えた場合（現在 ${kickNow}）</div>
+          <p class="text-slate-300"><strong class="text-white">・${kickNow} → ${kickAlt.split('（')[0]}：</strong> 切り返しの「間」が変化。ベタ足・強振時に手元が硬すぎると感じたら ${kickAlt} へ変えるとミート率が +0.02 改善する傾向。</p>
+          <p class="text-slate-300"><strong class="text-white">・カウンターバランス化（TENSEI Pro Orange 1K等）：</strong> ヘッドのトゥダウン量 δ_toe が約 18% 減少し、ローヒール打点がセンターへ約 4mm 移動。</p>
+        </div>
+      `;
+    }
+    // =========================================================================
+    // 5. INTERACTIVE EVENT LISTENERS & PRESETS
+    // =========================================================================
+    function updateHeightUI(choice) {
+      state.heightChoice = choice;
+      document.querySelectorAll('#height-cards [data-height]').forEach(el => {
+        el.classList.toggle('active', el.dataset.height === choice);
+      });
+    }
+
+    function updateFlightUI(flightNum) {
+      state.flightChoice = flightNum;
+      document.querySelectorAll('#flight-cards [data-flight]').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.flight, 10) === flightNum);
+      });
+      document.querySelectorAll('.flight-path').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.flight, 10) === flightNum);
+      });
+      const info = DPLANE_MAP[flightNum];
+      document.getElementById('dplane-readout').innerHTML = `
+        <span class="font-semibold text-emerald-300">自動逆算出球: ${info.launchDir}</span>
+        <span class="text-slate-300">推定フェース角: ${info.face > 0 ? '+' : ''}${info.face}° ／ 推定軌道: ${info.path > 0 ? '+' : ''}${info.path}° (Face to Path: ${info.f2p}°)</span>
+      `;
+    }
+
+    function updateImpactUI(zone) {
+      state.impactChoice = zone;
+      document.querySelectorAll('.face-zone').forEach(el => {
+        el.classList.toggle('active', el.dataset.impact === zone);
+      });
+      document.querySelectorAll('#impact-buttons [data-impact]').forEach(el => {
+        el.classList.toggle('active', el.dataset.impact === zone);
+      });
+    }
+
+    function updateSeasonUI(season) {
+      state.season = season;
+      document.querySelectorAll('.season-tab').forEach(btn => {
+        const isActive = btn.dataset.season === season;
+        btn.className = isActive
+          ? 'season-tab active px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 shadow transition'
+          : 'season-tab px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition';
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // Height cards
+      document.querySelectorAll('#height-cards [data-height]').forEach(el => {
+        el.addEventListener('click', () => {
+          updateHeightUI(el.dataset.height);
+          runPhysicsEngine();
+        });
+      });
+
+      // Flight cards & SVG paths
+      document.querySelectorAll('#flight-cards [data-flight], .flight-path').forEach(el => {
+        el.addEventListener('click', () => {
+          updateFlightUI(parseInt(el.dataset.flight, 10));
+          runPhysicsEngine();
+        });
+      });
+
+      // Face impact zones & buttons
+      document.querySelectorAll('.face-zone, #impact-buttons [data-impact]').forEach(el => {
+        el.addEventListener('click', () => {
+          updateImpactUI(el.dataset.impact);
+          runPhysicsEngine();
+        });
+      });
+
+      // Season tabs
+      document.querySelectorAll('.season-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          updateSeasonUI(btn.dataset.season);
+          runPhysicsEngine();
+        });
+      });
+
+      // 7I distance to HS calculator
+      document.getElementById('btn-calc-hs').addEventListener('click', () => {
+        const dist7i = parseFloat(document.getElementById('inp-7i-dist').value);
+        if (!isNaN(dist7i) && dist7i >= 70 && dist7i <= 220) {
+          const estHs = +(dist7i / 3.65).toFixed(1);
+          document.getElementById('inp-hs').value = estHs;
+          runPhysicsEngine();
+        }
+      });
+
+      // Form inputs live update
+      ['inp-gender', 'inp-age', 'inp-height', 'inp-weight', 'inp-sport', 'inp-tempo', 'inp-iron', 'inp-glove', 'inp-sweat', 'inp-cord-ok', 'inp-choke', 'inp-hs', 'inp-bs', 'inp-Carry', 'inp-Total', 'inp-fw', 'inp-ob'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('change', runPhysicsEngine);
+          el.addEventListener('input', runPhysicsEngine);
+        }
+      });
+
+      document.getElementById('btn-run-fitting').addEventListener('click', runPhysicsEngine);
+
+      // Presets
+      document.getElementById('preset-hard').addEventListener('click', () => {
+        document.getElementById('inp-gender').value = 'male';
+        document.getElementById('inp-age').value = '50';
+        document.getElementById('inp-height').value = '172';
+        document.getElementById('inp-weight').value = '68';
+        document.getElementById('inp-sport').value = 'baseball';
+        document.getElementById('inp-tempo').value = 'fast';
+        document.getElementById('inp-iron').value = 'mid_steel';
+        document.getElementById('inp-glove').value = '23';
+        document.getElementById('inp-sweat').value = 'thick_right';
+        document.getElementById('inp-cord-ok').value = 'ok';
+        document.getElementById('inp-choke').value = 'none';
+        document.getElementById('inp-hs').value = '47.0';
+        document.getElementById('inp-bs').value = '68.5';
+        document.getElementById('inp-Carry').value = '258';
+        document.getElementById('inp-Total').value = '276';
+        document.getElementById('inp-fw').value = '6';
+        document.getElementById('inp-ob').value = '1.8';
+        updateHeightUI('midlow');
+        updateFlightUI(1);
+        updateImpactUI('low_heel');
+        runPhysicsEngine();
+      });
+
+      document.getElementById('preset-avg').addEventListener('click', () => {
+        document.getElementById('inp-gender').value = 'male';
+        document.getElementById('inp-age').value = '40';
+        document.getElementById('inp-height').value = '170';
+        document.getElementById('inp-weight').value = '65';
+        document.getElementById('inp-sport').value = 'golf';
+        document.getElementById('inp-tempo').value = 'standard';
+        document.getElementById('inp-iron').value = 'light_steel';
+        document.getElementById('inp-glove').value = '23';
+        document.getElementById('inp-sweat').value = 'rubber';
+        document.getElementById('inp-cord-ok').value = 'ng';
+        document.getElementById('inp-choke').value = 'none';
+        document.getElementById('inp-hs').value = '40.5';
+        document.getElementById('inp-bs').value = '57.5';
+        document.getElementById('inp-Carry').value = '202';
+        document.getElementById('inp-Total').value = '214';
+        document.getElementById('inp-fw').value = '5';
+        document.getElementById('inp-ob').value = '2.5';
+        updateHeightUI('balloon');
+        updateFlightUI(9);
+        updateImpactUI('high_heel');
+        runPhysicsEngine();
+      });
+
+      document.getElementById('preset-light').addEventListener('click', () => {
+        document.getElementById('inp-gender').value = 'female';
+        document.getElementById('inp-age').value = '60';
+        document.getElementById('inp-height').value = '158';
+        document.getElementById('inp-weight').value = '52';
+        document.getElementById('inp-sport').value = 'swim';
+        document.getElementById('inp-tempo').value = 'smooth';
+        document.getElementById('inp-iron').value = 'ultralight_carbon';
+        document.getElementById('inp-glove').value = '20';
+        document.getElementById('inp-sweat').value = 'rubber';
+        document.getElementById('inp-cord-ok').value = 'ng';
+        document.getElementById('inp-choke').value = 'high';
+        document.getElementById('inp-hs').value = '35.0';
+        document.getElementById('inp-bs').value = '51.0';
+        document.getElementById('inp-Carry').value = '165';
+        document.getElementById('inp-Total').value = '192';
+        document.getElementById('inp-fw').value = '9';
+        document.getElementById('inp-ob').value = '0.5';
+        updateHeightUI('low');
+        updateFlightUI(6);
+        updateImpactUI('low_toe');
+        runPhysicsEngine();
+      });
+
+      // Initial calculation on load
+      runPhysicsEngine();
+    });
+  
+</script>
+
+<script>
+/* ================= FIT LAB v3.0 UI ================= */
+(function(){
+'use strict';
+var STEP_NAMES = {1:'あなたについて', 2:'球の高さと飛距離', 3:'球筋と打点', 4:'診断結果'};
+
+function showStep(n){
+document.querySelectorAll('.wiz').forEach(function(s){ s.classList.toggle('on', +s.dataset.step === n);});
+document.querySelectorAll('.progress-bar i').forEach(function(b){
+var k = +b.dataset.bar;
+b.className = k < n? 'on': (k === n? 'now': '');
+});
+document.getElementById('progress-text').textContent = 'ステップ ' + n + ' / 4 — ' + STEP_NAMES[n];
+document.querySelectorAll('.progress-steps span').forEach(function(sp){ sp.classList.toggle('cur', +sp.dataset.ps === n);});
+var sec = document.querySelector('.wiz[data-step="' + n + '"]');
+if (sec && sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth', block:'start'});
+else window.scrollTo({top: document.getElementById('progress').offsetTop - 8, behavior:'smooth'});
+if (n === 4) { try { runPhysicsEngine();} catch(e){ console.error(e);}}
+}
+document.querySelectorAll('[data-next]').forEach(function(b){
+b.addEventListener('click', function(){ showStep(+b.dataset.next);});
+});
+document.querySelectorAll('[data-back]').forEach(function(b){
+b.addEventListener('click', function(){ showStep(+b.dataset.back);});
+});
+document.getElementById('btn-to-results').addEventListener('click', function(){ showStep(4);});
+
+/* presets also jump to results */
+['preset-hard','preset-avg','preset-light'].forEach(function(id){
+var el = document.getElementById(id);
+if (el) el.addEventListener('click', function(){ setTimeout(function(){ showStep(4);}, 60);});
+});
+
+/* ---- "わからない" checkboxes ---- */
+function wireUnknown(chkId, inputIds, defaults){
+var chk = document.getElementById(chkId);
+if (!chk) return;
+chk.addEventListener('change', function(){
+inputIds.forEach(function(id, i){
+var el = document.getElementById(id);
+if (!el) return;
+el.disabled = chk.checked;
+if (chk.checked) { el.dataset.prev = el.value; el.value = '';}
+else if (el.dataset.prev!== undefined) { el.value = el.dataset.prev;}
+});
+try { runPhysicsEngine();} catch(e){}
+});
+}
+wireUnknown('unk-hs', ['inp-hs']);
+wireUnknown('unk-bs', ['inp-bs']);
+wireUnknown('unk-carry', ['inp-Carry']);
+wireUnknown('unk-total', ['inp-Total']);
+wireUnknown('unk-fw', ['inp-fw']);
+wireUnknown('unk-ob', ['inp-ob']);
+
+/* keyboard access for visual cards */
+[['height-cards','[data-height]'],['flight-cards','[data-flight]'],['impact-buttons','[data-impact]']].forEach(function(pair){
+var box = document.getElementById(pair[0]);
+if (!box) return;
+box.querySelectorAll(pair[1]).forEach(function(el){
+el.setAttribute('tabindex','0');
+el.addEventListener('keydown', function(e){
+if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click();}
+});
+});
+});
+
+/* ---- v2.3: segmented controls drive the hidden native selects ---- */
+function wireSegment(groupId, selectId){
+var group = document.getElementById(groupId);
+var sel = document.getElementById(selectId);
+if (!group || !sel) return;
+function sync(){
+group.querySelectorAll('[data-value]').forEach(function(b){
+var on = b.dataset.value === sel.value;
+b.classList.toggle('active', on);
+b.setAttribute('aria-pressed', on ? 'true' : 'false');
+});
+}
+group.querySelectorAll('[data-value]').forEach(function(b){
+b.addEventListener('click', function(){
+sel.value = b.dataset.value;
+sync();
+try { runPhysicsEngine(); } catch(e){}
+});
+});
+sync();
+}
+wireSegment('seg-gender','inp-gender');
+wireSegment('seg-age','inp-age');
+wireSegment('seg-tempo','inp-tempo');
+wireSegment('seg-sport','inp-sport');
+wireSegment('seg-iron','inp-iron');
+wireSegment('seg-sweat','inp-sweat');
+wireSegment('seg-cord-ok','inp-cord-ok');
+wireSegment('seg-choke','inp-choke');
+['preset-hard','preset-avg','preset-light'].forEach(function(pid){
+  var pbtn = document.getElementById(pid);
+  if (pbtn) pbtn.addEventListener('click', function(){
+    setTimeout(function(){
+      [['seg-gender','inp-gender'],['seg-age','inp-age'],['seg-tempo','inp-tempo'],['seg-sport','inp-sport'],['seg-iron','inp-iron'],['seg-sweat','inp-sweat'],['seg-cord-ok','inp-cord-ok'],['seg-choke','inp-choke']].forEach(function(pair){
+        var g = document.getElementById(pair[0]), s = document.getElementById(pair[1]);
+        if (!g || !s) return;
+        g.querySelectorAll('[data-value]').forEach(function(b){
+          var on = b.dataset.value === s.value;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      });
+    }, 20);
+  });
+});
+/* ---- v3.0: Free Open-Meteo API for auto season & wet/sweat detection ---- */
+var weatherBtn = document.getElementById('btn-auto-weather');
+if (weatherBtn) {
+  weatherBtn.addEventListener('click', function(){
+    var st = document.getElementById('weather-api-status');
+    if (st) st.textContent = '気象データを取得中…（Open-Meteo API）';
+    function fetchWeather(lat, lon, locLabel){
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,relative_humidity_2m,precipitation&timezone=Asia%2FTokyo')
+        .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+        .then(function(j){
+          var cur = j && j.current;
+          if (!cur) throw new Error('no current data');
+          var temp = Number(cur.temperature_2m);
+          var hum = Number(cur.relative_humidity_2m);
+          var prec = Number(cur.precipitation || 0);
+          var nextSeason = temp >= 26 ? 'summer' : (temp <= 12 ? 'winter' : 'all');
+          state.weatherWetFlag = (hum >= 75 || prec > 0);
+          updateSeasonUI(nextSeason);
+          runPhysicsEngine();
+          if (st) st.textContent = locLabel + ' 現在 ' + temp.toFixed(1) + '℃ / 湿度 ' + Math.round(hum) + '% → ' + (nextSeason==='summer'?'夏場':(nextSeason==='winter'?'冬場':'通年')) + 'モード' + (state.weatherWetFlag ? '＋高耐水グリップ重視を自動反映' : 'を自動反映');
+        })
+        .catch(function(){
+          if (st) st.textContent = 'オフラインまたは通信不可のため取得できませんでした。上の季節ボタンで手動切替できます。';
+        });
+    }
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function(pos){ fetchWeather(pos.coords.latitude.toFixed(4), pos.coords.longitude.toFixed(4), '現在地'); },
+        function(){ fetchWeather('35.8617', '139.6455', 'さいたま(標準地点)'); },
+        { timeout: 4000 }
+      );
+    } else {
+      fetchWeather('35.8617', '139.6455', 'さいたま(標準地点)');
+    }
+  });
+}
+
+/* ---- v2.3: keep the last summary so the #1 card can draw its trajectory ---- */
+var _renderSummary = renderSummary;
+renderSummary = function(data){ window.__fitSummary = data; _renderSummary(data); };
+
+/* ---- v2.3: result presentation — Top-3 compare, score dials, #1 trajectory arc ---- */
+function enhanceTop10(list){
+var box = document.getElementById('top10-container');
+if (!box || !list || !list.length) return;
+var old = document.getElementById('top3-compare');
+if (old) old.remove();
+var cmp = document.createElement('div');
+cmp.id = 'top3-compare';
+cmp.className = 'top3-compare';
+var rows = list.slice(0,3).map(function(it, i){
+return '<div class="top3-row"><div class="r">' + (i+1) + '</div><div class="m">' + it.head.brand + ' ' + it.head.model + ' ' + it.chosenLoft + '<small>' + it.shaft.brand + ' ' + it.shaft.model + ' [' + it.shaft.flex + '] ' + it.shaft.weight + 'g ／ ' + it.gripBest.grip.brand + ' ' + it.gripBest.grip.model + '（左' + it.gripBest.addL + '・右+' + it.gripBest.addRExtra + '）</small></div><div class="s">' + it.score + '<span style="font-size:12px">/100</span></div></div>';
+}).join('');
+cmp.innerHTML = '<h3>Top 3 をひと目で比べる（ヘッド × シャフト × グリップ）</h3><p>ベスト1〜3のトータル組み合わせです。ヘッド×シャフト5要素（88%）＋グリップ因果適合（12%）で総合採点しています。</p>' + rows;
+cmp.style.display = proUnlocked() ? '' : 'none';
+box.insertBefore(cmp, box.firstChild);
+var cards = box.querySelectorAll('article');
+var sum = window.__fitSummary || null;
+cards.forEach(function(card, idx){
+card.style.animationDelay = (idx * 70) + 'ms';
+var scoreEls = card.querySelectorAll('.flex.items-center.gap-2');
+var scoreEl = scoreEls.length ? scoreEls[scoreEls.length - 1] : null;
+if (scoreEl && !scoreEl.querySelector('.score-dial')) {
+var sc = list[idx] ? list[idx].score : 0;
+var C = 163.36, off = (C * (1 - sc / 100)).toFixed(1);
+scoreEl.innerHTML = '<div class="score-dial"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--line)" stroke-width="6"/><circle cx="32" cy="32" r="26" fill="none" stroke="' + (idx < 4 ? '#B9975B' : '#0B352A') + '" stroke-width="6" stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off + '" transform="rotate(-90 32 32)"/></svg><span><span class="rank-chip">第' + (idx+1) + '位</span><br><span class="dial-num">' + sc + '</span><span class="dial-of">/100点</span><br><span style="font-size:12px;color:var(--muted)">物理適合スコア</span></span></div>';
+}
+});
+if (sum && cards[0] && !cards[0].querySelector('.traj')) {
+var launch = Math.round(sum.optLaunch);
+var peak = Math.max(18, Math.min(72, launch * 4.4));
+var arc = document.createElement('div');
+arc.className = 'traj';
+arc.id = 'top1-traj';
+arc.innerHTML = '<h4>この組み合わせの弾道イメージ</h4>' +
+'<svg viewBox="0 0 340 130" style="width:100%;height:auto;display:block" role="img" aria-label="理想の打ち出し角の弾道イメージ"><line x1="10" y1="112" x2="330" y2="112" stroke="rgba(246,241,231,.5)" stroke-width="2"/><circle cx="16" cy="112" r="4" fill="#B9975B"/><path d="M 16 112 Q 170 ' + (112 - 2 * peak) + ' 324 112" fill="none" stroke="#E9CE8E" stroke-width="3"/><text x="170" y="' + Math.max(14, 112 - 2 * peak - 8) + '" text-anchor="middle" fill="#F6F1E7" font-size="13" font-weight="bold">打ち出し ' + launch + '°</text><text x="330" y="126" text-anchor="end" fill="#B9CDBF" font-size="11">キャリー ' + sum.trueCarry + 'y</text></svg>' +
+'<p>理想ウィンドウは打ち出し ' + sum.optLaunch + '°・スピン ' + sum.optSpin + 'rpm。いまの球の高さと飛距離から、この組み合わせが最も近い弾道になります。</p>';
+cards[0].appendChild(arc);
+}
+}
+
+/* ---- v2.6: SHA-256（パスワード照合用。パスワード文字列そのものはコードに置かない） ---- */
+function sha256hex(ascii){
+function rr(v,a){return (v>>>a)|(v<<(32-a));}
+var maxWord=Math.pow(2,32), result='';
+var words=[], asciiBitLength=ascii.length*8;
+var hash=sha256hex.h=sha256hex.h||[], k=sha256hex.k=sha256hex.k||[];
+var primeCounter=k.length, isComposite={};
+for(var candidate=2;primeCounter<64;candidate++){
+if(!isComposite[candidate]){
+for(var i=0;i<313;i+=candidate){isComposite[i]=candidate;}
+hash[primeCounter]=(Math.pow(candidate,.5)*maxWord)|0;
+k[primeCounter++]=(Math.pow(candidate,1/3)*maxWord)|0;
+}}
+ascii+='\x80';
+while(ascii.length%64-56)ascii+='\x00';
+for(var i=0;i<ascii.length;i++){
+var j=ascii.charCodeAt(i);
+if(j>>8)return '';
+words[i>>2]|=j<<((3-i)%4)*8;
+}
+words[words.length]=((asciiBitLength/maxWord)|0);
+words[words.length]=(asciiBitLength);
+for(var j=0;j<words.length;){
+var w=words.slice(j,j+=16), oldHash=hash;
+hash=hash.slice(0,8);
+for(var i=0;i<64;i++){
+var w15=w[i-15], w2=w[i-2];
+var a=hash[0], e=hash[4];
+var temp1=hash[7]
++(rr(e,6)^rr(e,11)^rr(e,25))
++((e&hash[5])^((~e)&hash[6]))
++k[i]
++(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+var temp2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+hash=[(temp1+temp2)|0].concat(hash);
+hash[4]=(hash[4]+temp1)|0;
+}
+for(var i=0;i<8;i++){hash[i]=(hash[i]+oldHash[i])|0;}
+}
+for(var i=0;i<8;i++){
+for(var j=3;j+1;j--){
+var b=(hash[i]>>(j*8))&255;
+result+=((b<16)?0:'')+b.toString(16);
+}}
+return result;
+}
+window.__fitlab = { sha256hex: sha256hex };
+/* パスワードはハッシュ値のみで照合する（平文はリポジトリに置かない）。
+   正式パスワード（8桁）に変えるときは、このハッシュ値を差し替えること。
+   window.__pwHashOverride はテスト用フック（運用時は未設定）。 */
+var PRO_PW_HASH = '625fe74cad4600b5e8b76a9283333eb79052ae50d6af7f660feb4831d87af5d2';
+function verifyPassword(pw){
+try { return sha256hex(pw) === (window.__pwHashOverride || PRO_PW_HASH); }
+catch(e){ return false; }
+}
+function openPwModal(){
+var m = document.getElementById('pw-modal');
+if (!m) return;
+m.hidden = false;
+var err = document.getElementById('pw-err'); if (err) err.textContent = '';
+var inp = document.getElementById('pw-input'); if (inp) { inp.value = ''; inp.focus(); }
+}
+function closePwModal(){
+var m = document.getElementById('pw-modal');
+if (m) m.hidden = true;
+}
+document.getElementById('pw-submit').addEventListener('click', function(){
+var inp = document.getElementById('pw-input');
+var pw = inp ? inp.value : '';
+if (verifyPassword(pw)) {
+try { localStorage.setItem('pro_unlocked_v3','1'); } catch(e){}
+closePwModal();
+applyProGate();
+document.getElementById('save-note').textContent = 'パスワードで解除しました。この端末ではベスト1〜4の全文が表示されます（決済は行われていません）。';
+} else {
+var err = document.getElementById('pw-err');
+if (err) err.textContent = 'パスワードが違います。ロック画面のままです。';
+if (inp) { inp.value = ''; inp.focus(); }
+}
+});
+document.getElementById('pw-cancel').addEventListener('click', closePwModal);
+document.getElementById('pw-modal').addEventListener('click', function(e){ if (e.target === this) closePwModal(); });
+document.getElementById('pw-input').addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); document.getElementById('pw-submit').click(); } });
+/* v2.7: PROカードをタップしてもパスワード入力が開く（ロック中のみ） */
+var proCard = document.querySelector('#pro-panel .price-card.pro');
+if (proCard) {
+proCard.setAttribute('role','button');
+proCard.setAttribute('tabindex','0');
+proCard.addEventListener('click', function(){ if (!proUnlocked()) openPwModal(); });
+proCard.addEventListener('keydown', function(e){ if ((e.key === 'Enter' || e.key === ' ') && !proUnlocked()) { e.preventDefault(); openPwModal(); } });
+}
+
+/* ---- Pro gate: wrap the preserved renderTop10 ---- */
+var lastTop10 = null, lastCtx = null;
+var _renderTop10 = renderTop10;
+renderTop10 = function(list, ctx){
+lastTop10 = list; lastCtx = ctx;
+_renderTop10(list, ctx);
+applyProGate();
+enhanceTop10(list);
+renderCatalog();
+};
+function proUnlocked(){ try { return localStorage.getItem('pro_unlocked_v3') === '1';} catch(e){ return false;}}
+function applyProGate(){
+var box = document.getElementById('top10-container');
+if (!box) return;
+var cards = box.querySelectorAll('article,.rank-card,.glass-card');
+var unlocked = proUnlocked();
+cards.forEach(function(card, idx){
+card.classList.remove('rank-card');
+if (idx < 4 &&!unlocked) {
+card.classList.add('rank-card','locked');
+if (!card.querySelector('.lock-overlay')) {
+var ov = document.createElement('div');
+ov.className = 'lock-overlay';
+ov.setAttribute('role','button');
+ov.setAttribute('tabindex','0');
+ov.innerHTML = '<div class="lock-t">第' + (idx+1) + '位は Pro で公開</div><div class="lock-s">ベスト1〜4の全文は Pro（¥480/月・¥3,800/年、準備中）でご覧いただけます。下の「デモ解除で Pro 表示を試す」で表示を試せます。</div>';
+ov.addEventListener('click', function(){ openPwModal(); });
+ov.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPwModal(); } });
+card.appendChild(ov);
+}
+} else {
+card.classList.remove('locked');
+var ov2 = card.querySelector('.lock-overlay');
+if (ov2) ov2.remove();
+}
+if (idx < 4) card.classList.add('rank-card');
+if (idx < 4) card.classList.add('top1');
+});
+var cmp = document.getElementById('top3-compare');
+if (cmp) cmp.style.display = unlocked ? '' : 'none';
+var sens = document.getElementById('sensitivity-container');
+var sensNote = document.getElementById('sens-lock-note');
+if (sens) sens.style.display = unlocked ? '' : 'none';
+if (sensNote) sensNote.hidden = unlocked;
+var panel = document.getElementById('pro-panel');
+if (panel) {
+  panel.classList.toggle('unlocked', unlocked);
+  var note = document.getElementById('pro-unlocked-note');
+  if (note) note.hidden = !unlocked;
+}
+}
+document.getElementById('btn-pro-unlock').addEventListener('click', function(){
+try { localStorage.setItem('pro_unlocked_v3','1');} catch(e){}
+applyProGate();
+document.getElementById('save-note').textContent = 'デモ解除しました。この端末ではベスト1〜4の全文が表示されます（決済は行われていません）。';
+});
+document.getElementById('btn-pro-lock').addEventListener('click', function(){
+try { localStorage.removeItem('pro_unlocked_v3');} catch(e){}
+applyProGate();
+document.getElementById('save-note').textContent = 'デモ解除を取り消しました。ベスト1〜4は再びロックされます。';
+});
+
+/* ---- Save / copy / print ---- */
+function collectInputs(){
+var o = {};
+['inp-gender','inp-age','inp-height','inp-weight','inp-sport','inp-tempo','inp-iron','inp-glove','inp-sweat','inp-cord-ok','inp-choke','inp-hs','inp-bs','inp-Carry','inp-Total','inp-fw','inp-ob'].forEach(function(id){
+var el = document.getElementById(id); if (el) o[id] = el.value;
+});
+o.height = state.heightChoice; o.flight = state.flightChoice; o.impact = state.impactChoice; o.season = state.season;
+return o;
+}
+document.getElementById('btn-save-result').addEventListener('click', function(){
+try {
+localStorage.setItem('fitlab_last_v3', JSON.stringify({ts: new Date().toISOString(), inputs: collectInputs(),
+top1: lastTop10 && lastTop10[0]? {head: lastTop10[0].head.model, shaft: lastTop10[0].shaft.model, flex: lastTop10[0].shaft.flex, grip: lastTop10[0].gripBest.grip.model, wrap: lastTop10[0].gripBest.wrapMethodName, score: lastTop10[0].score, loft: lastTop10[0].chosenLoft}: null}));
+document.getElementById('save-note').textContent = '保存しました。この端末に診断結果を残しています。';
+} catch(e){ document.getElementById('save-note').textContent = '保存できませんでした（ブラウザの保存領域が使えません）。';}
+});
+document.getElementById('btn-copy-result').addEventListener('click', function(){
+var lines = [''];
+if (lastTop10) lastTop10.slice(0,3).forEach(function(it, i){
+lines.push('第' + (i+1) + '位（' + it.score + '点）: ' + it.head.brand + ' ' + it.head.model + ' ' + it.chosenLoft + ' × ' + it.shaft.brand + ' ' + it.shaft.model + ' [' + it.shaft.flex + '] ' + it.shaft.weight + 'g × ' + it.gripBest.grip.brand + ' ' + it.gripBest.grip.model + '（' + it.gripBest.wrapMethodName + ' 左' + it.gripBest.addL + '/右+' + it.gripBest.addRExtra + '・ΔSW ' + it.gripBest.deltaSwText + '）');
+});
+lines.push('※ ベスト1〜4はProで表示。詳細は FIT LAB でご確認ください。');
+var text = lines.join('\n');
+function done(ok){ document.getElementById('save-note').textContent = ok? '結果をコピーしました。': 'コピーできませんでした。';}
+if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(function(){done(true);}, function(){done(false);});}
+else { var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { done(document.execCommand('copy'));} catch(e){ done(false);} ta.remove();}
+});
+document.getElementById('btn-print-result').addEventListener('click', function(){ window.print();});
+
+/* ---- Gear catalogue (generated from the scoring DB) ---- */
+var catRendered = false;
+function renderCatalog(){
+var q = (document.getElementById('cat-q').value || '').toLowerCase();
+var brand = document.getElementById('cat-brand').value;
+var kick = document.getElementById('cat-kick').value;
+document.getElementById('cat-counts').textContent = 'ヘッド' + HEAD_DB.length + 'モデル・シャフト' + SHAFT_DB.length + '本・グリップ' + GRIP_DB.length + 'モデルを収録（診断と同じデータベースから表示）';
+var hb = document.getElementById('cat-heads');
+hb.innerHTML = HEAD_DB.filter(function(h){
+return (!brand || h.brand === brand) && (!q || (h.brand + ' ' + h.model).toLowerCase().indexOf(q) >= 0);
+}).map(function(h){
+return '<tr><td>' + h.brand + '</td><td><b>' + h.model + '</b></td><td>' + h.baseLofts.map(function(l){return l.toFixed(1)+'°';}).join(' / ') + '</td><td>' + h.moiClass.toLocaleString() + ' g·cm²</td><td>' + h.category + '</td></tr>';
+}).join('') || '<tr><td colspan="5">該当するヘッドがありません。</td></tr>';
+var sb = document.getElementById('cat-shafts');
+sb.innerHTML = SHAFT_DB.filter(function(s){
+return (!brand || s.brand === brand) && (!kick || s.kick === kick) && (!q || (s.brand + ' ' + s.model).toLowerCase().indexOf(q) >= 0);
+}).map(function(s){
+return '<tr><td>' + s.brand + '</td><td><b>' + s.model + '</b></td><td>' + s.flex + '</td><td>' + s.weight + 'g</td><td>' + s.kick + '</td><td>' + s.torque + '°</td></tr>';
+}).join('') || '<tr><td colspan="6">該当するシャフトがありません。</td></tr>';
+var gb = document.getElementById('cat-grips');
+if (gb) {
+  gb.innerHTML = GRIP_DB.filter(function(g){
+    return (!brand || g.brand === brand) && (!q || (g.id + ' ' + g.brand + ' ' + g.model + ' ' + g.material).toLowerCase().indexOf(q) >= 0);
+  }).map(function(g){
+    var cordLabel = g.cord === 'FULL' ? 'フル' : (g.cord === 'HALF' ? 'ハーフ' : (g.cord === 'CORD_LIKE' ? 'コード調' : '無'));
+    var blLabel = g.bl === 'ALIGN' ? '有(AL)' : (g.bl === 'NONE_360' ? '無(360)' : (g.bl === 'NONE' ? '無' : '有/無'));
+    return '<tr><td><code>' + g.id + '</code></td><td><b>' + g.brand + ' ' + g.model + '</b></td><td>' + g.weightLabel + '</td><td>' + g.core + '</td><td>' + g.material + '</td><td>' + cordLabel + '</td><td>' + blLabel + '</td><td>' + (g.builtRightWraps ? '+' + g.builtRightWraps : '0') + '</td><td>' + g.water + '/5</td></tr>';
+  }).join('') || '<tr><td colspan="9">該当するグリップがありません。</td></tr>';
+}
+if (!catRendered) {
+catRendered = true;
+var brands = Array.from(new Set(SHAFT_DB.map(function(s){return s.brand;}).concat(HEAD_DB.map(function(h){return h.brand;})).concat(GRIP_DB.map(function(g){return g.brand;})))).sort();
+document.getElementById('cat-brand').innerHTML = '<option value="">すべてのメーカー</option>' + brands.map(function(b){return '<option>'+b+'</option>';}).join('');
+}
+}
+['cat-q','cat-brand','cat-kick'].forEach(function(id){
+document.getElementById(id).addEventListener('input', renderCatalog);
+document.getElementById(id).addEventListener('change', renderCatalog);
+});
+
+/* initial: show saved note if any */
+try {
+var saved = JSON.parse(localStorage.getItem('fitlab_last_v3') || 'null');
+if (saved && saved.ts) document.getElementById('save-note').textContent = '前回の診断（' + saved.ts.slice(0,10) + '）がこの端末に保存されています。';
+} catch(e){}
+})();
+</script>
+</body>
+</html>
