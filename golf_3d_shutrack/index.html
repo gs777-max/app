@@ -124,7 +124,7 @@
       background: #1e2129;
       outline: none;
     }
-    /* Bottom 11-Metric Card Styling */
+    /* Bottom 12-Metric Card Styling */
     .tm-metric-card {
       background: linear-gradient(180deg, #1e2129 0%, #171920 100%);
       border: 1px solid #2b2f3b;
@@ -246,8 +246,7 @@
       #panel-range > div.absolute > div:first-child { flex: 1 1 100%; min-width: 0; overflow-x: auto; scrollbar-width: none; }
       #panel-range > div.absolute > div:first-child::-webkit-scrollbar { display: none; }
       #panel-range > div.absolute > div:first-child .cam-mode-btn,
-      #panel-range > div.absolute > div:first-child #btn-replay-flight,
-      #panel-range > div.absolute > div:first-child #btn-copy-result { flex: none; white-space: nowrap; }
+      #panel-range > div.absolute > div:first-child #btn-replay-flight { flex: none; white-space: nowrap; }
       #panel-range > div.absolute > div:last-child { flex-direction: row; align-items: center; gap: 8px; margin-left: auto; }
       #theme-switcher-group { display: none; }
       #btn-theme-toggle-mobile { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; background: rgba(22,23,26,0.9); border: 1px solid #32353d; color: #fff; font-size: 12px; font-weight: 700; white-space: nowrap; }
@@ -279,6 +278,16 @@
       /* チェックボックス：12pxでタップしにくかったので大きく */
       #left-sidebar input[type="checkbox"] { width: 20px; height: 20px; }
       #range-legend-card input[type="checkbox"] { width: 18px; height: 18px; }
+    }
+    /* ---- 2026-11-22 指標ストリップ：1023px以下は1行の横スクロールに ---- */
+    /* 768px以下では .tm-metric-card の display:flex !important が hidden を上書きして
+       12枚全てが表示され、grid-cols-4＝3段が104pxの枠に収まらず2〜3段目（スピン・
+       キャリーサイド・パス等）が縦スクロール必須になっていた。1023px以下では
+       flexの1行＋横スクロールにし、キャリーを先頭に全指標を横スワイプで見せる。 */
+    @media (max-width: 1023px) {
+      #metric-strip { display: flex; flex-wrap: nowrap; overflow-x: auto; }
+      #metric-strip .tm-metric-card { flex: none; min-width: 118px; min-height: 76px; }
+      #metric-strip #card-carry { order: -1; }
     }
     /* ---- Shot-result hero overlay (TrackMan-style big carry readout) ---- */
     #shot-result-hero { position: absolute; top: 60px; left: 10px; z-index: 10; pointer-events: none; }
@@ -816,7 +825,7 @@
             <button data-cam="side" class="cam-mode-btn px-2 py-0.5 rounded text-[10.5px] font-bold text-gray-200 hover:bg-[#2a2d34]" title="ショートカット: 4">真横(高さ)</button>
             <button id="btn-replay-flight" class="ml-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-emerald-600/85 hover:bg-emerald-500 text-white transition" title="弾道アニメーション再生 (Space)">▶ 再生</button>
             <button id="btn-range-max" class="cam-mode-btn ml-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#6d28d9] text-white transition" title="入力画面を隠して3D弾道を大きく表示 (M)">⛶ 弾道を大きく見る</button>
-            <button id="btn-copy-result" class="ml-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#2a2d34] hover:bg-[#3a3e47] text-gray-100 border border-[#3d424f] transition" title="ショット結果をテキストでコピー (C)">📋 結果をコピー</button>
+            <!-- 結果をコピー：右スタックへ移動（モバイルでカメラ行の横スクロールに埋もれないように） -->
           </div>
 
           <!-- Right Stack: Day/Night Switcher + Collapsible 3D Trajectory Legend Card -->
@@ -826,6 +835,8 @@
               <button id="btn-theme-day" class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#3b9eff] text-white">昼・リアル芝 (画像2)</button>
               <button id="btn-theme-night" class="px-2 py-0.5 rounded text-[10.5px] font-bold text-gray-200 hover:bg-[#2a2d34]">夜・発光Toptracer</button>
             </div>
+
+            <button id="btn-copy-result" class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#2a2d34] hover:bg-[#3a3e47] text-gray-100 border border-[#3d424f] transition" title="ショット結果をテキストでコピー (C)">📋 結果をコピー</button>
 
             <!-- Compact Collapsible Legend Explaining Every Trajectory Line in 3D Viewport -->
             <div id="range-legend-card" class="bg-[#16171a]/88 backdrop-blur border border-[#32353d] rounded-md px-2.5 py-1.5 text-[10.5px] shadow-lg max-w-[260px]">
@@ -910,9 +921,9 @@
     <span>打つ</span>
   </button>
 
-  <!-- ==================== MIDDLE-LOWER: 11-METRIC TRACKMAN DATA STRIP ==================== -->
+  <!-- ==================== MIDDLE-LOWER: 12-METRIC TRACKMAN DATA STRIP ==================== -->
   <section class="h-[88px] sm:h-[94px] shrink-0 bg-[#12141a] border-t border-[#282c37] px-2 py-1.5 z-30">
-    <div class="h-full grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-11 gap-1.5 overflow-x-auto">
+    <div id="metric-strip" class="h-full grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-1.5 overflow-x-auto">
 
       <!-- 1. クラブスピード -->
       <div id="card-chs" data-focus="inp-chs" class="tm-metric-card flex flex-col justify-between px-2 py-1" title="クリックでクラブスピード入力へ移動">
@@ -947,7 +958,18 @@
         </div>
       </div>
 
-      <!-- 4. スピン量 -->
+      <!-- 4. ミート率（スマッシュファクター） -->
+      <div id="card-smash" data-focus="inp-chs" class="tm-metric-card flex flex-col justify-between px-2 py-1" title="クリックでクラブスピード入力へ移動">
+        <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">ミート率 <span class="warn-badge hidden text-rose-400">⚠</span></div>
+        <div id="m-smash" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">1.490</div>
+        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
+          <span></span>
+          <span id="m-smash-ideal" class="text-gray-100 font-bold">理想 1.45〜</span>
+          <span></span>
+        </div>
+      </div>
+
+      <!-- 5. スピン量 -->
       <div id="card-spin" data-focus="inp-imp-y" class="tm-metric-card flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">スピン量 <span class="warn-badge hidden text-rose-400">⚠</span></div>
         <div id="m-spin" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">2775</div>
@@ -958,7 +980,7 @@
         </div>
       </div>
 
-      <!-- 5. キャリー -->
+      <!-- 6. キャリー -->
       <div id="card-carry" data-focus="inp-chs" class="tm-metric-card flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">キャリー</div>
         <div id="m-carry" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">222.2</div>
@@ -969,7 +991,7 @@
         </div>
       </div>
 
-      <!-- 6. キャリーサイド -->
+      <!-- 7. キャリーサイド -->
       <div id="card-side" data-focus="inp-imp-x" class="tm-metric-card flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">キャリーサイド <span class="warn-badge hidden text-rose-400">⚠</span></div>
         <div id="m-side" class="text-2xl xl:text-[25px] leading-none font-extrabold font-num text-white text-center my-auto">0.0<span class="text-base"></span></div>
@@ -980,7 +1002,7 @@
         </div>
       </div>
 
-      <!-- 7. ローポイント -->
+      <!-- 8. ローポイント -->
       <div id="card-lowpt" data-focus="inp-aoa" class="tm-metric-card hidden sm:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">ローポイント</div>
         <div id="m-lowpt" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">1.4B</div>
@@ -991,7 +1013,7 @@
         </div>
       </div>
 
-      <!-- 8. クラブパス -->
+      <!-- 9. クラブパス -->
       <div id="card-path" data-focus="inp-path" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">クラブパス <span class="warn-badge hidden text-rose-400">⚠</span></div>
         <div id="m-path" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">0.0</div>
@@ -1002,7 +1024,7 @@
         </div>
       </div>
 
-      <!-- 9. 着地角 -->
+      <!-- 10. 着地角 -->
       <div id="card-land" data-focus="inp-dyn-loft" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">着地角</div>
         <div id="m-land" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">32.5</div>
@@ -1013,7 +1035,7 @@
         </div>
       </div>
 
-      <!-- 10. 左右打出角 -->
+      <!-- 11. 左右打出角 -->
       <div id="card-hla" data-focus="inp-face" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">左右打出角 <span class="warn-badge hidden text-rose-400">⚠</span></div>
         <div id="m-hla" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">0.0</div>
@@ -1024,7 +1046,7 @@
         </div>
       </div>
 
-      <!-- 11. 打出角 -->
+      <!-- 12. 打出角 -->
       <div id="card-vla" data-focus="inp-dyn-loft" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">打出角</div>
         <div id="m-vla" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">10.8</div>
@@ -2721,10 +2743,13 @@
       document.getElementById('lbl-ftp-tag').textContent = ftpTag;
       drawFaceDial();
 
-      // Update Bottom 11-Metric Strip
+      // Update Bottom 12-Metric Strip
       document.getElementById('m-chs').textContent = shot.chs.toFixed(1);
       document.getElementById('m-aoa').textContent = shot.aoa.toFixed(1);
       document.getElementById('m-bs').textContent = shot.ballSpeed.toFixed(1);
+      document.getElementById('m-smash').textContent = shot.smashFactor.toFixed(3);
+      const smashIdealEl = document.getElementById('m-smash-ideal');
+      if (smashIdealEl) smashIdealEl.textContent = `理想 ${(IDEAL_RANGES[state.club]?.smashMin ?? 1.45).toFixed(2)}〜`;
       document.getElementById('m-spin').textContent = shot.spinRate;
       document.getElementById('m-carry').textContent = shot.carryYards.toFixed(1);
 
@@ -2879,7 +2904,7 @@
       else if (shot.launchV > ideal.launchV[1]) dev('launch', 'card-vla', '打出角', (shot.launchV - ideal.launchV[1]) / 1.5, `打出角が${shot.launchV.toFixed(1)}°で理想${ideal.launchV[0]}〜${ideal.launchV[1]}°より高く、吹け上がっています。`);
       if (shot.spinRate < ideal.spin[0]) dev('spin', 'card-spin', 'スピン量', (ideal.spin[0] - shot.spinRate) / 500, `スピンが${shot.spinRate}rpmで理想${ideal.spin[0]}〜${ideal.spin[1]}rpmより少なく、ドロップしやすい弾道です。`);
       else if (shot.spinRate > ideal.spin[1]) dev('spin', 'card-spin', 'スピン量', (shot.spinRate - ideal.spin[1]) / 500, `スピンが${shot.spinRate}rpmで理想${ideal.spin[0]}〜${ideal.spin[1]}rpmより多く、吹け上がって飛距離をロスしています。`);
-      if (shot.smashFactor < ideal.smashMin) dev('smash', 'card-bs', 'ミート率', (ideal.smashMin - shot.smashFactor) * 20, `ミート率が${shot.smashFactor.toFixed(3)}で理想${ideal.smashMin}以上に届かず、初速をロスしています。`);
+      if (shot.smashFactor < ideal.smashMin) dev('smash', 'card-smash', 'ミート率', (ideal.smashMin - shot.smashFactor) * 20, `ミート率が${shot.smashFactor.toFixed(3)}で理想${ideal.smashMin}以上に届かず、初速をロスしています。`);
       const carryShort = shot.optCarryYards - shot.carryYards;
       if (carryShort > 10) dev('carry', 'card-carry', 'キャリー', carryShort / 15, `キャリーが${shot.carryYards.toFixed(1)}yで最適${shot.optCarryYards}yより${carryShort.toFixed(0)}y短くなっています。`);
       devs.sort((a, b) => b.score - a.score);
@@ -2905,7 +2930,7 @@
       setCardWarn('card-side', warnings.impX || warnings.face || devs.some(d => d.key === 'impX'));
       setCardWarn('card-spin', warnings.impY || devs.some(d => d.key === 'spin' || d.key === 'impY'));
       setCardWarn('card-vla', devs.some(d => d.key === 'launch'));
-      setCardWarn('card-bs', devs.some(d => d.key === 'smash'));
+      setCardWarn('card-smash', devs.some(d => d.key === 'smash'));
       setCardWarn('card-carry', devs.some(d => d.key === 'carry'));
       // 一番悪い指標のカードをさらに目立たせる（赤枠＋赤い影）
       document.querySelectorAll('.tm-metric-card.worst-card').forEach(el => el.classList.remove('worst-card'));
@@ -3469,7 +3494,7 @@
       return [
         `【GOLF MIRROR RANGE】${shot.clubName}`,
         `キャリー ${shot.carryYards.toFixed(1)}yds / トータル ${shot.totalYards.toFixed(1)}yds（${side}）`,
-        `HS ${shot.chs.toFixed(1)}m/s・初速 ${shot.ballSpeed.toFixed(1)}m/s・打出角 ${shot.launchV.toFixed(1)}°・スピン ${shot.spinRate}rpm`,
+        `HS ${shot.chs.toFixed(1)}m/s・初速 ${shot.ballSpeed.toFixed(1)}m/s・ミート率 ${shot.smashFactor.toFixed(3)}・打出角 ${shot.launchV.toFixed(1)}°・スピン ${shot.spinRate}rpm`,
         `弾道：${shape}`,
         'https://gs777-max.github.io/app/golf_3d_shutrack/'
       ].join('\n');
