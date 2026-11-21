@@ -240,6 +240,44 @@
       /* AIコーチ：2行まで読める */
       #ai-coach-footer { min-height: 56px; height: auto; }
       #ai-advice-text { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13px; }
+      /* ---- 2026-11-21 見やすさ・操作しやすさ改善 ---- */
+      /* 3D上部バー：390pxでカメラ＋昼夜＋凡例がはみ出して切れていたのを2段化。カメラ行は横スクロール可、2段目は昼夜トグル＋凡例 */
+      #panel-range > div.absolute { flex-wrap: wrap; row-gap: 6px; }
+      #panel-range > div.absolute > div:first-child { flex: 1 1 100%; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+      #panel-range > div.absolute > div:first-child::-webkit-scrollbar { display: none; }
+      #panel-range > div.absolute > div:first-child .cam-mode-btn,
+      #panel-range > div.absolute > div:first-child #btn-replay-flight { flex: none; white-space: nowrap; }
+      #panel-range > div.absolute > div:last-child { flex-direction: row; align-items: center; gap: 8px; margin-left: auto; }
+      #theme-switcher-group { display: none; }
+      #btn-theme-toggle-mobile { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; background: rgba(22,23,26,0.9); border: 1px solid #32353d; color: #fff; font-size: 12px; font-weight: 700; white-space: nowrap; }
+      /* ヒーローは2段化した上部バーの下へ */
+      #shot-result-hero { top: 100px; }
+      /* クイックバー：フェース±が画面外に隠れて横スクロール必須だったのを、全項目が390pxに収まるよう調整 */
+      #quick-bar { gap: 4px; }
+      #quick-bar .text-\[12px\] { display: none; }
+      .quick-club-chip { min-width: 34px; padding: 0 4px; }
+      #quick-face-val { width: 48px; }
+      /* FAB：bottom:172pxだとフッター（約100px）のせいでクイックバーのフェース操作部と指標ストリップに被っていた。クイックバーより上に浮かせる */
+      #btn-fire-fab { bottom: 260px; }
+      #ai-coach-footer { min-height: 96px; }
+      /* 指標ストリップ：基準値（±の小さい数字）が読みにくさのノイズになっていたので単位だけ残す。ラベルも大きく */
+      .tm-metric-card > div:first-child { font-size: 13px; }
+      .tm-metric-card > div:last-child { justify-content: center; }
+      .tm-metric-card > div:last-child > span:first-child,
+      .tm-metric-card > div:last-child > span:last-child { display: none; }
+      /* 数値入力：54×20pxでタップしにくかったので大きく */
+      .inline-num-input { width: 64px; height: 28px; font-size: 13px; padding: 4px 6px; }
+      /* 解析パネルのヘッダーボタン：高さ約20pxでタップしにくかったので32pxに（ヘッダー自体も36pxに） */
+      #left-analysis-column section > div:first-child { height: 36px; }
+      #left-analysis-column section button { min-height: 32px; padding-left: 8px; padding-right: 8px; }
+      /* 凡例・テレメトリの極小文字を持ち上げる */
+      #range-legend-card { font-size: 12px; }
+      #range-legend-card [class*="text-[10px]"] { font-size: 11px; }
+      #btn-toggle-legend { padding-top: 6px; padding-bottom: 6px; }
+      #panel-range div.absolute.bottom-2 { font-size: 12px; }
+      /* チェックボックス：12pxでタップしにくかったので大きく */
+      #left-sidebar input[type="checkbox"] { width: 20px; height: 20px; }
+      #range-legend-card input[type="checkbox"] { width: 18px; height: 18px; }
     }
     /* ---- Shot-result hero overlay (TrackMan-style big carry readout) ---- */
     #shot-result-hero { position: absolute; top: 60px; left: 10px; z-index: 10; pointer-events: none; }
@@ -254,6 +292,8 @@
     .quick-step-btn { flex: none; min-width: 44px; min-height: 44px; border-radius: 9px; background: #18191c; border: 1px solid #383b43; color: #e5e7eb; font-size: 16px; font-weight: 800; }
     /* Floating fire button: hidden on desktop, shown on mobile (<=768px) */
     #btn-fire-fab { display: none; }
+    /* Mobile day/night toggle: hidden on desktop, shown on mobile (<=768px) */
+    #btn-theme-toggle-mobile { display: none; }
   </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-[#0d0e12] text-gray-100 overflow-hidden">
@@ -278,10 +318,10 @@
       <!-- Quick Calibration Presets -->
       <div class="hidden xl:flex items-center gap-1 ml-1">
         <button data-preset="screen1" class="preset-pill px-2 py-1 rounded text-[11px] font-bold bg-[#f26522] text-white shadow transition">
-          画像1再現 (ヒール下・4869rpm)
+          画像1再現 (ヒール下・4305rpm)
         </button>
         <button data-preset="screen2" class="preset-pill px-2 py-1 rounded text-[11px] font-bold bg-[#25282e] hover:bg-[#32363e] text-gray-200 border border-[#383b43] transition">
-          画像2再現 (151.4y・最適値)
+          画像2再現 (144.2y)
         </button>
         <button data-preset="tour_pure" class="preset-pill px-2 py-1 rounded text-[11px] font-bold bg-[#25282e] hover:bg-[#32363e] text-gray-200 border border-[#383b43] transition">
           芯・ストレート
@@ -378,7 +418,7 @@
             </button>
             <button data-preset="screen2" class="text-left px-2 py-1 rounded bg-[#2d3038] hover:bg-[#383c46] border border-[#3b9eff]/60 text-[10px]">
               <div class="font-bold text-[#60a5fa]">② 画像2 完全再現</div>
-              <div class="text-gray-300 font-num">34.6m/s・151.4yds</div>
+              <div class="text-gray-300 font-num">34.6m/s・144.2yds</div>
             </button>
           </div>
         </div>
@@ -417,13 +457,13 @@
             <div class="flex items-center justify-between text-xs mb-0.5">
               <span class="text-gray-200">インパクトオフセット (左右)</span>
               <div class="flex items-center gap-1">
-                <input id="num-imp-x" type="number" min="-24" max="24" step="0.5" value="-3.0" class="inline-num-input" aria-label="インパクトオフセット数値入力" />
-                <span id="lbl-imp-x-dir" class="text-[10px] font-bold text-[#ff7a33] w-11 text-right">mm ヒール</span>
+                <input id="num-imp-x" type="number" min="-24" max="24" step="0.5" value="0.0" class="inline-num-input" aria-label="インパクトオフセット数値入力" />
+                <span id="lbl-imp-x-dir" class="text-[10px] font-bold text-[#ff7a33] w-11 text-right">mm センター</span>
               </div>
             </div>
             <div class="flex items-center gap-1.5">
               <button data-step="impactOffset,-0.5" aria-label="オフセットをヒール側へ0.5mm移動" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
-              <input id="inp-imp-x" type="range" min="-24" max="24" step="0.5" value="-3.0" />
+              <input id="inp-imp-x" type="range" min="-24" max="24" step="0.5" value="0" />
               <button data-step="impactOffset,0.5" aria-label="オフセットをトゥ側へ0.5mm移動" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
             </div>
           </div>
@@ -433,13 +473,13 @@
             <div class="flex items-center justify-between text-xs mb-0.5">
               <span class="text-gray-200">インパクトハイト (上下)</span>
               <div class="flex items-center gap-1">
-                <input id="num-imp-y" type="number" min="-18" max="18" step="0.5" value="-6.0" class="inline-num-input" aria-label="インパクトハイト数値入力" />
-                <span id="lbl-imp-y-dir" class="text-[10px] font-bold text-[#60a5fa] w-11 text-right">mm ダウン</span>
+                <input id="num-imp-y" type="number" min="-18" max="18" step="0.5" value="0.0" class="inline-num-input" aria-label="インパクトハイト数値入力" />
+                <span id="lbl-imp-y-dir" class="text-[10px] font-bold text-[#60a5fa] w-11 text-right">mm センター</span>
               </div>
             </div>
             <div class="flex items-center gap-1.5">
               <button data-step="impactHeight,-0.5" aria-label="ハイトを下へ0.5mm移動" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
-              <input id="inp-imp-y" type="range" min="-18" max="18" step="0.5" value="-6.0" />
+              <input id="inp-imp-y" type="range" min="-18" max="18" step="0.5" value="0" />
               <button data-step="impactHeight,0.5" aria-label="ハイトを上へ0.5mm移動" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
             </div>
           </div>
@@ -518,15 +558,15 @@
           <!-- Club Path -->
           <div id="box-club-path" class="rounded p-1 transition">
             <div class="flex items-center justify-between text-xs mb-0.5">
-              <span class="text-gray-200">クラブパス <span id="lbl-path-tag" class="text-[10px] text-[#60a5fa] font-bold">(アウトイン)</span></span>
+              <span class="text-gray-200">クラブパス <span id="lbl-path-tag" class="text-[10px] text-[#60a5fa] font-bold">(ストレート)</span></span>
               <div class="flex items-center gap-1">
-                <input id="num-path" type="number" min="-15" max="15" step="0.1" value="-9.8" class="inline-num-input text-[#60a5fa]" aria-label="クラブパス数値入力" />
+                <input id="num-path" type="number" min="-15" max="15" step="0.1" value="0" class="inline-num-input text-[#60a5fa]" aria-label="クラブパス数値入力" />
                 <span class="text-[10px] text-gray-300 w-6">deg</span>
               </div>
             </div>
             <div class="flex items-center gap-1.5">
               <button data-step="clubPath,-0.2" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
-              <input id="inp-path" type="range" class="blue-slider" min="-15" max="15" step="0.1" value="-9.8" />
+              <input id="inp-path" type="range" class="blue-slider" min="-15" max="15" step="0.1" value="0" />
               <button data-step="clubPath,0.2" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
             </div>
           </div>
@@ -534,22 +574,22 @@
           <!-- Face Angle -->
           <div id="box-face-angle" class="rounded p-1 transition">
             <div class="flex items-center justify-between text-xs mb-0.5">
-              <span class="text-gray-200">フェイスアングル <span id="lbl-face-tag" class="text-[10px] text-rose-300 font-bold">(クローズ)</span></span>
+              <span class="text-gray-200">フェイスアングル <span id="lbl-face-tag" class="text-[10px] text-rose-300 font-bold">(スクエア)</span></span>
               <div class="flex items-center gap-1">
-                <input id="num-face" type="number" min="-15" max="15" step="0.1" value="-8.4" class="inline-num-input text-rose-300" aria-label="フェイスアングル数値入力" />
+                <input id="num-face" type="number" min="-15" max="15" step="0.1" value="0" class="inline-num-input text-rose-300" aria-label="フェイスアングル数値入力" />
                 <span class="text-[10px] text-gray-300 w-6">deg</span>
               </div>
             </div>
             <div class="flex items-center gap-1.5">
               <button data-step="faceAngle,-0.2" aria-label="フェイスを0.2度閉じる" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">-</button>
-              <input id="inp-face" type="range" min="-15" max="15" step="0.1" value="-8.4" />
+              <input id="inp-face" type="range" min="-15" max="15" step="0.1" value="0" />
               <button data-step="faceAngle,0.2" aria-label="フェイスを0.2度開く" class="step-btn px-1.5 py-0.5 rounded bg-[#18191c] text-gray-200 text-xs font-bold hover:bg-[#32353c]">+</button>
             </div>
             <!-- Face dial: drag to rotate, double-click resets to 0 -->
             <div class="flex items-center gap-2.5 pt-1.5">
-              <canvas id="face-dial" width="168" height="168" style="width:84px;height:84px;flex:none" tabindex="0" role="slider" aria-label="フェイスダイヤル" aria-valuemin="-15" aria-valuemax="15" aria-valuenow="-8.4" aria-valuetext="-8.4度 クローズ" title="ドラッグでフェースを回す・ダブルクリックで0°に戻す"></canvas>
+              <canvas id="face-dial" width="168" height="168" style="width:84px;height:84px;flex:none" tabindex="0" role="slider" aria-label="フェイスダイヤル" aria-valuemin="-15" aria-valuemax="15" aria-valuenow="0" aria-valuetext="0.0度 スクエア" title="ドラッグでフェースを回す・ダブルクリックで0°に戻す"></canvas>
               <div class="min-w-0">
-                <div id="face-dial-value" class="font-num text-xl font-extrabold text-rose-300 leading-none">-8.4°</div>
+                <div id="face-dial-value" class="font-num text-xl font-extrabold text-rose-300 leading-none">+0.0°</div>
                 <div class="text-[10px] text-gray-400 mt-1 leading-snug">ダイヤルをドラッグで回す<br>ダブルクリックで 0° に戻す<br>左＝クローズ／右＝オープン</div>
               </div>
             </div>
@@ -564,7 +604,7 @@
           <!-- Face-to-Path (direct) -->
           <div id="box-face-to-path" class="rounded p-1 transition">
             <div class="flex items-center justify-between text-xs mb-0.5">
-              <span class="text-gray-200">フェイストゥパス <span id="lbl-ftp-tag" class="text-[10px] text-rose-300 font-bold">(クローズ)</span></span>
+              <span class="text-gray-200">フェイストゥパス <span id="lbl-ftp-tag" class="text-[10px] text-rose-300 font-bold">(スクエア)</span></span>
               <div class="flex items-center gap-1">
                 <input id="num-ftp" type="number" min="-15" max="15" step="0.1" value="1.4" class="inline-num-input text-rose-300" aria-label="フェイストゥパス数値入力" />
                 <span class="text-[10px] text-gray-300 w-6">deg</span>
@@ -692,10 +732,10 @@
 
             <div class="pointer-events-none absolute bottom-1.5 left-2 right-2 flex items-center justify-between text-[10px] bg-[#141518]/90 px-2.5 py-0.5 rounded border border-[#2e3138] font-num">
               <span id="impact-gear-summary" class="text-amber-300 font-bold truncate">
-                ギア効果: 横打点(-3mm)→軸 +7.1°右 / 縦打点(-6mm)→+1380rpm
+                ギア効果: 横打点(0mm)→軸 +0.0°右 / 縦打点(0mm)→+0rpm
               </span>
               <span id="impact-smash-badge" class="text-cyan-300 font-bold shrink-0 ml-2">
-                ミート率: 1.408
+                ミート率: 1.490
               </span>
             </div>
           </div>
@@ -736,7 +776,8 @@
 
           <!-- Right Stack: Day/Night Switcher + Collapsible 3D Trajectory Legend Card -->
           <div class="pointer-events-auto flex flex-col items-end gap-1.5">
-            <div class="flex items-center gap-1 bg-[#16171a]/90 backdrop-blur px-1.5 py-1 rounded border border-[#32353d] shadow-lg">
+            <button id="btn-theme-toggle-mobile" type="button" aria-label="昼夜切替" title="昼・夜の表示切替">☀️ 昼</button>
+            <div id="theme-switcher-group" class="flex items-center gap-1 bg-[#16171a]/90 backdrop-blur px-1.5 py-1 rounded border border-[#32353d] shadow-lg">
               <button id="btn-theme-day" class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#3b9eff] text-white">昼・リアル芝 (画像2)</button>
               <button id="btn-theme-night" class="px-2 py-0.5 rounded text-[10.5px] font-bold text-gray-200 hover:bg-[#2a2d34]">夜・発光Toptracer</button>
             </div>
@@ -776,8 +817,8 @@
         <div id="shot-result-hero" class="pointer-events-none">
           <div class="hero-card">
             <div class="text-[11px] font-bold text-gray-300 tracking-widest">キャリー</div>
-            <div class="font-num leading-none"><span id="hero-carry" class="text-[40px] font-extrabold text-white">206.6</span><span class="text-lg font-bold text-gray-200 ml-1">yds</span></div>
-            <div class="text-[12px] font-bold text-gray-200">トータル <span id="hero-total" class="text-[#ff7a33]">221.4</span> yds ・ <span id="hero-shape">プル・フェード</span></div>
+            <div class="font-num leading-none"><span id="hero-carry" class="text-[40px] font-extrabold text-white">222.2</span><span class="text-lg font-bold text-gray-200 ml-1">yds</span></div>
+            <div class="text-[12px] font-bold text-gray-200">トータル <span id="hero-total" class="text-[#ff7a33]">236.0</span> yds ・ <span id="hero-shape">ストレート打出・直進弾道</span></div>
           </div>
         </div>
 
@@ -789,9 +830,9 @@
         <!-- Floating Bottom Telemetry Pill on 3D Range -->
         <div class="pointer-events-none absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-[11px] font-num">
           <div class="bg-[#16171a]/90 backdrop-blur px-2.5 py-1 rounded border border-[#32353d] text-gray-100 shadow">
-            トータル: <span id="range-badge-total" class="text-[#ff7a33] font-bold">221.4 yds</span>
-            (ラン <span id="range-badge-roll" class="text-emerald-300 font-bold">+14.8 yds</span>)
-            / 最高到達点: <span id="range-badge-apex" class="text-sky-300 font-bold">21.8 yds</span>
+            トータル: <span id="range-badge-total" class="text-[#ff7a33] font-bold">236.0 yds</span>
+            (ラン <span id="range-badge-roll" class="text-emerald-300 font-bold">+13.8 yds</span>)
+            / 最高到達点: <span id="range-badge-apex" class="text-sky-300 font-bold">19.5 yds</span>
           </div>
           <div id="range-shot-shape-tag" class="bg-[#16171a]/90 backdrop-blur px-2.5 py-1 rounded border border-[#32353d] text-amber-300 font-bold shadow">
             プル(左打出)・フェード/スライス
@@ -814,7 +855,7 @@
     <span class="w-px h-6 bg-[#2c2f36] shrink-0 mx-1"></span>
     <span class="text-[12px] font-bold text-gray-300 shrink-0">フェース</span>
     <button type="button" data-quick-face="-0.5" aria-label="フェースを0.5度閉じる" class="quick-step-btn">−</button>
-    <span id="quick-face-val" class="font-num text-[15px] font-extrabold text-rose-300 w-14 text-center shrink-0">-8.4°</span>
+    <span id="quick-face-val" class="font-num text-[15px] font-extrabold text-rose-300 w-14 text-center shrink-0">+0.0°</span>
     <button type="button" data-quick-face="0.5" aria-label="フェースを0.5度開く" class="quick-step-btn">＋</button>
   </div>
 
@@ -853,7 +894,7 @@
       <!-- 3. ボールスピード -->
       <div id="card-bs" data-focus="inp-chs" class="tm-metric-card flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">ボールスピード</div>
-        <div id="m-bs" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">62.5</div>
+        <div id="m-bs" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">66.2</div>
         <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
           <span>52.6</span>
           <span class="text-gray-100 font-bold">m/s</span>
@@ -864,7 +905,7 @@
       <!-- 4. スピン量 -->
       <div id="card-spin" data-focus="inp-imp-y" class="tm-metric-card flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">スピン量 <span class="warn-badge hidden text-rose-400">⚠</span></div>
-        <div id="m-spin" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">4869</div>
+        <div id="m-spin" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">2775</div>
         <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
           <span>3365</span>
           <span class="text-gray-100 font-bold">rpm</span>
@@ -875,7 +916,7 @@
       <!-- 5. キャリー -->
       <div id="card-carry" data-focus="inp-chs" class="tm-metric-card flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">キャリー</div>
-        <div id="m-carry" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">206.6</div>
+        <div id="m-carry" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">222.2</div>
         <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
           <span>166.7</span>
           <span class="text-gray-100 font-bold">yds</span>
@@ -886,7 +927,7 @@
       <!-- 6. キャリーサイド -->
       <div id="card-side" data-focus="inp-imp-x" class="tm-metric-card flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">キャリーサイド <span class="warn-badge hidden text-rose-400">⚠</span></div>
-        <div id="m-side" class="text-2xl xl:text-[25px] leading-none font-extrabold font-num text-white text-center my-auto">15.3<span class="text-base">左</span></div>
+        <div id="m-side" class="text-2xl xl:text-[25px] leading-none font-extrabold font-num text-white text-center my-auto">0.0<span class="text-base"></span></div>
         <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
           <span>5.2左</span>
           <span class="text-gray-100 font-bold">yds</span>
@@ -897,7 +938,7 @@
       <!-- 7. ローポイント -->
       <div id="card-lowpt" data-focus="inp-aoa" class="tm-metric-card hidden sm:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">ローポイント</div>
-        <div id="m-lowpt" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">3.9B</div>
+        <div id="m-lowpt" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">1.4B</div>
         <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
           <span>3.6B</span>
           <span class="text-gray-100 font-bold">cm</span>
@@ -908,7 +949,7 @@
       <!-- 8. クラブパス -->
       <div id="card-path" data-focus="inp-path" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">クラブパス <span class="warn-badge hidden text-rose-400">⚠</span></div>
-        <div id="m-path" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">-9.8</div>
+        <div id="m-path" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">0.0</div>
         <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
           <span>-4.8</span>
           <span class="text-gray-100 font-bold">deg</span>
@@ -919,7 +960,7 @@
       <!-- 9. 着地角 -->
       <div id="card-land" data-focus="inp-dyn-loft" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">着地角</div>
-        <div id="m-land" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">40.6</div>
+        <div id="m-land" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">32.5</div>
         <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
           <span>34.4</span>
           <span class="text-gray-100 font-bold">deg</span>
@@ -930,7 +971,7 @@
       <!-- 10. 左右打出角 -->
       <div id="card-hla" data-focus="inp-face" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">左右打出角 <span class="warn-badge hidden text-rose-400">⚠</span></div>
-        <div id="m-hla" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">-8.8</div>
+        <div id="m-hla" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">0.0</div>
         <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
           <span>-4.4</span>
           <span class="text-gray-100 font-bold">deg</span>
@@ -941,7 +982,7 @@
       <!-- 11. 打出角 -->
       <div id="card-vla" data-focus="inp-dyn-loft" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">打出角</div>
-        <div id="m-vla" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">9.4</div>
+        <div id="m-vla" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">10.8</div>
         <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
           <span>15.0</span>
           <span class="text-gray-100 font-bold">deg</span>
@@ -1045,16 +1086,18 @@
     // ============================================================================
     // 2. APPLICATION STATE
     // ============================================================================
+    // 既定値は真芯のいい当たり (2026-11-20 変更: フェース0°・パス0°・打点0/0mm)。
+    // 旧既定値はフェース-8.4°・パス-9.8°・打点-3/-6mmの悪い当たりで、HS55でもキャリー266yにしかならなかった。
     const state = {
       club: '1W',
       chs: 44.4,
       aoa: 0.4,
-      clubPath: -9.8,
-      faceAngle: -8.4,
+      clubPath: 0,
+      faceAngle: 0,
       dynamicLoft: 12.9,
       dynamicLie: 44.3,
-      impactOffset: -3.0,
-      impactHeight: -6.0,
+      impactOffset: 0,
+      impactHeight: 0,
       autoCoupleLoft: false,
 
       tempC: 20.0,
@@ -2872,11 +2915,11 @@
         return;
       }
       const presets = [
-        { chs: 44.4, aoa: 0.4, clubPath: -9.8, faceAngle: -8.4, dynamicLoft: 12.9, dynamicLie: 44.3, impactOffset: -3.0, impactHeight: -6.0, club: '1W', label: '画像1基準 (206.6y)' },
-        { chs: 34.6, aoa: -1.6, clubPath: -6.5, faceAngle: -10.2, dynamicLoft: 17.4, dynamicLie: 45.0, impactOffset: 2.0, impactHeight: -2.0, club: '1W', label: '画像2基準 (151.4y)' },
-        { chs: 45.2, aoa: 2.2, clubPath: 2.5, faceAngle: 1.0, dynamicLoft: 13.5, dynamicLie: 56.0, impactOffset: 8.0, impactHeight: 6.0, club: '1W', label: 'ハイトゥ・ドロー (243.1y)' },
-        { chs: 43.0, aoa: 1.2, clubPath: 0.5, faceAngle: 0.0, dynamicLoft: 13.2, dynamicLie: 55.5, impactOffset: 0.0, impactHeight: 2.0, club: '1W', label: '芯・ストレート (235.7y)' },
-        { chs: 41.2, aoa: 0.5, clubPath: -2.0, faceAngle: -1.5, dynamicLoft: 13.8, dynamicLie: 55.0, impactOffset: -2.0, impactHeight: 0.0, club: '1W', label: 'フェード基準 (216.2y)' }
+        { chs: 44.4, aoa: 0.4, clubPath: -9.8, faceAngle: -8.4, dynamicLoft: 12.9, dynamicLie: 44.3, impactOffset: -3.0, impactHeight: -6.0, club: '1W', label: '画像1基準 (196.7y)' },
+        { chs: 34.6, aoa: -1.6, clubPath: -6.5, faceAngle: -10.2, dynamicLoft: 17.4, dynamicLie: 45.0, impactOffset: 2.0, impactHeight: -2.0, club: '1W', label: '画像2基準 (144.2y)' },
+        { chs: 45.2, aoa: 2.2, clubPath: 2.5, faceAngle: 1.0, dynamicLoft: 13.5, dynamicLie: 56.0, impactOffset: 8.0, impactHeight: 6.0, club: '1W', label: 'ハイトゥ・ドロー (181.5y)' },
+        { chs: 43.0, aoa: 1.2, clubPath: 0.5, faceAngle: 0.0, dynamicLoft: 13.2, dynamicLie: 55.5, impactOffset: 0.0, impactHeight: 2.0, club: '1W', label: '芯・ストレート (210.0y)' },
+        { chs: 41.2, aoa: 0.5, clubPath: -2.0, faceAngle: -1.5, dynamicLoft: 13.8, dynamicLie: 55.0, impactOffset: -2.0, impactHeight: 0.0, club: '1W', label: 'フェード基準 (196.2y)' }
       ];
 
       state.shotHistory = presets.map((p, i) => {
@@ -3354,6 +3397,13 @@
       applyRangeTheme('night');
       update3DTrajectoryInRange(state.currentShot, false);
     });
+    // Mobile: single day/night toggle (the two desktop buttons don't fit 390px)
+    document.getElementById('btn-theme-toggle-mobile').addEventListener('click', () => {
+      const next = state.rangeTheme === 'day' ? 'night' : 'day';
+      applyRangeTheme(next);
+      document.getElementById('btn-theme-toggle-mobile').textContent = next === 'day' ? '☀️ 昼' : '🌙 夜';
+      update3DTrajectoryInRange(state.currentShot, false);
+    });
 
     function setCameraAngle(camMode) {
       state.cameraMode = camMode;
@@ -3584,6 +3634,7 @@
         document.getElementById('legend-body')?.classList.add('hidden');
         const chev = document.getElementById('legend-chevron');
         if (chev) chev.textContent = '▶';
+        document.getElementById('btn-theme-toggle-mobile').textContent = state.rangeTheme === 'day' ? '☀️ 昼' : '🌙 夜';
       }
       animate();
     };
