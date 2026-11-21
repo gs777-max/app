@@ -26,16 +26,23 @@ function safeEqual(a, b) {
 }
 
 function getLoginHashes() {
+  // v3.6.2: 貼り付け時の改行・空白混入に強くするため、空白類を全て除去する。
   return {
-    idHash: (process.env.LOGIN_ID_HASH || '').trim().toLowerCase(),
-    pwHash: (process.env.LOGIN_PASSWORD_HASH || '').trim().toLowerCase()
+    idHash: (process.env.LOGIN_ID_HASH || '').replace(/\s+/g, '').toLowerCase(),
+    pwHash: (process.env.LOGIN_PASSWORD_HASH || '').replace(/\s+/g, '').toLowerCase()
   };
+}
+
+function configState() {
+  // 'ok' | 'missing' | 'malformed'（値そのものは返さない）
+  const h = getLoginHashes();
+  if (!h.pwHash) return 'missing';
+  return /^[0-9a-f]{64}$/.test(h.pwHash) ? 'ok' : 'malformed';
 }
 
 function isConfigured() {
   // v3.6.1: パスワードのみでログイン（IDは廃止）。必要なのは LOGIN_PASSWORD_HASH のみ。
-  const h = getLoginHashes();
-  return /^[0-9a-f]{64}$/.test(h.pwHash);
+  return configState() === 'ok';
 }
 
 function sign(payloadB64) {
@@ -98,6 +105,7 @@ module.exports = {
   COOKIE_NAME,
   sha256Hex,
   isConfigured,
+  configState,
   checkCredentials,
   createSessionToken,
   verifySessionToken,
