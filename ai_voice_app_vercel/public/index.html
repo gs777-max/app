@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.7.1)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.7.2)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -399,6 +399,9 @@
     .partner-preview-card .char-desc { font-size: 0.92rem; color: var(--muted); line-height: 1.55; padding: 2px 14px 0; display: block; }
     .partner-preview-card .char-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px 14px; }
     @media (max-width: 560px) { .partner-picker { grid-template-columns: 1fr; } }
+    /* v3.7.2: カテゴリ選択後はキャラ一覧（特徴つきカード）を表示 */
+    .partner-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 12px; margin-top: 14px; }
+    .partner-list .char-card { flex: none; max-width: none; width: 100%; cursor: pointer; }
 
     /* ボトムシート共通 */
     .sheet-overlay {
@@ -659,7 +662,7 @@
       <div class="section-head">
         <div>
           <h2>話し相手を選ぶ</h2>
-          <p class="lead">カテゴリと話し相手を選んでください。会話中でも切り替えられます。</p>
+          <p class="lead">カテゴリを選ぶと、その分野の話し相手が並びます。タップで切り替わります。会話中でも切り替えられます。</p>
         </div>
       </div>
       <div class="partner-picker">
@@ -667,16 +670,12 @@
           <label for="select-category">カテゴリ</label>
           <select id="select-category" aria-label="カテゴリを選ぶ"></select>
         </div>
-        <div>
-          <label for="select-character">話し相手</label>
-          <select id="select-character" aria-label="話し相手を選ぶ"></select>
-        </div>
       </div>
-      <div class="partner-preview" id="partner-preview" aria-live="polite"></div>
+      <div class="partner-list" id="partner-list"></div>
       <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい選べるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.7.1 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.7.2 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -1089,7 +1088,7 @@
         rio: {
           name: 'リオ',
           photoKey: 'rio',
-          voice: 'Orus',
+          voice: 'Algenib',
           desc: '80歳・男性・天才エンジニアの大御所',
           speed: 0.9, pitch: -150,
           personality: '80歳の男性、天才エンジニアの大御所。半世紀以上ものづくりと計測技術に携わってきた。',
@@ -1394,65 +1393,66 @@
       maria: 'piano'
     };
     const SOON_CHARS = [
-      { name: 'ミサキ', category: 'chat' },
-      { name: 'ケンジ', category: 'chat' },
-      { name: 'サトコ', category: 'chat' }
+      { name: 'ミサキ', category: 'chat', desc: '40代・女性・やさしく丁寧' },
+      { name: 'ケンジ', category: 'chat', desc: '50代・男性・ユーモアのある先輩' },
+      { name: 'サトコ', category: 'chat', desc: '60代・女性・人生経験豊かな相談相手' }
     ];
-    function fillCharacterOptions(catKey) {
-      const charSel = document.getElementById('select-character');
-      if (!charSel) return;
+    // v3.7.2: カテゴリ選択後はキャラ一覧（写真・名前・特徴・声）を表示する。
+    function renderPartnerList(catKey) {
+      const box = document.getElementById('partner-list');
+      if (!box) return;
       const keys = Object.keys(appState.characters).filter(k => CHAR_CATEGORY_OF[k] === catKey);
-      let html = keys.map(k => `<option value="${k}">${appState.characters[k].name}</option>`).join('');
+      let html = keys.map(k => {
+        const c = appState.characters[k];
+        const on = k === appState.selectedChar;
+        const img = c.photoKey
+          ? `<img data-photo-key="${c.photoKey}" alt="${c.name}の写真" loading="lazy" decoding="async">`
+          : `<img src="${c.image || ''}" alt="${c.name}の写真" loading="lazy" decoding="async">`;
+        return `<button class="char-card${on ? ' active' : ''}" data-char="${k}" aria-pressed="${on}"><span class="char-photo-wrap">${img}<span class="selected-badge">選択中</span></span><span class="char-name">${c.name}</span><span class="char-desc">${c.desc || ''}</span><span class="char-tags"><span class="voice-tag">声: ${c.voice}</span></span></button>`;
+      }).join('');
       SOON_CHARS.filter(s => s.category === catKey).forEach(s => {
-        html += `<option value="" disabled>${s.name}（近日公開）</option>`;
+        html += `<button class="char-card soon" disabled aria-disabled="true"><span class="char-photo"><span class="soon-blur" aria-hidden="true"></span><span class="lock-badge">近日公開</span><span class="soon-label">写真準備中</span></span><span class="char-name">${s.name}</span><span class="char-desc">${s.desc || ''}</span></button>`;
       });
-      charSel.innerHTML = html;
-    }
-    function renderPartnerPreview(charKey) {
-      const box = document.getElementById('partner-preview');
-      const char = appState.characters[charKey];
-      if (!box || !char) return;
-      const img = char.photoKey
-        ? `<img data-photo-key="${char.photoKey}" alt="${char.name}の写真" loading="lazy" decoding="async">`
-        : `<img src="${char.image || ''}" alt="${char.name}の写真" loading="lazy" decoding="async">`;
-      box.innerHTML = `<div class="partner-preview-card">${img}<span class="char-name">${char.name}</span><span class="char-desc">${char.desc || ''}</span><span class="char-tags"><span class="voice-tag">声: ${char.voice}</span></span></div>`;
-      const el = box.querySelector('img[data-photo-key]');
-      if (el) {
-        const apply = () => {
-          const uri = window.CHAR_PHOTOS && window.CHAR_PHOTOS[el.dataset.photoKey];
-          if (uri) el.src = uri;
-        };
-        if (window.CHAR_PHOTOS) apply(); else loadCharPhotos(apply);
-      }
+      box.innerHTML = html;
+      box.querySelectorAll('.char-card[data-char]').forEach(btn => {
+        btn.addEventListener('click', () => selectCharacter(btn.dataset.char));
+      });
+      const applyPhotos = () => {
+        box.querySelectorAll('img[data-photo-key]').forEach(img => {
+          const uri = window.CHAR_PHOTOS && window.CHAR_PHOTOS[img.dataset.photoKey];
+          if (uri) img.src = uri;
+        });
+      };
+      if (window.CHAR_PHOTOS) applyPhotos(); else loadCharPhotos(applyPhotos);
     }
     function buildPartnerPicker() {
       const catSel = document.getElementById('select-category');
-      const charSel = document.getElementById('select-character');
-      if (!catSel || !charSel) return;
+      if (!catSel) return;
       catSel.innerHTML = CHAR_CATEGORIES.map(c => `<option value="${c.key}">${c.label}</option>`).join('');
       const cat = CHAR_CATEGORY_OF[appState.selectedChar] || 'chat';
       catSel.value = cat;
-      fillCharacterOptions(cat);
-      charSel.value = appState.selectedChar;
+      renderPartnerList(cat);
       catSel.addEventListener('change', () => {
-        fillCharacterOptions(catSel.value);
-        const first = charSel.querySelector('option:not([disabled])');
-        if (first) selectCharacter(first.value);
+        renderPartnerList(catSel.value);
+        const first = Object.keys(appState.characters).find(k => CHAR_CATEGORY_OF[k] === catSel.value);
+        if (first) selectCharacter(first);
       });
-      charSel.addEventListener('change', () => selectCharacter(charSel.value));
-      renderPartnerPreview(appState.selectedChar);
     }
 
     function selectCharacter(charKey) {
       appState.selectedChar = charKey;
       const char = appState.characters[charKey];
-      // v3.7: プルダウンとプレビューを選択中キャラに同期する。
+      // v3.7.2: カテゴリとキャラ一覧を選択中キャラに同期する。
       const catSel = document.getElementById('select-category');
-      const charSel = document.getElementById('select-character');
       const cat = CHAR_CATEGORY_OF[charKey];
-      if (catSel && cat && catSel.value !== cat) { catSel.value = cat; fillCharacterOptions(cat); }
-      if (charSel) charSel.value = charKey;
-      renderPartnerPreview(charKey);
+      if (catSel && cat && catSel.value !== cat) { catSel.value = cat; renderPartnerList(cat); }
+      else {
+        document.querySelectorAll('#partner-list .char-card[data-char]').forEach(btn => {
+          const on = btn.dataset.char === charKey;
+          btn.classList.toggle('active', on);
+          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      }
       if (UI.stageCharName) UI.stageCharName.textContent = char.name;
       if (UI.stageCharDesc) UI.stageCharDesc.textContent = char.desc || '';
       // v3.5: 年齢に合わせたキャラ別の速度・ピッチ既定値を適用する。
@@ -1914,7 +1914,7 @@
         appState.isSessionReady = false;
 
         appState.ws.onopen = (e) => {
-          // v3.7.1: 旧ソケットの遅延イベントで新セッションを壊さない。
+          // v3.7.2: 旧ソケットの遅延イベントで新セッションを壊さない。
           if (appState.ws !== e.target) return;
           // v3.1: 接続確立でガードと再接続回数をリセットする。
           appState.isConnecting = false;
@@ -1924,8 +1924,11 @@
         };
 
         appState.ws.onmessage = async (e) => {
-          // v3.7.1: 旧ソケットの遅延メッセージ（前のキャラの音声等）を新セッションに混ぜない。
+          // v3.7.2: 旧ソケットの遅延メッセージ（前のキャラの音声等）を新セッションに混ぜない。
           if (appState.ws !== e.target) return;
+          // v3.7.2: 無応答ウォッチドッグ用に最終受信時刻を記録する。
+          appState._lastServerMsgAt = performance.now();
+          appState._txAtLastServerMsg = appState.txChunks;
           try {
             let data;
             if (e.data instanceof Blob) {
@@ -1940,7 +1943,7 @@
         };
 
         appState.ws.onerror = (err) => {
-          // v3.7.1: 旧ソケットのエラーで新セッションの状態を壊さない。
+          // v3.7.2: 旧ソケットのエラーで新セッションの状態を壊さない。
           if (appState.ws !== err.target) return;
           appState.isConnecting = false;
           logMessage(`WebSocket 通信エラー (${err.message || '接続遮断'})`, 'error');
@@ -1955,7 +1958,7 @@
         };
 
         appState.ws.onclose = (e) => {
-          // v3.7.1: パートナー切替で閉じた旧ソケットの onclose が新セッション開始後に
+          // v3.7.2: パートナー切替で閉じた旧ソケットの onclose が新セッション開始後に
           // 遅れて発火すると、自動再接続や disconnectSession で新セッションを壊してしまう。
           // 現在のソケットでなければ何もしない。
           if (appState.ws !== e.target) return;
@@ -2030,13 +2033,15 @@
         const text = left ? `サーバーが切断予告を送りました（残り ${left}）。まもなく再接続します。` : 'サーバーが切断予告を送りました。まもなく再接続します。';
         logMessage(text, 'warn');
         popToast(text, 'warn');
+        // v3.7.2: 予告の時点で再開ハンドル付き再接続を行い、会話を途切れさせない。
+        forceReconnectSameSession('goAway');
         return;
       }
       if (data.sessionResumptionUpdate) {
         const upd = data.sessionResumptionUpdate;
         if (upd.newHandle) {
           appState.sessionResumptionHandle = upd.newHandle;
-          // v3.7.1: ハンドル発行時のキャラを記録（別キャラへの再開混入を防ぐ）。
+          // v3.7.2: ハンドル発行時のキャラを記録（別キャラへの再開混入を防ぐ）。
           appState._handleCharKey = appState.selectedChar;
           logMessage(`セッション再開ハンドルを受け取りました（再開可: ${upd.resumable ? 'はい' : '不明'}）`, 'info');
         }
@@ -2057,6 +2062,8 @@
         UI.btnPause.style.display = 'inline-flex';
         // v3.2: セッションタイマーと WakeLock を開始する。
         if (typeof onSessionStarted === 'function') onSessionStarted();
+        // v3.7.2: 無応答ウォッチドッグを開始する。
+        startSessionWatchdog();
         return;
       }
 
@@ -2117,6 +2124,7 @@
       }
 
       // v3.6.0: AIターンの継続を記録（マイクゲートと割り込み判定の基準）。
+      if (!appState.aiTurnActive) appState._aiTurnStartedAt = performance.now();
       appState.aiTurnActive = true;
       appState._turnCompleteSeen = false;
       if (appState._aiTurnEndTimer) { clearTimeout(appState._aiTurnEndTimer); appState._aiTurnEndTimer = null; }
@@ -2344,7 +2352,7 @@
         }
       };
       // v3.1: セッション再開ハンドルがある場合は setup に入れる。
-      // v3.7.1: ハンドルは発行時のキャラと一致する場合のみ使う。
+      // v3.7.2: ハンドルは発行時のキャラと一致する場合のみ使う。
       // 別キャラのセッションを再開すると、前の声と人格が引き継がれてしまうため。
       if (appState.sessionResumptionHandle && appState._handleCharKey === appState.selectedChar) {
         setup.sessionResumption = { handle: appState.sessionResumptionHandle };
@@ -2382,7 +2390,7 @@
       if (appState.isConnecting) return;
       // v3.2: 再接続のための切断ではセッション要約を出さない。
       appState._internalReconnect = true;
-      // v3.7.1: パートナー切替では再開ハンドルを破棄し、新キャラの声・人格で新規セッションを開始する。
+      // v3.7.2: パートナー切替では再開ハンドルを破棄し、新キャラの声・人格で新規セッションを開始する。
       appState.sessionResumptionHandle = null;
       appState._handleCharKey = null;
       logMessage(`パートナー切替のため再接続します (${reason})`, 'info');
@@ -2391,6 +2399,50 @@
       // disconnectSession が立てた expectClose フラグは、開始時に startLiveSession が消す。
       appState._internalReconnect = false;
       await startLiveSession();
+    }
+
+    // v3.7.2: 同一キャラのまま再開ハンドルで再接続する（goAway・無応答対策）。
+    async function forceReconnectSameSession(reason) {
+      if (appState.isConnecting) return;
+      appState._internalReconnect = true;
+      appState._resumeWithSameToken = true;
+      logMessage(`セッションを再接続します (${reason})`, 'warn');
+      disconnectSession();
+      appState._internalReconnect = false;
+      await startLiveSession();
+    }
+
+    // v3.7.2: 会話途中で無応答になるのを防ぐウォッチドッグ。
+    function startSessionWatchdog() {
+      stopSessionWatchdog();
+      appState._lastServerMsgAt = performance.now();
+      appState._txAtLastServerMsg = appState.txChunks;
+      appState._watchdogTimer = setInterval(() => {
+        if (!appState.isSessionReady || !appState.ws || appState.ws.readyState !== WebSocket.OPEN) return;
+        // AudioContext がサスペンドすると再生が止まりターン状態も固まるため復帰させる。
+        if (appState.audioCtx && appState.audioCtx.state === 'suspended') {
+          appState.audioCtx.resume().catch(() => {});
+        }
+        // AIターン状態の固まりを強制解除（マイクゲートが閉じたままになるのを防ぐ）。
+        if (appState.aiTurnActive && appState.scheduledSources.length === 0 &&
+            performance.now() - (appState._aiTurnStartedAt || 0) > 15000) {
+          logMessage('AIターン状態が固まっていたため強制解除しました', 'warn');
+          appState.aiTurnActive = false;
+          appState.isAiSpeaking = false;
+          appState._bargeInConfirmed = false;
+          setTelemetryStatus('ready', '話せます');
+        }
+        // ユーザーが話したのに25秒以上サーバーから何も来ない場合は再接続する。
+        if (performance.now() - (appState._lastServerMsgAt || 0) > 25000 &&
+            appState.txChunks > (appState._txAtLastServerMsg || 0)) {
+          logMessage('サーバー無応答を検知。再接続します', 'warn');
+          popToast('応答が止まったため再接続します…', 'warn');
+          forceReconnectSameSession('無応答ウォッチドッグ');
+        }
+      }, 3000);
+    }
+    function stopSessionWatchdog() {
+      if (appState._watchdogTimer) { clearInterval(appState._watchdogTimer); appState._watchdogTimer = null; }
     }
 
     // 旧 sendSetupUpdate は廃止。setup再送は仕様外のため、呼び出し側は
@@ -2447,6 +2499,8 @@
     }
 
     function disconnectSession() {
+      // v3.7.2: ウォッチドッグを止める。
+      stopSessionWatchdog();
       // v3.1: 意図的な切断であることを onclose に伝え、自動再接続させない。
       // ただし再接続のための切断では、呼び出し元が expectClose を false に戻してから開始する。
       appState.expectClose = true;
@@ -2654,6 +2708,12 @@
 
     // v3.7: パートナー選択はカテゴリ→キャラのプルダウン。
     buildPartnerPicker();
+    // v3.7.2: 画面復帰時に AudioContext のサスペンドを解除する（無音化防止）。
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && appState.audioCtx && appState.audioCtx.state === 'suspended') {
+        appState.audioCtx.resume().catch(() => {});
+      }
+    });
     // v3.5: パートナー写真（data URI）は少し遅らせて読み込む。
     setTimeout(() => loadCharPhotos(), 600);
 
@@ -2879,7 +2939,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.7.1 を起動しました', 'info');
+      logMessage('AIボイス v3.7.2 を起動しました', 'info');
       checkAuth();
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
