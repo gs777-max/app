@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.7.5)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.7.6)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -220,6 +220,7 @@
     .hero-name-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
     .hero-name { font-size: 2rem; font-weight: 900; line-height: 1.2; letter-spacing: 0.01em; }
     .hero-desc { font-size: 0.95rem; font-weight: 700; color: rgba(255, 255, 255, 0.92); }
+    .hero-personality { margin-top: 6px; font-size: 0.92rem; font-weight: 600; line-height: 1.55; color: rgba(255, 255, 255, 0.92); max-width: 36em; }
     .hero-state-pill {
       display: inline-flex; align-items: center; gap: 8px;
       margin-top: 10px;
@@ -652,6 +653,7 @@
             <span class="hero-name" id="stage-char-name">ハル</span>
             <span class="hero-desc" id="stage-char-desc">20代・男性・穏やかで聞き上手</span>
           </div>
+          <div class="hero-personality" id="stage-char-personality">20代の男性。穏やかで聞き上手な、日常の会話パートナー。</div>
           <div class="hero-state-pill">
             <span class="hero-state-dot" aria-hidden="true"></span>
             <span id="stage-state">まだ話していません</span>
@@ -680,7 +682,7 @@
       <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい選べるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.7.5 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.7.6 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -1186,6 +1188,7 @@
       
       stageCharName: document.getElementById('stage-char-name'),
       stageCharDesc: document.getElementById('stage-char-desc'),
+      stageCharPersonality: document.getElementById('stage-char-personality'),
       stageState: document.getElementById('stage-state'),
       stageViewport: document.getElementById('viewport'),
       mouth: document.getElementById('mouth'),
@@ -1370,23 +1373,36 @@
       return char.image || '';
     }
     let _charPhotosLoading = false;
+    let _charPhotosCallbacks = [];
     function loadCharPhotos(done) {
       if (window.CHAR_PHOTOS) { if (done) done(); return; }
+      // v3.7.6: 読込中に登録されたコールバックを捨てない（ヒーロー写真が透明のまま残る不具合の修正）。
+      if (done) _charPhotosCallbacks.push(done);
       if (_charPhotosLoading) return;
       _charPhotosLoading = true;
+      const flush = () => { const cbs = _charPhotosCallbacks; _charPhotosCallbacks = []; cbs.forEach(cb => { try { cb(); } catch (_) {} }); };
       const sc = document.createElement('script');
       sc.src = './assets/char-photos.js';
       sc.onerror = () => {
         // v3.7.3: 読込失敗時に再試行できるようフラグを戻す。
         _charPhotosLoading = false;
         logMessage('キャラ写真の読み込みに失敗しました', 'warn');
+        // v3.7.6: 失敗時もコールバックを実行し、代替画像でヒーローを表示する。
+        flush();
       };
       sc.onload = () => {
         document.querySelectorAll('img[data-photo-key]').forEach(img => {
           const uri = window.CHAR_PHOTOS && window.CHAR_PHOTOS[img.dataset.photoKey];
           if (uri) img.src = uri;
         });
-        if (done) done();
+        // v3.7.6: ヒーローが透明のまま止まっていたら現在キャラの写真で復旧する。
+        const cur = appState.characters[appState.selectedChar];
+        if (cur && cur.photoKey && window.CHAR_PHOTOS && window.CHAR_PHOTOS[cur.photoKey] && UI.avatarImage && UI.avatarImage.style.opacity === '0') {
+          UI.avatarImage.src = window.CHAR_PHOTOS[cur.photoKey];
+          UI.avatarImage.alt = cur.name + 'の写真';
+          UI.avatarImage.style.opacity = '1';
+        }
+        flush();
       };
       document.body.appendChild(sc);
     }
@@ -1468,6 +1484,7 @@
       }
       if (UI.stageCharName) UI.stageCharName.textContent = char.name;
       if (UI.stageCharDesc) UI.stageCharDesc.textContent = char.desc || '';
+      if (UI.stageCharPersonality) UI.stageCharPersonality.textContent = char.personality || '';
       // v3.5: 年齢に合わせたキャラ別の速度・ピッチ既定値を適用する。
       if (typeof char.speed === 'number') {
         appState.playbackSpeed = char.speed;
@@ -2839,7 +2856,15 @@
       }
     });
     // v3.5: パートナー写真（data URI）は少し遅らせて読み込む。
-    setTimeout(() => loadCharPhotos(), 600);
+    // v3.7.6: 読込後にヒーローへ現在キャラの写真を反映する（初期表示の旧画像対策）。
+    setTimeout(() => loadCharPhotos(() => {
+      const c = appState.characters[appState.selectedChar];
+      if (c && UI.avatarImage) {
+        UI.avatarImage.src = resolveCharImage(c);
+        UI.avatarImage.alt = c.name + 'の写真';
+        UI.avatarImage.style.opacity = '1';
+      }
+    }), 600);
 
     UI.emoBtns.forEach(btn => {
       btn.addEventListener('click', () => setEmotion(btn.dataset.emotion));
@@ -3068,7 +3093,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.7.5 を起動しました', 'info');
+      logMessage('AIボイス v3.7.6 を起動しました', 'info');
       checkAuth();
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
