@@ -19,7 +19,7 @@ input,select,textarea,button,a{scroll-margin-bottom:110px}
 body{margin:0; background:var(--cream); color:var(--ink); font-family:"Zen Kaku Gothic New",system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI",sans-serif; font-size:15px; line-height:1.65}
 h1,h2,h3,.serif{font-family:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif}
 button{font-family:inherit; cursor:pointer}
-:focus-visible{outline:3px solid var(--gold); outline-offset:2px}
+:focus-visible{outline:3px solid var(--gold-d); outline-offset:2px} /* v3.10: 金→濃金。金 #c8a24a は白背景で 2.41:1 しかなくフォーカス表示として弱い。濃金 #a8842f は白 3.50:1・クリーム 3.42:1・深緑 3.57:1 で 3:1 を満たす */
 /* header */
 header{position:sticky; top:0; z-index:50; background:var(--pine2); color:#f3efe2; border-bottom:3px solid var(--gold)}
 .head-in{max-width:1180px; margin:0 auto; padding:10px 16px; display:flex; align-items:center; gap:16px}
@@ -600,7 +600,7 @@ form.panel.form-collapsed #form-body{display:none}
 <footer>
   <p>FAIRWAY FINDER はプランの比較・検討のためのツールで、予約は行いません。料金は実際にプレーする人数で選択したときの総額で確認してください。「割増なし」と「保証」は別の条件です。天気・日没は Open-Meteo（登録不要・無料）の実データを使い、取得できない場合は概算表示になります。</p>
   <p>戸田パブリックゴルフコースを指定する場合は、専用予約ページ（golferweb）で通常予約と一人予約の両方を確認してください： https://www.golferweb.jp/login_wing.php?g_no=5089</p>
-  <p>FAIRWAY FINDER v3.9（2026-11-19）</p>
+  <p>FAIRWAY FINDER v3.10（2026-11-21）</p>
 </footer>
 
 <div class="sticky-bar">
@@ -638,6 +638,8 @@ form.panel.form-collapsed #form-body{display:none}
    戸田パブリック 5,960→6,237Y（GORAで再確認。6,000Y超で対象内）。大平台・アジア取手・取手桜が丘はティー／ルート基準未決定のため据え置き。
    価格再確認（2026-11-14）：全29組み合わせを再確認。かすみがうら 12/12 の3サイトを各−¥1,000訂正（GORA 18990／アコーディア 16990／じゃらん 17990）、石岡 PGM 25990→25900、スタート例の軽微なズレ3件も訂正。checked は再確認日 2026-11-14。
    価格再確認（2026-11-18）：GORAはカレンダー再取得＋18H抽出＋時間選択ページで照合。アコーディアはコースページの静的解析（planNm・price_total・12/12枠の frameJoson）で照合。GDO・PGM・習志野アコーディア・じゃらん4コースは実ブラウザで照合。全29組み合わせを確認。訂正は料金・プラン変更6件（取手桜が丘 12/12：GORA 21990→24990、アコーディア 20990→23990、GDO 21990→24990、じゃらん 21990→24990。取手桜が丘 12/15 GORA 8990→10990、石岡 12/15 GORA 11400→11900）、GORA かすみがうら 12/12 は組売 17990へ（プラン詳細で「お一人様の料金 総額 17,990円」と明記され1名あたり表示と判明したため、11-14の組売除外判断を覆して代表に採用。2名+5,500円・3名+2,200円の割増あり。じゃらんの組売も同表示で1名あたりと確認）、スタート例のズレ14件も訂正（早朝枠の完売が多く、残り1枠のみのプランあり）。9H+αプラン（皆川城アコーディア 8,990・じゃらん 9,990等）は18H代表から従来どおり除外（じゃらんの詳細で「2回目の9Hは日没で回れない場合あり」と確認）。PGM石岡 25900・習志野「18H空きなし」は変更なし。checked は再確認日 2026-11-18。
+   価格再確認（2026-11-21）：GORAはカレンダー再取得＋時間選択ページで照合（61プラン→56プラン。料金変更0件）。アコーディア・じゃらんはコースページ／プラン一覧＋予約開始ページで照合（料金変更0件）。GDO・PGM・習志野アコーディアは実ブラウザで照合。訂正は表示からの削除15件（ヘリテイジ 12/12 GORA 2件完売→18H 0件、取手桜が丘 12/12 はGORA 3件・アコーディア 3件・じゃらん 4件・GDO 1件が掲載終了／完売、石岡 12/12 GORA ¥27,340・¥27,440 が上位5件から外れた）、新規追加6件（石岡 12/12 GORA ¥24,900・¥26,900、PGM石岡 ¥23,900 4サム優待、習志野アコーディア ¥27,990・¥28,430、GDO取手桜が丘 ¥21,990 早朝スルーへ交代）、開始時刻のみの訂正は検証分58件（GORA 29・アコーディア 23・じゃらん 6）のうちアプリ掲載分41件（GORA 29・アコーディア 6・じゃらん 6）。料金の変更は全サイト0件。合計104→95プラン。checked は再確認日 2026-11-21。
+   v3.10（2026-11-21、キーボード操作・スクリーンリーダー対応・フォーカス表示の改善）：(1)並び替えシートのフォーカス管理（開く時に現在の選択肢へフォーカス、閉じる時に「並び替え」ボタンへ戻す、Tabはシート内で循環。Escで閉じてもフォーカスは戻る）。(2)「すべて表示」ボタンに aria-expanded＋data-course を追加し、再描画後に同じボタンへフォーカスを戻す。(3):focus-visible のアウトラインを金→濃金 #a8842f に（白背景 2.41:1→3.50:1、深緑背景 3.57:1）。判定ロジック・コースデータは不変。VERIFIED_PRICES は上記の再確認結果に更新（104→95プラン）。
    v3.8（2026-11-18夜、ユーザー承認）：VERIFIED_PRICES を1プラン／サイト／日から複数プラン（上限：安い方から5件／サイト／日）に拡張。各プランは総額・プラン名・スタート時間（確認済みの開始時刻一覧）に加え、属性 g（2B／3B／指定なし）・lunch（incl=昼食付き／sub=補助付／none=なし）・thru（""=スルーでない／am=午前・早朝スルー／pm=午後スルー／thru=スルー）を持つ。表示は条件に合うプランをすべて出し、合わないプランは「すべて表示」で「条件外のプラン」として区切って出す（既定では描画しない）。並び替えは価格安・コースレート・18Hヤード・2B保証・3B保証・スループレー・昼食付きを追加（価格＝合致プランの最安総額順、レート／ヤード＝コース単位、保証・スルー・昼食＝該当する合致プランを持つコースを先に）。GORAはカレンダー再取得＋時間選択ページで61プラン＋皆川城2プランを照合（皆川城は同一内容の重複掲載2件を除外して5件に補充）。アコーディアはコースページ静的解析で43プラン（12/12のみ）。じゃらんは ?playMonth=11&playDate=12 のプラン一覧＋予約開始ページで20プランを照合（18ホールアイコンで18H判定）。GDO・PGMは静的取得が不可（GDOはbotブロック、PGMはJS描画）のため、v3.7で今朝実ブラウザ確認済みの単独プランのみ継続（GDO皆川城18990・取手桜が丘24990、PGM石岡25900）。GDO大平台は除外：超早プランがGORA・アコーディア・じゃらんの全サイトで完売確認され、GDOにも残っていない可能性が高いため。12/15はGORAのみ（v3.7と同じ）。9H・ハーフ・薄暮・9H+αは18Hから従来どおり除外。
    v3.9（2026-11-19、モバイルファースト大刷新）：視認性・操作性・没入性をレイアウト構造から見直す。判定ロジック・VERIFIED_PRICES・料金表示テキストは不変。(1)視認性：ヒーローをコンパクトに（モバイルで見出し24px・余白縮小）、コースカードにビジュアル帯（SVG地形モチーフ）＋価格ヒーロー（条件に合うプランの価格を大きく表示）＋ファクトストリップ（車・総距離・コースレート・ホールを数字で）を追加、プラン行の価格を大きく（24〜26px）、表示についての注記を折りたたみに。(2)操作性：下部スティッキーバーを「条件／探す／並び替え」の3ボタンに、並び替えはモバイルでクイックチップ＋ボトムシート式に、フォームは折りたたみ可（検索後はモバイルで自動でたたみ、条件サマリーを表示。再訪時は保存条件があれば初回からたたむ）、プリセットを横スクロールの大きなクイックチップに。(3)没入性：カードのフェードイン、シートのスライドアップ、編集調の見出しと余白。配色（深緑＋クリーム＋ゴールド）・タップ対象48px以上は維持。 */
 const COURSES = [
@@ -669,7 +671,7 @@ const COURSE_LINKS = {
 function courseLink(course, site){ const L=COURSE_LINKS[course.name]||{}; return L[site]||null; }
 
 const VERIFIED_PRICES={
- checked:"2026-11-18",
+ checked:"2026-11-21",
  dates:{
    "2026-12-12":{
     "大平台カントリー倶楽部":{
@@ -678,8 +680,6 @@ const VERIFIED_PRICES={
        "name":"[イマスグ]◆遅・日没了承／3B割増なし／昼食補助付",
        "price":15990,
        "starts":[
-        "09:45",
-        "09:52",
         "10:00",
         "10:07",
         "10:15"
@@ -693,8 +693,6 @@ const VERIFIED_PRICES={
        "price":15990,
        "starts":[
         "09:37",
-        "09:45",
-        "09:52",
         "10:00",
         "10:07",
         "10:15"
@@ -707,8 +705,6 @@ const VERIFIED_PRICES={
        "name":"大抽選会ボール付★★遅・日没了承★3B割増無★昼付",
        "price":16430,
        "starts":[
-        "09:45",
-        "09:52",
         "10:00",
         "10:07",
         "10:15"
@@ -722,8 +718,6 @@ const VERIFIED_PRICES={
        "price":16540,
        "starts":[
         "09:37",
-        "09:45",
-        "09:52",
         "10:00",
         "10:07",
         "10:15"
@@ -755,8 +749,6 @@ const VERIFIED_PRICES={
        "name":"【得トク1000】 ●3B割増なし／遅時間限定／昼食補助付／日没了承",
        "price":14990,
        "starts":[
-        "9:45",
-        "9:52",
         "10:00",
         "10:07",
         "10:15"
@@ -769,8 +761,6 @@ const VERIFIED_PRICES={
        "name":"【得トク1000】【ボール１ダース付】●2組6名~◆3B割増なし／遅時間・日没了承／昼付",
        "price":14990,
        "starts":[
-        "9:45",
-        "9:52",
         "10:00",
         "10:07",
         "10:15"
@@ -783,8 +773,6 @@ const VERIFIED_PRICES={
        "name":"★大抽選会ボール付★３Ｂ割増なし／遅・日没了承／昼食補助付",
        "price":15430,
        "starts":[
-        "9:45",
-        "9:52",
         "10:00",
         "10:07",
         "10:15"
@@ -828,8 +816,6 @@ const VERIFIED_PRICES={
        "name":"●3B割増なし／遅時間限定／昼食補助付／日没了承",
        "price":15990,
        "starts":[
-        "09:45",
-        "09:52",
         "10:00",
         "10:07",
         "10:15"
@@ -842,8 +828,6 @@ const VERIFIED_PRICES={
        "name":"【ボール１ダース付】●2組6名~◆3B割増なし／遅時間・日没了承／昼付き",
        "price":15990,
        "starts":[
-        "09:45",
-        "09:52",
         "10:00",
         "10:07",
         "10:15"
@@ -856,8 +840,6 @@ const VERIFIED_PRICES={
        "name":"★大抽選会ボール付★３Ｂ割増なし／遅・日没了承／昼食補助付",
        "price":16430,
        "starts":[
-        "09:45",
-        "09:52",
         "10:00",
         "10:07",
         "10:15"
@@ -923,7 +905,8 @@ const VERIFIED_PRICES={
         "07:28",
         "07:35",
         "07:42",
-        "07:49"
+        "07:49",
+        "07:56"
       ],
        "g":"",
        "lunch":"sub",
@@ -946,9 +929,6 @@ const VERIFIED_PRICES={
        "name":"[イマスグ]日没了承/遅め限定/昼食補助付◎3B割増無",
        "price":17990,
        "starts":[
-        "09:06",
-        "09:13",
-        "09:20",
         "09:55",
         "10:02"
       ],
@@ -967,7 +947,8 @@ const VERIFIED_PRICES={
         "07:28",
         "07:35",
         "07:42",
-        "07:49"
+        "07:49",
+        "07:56"
       ],
        "g":"",
        "lunch":"sub",
@@ -999,7 +980,8 @@ const VERIFIED_PRICES={
         "7:28",
         "7:35",
         "7:42",
-        "7:49"
+        "7:49",
+        "7:56"
       ],
        "g":"",
        "lunch":"sub",
@@ -1040,7 +1022,8 @@ const VERIFIED_PRICES={
         "7:28",
         "7:35",
         "7:42",
-        "7:49"
+        "7:49",
+        "7:56"
       ],
        "g":"",
        "lunch":"sub",
@@ -1072,7 +1055,8 @@ const VERIFIED_PRICES={
         "07:28",
         "07:35",
         "07:42",
-        "07:49"
+        "07:49",
+        "07:56"
       ],
        "g":"",
        "lunch":"sub",
@@ -1113,7 +1097,8 @@ const VERIFIED_PRICES={
         "07:28",
         "07:35",
         "07:42",
-        "07:49"
+        "07:49",
+        "07:56"
       ],
        "g":"",
        "lunch":"sub",
@@ -1122,28 +1107,9 @@ const VERIFIED_PRICES={
     ]
    },
     "ヘリテイジゴルフコース":{
-     "楽天GORA":[
-      {
-       "name":"★安くまわりたい方★18H手引き 天然温泉付",
-       "price":10800,
-       "starts":[
-        "09:28"
-      ],
-       "g":"2B",
-       "lunch":"none",
-       "thru":""
-     },
-      {
-       "name":"[秋先]土日祝セルフ18H天然温泉「四季の湯」利用券付",
-       "price":13500,
-       "starts":[
-        "09:28"
-      ],
-       "g":"2B",
-       "lunch":"none",
-       "thru":""
-     }
-    ]
+     "楽天GORA":{
+      "none":"予約可能なプランなし"
+    }
    },
     "皆川城カントリークラブ":{
      "楽天GORA":[
@@ -1183,8 +1149,6 @@ const VERIFIED_PRICES={
        "starts":[
         "07:30",
         "07:36",
-        "09:30",
-        "09:37",
         "10:07"
       ],
        "g":"",
@@ -1249,8 +1213,7 @@ const VERIFIED_PRICES={
        "starts":[
         "7:30",
         "7:36",
-        "9:30",
-        "9:37",
+        "9:22",
         "10:07"
       ],
        "g":"",
@@ -1305,8 +1268,7 @@ const VERIFIED_PRICES={
        "starts":[
         "07:30",
         "07:36",
-        "09:30",
-        "09:37",
+        "09:22",
         "10:07"
       ],
        "g":"",
@@ -1340,11 +1302,22 @@ const VERIFIED_PRICES={
     "石岡ゴルフ倶楽部":{
      "楽天GORA":[
       {
+       "name":"[イマスグ]土日祝/4サム優待/備考確認*",
+       "price":24900,
+       "starts":[
+        "09:30"
+      ],
+       "g":"",
+       "lunch":"none",
+       "thru":""
+     },
+      {
        "name":"[イマスグ]土日祝/セルフ/昼食別/公開枠限定*",
        "price":26900,
        "starts":[
         "07:22",
-        "08:45"
+        "08:45",
+        "09:30"
       ],
        "g":"",
        "lunch":"none",
@@ -1361,33 +1334,22 @@ const VERIFIED_PRICES={
        "thru":""
      },
       {
+       "name":"[イマスグ]土日祝/セルフ/昼食別/遅め時間帯*",
+       "price":26900,
+       "starts":[
+        "09:30"
+      ],
+       "g":"",
+       "lunch":"none",
+       "thru":""
+     },
+      {
        "name":"土日祝/セルフ/3サム保証*",
        "price":27000,
        "starts":[
         "07:22",
-        "08:45"
-      ],
-       "g":"3B",
-       "lunch":"none",
-       "thru":""
-     },
-      {
-       "name":"大抽選会ボール付/土日祝/セルフ/3サム保証*",
-       "price":27340,
-       "starts":[
-        "07:22",
-        "08:45"
-      ],
-       "g":"3B",
-       "lunch":"none",
-       "thru":""
-     },
-      {
-       "name":"大抽選会ボール付/土日祝/セルフ/3サム保証*",
-       "price":27440,
-       "starts":[
-        "07:22",
-        "08:45"
+        "08:45",
+        "09:30"
       ],
        "g":"3B",
        "lunch":"none",
@@ -1395,6 +1357,16 @@ const VERIFIED_PRICES={
      }
     ],
      "PGM公式":[
+      {
+       "name":"【直前HOT】4サム優待/土日祝/セルフ※備考内容を必ずご確認願います*",
+       "price":23900,
+       "starts":[
+        "9:30"
+      ],
+       "g":"",
+       "lunch":"none",
+       "thru":""
+     },
       {
        "name":"【直前HOT】土日祝ナビ付カートセルフ（昼食別）3サム保証/早めスタート限定*",
        "price":25900,
@@ -1428,36 +1400,6 @@ const VERIFIED_PRICES={
        "g":"3B",
        "lunch":"sub",
        "thru":"am"
-     },
-      {
-       "name":"[今コレ]【RENEW】土日祝◆セルフ・昼食補助付◆",
-       "price":24990,
-       "starts":[
-        "07:07"
-      ],
-       "g":"3B",
-       "lunch":"sub",
-       "thru":""
-     },
-      {
-       "name":"[今コレ]土日祝2組7名〜◆昼食補助付◆3B無",
-       "price":24990,
-       "starts":[
-        "07:07"
-      ],
-       "g":"",
-       "lunch":"sub",
-       "thru":""
-     },
-      {
-       "name":"[大抽選会ボール付]2組7名〜◆昼食補助付◆3B無",
-       "price":25430,
-       "starts":[
-        "07:07"
-      ],
-       "g":"",
-       "lunch":"sub",
-       "thru":""
      }
     ],
      "アコーディア公式":[
@@ -1480,36 +1422,6 @@ const VERIFIED_PRICES={
        "g":"",
        "lunch":"sub",
        "thru":"am"
-     },
-      {
-       "name":"【得トク1000】【RENEW】★2組7名～コンペ★昼食補助付＆3B増無★ボール1DZ付★",
-       "price":23990,
-       "starts":[
-        "7:07"
-      ],
-       "g":"",
-       "lunch":"sub",
-       "thru":""
-     },
-      {
-       "name":"【得トク1000】【RENEW】公開枠限定★昼食補助付【備考必読】",
-       "price":23990,
-       "starts":[
-        "7:07"
-      ],
-       "g":"",
-       "lunch":"sub",
-       "thru":""
-     },
-      {
-       "name":"【大抽選会ボール付】◆セルフ・昼食補助付◆ ★ナビ付★",
-       "price":24430,
-       "starts":[
-        "7:07"
-      ],
-       "g":"",
-       "lunch":"sub",
-       "thru":""
      }
     ],
      "じゃらんゴルフ":[
@@ -1522,66 +1434,44 @@ const VERIFIED_PRICES={
        "g":"",
        "lunch":"sub",
        "thru":"am"
-     },
-      {
-       "name":"【RENEW】★2組7名～ コンペ★昼食補助付＆3B増無★ボール1DZ付★",
-       "price":24990,
-       "starts":[
-        "07:07"
-      ],
-       "g":"",
-       "lunch":"sub",
-       "thru":""
-     },
-      {
-       "name":"【RENEW】公開枠限定 ★昼食補助付【備考必読】",
-       "price":24990,
-       "starts":[
-        "07:07"
-      ],
-       "g":"",
-       "lunch":"sub",
-       "thru":""
-     },
-      {
-       "name":"【大抽選会ボール付】★2組7名～コンペ★昼食補助付＆3B増無★ボール1DZ付★",
-       "price":25430,
-       "starts":[
-        "07:07"
-      ],
-       "g":"",
-       "lunch":"sub",
-       "thru":""
-     },
-      {
-       "name":"【RENEW】★2組7名～ コンペ★パーティ付★昼食補助付＆3B増無★ボール1DZ付",
-       "price":27410,
-       "starts":[
-        "07:07"
-      ],
-       "g":"",
-       "lunch":"sub",
-       "thru":""
      }
     ],
      "GDO":[
       {
-       "name":"＜狙い目＞【RENEW】公開枠限定 ★昼食補助付【備考必読】",
-       "price":24990,
+       "name":"＜狙い目＞ 【RENEW】早朝スルー ★昼食補助付【備考必読】",
+       "price":21990,
        "starts":[
-        "7:07",
-        "7:37"
+        "6:45"
       ],
        "g":"",
        "lunch":"sub",
-       "thru":""
+       "thru":"am"
      }
     ]
    },
     "習志野カントリークラブ":{
-     "アコーディア公式":{
-      "none":"18Hプランの空きなし（薄暮ハーフのみ表示）"
-    }
+     "アコーディア公式":[
+      {
+       "name":"【得トク1000】全時間対象/セルフ/昼食補助付/3B保証",
+       "price":27990,
+       "starts":[
+        "7:07"
+      ],
+       "g":"3B",
+       "lunch":"sub",
+       "thru":""
+     },
+      {
+       "name":"【得トク1000】★大抽選会ボール付★全時間/セルフ/昼食付/3B保証",
+       "price":28430,
+       "starts":[
+        "7:07"
+      ],
+       "g":"3B",
+       "lunch":"incl",
+       "thru":""
+     }
+    ]
    }
   },
    "2026-12-15":{
@@ -1608,7 +1498,6 @@ const VERIFIED_PRICES={
        "name":"◆3組10名〜／遅・日没了承／昼食補助付／パーティ無",
        "price":4990,
        "starts":[
-        "09:45",
         "09:52",
         "10:00",
         "10:07"
@@ -1649,7 +1538,6 @@ const VERIFIED_PRICES={
        "name":"●ドリンクバー付●3B割増無◆遅・日没了承★昼付",
        "price":5190,
        "starts":[
-        "09:45",
         "09:52",
         "10:00",
         "10:07"
@@ -1783,7 +1671,6 @@ const VERIFIED_PRICES={
         "08:08",
         "08:16",
         "08:24",
-        "09:12",
         "09:20",
         "09:28",
         "10:00",
@@ -1801,7 +1688,6 @@ const VERIFIED_PRICES={
         "08:08",
         "08:16",
         "08:24",
-        "09:12",
         "09:20",
         "09:28",
         "10:00",
@@ -1819,7 +1705,6 @@ const VERIFIED_PRICES={
         "08:08",
         "08:16",
         "08:24",
-        "09:12",
         "09:20",
         "09:28",
         "10:00",
@@ -1919,9 +1804,7 @@ const VERIFIED_PRICES={
         "07:30",
         "07:37",
         "07:45",
-        "08:00",
         "08:07",
-        "09:22",
         "09:30",
         "09:37",
         "09:45",
@@ -1945,11 +1828,7 @@ const VERIFIED_PRICES={
         "07:17",
         "07:31",
         "07:52",
-        "07:59",
         "08:06",
-        "08:20",
-        "08:41",
-        "08:55",
         "09:23",
         "09:37",
         "09:44",
@@ -1971,11 +1850,7 @@ const VERIFIED_PRICES={
         "07:17",
         "07:31",
         "07:52",
-        "07:59",
         "08:06",
-        "08:20",
-        "08:41",
-        "08:55",
         "09:23",
         "09:37",
         "09:44",
@@ -1997,11 +1872,7 @@ const VERIFIED_PRICES={
         "07:17",
         "07:31",
         "07:52",
-        "07:59",
         "08:06",
-        "08:20",
-        "08:41",
-        "08:55",
         "09:23",
         "09:37",
         "09:44",
@@ -2023,11 +1894,7 @@ const VERIFIED_PRICES={
         "07:17",
         "07:31",
         "07:52",
-        "07:59",
         "08:06",
-        "08:20",
-        "08:41",
-        "08:55",
         "09:23",
         "09:37",
         "09:44",
@@ -2049,11 +1916,7 @@ const VERIFIED_PRICES={
         "07:17",
         "07:31",
         "07:52",
-        "07:59",
         "08:06",
-        "08:20",
-        "08:41",
-        "08:55",
         "09:23",
         "09:37",
         "09:44",
@@ -2116,7 +1979,6 @@ const VERIFIED_PRICES={
         "07:37",
         "07:45",
         "07:52",
-        "08:00",
         "08:07"
       ],
        "g":"",
@@ -2132,7 +1994,6 @@ const VERIFIED_PRICES={
         "07:37",
         "07:45",
         "07:52",
-        "08:00",
         "08:07"
       ],
        "g":"3B",
@@ -2148,7 +2009,6 @@ const VERIFIED_PRICES={
         "07:37",
         "07:45",
         "07:52",
-        "08:00",
         "08:07"
       ],
        "g":"3B",
@@ -2164,7 +2024,6 @@ const VERIFIED_PRICES={
        "price":10990,
        "starts":[
         "07:07",
-        "08:00",
         "10:15",
         "10:22"
       ],
@@ -2177,7 +2036,6 @@ const VERIFIED_PRICES={
        "price":10990,
        "starts":[
         "07:07",
-        "08:00",
         "10:15",
         "10:22"
       ],
@@ -2190,7 +2048,6 @@ const VERIFIED_PRICES={
        "price":11430,
        "starts":[
         "07:07",
-        "08:00",
         "10:15",
         "10:22"
       ],
@@ -2203,7 +2060,6 @@ const VERIFIED_PRICES={
        "price":11430,
        "starts":[
         "07:07",
-        "08:00",
         "10:15",
         "10:22"
       ],
@@ -2216,7 +2072,6 @@ const VERIFIED_PRICES={
        "price":13410,
        "starts":[
         "07:07",
-        "08:00",
         "10:15",
         "10:22"
       ],
@@ -2299,7 +2154,8 @@ function courseHasAttr(c, cond, attr){
 }
 /* 「すべて表示」の開閉状態（コース名単位。再検索しても開いたまま） */
 const showAllSet=new Set();
-function toggleShowAll(name){ if(showAllSet.has(name)) showAllSet.delete(name); else showAllSet.add(name); runSearch(false); }
+/* v3.10: 再描画でボタンが作り直されるため、開閉後に同じコースのボタンへフォーカスを戻す（キーボード利用時のフォーカス消失を防ぐ） */
+function toggleShowAll(name){ if(showAllSet.has(name)) showAllSet.delete(name); else showAllSet.add(name); runSearch(false); const b=[...document.querySelectorAll('.showall-btn')].find(x=>x.dataset.course===name); if(b) b.focus(); }
 function planTags(p){
   const t=[];
   if(p.g==="2B") t.push("2B保証"); else if(p.g==="3B") t.push("3B保証");
@@ -2336,7 +2192,7 @@ function verifiedPriceHTML(c, cond){
    const ps=outBySite[s];
    return `<div class="site-name" style="margin-top:6px">${s} <span class="small" style="letter-spacing:0">${ps.length}件</span></div>`+ps.map(p=>planRowHTML(s,p,true,cond)).join("");
  }).join("") : "";
- const toggleBtn=outPlans.length? `<button type="button" class="showall-btn" onclick="toggleShowAll('${c.name.replace(/'/g,"")}')">${expanded? "条件に合うプランのみ表示" : "すべて表示（条件外 "+outPlans.length+"件）"}</button>` : "";
+ const toggleBtn=outPlans.length? `<button type="button" class="showall-btn" data-course="${c.name}" aria-expanded="${expanded}" onclick="toggleShowAll('${c.name.replace(/'/g,"")}')">${expanded? "条件に合うプランのみ表示" : "すべて表示（条件外 "+outPlans.length+"件）"}</button>` : "";
  const emptyNote=!matched.length&&all.length? `<p class="small" style="margin:6px 0">条件に合うプランはありません。条件を緩めるか「すべて表示」で他のプランを確認してください。</p>` : "";
  const note=`<p class="small" style="margin:6px 0 2px">料金は ${VERIFIED_PRICES.checked} 確認時点の1人あたり総額です。空きは変動します。</p>`;
  if(!all.length&&!noneRows) return `<p class="small" style="margin:2px 0 6px">料金：選択中のサイトでは、この日付の料金を確認できていません。</p>`;
@@ -2685,16 +2541,32 @@ function setSort(v){
   const s=$("f-sort"); if(!s || ![...s.options].some(o=>o.value===v)) return;
   s.value=v; syncSortUI(); saveForm(); runSearch(false);
 }
+/* v3.10: シートは role="dialog" aria-modal="true" のためフォーカス管理を追加。
+   開くときは現在の並び替え（aria-pressed=true の選択肢）へフォーカスを移し、
+   閉じるときは開いたボタン（並び替え）へフォーカスを戻す。Tab はシート内で循環させる。 */
 function openSortSheet(){
   const sh=$("sort-sheet"), bd=$("sort-sheet-backdrop"); if(!sh) return;
   sh.hidden=false; bd.hidden=false;
   requestAnimationFrame(()=>{ sh.classList.add('open'); bd.classList.add('open'); });
+  const cur=sh.querySelector('[aria-pressed="true"]') || $("btn-sort-close");
+  if(cur) cur.focus();
 }
 function closeSortSheet(){
   const sh=$("sort-sheet"), bd=$("sort-sheet-backdrop"); if(!sh) return;
+  const wasOpen=sh.classList.contains('open') || !sh.hidden;
   sh.classList.remove('open'); bd.classList.remove('open');
   setTimeout(()=>{ sh.hidden=true; bd.hidden=true; },220);
+  if(wasOpen){ const b=$("btn-sort-open"); if(b) b.focus(); }
 }
+/* v3.10: シート内の Tab トラップ（閉じるボタン＋9選択肢の間を循環） */
+$("sort-sheet").addEventListener('keydown', e=>{
+  if(e.key!=='Tab') return;
+  const f=[...$("sort-sheet").querySelectorAll('button')].filter(b=>!b.disabled);
+  if(!f.length) return;
+  const first=f[0], last=f[f.length-1];
+  if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+});
 function formSummaryText(){
   const cond=getConditions();
   const d=cond.date?fmtDateStr(cond.date):"日付未指定";
