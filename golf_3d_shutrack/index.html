@@ -229,7 +229,7 @@
       #left-analysis-column [class*="text-[9.5px]"] { font-size: 11px; }
       #left-analysis-column [class*="text-[11px]"] { font-size: 12.5px; }
       /* 3D上の操作UI：44pxタップ領域、横向きはモバイルで隠す、弾道タグはヒーローへ統合 */
-      .cam-mode-btn, #btn-replay-flight, #btn-theme-day, #btn-theme-night { min-height: 44px; padding-left: 10px; padding-right: 10px; font-size: 12px !important; }
+      .cam-mode-btn, #btn-replay-flight, #btn-copy-result, #btn-theme-day, #btn-theme-night { min-height: 44px; padding-left: 10px; padding-right: 10px; font-size: 12px !important; }
       .cam-mode-btn[data-cam="side"] { display: none; }
       #range-legend-card { max-width: 168px; }
       #range-shot-shape-tag { display: none; }
@@ -246,7 +246,8 @@
       #panel-range > div.absolute > div:first-child { flex: 1 1 100%; min-width: 0; overflow-x: auto; scrollbar-width: none; }
       #panel-range > div.absolute > div:first-child::-webkit-scrollbar { display: none; }
       #panel-range > div.absolute > div:first-child .cam-mode-btn,
-      #panel-range > div.absolute > div:first-child #btn-replay-flight { flex: none; white-space: nowrap; }
+      #panel-range > div.absolute > div:first-child #btn-replay-flight,
+      #panel-range > div.absolute > div:first-child #btn-copy-result { flex: none; white-space: nowrap; }
       #panel-range > div.absolute > div:last-child { flex-direction: row; align-items: center; gap: 8px; margin-left: auto; }
       #theme-switcher-group { display: none; }
       #btn-theme-toggle-mobile { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; background: rgba(22,23,26,0.9); border: 1px solid #32353d; color: #fff; font-size: 12px; font-weight: 700; white-space: nowrap; }
@@ -815,6 +816,7 @@
             <button data-cam="side" class="cam-mode-btn px-2 py-0.5 rounded text-[10.5px] font-bold text-gray-200 hover:bg-[#2a2d34]" title="ショートカット: 4">真横(高さ)</button>
             <button id="btn-replay-flight" class="ml-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-emerald-600/85 hover:bg-emerald-500 text-white transition" title="弾道アニメーション再生 (Space)">▶ 再生</button>
             <button id="btn-range-max" class="cam-mode-btn ml-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#6d28d9] text-white transition" title="入力画面を隠して3D弾道を大きく表示 (M)">⛶ 弾道を大きく見る</button>
+            <button id="btn-copy-result" class="ml-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#2a2d34] hover:bg-[#3a3e47] text-gray-100 border border-[#3d424f] transition" title="ショット結果をテキストでコピー (C)">📋 結果をコピー</button>
           </div>
 
           <!-- Right Stack: Day/Night Switcher + Collapsible 3D Trajectory Legend Card -->
@@ -1089,6 +1091,7 @@
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">打点を芯(0,0)へリセット</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">Esc</kbd></div>
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">3Dカメラ視点切替</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">1 / 2 / 3 / 4</kbd></div>
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">3D弾道を大きく見る／戻る</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">M</kbd></div>
+        <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">ショット結果をコピー</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">C</kbd></div>
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">左サイドバー開閉</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">H</kbd></div>
       </div>
       <p class="text-[11px] text-gray-300 leading-relaxed">
@@ -3060,8 +3063,16 @@
         }
       }
 
-      state.shotHistory.forEach((item) => {
+      // Session best: first (oldest) row with the max carry gets the ★ベスト badge
+      let bestIdx = -1;
+      if (state.shotHistory.length > 1) {
+        let bestCarry = -Infinity;
+        state.shotHistory.forEach((h, i) => { if (h.shot.carryYards > bestCarry) { bestCarry = h.shot.carryYards; bestIdx = i; } });
+      }
+
+      state.shotHistory.forEach((item, idx) => {
         const s = item.shot;
+        const isBest = idx === bestIdx;
         const sideLabel = s.carrySideYards < 0 ? `${Math.abs(s.carrySideYards).toFixed(1)}左` : `${s.carrySideYards.toFixed(1)}右`;
         const row = document.createElement('div');
         row.className = 'px-3 py-2.5 hover:bg-[#252830] flex items-center justify-between cursor-pointer transition';
@@ -3069,8 +3080,8 @@
           <div class="flex items-center gap-2.5">
             <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${item.color}"></span>
             <div>
-              <div class="text-sm font-extrabold font-num text-white">${s.carryYards.toFixed(1)} <span class="text-xs font-normal text-gray-300">yds</span> <span class="text-[10px] text-gray-400 font-normal ml-1">${item.label || ''}</span></div>
-              <div class="text-[10px] text-gray-300 font-num">HS ${s.chs.toFixed(1)} | ${s.spinRate}rpm | ${sideLabel}</div>
+              <div class="text-sm font-extrabold font-num text-white">${s.carryYards.toFixed(1)} <span class="text-xs font-normal text-gray-300">yds</span> <span class="text-[10px] text-gray-400 font-normal ml-1">${item.label || ''}</span>${isBest ? '<span class="text-[10px] font-bold text-amber-300 ml-1">★ ベスト</span>' : ''}</div>
+              <div class="text-[10px] text-gray-300 font-num">HS ${s.chs.toFixed(1)} | ${s.spinRate}rpm | トータル ${s.totalYards.toFixed(1)}y | ${sideLabel}</div>
             </div>
           </div>
           <div class="flex items-center gap-1 text-gray-300">
@@ -3451,6 +3462,45 @@
       update3DTrajectoryInRange(state.currentShot, true);
     });
 
+    // Shot-result copy: TrackMan-style text summary for sharing (clipboard API + textarea fallback)
+    function buildShotResultText(shot) {
+      const side = shot.carrySideYards < 0 ? `${Math.abs(shot.carrySideYards).toFixed(1)}y左` : shot.carrySideYards > 0 ? `${shot.carrySideYards.toFixed(1)}y右` : '直進';
+      const shape = classifyShotShapeJP(shot.launchH, shot.spinAxis);
+      return [
+        `【GOLF MIRROR RANGE】${shot.clubName}`,
+        `キャリー ${shot.carryYards.toFixed(1)}yds / トータル ${shot.totalYards.toFixed(1)}yds（${side}）`,
+        `HS ${shot.chs.toFixed(1)}m/s・初速 ${shot.ballSpeed.toFixed(1)}m/s・打出角 ${shot.launchV.toFixed(1)}°・スピン ${shot.spinRate}rpm`,
+        `弾道：${shape}`,
+        'https://gs777-max.github.io/app/golf_3d_shutrack/'
+      ].join('\n');
+    }
+    function copyShotResult() {
+      const shot = state.currentShot || calculateShotPhysics(state);
+      const text = buildShotResultText(shot);
+      const btn = document.getElementById('btn-copy-result');
+      const done = () => {
+        if (!btn) return;
+        const orig = btn.textContent;
+        btn.textContent = '✓ コピーしました';
+        setTimeout(() => { btn.textContent = orig; }, 1600);
+      };
+      const fallbackCopy = () => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) { /* clipboard unavailable */ }
+        document.body.removeChild(ta);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
+    }
+    document.getElementById('btn-copy-result').addEventListener('click', copyShotResult);
+
     document.getElementById('btn-compare-mode').addEventListener('click', (e) => {
       state.compareAllShots = !state.compareAllShots;
       document.getElementById('chk-legend-compare').checked = state.compareAllShots;
@@ -3658,6 +3708,9 @@
         setCameraAngle('side');
       } else if (e.key === 'm' || e.key === 'M') {
         setRangeMax(!document.body.classList.contains('range-max'));
+      } else if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        copyShotResult();
       }
     });
 
