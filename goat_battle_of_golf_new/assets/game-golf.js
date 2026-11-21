@@ -21,7 +21,7 @@ window.__goatDiagLoopOk = function(slot){ try{ var D = window.__GOAT_DIAG__; if(
   var TL = new THREE.TextureLoader();
   /* v4.9: アセット版数（boot 層の __GOAT_AV__ と連動）。テクスチャ/GLB の URL に付与し、
      30日キャッシュ下でも版上げで確実に差し替わるようにする */
-  var AVQ = '?v=' + (window.__GOAT_AV__ || 'N5');
+  var AVQ = '?v=' + (window.__GOAT_AV__ || 'N6');
   var __WARM = /[?&]warmup=1/.test(location.search); /* v4.5: 先読み時はテクスチャを読み込まない */
   function loadTex(name, srgb, rx, ry){
     if(__WARM) return null;
@@ -8149,6 +8149,7 @@ document.addEventListener('DOMContentLoaded', function () {
         B.isPrime = !!ctx.opponent.isPrime;
         B.oppId = ctx.opponent.id || null;     /* N2: 対戦相手の実体表示用に識別子を保持 */
         B.oppKind = ctx.opponent.kind || null; /* N2: 同上（"rival" 判定用） */
+        B.heroId = ctx.heroId || null;         /* N6: ダーク版・鏡像（ノクス／器暴走）の解決用 */
       }
       B.courseId = ctx.course || B.courseId;
       B.holesCount = ctx.holes || B.holesCount;
@@ -8447,7 +8448,11 @@ _n2PendingLaunch を _swingAnim ラッパーがインパクトで発火する）
 - ライバル戦: 対戦相手を実体表示する。ゴースト計算（stepEnemyGhostOneShot 等）は
 一切変更せず、B.ghost の打数変化を検知して「相手の1打」を映像化する。
 - カメラ: アドレス時は自キャラが見える画角に寄せ、相手ターン時は相手打席カメラへ。
-- ボス戦・フリーラウンドでは相手モデルは出さない（自キャラ差し替えのみ）。
+- フリーラウンドでは相手モデルは出さない（自キャラ差し替えのみ）。
+N6: ボス戦にも実体表示を拡張した。固定ボス5人は専用モデル（boss-*.glb）、
+ダーク版（主人公重複時の Junbo／DarkNiklaus）と神ノクス・器暴走（鏡像戦）は
+対応主人公 GLB のダークリスキン、創世神 Watu は watu.glb で表示する。
+モデル未制作のボス（パリのランダム枠17人）は従来どおりゴースト表示のまま。
 ========================================================================= */
 (function initGoatCharStageN2(){
 "use strict";
@@ -8465,7 +8470,15 @@ matuya: { off:[0.023,0.037,0.559], dir:[0.988,-0.151], s:1.212},
 tiiger: { off:[0.045,0.038,0.524], dir:[0.951, 0.307], s:1.096},
 junbo: { off:[0.030,0.038,0.540], dir:[0.993, 0.120], s:1.164},
 mcilro: { off:[0.045,0.038,0.524], dir:[0.966, 0.258], s:1.154},
-decham: { off:[0.043,0.038,0.528], dir:[0.981, 0.192], s:1.175}
+decham: { off:[0.043,0.038,0.528], dir:[0.981, 0.192], s:1.175},
+/* N6: ボス専用モデル（deliver-N6/work/measure-boss-*.json で実測、導出式は主人公と同一。
+s は TIiger 基準の均一 1.096（実測身長の相対差をそのまま残す: Junbo 1.717m→1.88、
+Player 1.769m→1.94、Palmer 1.890m→2.07、Niklaus 1.917m→2.10、DarkTIiger 1.852m→2.03） */
+"boss-junbo": { off:[0.030,0.038,0.540], dir:[0.993, 0.120], s:1.096},
+"boss-player": { off:[0.044,0.038,0.525], dir:[0.981, 0.197], s:1.096},
+"boss-palmer": { off:[0.056,0.038,0.530], dir:[0.936, 0.351], s:1.096},
+"boss-niklaus": { off:[0.060,0.038,0.532], dir:[0.939, 0.344], s:1.096},
+"boss-tiigerdark": { off:[0.045,0.038,0.524], dir:[0.951, 0.307], s:1.096}
 };
 var IMPACT_T = 0.9667; /* swing クリップのインパクト時刻（f30 @30fps、全キャラ共通の作画キー） */
 
@@ -8476,7 +8489,7 @@ queue:[], cine:null,
 prevGhost:null, prevHoleIdx:-1,
 swingLaunch:null, swingPending:false, swingStartWall:0, oppPlaced:false, lastCamT:0,
 camPos:null, camLook:null, camActive:false,
-lastPlayerMesh:null, tickOn:false, playerKey:null, oppKey:null,
+lastPlayerMesh:null, tickOn:false, playerKey:null, oppKey:null, oppSpec:null,
 flight:null, relocate:null
 };
 window.__GOATN2 = stage;
@@ -8486,8 +8499,11 @@ function clamp(x,a,b){ return Math.max(a, Math.min(b, x));}
 function smooth(x){ return x*x*(3-2*x);}
 
 /* ---------------- Actor（1人分の GLB モデル＋ミキサー） ---------------- */
-function Actor(key){
+function Actor(key, opts){
+opts = opts || {};
 this.key = key; this.cal = CAL[key];
+this.file = opts.file || (key + ".glb"); /* N6: ボス専用モデル等のファイル指定 */
+this.dark = !!opts.dark;                 /* N6: ダークリスキン（鏡像・ダーク版） */
 this.group = new THREE.Group();
 this.group.rotation.order = "YXZ";
 this.mixer = null; this.actions = {}; this.current = null;
@@ -8497,16 +8513,26 @@ this.yaw = 0;
 }
 Actor.prototype.load = function(loader){
 var self = this;
-loader.loadAsync("assets/chars/" + this.key + ".glb?v=N5").then(function(gltf){
+loader.loadAsync("assets/chars/" + this.file + "?v=N6").then(function(gltf){
 var model = gltf.scene;
 /* MPFB 由来マテリアルは BLEND 指定だと同一メッシュ内の描画順が崩れて透けるため、
-テストページで実証した対処（不透明化＋alphaTest）を適用する */
+テストページで実証した対処（不透明化＋alphaTest）を適用する。
+N6: ダークリスキンは色倍率を一意なマテリアル単位で一度だけ適用する */
+var uniqMats = [];
 model.traverse(function(o){
 if(o.isMesh){
 o.castShadow = true; o.receiveShadow = false;
 var mats = Array.isArray(o.material)? o.material: [o.material];
-mats.forEach(function(m){ m.transparent = false; m.depthWrite = true; m.alphaTest = 0.35; m.needsUpdate = true;});
+mats.forEach(function(m){ if(uniqMats.indexOf(m) < 0) uniqMats.push(m);});
 }
+});
+uniqMats.forEach(function(m){
+m.transparent = false; m.depthWrite = true; m.alphaTest = 0.35;
+if(self.dark){
+if(m.color) m.color.multiplyScalar(0.30);
+if(m.emissive) m.emissive.setHex(0x140722);
+}
+m.needsUpdate = true;
 });
 self.group.add(model);
 self.group.scale.setScalar(self.cal.s);
@@ -8606,14 +8632,40 @@ if(game.character && game.character.name && CHAR_KEY[game.character.name]) retur
 if(game.character && DS_KEY[game.character.driverSpeed]) return DS_KEY[game.character.driverSpeed];
 return "watu";
 }
-function resolveOppKey(){
+/* N6: 相手の実体表示スペック解決。{key: CALキー, file: GLBファイル名, dark: リスキン} を返す。
+ボス戦は B.oppId で判別する（index.html の FIXED_BOSSES と対応）。モデル未制作のボス
+（パリのランダム枠17人など）は null を返し、従来どおりゴースト表示になる */
+function resolveOppSpec(){
 var B = window.GOAT_BATTLE;
 if(!B || B.freeRound || B.inPlayoff) return null;
+if(B.isBoss){
+var heroKey = (B.heroId && CHAR_KEY[B.heroId])? CHAR_KEY[B.heroId]: resolvePlayerKey();
+switch(B.oppId){
+case "Junbo":
+/* 主人公が Junbo のときだけダーク版（主人公 GLB のリスキン）。それ以外は専用モデル */
+if(B.heroId === "Junbo" || (!B.heroId && B.playerCharId === "Junbo"))
+return { key:"junbo", file:"junbo.glb", dark:true };
+return { key:"boss-junbo", file:"boss-junbo.glb", dark:false };
+case "Player": return { key:"boss-player", file:"boss-player.glb", dark:false };
+case "Palmer": return { key:"boss-palmer", file:"boss-palmer.glb", dark:false };
+case "Niklaus": return { key:"boss-niklaus", file:"boss-niklaus.glb", dark:false };
+case "DarkNiklaus": return { key:"boss-niklaus", file:"boss-niklaus.glb", dark:true };
+case "DarkTIiger": return { key:"boss-tiigerdark", file:"boss-tiigerdark.glb", dark:false };
+case "VesselBerserk": return { key:heroKey, file:heroKey + ".glb", dark:true }; /* 器＝主人公の鏡像 */
+case "Nox": return { key:heroKey, file:heroKey + ".glb", dark:true };           /* 神ノクス＝主人公の鏡像 */
+case "TrueWatu": return { key:"watu", file:"watu.glb", dark:false };
+default: return null;
+}
+}
 var isRival = (B.oppKind === "rival") || (!B.isBoss && B.holesCount === 1);
 if(!isRival) return null;
-if(B.oppId && CHAR_KEY[B.oppId]) return CHAR_KEY[B.oppId];
-if(B.oppName){ for(var n in CHAR_KEY){ if(B.oppName.indexOf(n) === 0) return CHAR_KEY[n];}}
+if(B.oppId && CHAR_KEY[B.oppId]){ var k = CHAR_KEY[B.oppId]; return { key:k, file:k + ".glb", dark:false };}
+if(B.oppName){ for(var n in CHAR_KEY){ if(B.oppName.indexOf(n) === 0){ var k2 = CHAR_KEY[n]; return { key:k2, file:k2 + ".glb", dark:false };}}}
 return null;
+}
+function resolveOppKey(){
+var spec = resolveOppSpec();
+return spec? spec.key: null;
 }
 function maybeLoadActors(){
 if(!stage.loaderReady ||!stage.hooksInstalled) return;
@@ -8622,10 +8674,11 @@ stage.playerKey = resolvePlayerKey();
 stage.player = new Actor(stage.playerKey);
 stage.player.load(gltfLoader);
 }
-var ok = resolveOppKey();
-if(ok &&!stage.opp){
-stage.oppKey = ok;
-stage.opp = new Actor(ok);
+var spec = resolveOppSpec();
+if(spec &&!stage.opp){
+stage.oppKey = spec.key;
+stage.oppSpec = spec;
+stage.opp = new Actor(spec.key, spec);
 stage.opp.load(gltfLoader);
 makeOppBall();
 }

@@ -31,7 +31,7 @@
   (function(){
     var TL = new THREE.TextureLoader();
     /* v4.9: アセット版数（boot 層の __GOAT_AV__ と連動）。テクスチャ/GLB の URL に付与する */
-    var AVQ = '?v=' + (window.__GOAT_AV__ || 'N5');
+    var AVQ = '?v=' + (window.__GOAT_AV__ || 'N6');
     function loadTex(name, srgb, rx, ry){
     var t = TL.load('assets/textures/' + name + '.png' + AVQ, function(){
       window.HQW._ready[name] = 1;
@@ -4194,7 +4194,7 @@ scene.remove(m.mesh);
       if (!key) { npc.failed = true; return; }
       initRivalLoader(function (loader) {
         if (!loader) { if (rivalNpc === npc) npc.failed = true; return; }
-        loader.loadAsync("assets/chars/" + key + ".glb?v=N5").then(function (gltf) {
+        loader.loadAsync("assets/chars/" + key + ".glb?v=N6").then(function (gltf) {
           if (rivalNpc !== npc) { /* 読み込み中に状態が変わった場合は破棄して捨てる */
             gltf.scene.traverse(function (o) { if (o.geometry) { try { o.geometry.dispose(); } catch (e) {} } });
             return;
@@ -4592,7 +4592,7 @@ scene.remove(m.mesh);
       if (!key) { rec.failed = true; return; }
       initRivalLoader(function (loader) {
         if (!loader) { rec.failed = true; townLog("role loader unavailable:", def.role); return; }
-        loader.loadAsync("assets/chars/" + key + ".glb?v=N5").then(function (gltf) {
+        loader.loadAsync("assets/chars/" + key + ".glb?v=N6").then(function (gltf) {
           if (townDisposed) { gltf.scene.traverse(function (o) { if (o.geometry) { try { o.geometry.dispose(); } catch (e) {} } }); return; }
           var model = gltf.scene;
           /* N2/N3 で実証済みの透け対処＋別人化の色差し替え（ポロとキャップは無地マテリアルのため色替えがそのまま効く） */
