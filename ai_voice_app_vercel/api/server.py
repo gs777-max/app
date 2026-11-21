@@ -81,9 +81,25 @@ def issue_ephemeral_token(api_key):
         data = json.loads(resp.read().decode('utf-8'))
     return data
 
-def rest_generate(api_key, prompt, system_instruction):
+def rest_generate(api_key, prompt, system_instruction, history=None):
     """REST フォールバック（generateContent）をサーバー側で実行する。"""
-    body = {"contents": [{"parts": [{"text": prompt}]}]}
+    # v3.7.4: JS版（api/rest.js）と同様に直近の履歴をcontentsに含める。
+    contents = []
+    hist_chars = 0
+    if isinstance(history, list):
+        for h in history[-20:]:
+            if not isinstance(h, dict):
+                continue
+            t = str(h.get('text') or '').strip()[:2000]
+            if not t:
+                continue
+            hist_chars += len(t)
+            if hist_chars > 8000:
+                break
+            contents.append({"role": "model" if h.get('role') == 'model' else "user",
+                             "parts": [{"text": t}]})
+    contents.append({"role": "user", "parts": [{"text": prompt}]})
+    body = {"contents": contents}
     if system_instruction:
         body["systemInstruction"] = {"parts": [{"text": system_instruction}]}
     req = urllib.request.Request(
@@ -104,13 +120,20 @@ AUTH_COOKIE = 'aivoice_session'
 AUTH_SESSION_SEC = 7 * 24 * 60 * 60
 
 def _login_hashes():
-    return ((os.environ.get('LOGIN_ID_HASH') or '').strip().lower(),
-            (os.environ.get('LOGIN_PASSWORD_HASH') or '').strip().lower())
+    # v3.7.4: JS版（_auth.js）と同じく全ての空白を除去する。
+    return (''.join((os.environ.get('LOGIN_ID_HASH') or '').split()).lower(),
+            ''.join((os.environ.get('LOGIN_PASSWORD_HASH') or '').split()).lower())
+
+def _auth_state():
+    # v3.7.4: 未設定（missing）と不正値（malformed）を区別する（JS版と同等）。
+    _id_h, pw_h = _login_hashes()
+    if not pw_h:
+        return 'missing'
+    return 'ok' if re.fullmatch(r'[0-9a-f]{64}', pw_h) else 'malformed'
 
 def _auth_configured():
     # v3.6.1: パスワードのみ（LOGIN_PASSWORD_HASH のみ必須）
-    _id_h, pw_h = _login_hashes()
-    return bool(re.fullmatch(r'[0-9a-f]{64}', pw_h or ''))
+    return _auth_state() == 'ok'
 
 def _sha256_hex(v):
     return hashlib.sha256(str(v or '').encode('utf-8')).hexdigest()
@@ -210,8 +233,12 @@ class handler(SimpleHTTPRequestHandler):
             })
             return
         if clean_path == '/api/login':
-            if not _auth_configured():
-                self._send_json(503, {"success": False, "code": "AUTH_NOT_CONFIGURED", "error": "ログイン設定が未完了です（環境変数 LOGIN_PASSWORD_HASH）。", "runtime": "python"})
+            state = _auth_state()
+            if state != 'ok':
+                code = 'AUTH_NOT_CONFIGURED' if state == 'missing' else 'AUTH_MALFORMED'
+                msg = ('ログイン設定が未完了です（環境変数 LOGIN_PASSWORD_HASH）。' if state == 'missing'
+                       else 'ログイン設定の値が不正です（LOGIN_PASSWORD_HASH は16進64文字のSHA-256ハッシュにしてください）。')
+                self._send_json(503, {"success": False, "code": code, "error": msg, "runtime": "python"})
                 return
             self._send_json(200, {"success": True, "authenticated": _is_authenticated(self.headers), "runtime": "python"})
             return
@@ -241,8 +268,12 @@ class handler(SimpleHTTPRequestHandler):
             return
 
         if clean_path == '/api/login':
-            if not _auth_configured():
-                self._send_json(503, {"success": False, "code": "AUTH_NOT_CONFIGURED", "error": "ログイン設定が未完了です（環境変数 LOGIN_PASSWORD_HASH）。", "runtime": "python"})
+            state = _auth_state()
+            if state != 'ok':
+                code = 'AUTH_NOT_CONFIGURED' if state == 'missing' else 'AUTH_MALFORMED'
+                msg = ('ログイン設定が未完了です（環境変数 LOGIN_PASSWORD_HASH）。' if state == 'missing'
+                       else 'ログイン設定の値が不正です（LOGIN_PASSWORD_HASH は16進64文字のSHA-256ハッシュにしてください）。')
+                self._send_json(503, {"success": False, "code": code, "error": msg, "runtime": "python"})
                 return
             try:
                 length = int(self.headers.get('Content-Length') or 0)
@@ -299,7 +330,7 @@ class handler(SimpleHTTPRequestHandler):
             if len(prompt) > 2000 or len(system_instruction) > 4000:
                 self._send_json(400, {"success": False, "error": "入力が長すぎます。", "runtime": "python"})
                 return
-            text = rest_generate(key, prompt, system_instruction)
+            text = rest_generate(key, prompt, system_instruction, payload.get('history'))
             self._send_json(200, {"success": True, "text": text, "runtime": "python"})
             return
         except urllib.error.HTTPError as e:

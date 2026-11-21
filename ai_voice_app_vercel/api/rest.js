@@ -16,6 +16,7 @@
 const REST_MODEL = 'models/gemini-2.5-flash';
 const MAX_PROMPT_CHARS = 2000;
 const MAX_SYSTEM_CHARS = 4000;
+const MAX_HISTORY_CHARS = 8000;
 
 const auth = require('./_auth');
 
@@ -89,9 +90,21 @@ async function handler(req, res) {
     return;
   }
 
-  const body = {
-    contents: [{ parts: [{ text: prompt }] }]
-  };
+  // v3.7.4: フォールバック会話に文脈を持たせる（直近の履歴をcontentsに含める）。
+  const contents = [];
+  let histChars = 0;
+  if (Array.isArray(payload.history)) {
+    for (const h of payload.history.slice(-20)) {
+      if (!h || typeof h.text !== 'string') continue;
+      const t = h.text.trim().slice(0, MAX_PROMPT_CHARS);
+      if (!t) continue;
+      histChars += t.length;
+      if (histChars > MAX_HISTORY_CHARS) break;
+      contents.push({ role: h.role === 'model' ? 'model' : 'user', parts: [{ text: t }] });
+    }
+  }
+  contents.push({ role: 'user', parts: [{ text: prompt }] });
+  const body = { contents };
   if (systemInstruction) {
     body.systemInstruction = { parts: [{ text: systemInstruction }] };
   }
