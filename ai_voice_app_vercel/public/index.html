@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.7.0)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.7.1)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -676,7 +676,7 @@
       <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい選べるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.7.0 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.7.1 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -981,7 +981,7 @@
         holo: {
           name: 'ハル',
           image: './assets/cyber_holo_face.jpg',
-          voice: 'Aoede',
+          voice: 'Umbriel',
           desc: '20代・男性・穏やかで聞き上手',
           speed: 1.0, pitch: 0,
           personality: '20代の男性。穏やかで聞き上手な、日常の会話パートナー。',
@@ -990,7 +990,7 @@
         luna: {
           name: 'ルナ',
           image: './assets/cyber_luna_female.jpg',
-          voice: 'Kore',
+          voice: 'Aoede',
           desc: '20代・女性・明るく元気',
           speed: 1.0, pitch: 0,
           personality: '20代の女性。明るく元気で、親しみやすい日常の会話パートナー。',
@@ -999,7 +999,7 @@
         ren: {
           name: 'レン',
           image: './assets/cyber_ren_male.jpg',
-          voice: 'Fenrir',
+          voice: 'Algieba',
           desc: '30代・男性・落ち着いて頼れる',
           speed: 1.0, pitch: 0,
           personality: '30代の男性。落ち着いていて頼れる、日常の会話パートナー。',
@@ -1035,7 +1035,7 @@
         yuri: {
           name: '天宮ユリ',
           photoKey: 'yuri',
-          voice: 'Leda',
+          voice: 'Kore',
           desc: '35歳・女性・天才ゴルフレッスンプロ',
           speed: 1.0, pitch: -50,
           personality: '35歳の女性、天才ゴルフレッスンプロ。原因を1つに絞って解決に導く。',
@@ -1071,7 +1071,7 @@
         hana: {
           name: 'ハナ',
           photoKey: 'hana',
-          voice: 'Despina',
+          voice: 'Pulcherrima',
           desc: '28歳・女性・ジュニア育成コーチ',
           speed: 1.05, pitch: 60,
           personality: '28歳の女性、ジュニアと初心者の育成専門コーチ。褒めて伸ばす。',
@@ -1080,7 +1080,7 @@
         rose: {
           name: 'マダム・ローズ',
           photoKey: 'rose',
-          voice: 'Laomedeia',
+          voice: 'Gacrux',
           desc: '55歳・女性・ゴルフ場の支配人',
           speed: 0.95, pitch: -60,
           personality: '55歳の女性、名門ゴルフコースの支配人。マナーと接待ゴルフの作法に詳しい。',
@@ -1913,7 +1913,9 @@
         appState.isConnected = true;
         appState.isSessionReady = false;
 
-        appState.ws.onopen = () => {
+        appState.ws.onopen = (e) => {
+          // v3.7.1: 旧ソケットの遅延イベントで新セッションを壊さない。
+          if (appState.ws !== e.target) return;
           // v3.1: 接続確立でガードと再接続回数をリセットする。
           appState.isConnecting = false;
           appState.reconnectAttempts = 0;
@@ -1922,6 +1924,8 @@
         };
 
         appState.ws.onmessage = async (e) => {
+          // v3.7.1: 旧ソケットの遅延メッセージ（前のキャラの音声等）を新セッションに混ぜない。
+          if (appState.ws !== e.target) return;
           try {
             let data;
             if (e.data instanceof Blob) {
@@ -1936,6 +1940,8 @@
         };
 
         appState.ws.onerror = (err) => {
+          // v3.7.1: 旧ソケットのエラーで新セッションの状態を壊さない。
+          if (appState.ws !== err.target) return;
           appState.isConnecting = false;
           logMessage(`WebSocket 通信エラー (${err.message || '接続遮断'})`, 'error');
 
@@ -1949,6 +1955,10 @@
         };
 
         appState.ws.onclose = (e) => {
+          // v3.7.1: パートナー切替で閉じた旧ソケットの onclose が新セッション開始後に
+          // 遅れて発火すると、自動再接続や disconnectSession で新セッションを壊してしまう。
+          // 現在のソケットでなければ何もしない。
+          if (appState.ws !== e.target) return;
           appState.isConnecting = false;
           logMessage(`WebSocket 切断 (コード: ${e.code}, 理由: ${e.reason || 'None'})`, 'warn');
           // v3.1: 意図的な切断（「会話を終える」・再接続のための切断）の場合は何もしない。
@@ -2026,6 +2036,8 @@
         const upd = data.sessionResumptionUpdate;
         if (upd.newHandle) {
           appState.sessionResumptionHandle = upd.newHandle;
+          // v3.7.1: ハンドル発行時のキャラを記録（別キャラへの再開混入を防ぐ）。
+          appState._handleCharKey = appState.selectedChar;
           logMessage(`セッション再開ハンドルを受け取りました（再開可: ${upd.resumable ? 'はい' : '不明'}）`, 'info');
         }
         return;
@@ -2332,7 +2344,9 @@
         }
       };
       // v3.1: セッション再開ハンドルがある場合は setup に入れる。
-      if (appState.sessionResumptionHandle) {
+      // v3.7.1: ハンドルは発行時のキャラと一致する場合のみ使う。
+      // 別キャラのセッションを再開すると、前の声と人格が引き継がれてしまうため。
+      if (appState.sessionResumptionHandle && appState._handleCharKey === appState.selectedChar) {
         setup.sessionResumption = { handle: appState.sessionResumptionHandle };
       } else {
         setup.sessionResumption = {};
@@ -2368,6 +2382,9 @@
       if (appState.isConnecting) return;
       // v3.2: 再接続のための切断ではセッション要約を出さない。
       appState._internalReconnect = true;
+      // v3.7.1: パートナー切替では再開ハンドルを破棄し、新キャラの声・人格で新規セッションを開始する。
+      appState.sessionResumptionHandle = null;
+      appState._handleCharKey = null;
       logMessage(`パートナー切替のため再接続します (${reason})`, 'info');
       popToast('パートナーを切り替えるため、再接続します…', 'info');
       disconnectSession();
@@ -2862,7 +2879,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.7.0 を起動しました', 'info');
+      logMessage('AIボイス v3.7.1 を起動しました', 'info');
       checkAuth();
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
