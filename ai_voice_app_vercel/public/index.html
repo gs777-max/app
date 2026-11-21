@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.6.2)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.7.0)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -379,6 +379,26 @@
     }
     .soon-label { position: relative; z-index: 1; font-size: 0.9rem; font-weight: 900; color: var(--ink-soft); }
     .char-soon-note { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+    /* v3.7: カテゴリ→キャラのプルダウン選択（高い視認性） */
+    .partner-picker { display: grid; grid-template-columns: 1fr 1.6fr; gap: 12px; margin-top: 16px; }
+    .partner-picker label { display: block; font-weight: 900; font-size: 0.95rem; margin-bottom: 6px; }
+    .partner-picker select {
+      width: 100%; font-size: 1.05rem; font-weight: 700; padding: 13px 12px;
+      border: 2px solid var(--line-strong); border-radius: 12px;
+      background: var(--surface); color: var(--ink);
+    }
+    .partner-picker select:focus { border-color: var(--accent); outline: none; }
+    .partner-preview { margin-top: 14px; }
+    .partner-preview-card {
+      background: var(--accent-soft); border: 2px solid var(--accent);
+      border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column;
+      box-shadow: var(--shadow-sm); max-width: 460px; color: var(--ink);
+    }
+    .partner-preview-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: center 18%; display: block; background: #e9e4dd; }
+    .partner-preview-card .char-name { font-size: 1.25rem; font-weight: 900; padding: 12px 14px 0; line-height: 1.4; }
+    .partner-preview-card .char-desc { font-size: 0.92rem; color: var(--muted); line-height: 1.55; padding: 2px 14px 0; display: block; }
+    .partner-preview-card .char-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px 14px; }
+    @media (max-width: 560px) { .partner-picker { grid-template-columns: 1fr; } }
 
     /* ボトムシート共通 */
     .sheet-overlay {
@@ -639,156 +659,24 @@
       <div class="section-head">
         <div>
           <h2>話し相手を選ぶ</h2>
-          <p class="lead">横にスワイプして選べます。会話中でも切り替えられます。</p>
+          <p class="lead">カテゴリと話し相手を選んでください。会話中でも切り替えられます。</p>
         </div>
       </div>
-      <div class="partner-group">
-        <h3 class="partner-group-title">日常の会話</h3>
-        <div class="partner-rail">
-        <button id="btn-char-holo" class="char-card active" data-char="holo" aria-pressed="true">
-          <span class="char-photo-wrap">
-            <img src="./assets/cyber_holo_face.jpg" alt="ハルの写真" loading="lazy" decoding="async">
-            <span class="selected-badge">選択中</span>
-          </span>
-          <span class="char-name">ハル</span>
-          <span class="char-desc">20代・男性<br>穏やかで聞き上手</span>
-          <span class="char-tags"><span class="voice-tag">声: Aoede</span></span>
-        </button>
-        <button id="btn-char-luna" class="char-card" data-char="luna" aria-pressed="false">
-          <span class="char-photo-wrap">
-            <img src="./assets/cyber_luna_female.jpg" alt="ルナの写真" loading="lazy" decoding="async">
-            <span class="selected-badge">選択中</span>
-          </span>
-          <span class="char-name">ルナ</span>
-          <span class="char-desc">20代・女性<br>明るく元気</span>
-          <span class="char-tags"><span class="voice-tag">声: Kore</span></span>
-        </button>
-        <button id="btn-char-ren" class="char-card" data-char="ren" aria-pressed="false">
-          <span class="char-photo-wrap">
-            <img src="./assets/cyber_ren_male.jpg" alt="レンの写真" loading="lazy" decoding="async">
-            <span class="selected-badge">選択中</span>
-          </span>
-          <span class="char-name">レン</span>
-          <span class="char-desc">30代・男性<br>落ち着いて頼れる</span>
-          <span class="char-tags"><span class="voice-tag">声: Fenrir</span><span class="premium-badge">プレミアム</span></span>
-        </button>
-        <button class="char-card soon" disabled aria-disabled="true">
-          <span class="char-photo">
-            <span class="soon-blur" aria-hidden="true"></span>
-            <span class="lock-badge">近日公開</span>
-            <span class="soon-label">写真準備中</span>
-          </span>
-          <span class="char-name">ミサキ</span>
-          <span class="char-desc">40代・女性<br>やさしく丁寧</span>
-          <span class="char-tags"><span class="premium-badge">プレミアム</span></span>
-        </button>
-        <button class="char-card soon" disabled aria-disabled="true">
-          <span class="char-photo">
-            <span class="soon-blur" aria-hidden="true"></span>
-            <span class="lock-badge">近日公開</span>
-            <span class="soon-label">写真準備中</span>
-          </span>
-          <span class="char-name">ケンジ</span>
-          <span class="char-desc">50代・男性<br>ユーモアのある先輩</span>
-          <span class="char-tags"><span class="premium-badge">プレミアム</span></span>
-        </button>
-        <button class="char-card soon" disabled aria-disabled="true">
-          <span class="char-photo">
-            <span class="soon-blur" aria-hidden="true"></span>
-            <span class="lock-badge">近日公開</span>
-            <span class="soon-label">写真準備中</span>
-          </span>
-          <span class="char-name">サトコ</span>
-          <span class="char-desc">60代・女性<br>人生経験豊かな相談相手</span>
-          <span class="char-tags"><span class="premium-badge">プレミアム</span></span>
-        </button>
+      <div class="partner-picker">
+        <div>
+          <label for="select-category">カテゴリ</label>
+          <select id="select-category" aria-label="カテゴリを選ぶ"></select>
+        </div>
+        <div>
+          <label for="select-character">話し相手</label>
+          <select id="select-character" aria-label="話し相手を選ぶ"></select>
         </div>
       </div>
-
-      <div class="partner-group">
-        <h3 class="partner-group-title">ゴルフ</h3>
-        <div class="partner-rail">
-        <button id="btn-char-ellie" class="char-card" data-char="ellie" aria-pressed="false">
-          <span class="char-photo-wrap">
-            <img data-photo-key="ellie" alt="エリー・カーターの写真" loading="lazy" decoding="async">
-            <span class="selected-badge">選択中</span>
-          </span>
-          <span class="char-name">エリー・カーター</span>
-          <span class="char-desc">30歳・女性<br>ベテランツアーキャディ</span>
-          <span class="char-tags"><span class="voice-tag">声: Callirrhoe</span></span>
-        </button>
-        <button id="btn-char-marcus" class="char-card" data-char="marcus" aria-pressed="false">
-          <span class="char-photo-wrap">
-            <img data-photo-key="marcus" alt="マーカス・リードの写真" loading="lazy" decoding="async">
-            <span class="selected-badge">選択中</span>
-          </span>
-          <span class="char-name">マーカス・リード</span>
-          <span class="char-desc">48歳・男性<br>伝説の米ツアーチャンピオン</span>
-          <span class="char-tags"><span class="voice-tag">声: Charon</span></span>
-        </button>
-        <button id="btn-char-ai" class="char-card" data-char="ai" aria-pressed="false">
-          <span class="char-photo-wrap">
-            <img data-photo-key="ai" alt="桜井あいの写真" loading="lazy" decoding="async">
-            <span class="selected-badge">選択中</span>
-          </span>
-          <span class="char-name">桜井あい</span>
-          <span class="char-desc">32歳・女性<br>日本女子ツアープロ</span>
-          <span class="char-tags"><span class="voice-tag">声: Autonoe</span></span>
-        </button>
-        <button id="btn-char-yuri" class="char-card" data-char="yuri" aria-pressed="false">
-          <span class="char-photo-wrap">
-            <img data-photo-key="yuri" alt="天宮ユリの写真" loading="lazy" decoding="async">
-            <span class="selected-badge">選択中</span>
-          </span>
-          <span class="char-name">天宮ユリ</span>
-          <span class="char-desc">35歳・女性<br>天才ゴルフレッスンプロ</span>
-          <span class="char-tags"><span class="voice-tag">声: Leda</span></span>
-        </button>
-        </div>
-      </div>
-
-      <div class="partner-group">
-        <h3 class="partner-group-title">エンジニア・IT</h3>
-        <div class="partner-rail">
-        <button id="btn-char-rio" class="char-card" data-char="rio" aria-pressed="false">
-          <span class="char-photo-wrap">
-            <img data-photo-key="rio" alt="リオの写真" loading="lazy" decoding="async">
-            <span class="selected-badge">選択中</span>
-          </span>
-          <span class="char-name">リオ</span>
-          <span class="char-desc">80歳・男性<br>天才エンジニアの大御所</span>
-          <span class="char-tags"><span class="voice-tag">声: Orus</span></span>
-        </button>
-        <button id="btn-char-kaito" class="char-card" data-char="kaito" aria-pressed="false">
-          <span class="char-photo-wrap">
-            <img data-photo-key="kaito" alt="カイトの写真" loading="lazy" decoding="async">
-            <span class="selected-badge">選択中</span>
-          </span>
-          <span class="char-name">カイト</span>
-          <span class="char-desc">22歳・女性<br>天才ITエンジニア</span>
-          <span class="char-tags"><span class="voice-tag">声: Zephyr</span></span>
-        </button>
-        </div>
-      </div>
-
-      <div class="partner-group">
-        <h3 class="partner-group-title">レッスン</h3>
-        <div class="partner-rail">
-        <button id="btn-char-maria" class="char-card" data-char="maria" aria-pressed="false">
-          <span class="char-photo-wrap">
-            <img data-photo-key="maria" alt="桐生マリアの写真" loading="lazy" decoding="async">
-            <span class="selected-badge">選択中</span>
-          </span>
-          <span class="char-name">桐生マリア</span>
-          <span class="char-desc">70歳・女性<br>天才ピアノ講師</span>
-          <span class="char-tags"><span class="voice-tag">声: Sulafat</span></span>
-        </button>
-        </div>
-      </div>
-      <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい、同じ並びで使えるようになります。</p>
+      <div class="partner-preview" id="partner-preview" aria-live="polite"></div>
+      <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい選べるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.6.2 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.7.0 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -1153,6 +1041,51 @@
           personality: '35歳の女性、天才ゴルフレッスンプロ。原因を1つに絞って解決に導く。',
           systemPrompt: 'あなたは天宮ユリ、天才ゴルフレッスンプロです。ユーザーのゴルフの悩みを聞き、原因を1つに絞って、今日からできる練習を1つ提案してください。論理的で明快に、でも温かく話してください。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短い日本語で返答してください。'
         },
+        gensan: {
+          name: '源さん',
+          photoKey: 'gensan',
+          voice: 'Iapetus',
+          desc: '62歳・男性・ベテランキャディ',
+          speed: 0.95, pitch: -80,
+          personality: '62歳の男性、40年キャディ一筋のベテラン。コース読みの達人で下町口調。',
+          systemPrompt: 'あなたは源さん、62歳のベテランキャディです。40年キャディ一筋でコース読みの達人です。下町口調で親しみやすく、「ゴルフは飛ばすスポーツじゃなく、置くスポーツだよ」のように、欲を出さない賢いゴルフを教えてください。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短い日本語で返答してください。'
+        },
+        rei: {
+          name: 'ドクター・レイ',
+          photoKey: 'rei',
+          voice: 'Erinome',
+          desc: '40代・女性・メンタルコーチ',
+          speed: 0.98, pitch: -30,
+          personality: '40代の女性、スポーツ心理学者。緊張や本番の弱さに効く呼吸法とルーティンを教える。',
+          systemPrompt: 'あなたはドクター・レイ、スポーツ心理学者でメンタルコーチです。緊張、イップス、本番の弱さに悩むユーザーに、静かで安心感のある声で、呼吸法やプレショット・ルーティンなど今すぐできる対処を1つ提案してください。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短い日本語で返答してください。'
+        },
+        george: {
+          name: '実況のジョージ',
+          photoKey: 'george',
+          voice: 'Puck',
+          desc: '50代・男性・ゴルフ実況アナウンサー',
+          speed: 1.05, pitch: 30,
+          personality: '50代の男性、ゴルフ実況アナウンサー。ユーザーのプレーを実況中継風に盛り上げる。',
+          systemPrompt: 'あなたは実況のジョージ、ゴルフ実況アナウンサーです。ユーザーのプレーや報告を、テレビの実況中継のように張りのある声で盛り上げて実況してください。良いプレーは大げさに褒め、失敗も笑いに変えて励ましてください。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短い日本語で返答してください。'
+        },
+        hana: {
+          name: 'ハナ',
+          photoKey: 'hana',
+          voice: 'Despina',
+          desc: '28歳・女性・ジュニア育成コーチ',
+          speed: 1.05, pitch: 60,
+          personality: '28歳の女性、ジュニアと初心者の育成専門コーチ。褒めて伸ばす。',
+          systemPrompt: 'あなたはハナ、28歳のジュニア育成コーチです。子どもと初心者の育成が専門で、褒めて伸ばすのが得意です。ゴルフの楽しさを入口に、できている点を先に褒めて、次の一歩を1つだけ明るく提案してください。親子で使える優しい言葉で話してください。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短い日本語で返答してください。'
+        },
+        rose: {
+          name: 'マダム・ローズ',
+          photoKey: 'rose',
+          voice: 'Laomedeia',
+          desc: '55歳・女性・ゴルフ場の支配人',
+          speed: 0.95, pitch: -60,
+          personality: '55歳の女性、名門ゴルフコースの支配人。マナーと接待ゴルフの作法に詳しい。',
+          systemPrompt: 'あなたはマダム・ローズ、55歳の名門ゴルフコースの支配人です。品のある大人の言葉で、ゴルフのマナー、コース案内、接待ゴルフの作法、ゴルフ場の歴史などを優雅に教えてください。ユーザーが恥をかかないよう、さりげなく作法を伝えてください。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短い日本語で返答してください。'
+        },
         rio: {
           name: 'リオ',
           photoKey: 'rio',
@@ -1227,9 +1160,6 @@
       statRx: document.getElementById('stat-rx'),
       statLatency: document.getElementById('stat-latency'),
       
-      btnCharHolo: document.getElementById('btn-char-holo'),
-      btnCharLuna: document.getElementById('btn-char-luna'),
-      btnCharRen: document.getElementById('btn-char-ren'),
       avatarImage: document.getElementById('avatar-image'),
       spectrumCanvas: document.getElementById('spectrum-canvas'),
       
@@ -1449,14 +1379,80 @@
       document.body.appendChild(sc);
     }
 
+    // v3.7: カテゴリ→キャラのプルダウン選択。
+    const CHAR_CATEGORIES = [
+      { key: 'chat', label: '雑談' },
+      { key: 'golf', label: 'ゴルフ' },
+      { key: 'it', label: 'IT' },
+      { key: 'piano', label: 'ピアノ' }
+    ];
+    const CHAR_CATEGORY_OF = {
+      holo: 'chat', luna: 'chat', ren: 'chat',
+      ellie: 'golf', marcus: 'golf', ai: 'golf', yuri: 'golf',
+      gensan: 'golf', rei: 'golf', george: 'golf', hana: 'golf', rose: 'golf',
+      rio: 'it', kaito: 'it',
+      maria: 'piano'
+    };
+    const SOON_CHARS = [
+      { name: 'ミサキ', category: 'chat' },
+      { name: 'ケンジ', category: 'chat' },
+      { name: 'サトコ', category: 'chat' }
+    ];
+    function fillCharacterOptions(catKey) {
+      const charSel = document.getElementById('select-character');
+      if (!charSel) return;
+      const keys = Object.keys(appState.characters).filter(k => CHAR_CATEGORY_OF[k] === catKey);
+      let html = keys.map(k => `<option value="${k}">${appState.characters[k].name}</option>`).join('');
+      SOON_CHARS.filter(s => s.category === catKey).forEach(s => {
+        html += `<option value="" disabled>${s.name}（近日公開）</option>`;
+      });
+      charSel.innerHTML = html;
+    }
+    function renderPartnerPreview(charKey) {
+      const box = document.getElementById('partner-preview');
+      const char = appState.characters[charKey];
+      if (!box || !char) return;
+      const img = char.photoKey
+        ? `<img data-photo-key="${char.photoKey}" alt="${char.name}の写真" loading="lazy" decoding="async">`
+        : `<img src="${char.image || ''}" alt="${char.name}の写真" loading="lazy" decoding="async">`;
+      box.innerHTML = `<div class="partner-preview-card">${img}<span class="char-name">${char.name}</span><span class="char-desc">${char.desc || ''}</span><span class="char-tags"><span class="voice-tag">声: ${char.voice}</span></span></div>`;
+      const el = box.querySelector('img[data-photo-key]');
+      if (el) {
+        const apply = () => {
+          const uri = window.CHAR_PHOTOS && window.CHAR_PHOTOS[el.dataset.photoKey];
+          if (uri) el.src = uri;
+        };
+        if (window.CHAR_PHOTOS) apply(); else loadCharPhotos(apply);
+      }
+    }
+    function buildPartnerPicker() {
+      const catSel = document.getElementById('select-category');
+      const charSel = document.getElementById('select-character');
+      if (!catSel || !charSel) return;
+      catSel.innerHTML = CHAR_CATEGORIES.map(c => `<option value="${c.key}">${c.label}</option>`).join('');
+      const cat = CHAR_CATEGORY_OF[appState.selectedChar] || 'chat';
+      catSel.value = cat;
+      fillCharacterOptions(cat);
+      charSel.value = appState.selectedChar;
+      catSel.addEventListener('change', () => {
+        fillCharacterOptions(catSel.value);
+        const first = charSel.querySelector('option:not([disabled])');
+        if (first) selectCharacter(first.value);
+      });
+      charSel.addEventListener('change', () => selectCharacter(charSel.value));
+      renderPartnerPreview(appState.selectedChar);
+    }
+
     function selectCharacter(charKey) {
       appState.selectedChar = charKey;
       const char = appState.characters[charKey];
-      document.querySelectorAll('.char-card[data-char]').forEach(btn => {
-        const on = btn.dataset.char === charKey;
-        btn.classList.toggle('active', on);
-        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
+      // v3.7: プルダウンとプレビューを選択中キャラに同期する。
+      const catSel = document.getElementById('select-category');
+      const charSel = document.getElementById('select-character');
+      const cat = CHAR_CATEGORY_OF[charKey];
+      if (catSel && cat && catSel.value !== cat) { catSel.value = cat; fillCharacterOptions(cat); }
+      if (charSel) charSel.value = charKey;
+      renderPartnerPreview(charKey);
       if (UI.stageCharName) UI.stageCharName.textContent = char.name;
       if (UI.stageCharDesc) UI.stageCharDesc.textContent = char.desc || '';
       // v3.5: 年齢に合わせたキャラ別の速度・ピッチ既定値を適用する。
@@ -2639,9 +2635,8 @@
       }[t] || t));
     }
 
-    document.querySelectorAll('.char-card[data-char]').forEach(btn => {
-      btn.addEventListener('click', () => selectCharacter(btn.dataset.char));
-    });
+    // v3.7: パートナー選択はカテゴリ→キャラのプルダウン。
+    buildPartnerPicker();
     // v3.5: パートナー写真（data URI）は少し遅らせて読み込む。
     setTimeout(() => loadCharPhotos(), 600);
 
@@ -2867,7 +2862,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.6.2 を起動しました', 'info');
+      logMessage('AIボイス v3.7.0 を起動しました', 'info');
       checkAuth();
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
