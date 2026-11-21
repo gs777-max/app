@@ -6854,6 +6854,18 @@
           }
           updateVercelKvSyncStatus(true, vercelKvLastSyncTime);
         } else {
+          // ★ レコード単位の updatedAt 比較だけでは、個別エントリが端末より
+          //   新しい場合を見逃す（直接 POST でレコードの updatedAt が古く
+          //   記録された場合など。戸田 IN の初回 1247/1112/530y が再読込まで
+          //   直らなかった原因）。'none' 判定でもキー単位で新しいものを
+          //   取り込み、取り込んだら再描画する（'push' 分岐と同一規則）。
+          if (cloudData && typeof cloudData === 'object') {
+            const merged = mergeNewerCloudKeys(courseId, cloudData);
+            if (merged > 0) {
+              isApplyingCloudData = true;
+              try { redrawAfterCloudApply(courseId); } finally { setTimeout(() => { isApplyingCloudData = false; }, 300); }
+            }
+          }
           if (cloudData && cloudData.updatedAt && !hasUnsyncedLocalChanges(courseId)) {
             setCourseCloudSyncTime(courseId, cloudData.updatedAt);
           }

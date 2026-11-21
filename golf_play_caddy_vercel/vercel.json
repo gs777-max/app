@@ -3,15 +3,6 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    }
-  ],
-  "git": {
-    "deploymentEnabled": {
-      "*": false,
-      "main": true
-    }
-  }
+    { "source": "/api/(.*)", "destination": "/api/$1" }
+  ]
 }
