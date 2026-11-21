@@ -1,8 +1,13 @@
-# FIT LAB — Driver Fitting v2.10
+# FIT LAB — Driver Fitting v2.11
 
 絵を選ぶだけのドライバーフィッティング診断。単一ファイル `index.html` のみで動作します（Google Fonts のみ外部読み込み。Tailwind 不使用）。
 
 公開URL（GitHub Pages）：`https://gs777-max.github.io/app/golf_fitting_golf_v2/`
+
+## v2.11 での変更点（2026-11-22 日次改善 — 隠しselectの幅バグ修正）
+
+- **隠しselectが文書幅を膨らませていた問題を修正**：`.field select` の `width:100%`（詳細度0,1,1）が `.visually-hidden-select` の `width:1px`（0,1,0）を上書きし、画面に見えない隠しselect 6個が幅100%で残っていた。`overflow-x:clip` で横スクロールは封じられていたが、1280px幅で文書幅が1593pxまで膨らんでいた。`.field select.visually-hidden-select{width:1px;min-height:0}`（詳細度0,2,1）を追加し、1pxに固定した。エンジン・ギア・ゲート（1〜4位ロック）に変更なし。
+- **検証**：jsdom スモークテスト 144/144 PASS（v2.9の139項目＋v2.11新規5項目：隠しselect 6件・計算幅1px・min-height 0・詳細度ルール存在・absolute＋不可視維持）。`node --check` 通過（エンジン＋UIの2スクリプト）。実ブラウザCDP確認（Chromium headless、新規プロファイル、390px・1280px）：修正前 docW 1593（1280px幅）→ 修正後 1265（＝winW 1280 − スクロールバー15px）、390px幅では 425→390 で docW＝winW。ページエラー0。なおテスト実行時にフッター版数チェックが v2.9 のままだった不具合（v2.10ラウンドでの更新漏れ）も v2.11 に更新して修正した。
 
 ## v2.10 での変更点（2026-11-21 — 結果画面の下部固定ナビの重なり修正）
 

@@ -98,6 +98,8 @@ img,svg{max-width:100%}
 .field select:focus,.field input:focus{outline:2px solid var(--green);outline-offset:1px;border-color:var(--green)}
 .field input:disabled{background:#EFEAE0;color:var(--muted)}
 .visually-hidden-select{position:absolute!important;width:1px;height:1px;opacity:0;pointer-events:none}
+/* v2.11: .field select (詳細度0,1,1) が上の width:1px (0,1,0) を上書きし、隠しselect 6個が width:100%・min-height:56px で文書幅を1280px幅で1593pxまで膨らませていた。詳細度を上げて 1px に固定する */
+.field select.visually-hidden-select{width:1px;min-height:0}
 
 /* segmented controls */
 .seg{display:flex;gap:8px;flex-wrap:wrap}
@@ -930,7 +932,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Fitting v2.10</b><br>
+<b>FIT LAB — Driver Fitting v2.11</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
