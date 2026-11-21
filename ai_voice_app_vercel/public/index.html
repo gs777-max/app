@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.7.6)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.7.7)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -160,6 +160,8 @@
     }
     body.in-session main { overflow: hidden; padding-bottom: calc(var(--dock-h) + env(safe-area-inset-bottom, 0px) + 8px); }
     body.in-session .partners-section, body.in-session .fineprint { display: none; }
+    /* v3.7.7: 会話中にヒーローが高さ0へ潰れる不具合の修正。stage-viewport の親 section を flex 化して高さを伝える。 */
+    body.in-session main > section[aria-label="パートナー"] { flex: 1 1 auto; min-height: 0; display: flex; }
     body.in-session .stage-viewport { flex: 1 1 auto; aspect-ratio: auto; min-height: 0; }
 
     .section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
@@ -682,7 +684,7 @@
       <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい選べるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.7.6 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.7.7 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -1382,7 +1384,7 @@
       _charPhotosLoading = true;
       const flush = () => { const cbs = _charPhotosCallbacks; _charPhotosCallbacks = []; cbs.forEach(cb => { try { cb(); } catch (_) {} }); };
       const sc = document.createElement('script');
-      sc.src = './assets/char-photos.js';
+      sc.src = './assets/char-photos.js?v=377';
       sc.onerror = () => {
         // v3.7.3: 読込失敗時に再試行できるようフラグを戻す。
         _charPhotosLoading = false;
@@ -3093,7 +3095,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.7.6 を起動しました', 'info');
+      logMessage('AIボイス v3.7.7 を起動しました', 'info');
       checkAuth();
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
