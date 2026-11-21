@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.7.2)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.7.3)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -399,7 +399,7 @@
     .partner-preview-card .char-desc { font-size: 0.92rem; color: var(--muted); line-height: 1.55; padding: 2px 14px 0; display: block; }
     .partner-preview-card .char-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px 14px; }
     @media (max-width: 560px) { .partner-picker { grid-template-columns: 1fr; } }
-    /* v3.7.2: カテゴリ選択後はキャラ一覧（特徴つきカード）を表示 */
+    /* v3.7.3: カテゴリ選択後はキャラ一覧（特徴つきカード）を表示 */
     .partner-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 12px; margin-top: 14px; }
     .partner-list .char-card { flex: none; max-width: none; width: 100%; cursor: pointer; }
 
@@ -662,7 +662,7 @@
       <div class="section-head">
         <div>
           <h2>話し相手を選ぶ</h2>
-          <p class="lead">カテゴリを選ぶと、その分野の話し相手が並びます。タップで切り替わります。会話中でも切り替えられます。</p>
+          <p class="lead">カテゴリを選ぶと、その分野の話し相手が並びます。タップで選べます（会話中は一度終えてから切り替えてください）。</p>
         </div>
       </div>
       <div class="partner-picker">
@@ -675,7 +675,7 @@
       <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい選べるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.7.2 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.7.3 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -691,7 +691,7 @@
         <span class="latency-chip" id="stat-tx-wrap" hidden>送信 <strong id="stat-tx">0</strong></span>
         <span class="latency-chip" id="stat-rx-wrap" hidden>受信 <strong id="stat-rx">0</strong></span>
       </div>
-      <button id="btn-talk-done" class="btn-talkdone">話し終わった</button>
+      <button id="btn-talk-done" class="btn-talkdone" style="display: none;">話し終わった</button>
       <button id="btn-start-session" class="btn-primary">会話をはじめる</button>
       <button id="btn-stop-session" class="btn-primary stop" style="display: none;">会話を終える</button>
       <div class="dock-secondary">
@@ -786,7 +786,7 @@
               <button class="chip spd-btn" data-speed="2.0" aria-pressed="false">2.0倍</button>
               <button class="chip spd-btn" data-speed="3.0" aria-pressed="false">3.0倍</button>
             </div>
-            <input type="range" id="speed-slider" min="0.5" max="3.0" step="0.1" value="1.0" style="margin-top: 10px;" aria-label="話す速さの微調整">
+            <input type="range" id="speed-slider" min="0.5" max="3.0" step="0.01" value="1.0" style="margin-top: 10px;" aria-label="話す速さの微調整">
           </div>
           <div class="field">
             <label for="pitch-slider">声の高さ <output id="pitch-val">±0 cents</output></label>
@@ -1368,6 +1368,11 @@
       _charPhotosLoading = true;
       const sc = document.createElement('script');
       sc.src = './assets/char-photos.js';
+      sc.onerror = () => {
+        // v3.7.3: 読込失敗時に再試行できるようフラグを戻す。
+        _charPhotosLoading = false;
+        logMessage('キャラ写真の読み込みに失敗しました', 'warn');
+      };
       sc.onload = () => {
         document.querySelectorAll('img[data-photo-key]').forEach(img => {
           const uri = window.CHAR_PHOTOS && window.CHAR_PHOTOS[img.dataset.photoKey];
@@ -1397,7 +1402,7 @@
       { name: 'ケンジ', category: 'chat', desc: '50代・男性・ユーモアのある先輩' },
       { name: 'サトコ', category: 'chat', desc: '60代・女性・人生経験豊かな相談相手' }
     ];
-    // v3.7.2: カテゴリ選択後はキャラ一覧（写真・名前・特徴・声）を表示する。
+    // v3.7.3: カテゴリ選択後はキャラ一覧（写真・名前・特徴・声）を表示する。
     function renderPartnerList(catKey) {
       const box = document.getElementById('partner-list');
       if (!box) return;
@@ -1442,7 +1447,7 @@
     function selectCharacter(charKey) {
       appState.selectedChar = charKey;
       const char = appState.characters[charKey];
-      // v3.7.2: カテゴリとキャラ一覧を選択中キャラに同期する。
+      // v3.7.3: カテゴリとキャラ一覧を選択中キャラに同期する。
       const catSel = document.getElementById('select-category');
       const cat = CHAR_CATEGORY_OF[charKey];
       if (catSel && cat && catSel.value !== cat) { catSel.value = cat; renderPartnerList(cat); }
@@ -1627,6 +1632,22 @@
           ]);
         } catch (e) {}
       }
+
+      // v3.7.3: 既存のマイクパイプラインが残っていれば破棄してから作り直す（二重起動防止）。
+      if (appState.micStream) { appState.micStream.getTracks().forEach(t => t.stop()); appState.micStream = null; }
+      try { if (appState.workletNode) { appState.workletNode.port.onmessage = null; appState.workletNode.disconnect(); } } catch (e) {}
+      try { if (appState.processorNode) appState.processorNode.disconnect(); } catch (e) {}
+      try { if (appState.micSource) appState.micSource.disconnect(); } catch (e) {}
+      try { if (appState.filterHighpass) appState.filterHighpass.disconnect(); } catch (e) {}
+      try { if (appState.filterLowpass) appState.filterLowpass.disconnect(); } catch (e) {}
+      try { if (appState.zeroGainNode) appState.zeroGainNode.disconnect(); } catch (e) {}
+      appState.workletNode = null;
+      appState.processorNode = null;
+      appState.micSource = null;
+      appState.filterHighpass = null;
+      appState.filterLowpass = null;
+      appState.zeroGainNode = null;
+      appState.useWorklet = false;
 
       const inSampleRate = appState.audioCtx.sampleRate || 48000;
       logMessage(`AudioContext 準備完了 (SampleRate: ${inSampleRate}Hz, State: ${appState.audioCtx.state})`, 'info');
@@ -1891,19 +1912,22 @@
       appState.expectClose = false;
       // v3.1: 前セッションのバージイン抑制が残っていると、再接続直後のAI音声が捨てられるため消す。
       appState.suppressAiAudio = false;
-      // v3.4: 接続前に一時トークンを取得する（生キーは使わない）。
-      const liveToken = await ensureEphemeralToken();
-      if (!liveToken) {
-        // v3.3: 接続中フラグを残すと二度と開始できなくなるため、必ず戻す。
-        appState.isConnecting = false;
-        popToast('接続用トークンを取得できませんでした。時間をおいて再試行してください', 'warn');
-        return;
-      }
 
       try {
         setTelemetryStatus('transmitting', '準備しています…');
+        // v3.7.3: マイク許可を先に済ませてからトークンを取る（許可待ちでトークンが期限切れになるのを防ぐ）。
         logMessage('マイク＆オーディオエンジン起動中...', 'info');
         await startMicrophoneEngine();
+
+        // v3.4: 接続前に一時トークンを取得する（生キーは使わない）。
+        const liveToken = await ensureEphemeralToken();
+        if (!liveToken) {
+          // v3.3: 接続中フラグを残すと二度と開始できなくなるため、必ず戻す。
+          appState.isConnecting = false;
+          popToast('接続用トークンを取得できませんでした。時間をおいて再試行してください', 'warn');
+          disconnectSession();
+          return;
+        }
 
         logMessage(`Gemini Live API (${LIVE_MODEL_NAME}) へ WebSocket 接続中...`, 'info');
         // v3.4.2: エフェメラルトークン用 Constrained 接続。トークンは access_token で渡す。
@@ -1914,7 +1938,7 @@
         appState.isSessionReady = false;
 
         appState.ws.onopen = (e) => {
-          // v3.7.2: 旧ソケットの遅延イベントで新セッションを壊さない。
+          // v3.7.3: 旧ソケットの遅延イベントで新セッションを壊さない。
           if (appState.ws !== e.target) return;
           // v3.1: 接続確立でガードと再接続回数をリセットする。
           appState.isConnecting = false;
@@ -1924,9 +1948,9 @@
         };
 
         appState.ws.onmessage = async (e) => {
-          // v3.7.2: 旧ソケットの遅延メッセージ（前のキャラの音声等）を新セッションに混ぜない。
+          // v3.7.3: 旧ソケットの遅延メッセージ（前のキャラの音声等）を新セッションに混ぜない。
           if (appState.ws !== e.target) return;
-          // v3.7.2: 無応答ウォッチドッグ用に最終受信時刻を記録する。
+          // v3.7.3: 無応答ウォッチドッグ用に最終受信時刻を記録する。
           appState._lastServerMsgAt = performance.now();
           appState._txAtLastServerMsg = appState.txChunks;
           try {
@@ -1943,7 +1967,7 @@
         };
 
         appState.ws.onerror = (err) => {
-          // v3.7.2: 旧ソケットのエラーで新セッションの状態を壊さない。
+          // v3.7.3: 旧ソケットのエラーで新セッションの状態を壊さない。
           if (appState.ws !== err.target) return;
           appState.isConnecting = false;
           logMessage(`WebSocket 通信エラー (${err.message || '接続遮断'})`, 'error');
@@ -1958,7 +1982,7 @@
         };
 
         appState.ws.onclose = (e) => {
-          // v3.7.2: パートナー切替で閉じた旧ソケットの onclose が新セッション開始後に
+          // v3.7.3: パートナー切替で閉じた旧ソケットの onclose が新セッション開始後に
           // 遅れて発火すると、自動再接続や disconnectSession で新セッションを壊してしまう。
           // 現在のソケットでなければ何もしない。
           if (appState.ws !== e.target) return;
@@ -1969,6 +1993,8 @@
             appState.expectClose = false;
             return;
           }
+          // v3.7.3: フォールバック稼働中はLive再接続を仕掛けない（二重応答防止）。
+          if (appState._fallbackActive) return;
           // v3.1: 1007 は setup 不正（設定エラー）。再接続しても同じエラーになるので再接続しない。
           if (e.code === 1007) {
             // v3.4.4: サーバーの切断理由（詳細）を表示して切り分けできるようにする。
@@ -2026,6 +2052,8 @@
         logMessage(text, 'error');
         popToast(text, 'error');
         setTelemetryStatus('standby', 'サーバーエラー');
+        // v3.7.3: 接続確立前のエラーは状態をリセットして再試行できるようにする。
+        if (!appState.isSessionReady) disconnectSession();
         return;
       }
       if (data.goAway) {
@@ -2033,7 +2061,7 @@
         const text = left ? `サーバーが切断予告を送りました（残り ${left}）。まもなく再接続します。` : 'サーバーが切断予告を送りました。まもなく再接続します。';
         logMessage(text, 'warn');
         popToast(text, 'warn');
-        // v3.7.2: 予告の時点で再開ハンドル付き再接続を行い、会話を途切れさせない。
+        // v3.7.3: 予告の時点で再開ハンドル付き再接続を行い、会話を途切れさせない。
         forceReconnectSameSession('goAway');
         return;
       }
@@ -2041,7 +2069,7 @@
         const upd = data.sessionResumptionUpdate;
         if (upd.newHandle) {
           appState.sessionResumptionHandle = upd.newHandle;
-          // v3.7.2: ハンドル発行時のキャラを記録（別キャラへの再開混入を防ぐ）。
+          // v3.7.3: ハンドル発行時のキャラを記録（別キャラへの再開混入を防ぐ）。
           appState._handleCharKey = appState.selectedChar;
           logMessage(`セッション再開ハンドルを受け取りました（再開可: ${upd.resumable ? 'はい' : '不明'}）`, 'info');
         }
@@ -2062,8 +2090,16 @@
         UI.btnPause.style.display = 'inline-flex';
         // v3.2: セッションタイマーと WakeLock を開始する。
         if (typeof onSessionStarted === 'function') onSessionStarted();
-        // v3.7.2: 無応答ウォッチドッグを開始する。
+        // v3.7.3: 無応答ウォッチドッグを開始する。
         startSessionWatchdog();
+        // v3.7.3: 送受信カウンタを表示する。
+        { const txw = document.getElementById('stat-tx-wrap'); if (txw) txw.hidden = false; }
+        { const rxw = document.getElementById('stat-rx-wrap'); if (rxw) rxw.hidden = false; }
+        // v3.7.3: 接続中にキャラが切り替わっていたら、新キャラで接続し直す。
+        if (appState._sessionCharKey && appState._sessionCharKey !== appState.selectedChar) {
+          logMessage('接続中のキャラ切替を検知。再接続します', 'warn');
+          reconnectLiveSession('接続中の切替を反映');
+        }
         return;
       }
 
@@ -2072,6 +2108,7 @@
         // 回り込みの誤判定として無視し、受信済み音声を最後まで再生する（語尾が切れない）。
         if (appState._bargeInConfirmed || appState.isUserSpeaking) {
           logMessage('⚡ サーバーから割り込み (Interrupted) 通知を受信', 'warn');
+          flushUserTranscription();
           interruptAudio();
         } else {
           logMessage('⚡ サーバー割り込み通知を無視（ユーザー発話未検出・回り込み誤判定の可能性）', 'warn');
@@ -2093,8 +2130,17 @@
         }
       }
 
+      // v3.7.3: 文字起こしを処理する（AUDIOのみ応答ではテキストはここで届く）。
+      if (data.serverContent && data.serverContent.outputTranscription && data.serverContent.outputTranscription.text) {
+        appendAiTextChunk(data.serverContent.outputTranscription.text);
+      }
+      if (data.serverContent && data.serverContent.inputTranscription && data.serverContent.inputTranscription.text) {
+        appState._userTextAccum = (appState._userTextAccum || '') + data.serverContent.inputTranscription.text;
+      }
+
       if (data.serverContent && data.serverContent.turnComplete) {
         appState._turnCompleteSeen = true;
+        flushUserTranscription();
         finalizeAiText();
         // v3.4.4: ターン完了で割り込み後のAI音声抑制を確実に解除する。
         appState.suppressAiAudio = false;
@@ -2180,7 +2226,8 @@
         scheduledStart = now + 0.18;
       }
       source.start(scheduledStart);
-      const dur = audioBuf.duration / appState.playbackSpeed;
+      // v3.7.3: detune（ピッチ変更）も再生時間に反映し、スケジュールのずれを防ぐ。
+      const dur = audioBuf.duration / (appState.playbackSpeed * Math.pow(2, (appState.pitchDetune || 0) / 1200));
       appState.nextStartTime = scheduledStart + dur;
 
       // v2.9 遅延計測：発話終了→AI初回再生
@@ -2223,7 +2270,7 @@
       };
     }
 
-    function interruptAudio() {
+    function interruptAudio(silent) {
       finalizeAiText();
       for (const s of appState.scheduledSources) {
         try { s.stop(); } catch (e) {}
@@ -2244,7 +2291,8 @@
       appState.suppressUntil = performance.now() + 800;
       // v3.4.4: activityStart は自動活動検出が有効なときは送れない（仕様外で1007切断の原因）。
       // サーバー側の自動検出（START_OF_ACTIVITY_INTERRUPTS）が生成を止めるため、送信しない。
-      popToast('割り込みました (発話を中断)', 'info');
+      // v3.7.3: 切断処理からの呼び出しではトーストを出さない。
+      if (!silent) popToast('割り込みました (発話を中断)', 'info');
       logMessage('オーディオ再生キューを強制クリア (割り込み)', 'info');
     }
 
@@ -2275,6 +2323,21 @@
 
     function sendTextPrompt(text) {
       if (!text.trim()) return;
+      // v3.7.3: お試しモードでは実APIを叩かず、定型応答を返す。
+      if (appState.isMockMode) {
+        appendChat('user', text);
+        UI.textChatInput.value = '';
+        const char = appState.characters[appState.selectedChar];
+        const reply = `（お試しモード）${char.name}です。「${text}」ですね。`;
+        appendChat('ai', reply, appState.emotion);
+        speakWithBrowserSynthesis(reply);
+        return;
+      }
+      // v3.7.3: 接続中（setup完了前）に送ると拒否され得るため止める。
+      if (appState.isConnected && appState.ws && appState.ws.readyState === WebSocket.OPEN && !appState.isSessionReady) {
+        popToast('接続中です。準備ができてから送信してください', 'warn');
+        return;
+      }
       // v3.1: 文字で話しかけるときは、バージイン後のAI音声抑制を解除する。
       appState.suppressAiAudio = false;
       appendChat('user', text);
@@ -2311,6 +2374,8 @@
 
     function buildSetupMessage() {
       const char = appState.characters[appState.selectedChar];
+      // v3.7.3: このセッションがどのキャラで始まったかを記録（接続中の切替検出用）。
+      appState._sessionCharKey = appState.selectedChar;
       const setup = {
         model: LIVE_MODEL_NAME,
         generationConfig: {
@@ -2352,7 +2417,7 @@
         }
       };
       // v3.1: セッション再開ハンドルがある場合は setup に入れる。
-      // v3.7.2: ハンドルは発行時のキャラと一致する場合のみ使う。
+      // v3.7.3: ハンドルは発行時のキャラと一致する場合のみ使う。
       // 別キャラのセッションを再開すると、前の声と人格が引き継がれてしまうため。
       if (appState.sessionResumptionHandle && appState._handleCharKey === appState.selectedChar) {
         setup.sessionResumption = { handle: appState.sessionResumptionHandle };
@@ -2390,7 +2455,7 @@
       if (appState.isConnecting) return;
       // v3.2: 再接続のための切断ではセッション要約を出さない。
       appState._internalReconnect = true;
-      // v3.7.2: パートナー切替では再開ハンドルを破棄し、新キャラの声・人格で新規セッションを開始する。
+      // v3.7.3: パートナー切替では再開ハンドルを破棄し、新キャラの声・人格で新規セッションを開始する。
       appState.sessionResumptionHandle = null;
       appState._handleCharKey = null;
       logMessage(`パートナー切替のため再接続します (${reason})`, 'info');
@@ -2401,7 +2466,7 @@
       await startLiveSession();
     }
 
-    // v3.7.2: 同一キャラのまま再開ハンドルで再接続する（goAway・無応答対策）。
+    // v3.7.3: 同一キャラのまま再開ハンドルで再接続する（goAway・無応答対策）。
     async function forceReconnectSameSession(reason) {
       if (appState.isConnecting) return;
       appState._internalReconnect = true;
@@ -2412,7 +2477,7 @@
       await startLiveSession();
     }
 
-    // v3.7.2: 会話途中で無応答になるのを防ぐウォッチドッグ。
+    // v3.7.3: 会話途中で無応答になるのを防ぐウォッチドッグ。
     function startSessionWatchdog() {
       stopSessionWatchdog();
       appState._lastServerMsgAt = performance.now();
@@ -2485,7 +2550,7 @@
 
     function finalizeAiText() {
       if (appState.aiTextBubble && appState.aiTextAccum.trim()) {
-        appState.history.push({
+        pushHistory({
           role: 'ai',
           text: appState.aiTextAccum,
           time: new Date().toLocaleTimeString(),
@@ -2498,14 +2563,39 @@
       appState.aiTextBubbleBody = null;
     }
 
+    // v3.7.3: 履歴の上限管理つき追加（長時間セッションのメモリ肥大防止）。
+    function pushHistory(item) {
+      appState.history.push(item);
+      if (appState.history.length > 500) {
+        const removed = appState.history.length - 500;
+        appState.history.splice(0, removed);
+        appState._historyBase = Math.max(0, (appState._historyBase || 0) - removed);
+      }
+    }
+
+    // v3.7.3: ユーザー発話の文字起こしをチャット・履歴へ確定する。
+    function flushUserTranscription() {
+      const t = (appState._userTextAccum || '').trim();
+      appState._userTextAccum = '';
+      if (t) appendChat('user', t);
+    }
+
     function disconnectSession() {
-      // v3.7.2: ウォッチドッグを止める。
+      // v3.7.3: ウォッチドッグを止める。
       stopSessionWatchdog();
       // v3.1: 意図的な切断であることを onclose に伝え、自動再接続させない。
       // ただし再接続のための切断では、呼び出し元が expectClose を false に戻してから開始する。
       appState.expectClose = true;
       appState.isConnecting = false;
       appState.suppressAiAudio = false;
+      appState._fallbackActive = false;
+      // v3.7.3: 一時停止/ミュートを次セッションへ持ち越さない。
+      appState.isPaused = false;
+      appState.isMuted = false;
+      if (UI.btnMute) UI.btnMute.setAttribute('aria-pressed', 'false');
+      if (UI.muteIcon) UI.muteIcon.textContent = 'マイク';
+      if (UI.muteTxt) UI.muteTxt.textContent = 'オン';
+      { const lbl = UI.btnPause && UI.btnPause.querySelector('.dock-label'); if (lbl) lbl.textContent = '一時停止'; }
       if (appState.reconnectTimer) { clearTimeout(appState.reconnectTimer); appState.reconnectTimer = null; }
       finalizeAiText();
       if (speechRecognition) {
@@ -2520,7 +2610,7 @@
         appState.micStream.getTracks().forEach(t => t.stop());
         appState.micStream = null;
       }
-      interruptAudio();
+      interruptAudio(true);
 
       // v2.9: オーディオノードを破棄して再接続時の重複を防ぐ
       try { if (appState.workletNode) { appState.workletNode.port.onmessage = null; appState.workletNode.disconnect(); } } catch (e) {}
@@ -2571,6 +2661,10 @@
 
     let speechRecognition = null;
     function startSmartFallbackMode() {
+      // v3.7.3: 二重起動ガード（音声認識が2つ走るのを防ぐ）。
+      if (appState._fallbackActive) return;
+      appState._fallbackActive = true;
+      if (speechRecognition) { try { speechRecognition.stop(); } catch (e) {} speechRecognition = null; }
       appState.isConnected = true;
       appState.isSessionReady = true;
       UI.btnStart.style.display = 'none';
@@ -2599,6 +2693,13 @@
 
         speechRecognition.onerror = (err) => {
           logMessage(`音声認識ステータス: ${err.error}`, 'warn');
+        };
+
+        // v3.7.3: ブラウザが認識を止めたら自動で再開する（無言で終わらないように）。
+        speechRecognition.onend = () => {
+          if (appState._fallbackActive && appState.isConnected && speechRecognition) {
+            try { speechRecognition.start(); } catch (e) {}
+          }
         };
 
         try { speechRecognition.start(); } catch (e) {}
@@ -2658,13 +2759,18 @@
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = 'ja-JP';
       utter.rate = appState.playbackSpeed;
-      utter.pitch = appState.selectedChar === 'ren' ? 0.9 : 1.2;
+      // v3.7.3: キャラ別のピッチ設定（cents）をブラウザTTSにも反映する。
+      utter.pitch = Math.max(0.5, Math.min(2, 1 + (appState.pitchDetune || 0) / 1200));
 
       utter.onstart = () => {
         appState.isAiSpeaking = true;
         setTelemetryStatus('receiving', 'AI SPEAKING');
       };
       utter.onend = () => {
+        appState.isAiSpeaking = false;
+        if (appState.isConnected) setTelemetryStatus('ready', '話せます');
+      };
+      utter.onerror = () => {
         appState.isAiSpeaking = false;
         if (appState.isConnected) setTelemetryStatus('ready', '話せます');
       };
@@ -2680,7 +2786,7 @@
         emotion: emo || appState.emotion,
         intensity: appState.intensity
       };
-      appState.history.push(item);
+      pushHistory(item);
 
       const div = document.createElement('div');
       div.className = `chat-bubble ${role === 'user' ? 'user' : 'ai'}`;
@@ -2708,7 +2814,7 @@
 
     // v3.7: パートナー選択はカテゴリ→キャラのプルダウン。
     buildPartnerPicker();
-    // v3.7.2: 画面復帰時に AudioContext のサスペンドを解除する（無音化防止）。
+    // v3.7.3: 画面復帰時に AudioContext のサスペンドを解除する（無音化防止）。
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && appState.audioCtx && appState.audioCtx.state === 'suspended') {
         appState.audioCtx.resume().catch(() => {});
@@ -2939,7 +3045,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.7.2 を起動しました', 'info');
+      logMessage('AIボイス v3.7.3 を起動しました', 'info');
       checkAuth();
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
@@ -2994,7 +3100,12 @@
       el.textContent = formatElapsed(Date.now() - appState._sessionStartedAt);
     }
     function onSessionStarted() {
-      if (!appState._sessionStartedAt) appState._sessionStartedAt = Date.now();
+      if (!appState._sessionStartedAt) {
+        appState._sessionStartedAt = Date.now();
+        // v3.7.3: 要約統計をこのセッション分だけに絞るための基準位置。
+        appState._historyBase = appState.history ? appState.history.length : 0;
+        appState._samplesBase = (appState.latency && appState.latency.samples) ? appState.latency.samples.length : 0;
+      }
       tickSessionTimer();
       if (!sessionTimerId) sessionTimerId = setInterval(tickSessionTimer, 1000);
       requestWakeLock();
@@ -3016,9 +3127,11 @@
       const tEl = document.getElementById('summary-turns');
       const aEl = document.getElementById('summary-avg');
       if (dEl) dEl.textContent = formatElapsed(durMs);
-      if (tEl) tEl.textContent = String(appState.history ? appState.history.length : 0);
+      // v3.7.3: このセッションで増えた分だけを数える。
+      const hist = appState.history ? appState.history.slice(appState._historyBase || 0) : [];
+      if (tEl) tEl.textContent = String(hist.length);
       if (aEl) {
-        const samples = (appState.latency && appState.latency.samples) || [];
+        const samples = ((appState.latency && appState.latency.samples) || []).slice(appState._samplesBase || 0);
         aEl.textContent = samples.length
           ? Math.round(samples.reduce((a, b) => a + b, 0) / samples.length) + 'ms'
           : '—';
