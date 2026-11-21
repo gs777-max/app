@@ -6634,6 +6634,20 @@
             try { localStorage.removeItem(k); } catch (e) {}
             return;
           }
+          // ★ 校正キーの保護(1): クラウドの calibrations に同じキーがある場合、
+          //   step 1 で復元済みの権威ある校正値を holes の登録座標で潰さない
+          //   (例: 戸田 1H White のユーザー校正 483y が登録値 511y で上書きされる問題)
+          if (cloudData.calibrations && typeof cloudData.calibrations === 'object'
+              && Object.prototype.hasOwnProperty.call(cloudData.calibrations, k)) return;
+          // ★ 校正キーの保護(2): 既存のローカルキーの updatedAt がクラウドレコード
+          //   より新しい場合は、未同期のローカル校正を守って書き戻しをスキップする
+          try {
+            const existing = localStorage.getItem(k);
+            if (existing) {
+              const exMs = vkvToMs(JSON.parse(existing).updatedAt);
+              if (exMs && cloudRecordMs && exMs > cloudRecordMs) return;
+            }
+          } catch (e) {}
           try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {}
         };
 
