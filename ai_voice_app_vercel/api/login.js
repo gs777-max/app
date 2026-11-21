@@ -47,11 +47,14 @@ async function handler(req, res) {
     return;
   }
 
-  if (!auth.isConfigured()) {
+  const state = auth.configState();
+  if (state !== 'ok') {
     res.status(503).json({
       success: false,
-      code: 'AUTH_NOT_CONFIGURED',
-      error: 'ログイン設定が未完了です（Vercel環境変数 LOGIN_PASSWORD_HASH を設定してください）。'
+      code: state === 'missing' ? 'AUTH_NOT_CONFIGURED' : 'AUTH_MALFORMED',
+      error: state === 'missing'
+        ? 'ログイン設定が未完了です（Vercel環境変数 LOGIN_PASSWORD_HASH を設定してください）。'
+        : 'ログイン設定の値が不正です（LOGIN_PASSWORD_HASH は16進64文字のSHA-256ハッシュにしてください）。'
     });
     return;
   }
