@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   SEAT WARS ― 満員電車椅子取合戦 (単一ファイル版)
-  Version: 1.5.0
+  Version: 1.5.1
   Created: 20261107
   Three.js (CDN) によるブラウザ3D FPS。音楽は Internet Archive API から情景に合うクラシックをランダム再生。
   v1.1.0 (20261107): 路線・乗車駅セレクト、十字キー/Enter操作、スマホのタッチ操作（ジョイスティック/視点ドラッグ/ボタン）を復活。
@@ -16,6 +16,7 @@
   v1.4.2 (20261117): 日次品質改善ラウンド2 — フェーズ①ホームの見た目改善（駅名標の中央を隠していた柱を外して駅名が読めるように、ホーム床にタイル質感のキャンバステクスチャ、線路側にバラスト＋レール＋明るめのトンネル壁で真っ黒な虚空を解消）。操作・ゲームバランス・収録データ・BGM選曲ロジックは不変。
   v1.4.3 (20261119): UI大刷新（ゼロベース）— ガラスモーフィズムを全廃し、鉄道運行ボード風のフラット＆ソリッドなデザインシステムに。信号イエローを主アクセントに、スタート画面をセクション型レイアウトに再設計、HUD（駅名ボード・目的ストリップ・警告プロンプト・スキルバー・ボタン群）を刷新。操作ルール・ゲームロジック・3Dシーンは不変。
   v1.5.0 (20261119): 大改善 — スマホの視認性・操作性・没入性をマネタイズ水準へ。3Dシーンの明るさ（環境光・ヘッドランプ・床/バラスト/トンネル壁の明度）、吊り下げ駅名標、ホーム備品（ベンチ・自販機・ポスター・時計）、NPCの徘徊・首振り、窓外景色の到着前非表示、ジョイスティックの応答カーブと振動フィードバック、スキルボタンの選択・クールダウン表示、ブレーキ音。ゲームバランス・操作ルール・RUSH HOUR OPSデザインは不変。
+  v1.5.1 (20261121): NPCの個性と混雑の自然さ＋フェーズ①バナーの重なり修正 — NPCの体型・服装色に個体差（全7タイプがランダム出現、身長・体幅・スーツ/肌/髪色を個体ごとに jitter）、ホーム上のNPC同士が重ならないパーソナルスペース（徘徊NPCを押し出し、整列・仁王立ちは不動）、吊り下げ駅名標を下げて目的ストリップとの重なりを解消。ゲームバランス・操作ルール・RUSH HOUR OPSデザインは不変。
 -->
 <html lang="ja">
 <head>
@@ -23,7 +24,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SEAT WARS ― 満員電車椅子取合戦</title>
 <style>
-  /* ============ SEAT WARS v1.5.0 — RUSH HOUR OPS ============
+  /* ============ SEAT WARS v1.5.1 — RUSH HOUR OPS ============
      ゼロベース刷新。旧ガラスモーフィズムを全廃し、東京の鉄道運行ボードを
      モチーフにしたフラット＆ソリッドなUIに。半透明・ぼかし・グラデーション
      は使わない。面は不透明、角は小さく、影はハードなオフセット。
@@ -187,7 +188,7 @@
     <header class="mast">
       <div class="eyebrow">TOKYO COMMUTER BATTLE<span class="eyebrow-ja">通勤サバイバル</span></div>
       <h1>SEAT WARS</h1>
-      <div class="mast-sub"><span class="jp-title">満員電車椅子取合戦</span><span class="ver-chip" id="verLabel">ver 1.5.0</span></div>
+      <div class="mast-sub"><span class="jp-title">満員電車椅子取合戦</span><span class="ver-chip" id="verLabel">ver 1.5.1</span></div>
       <p class="lede">朝の首都圏。座席は、戦場だ。一人称視点でホームの陣取りから乗車ダッシュ、下車予測の心理戦、そして着席防衛戦を戦い抜き、目的地まで生き延びろ。画面にゲージはない。視界の揺れ・心音・赤い視界が、あなたの状態を物語る。</p>
     </header>
     <section class="howto">
@@ -446,10 +447,12 @@ signFace.position.set(0,2.85,8.80);signFace.rotation.y=Math.PI;scene.add(signFac
    never seen (it read as a blank beige board). A double-sided sign hangs from the roof
    in the spawn view, sharing the same canvas texture. Placed 3m ahead of the spawn
    point and sized to fit the portrait phone's narrow horizontal FOV, so the station
-   name reads instead of filling the frame as a cropped billboard. */
+   name reads instead of filling the frame as a cropped billboard.
+   v1.5.1: lowered 2.8 -> 2.35 — the phase-1 objective strip overlapped the sign's top
+   edge (its red header band) at 390px and at 1280px; rods lengthened to match. */
 const _hangSign=new THREE.Mesh(new THREE.PlaneGeometry(3.0,0.47),new THREE.MeshBasicMaterial({map:signTex,side:THREE.DoubleSide}));
-_hangSign.position.set(0,2.8,2.2);_hangSign.userData.v15="hangSign";scene.add(_hangSign);
-box(0.06,1.0,0.06,0x666666,-1.15,3.5,2.2);box(0.06,1.0,0.06,0x666666,1.15,3.5,2.2);
+_hangSign.position.set(0,2.35,2.2);_hangSign.userData.v15="hangSign";scene.add(_hangSign);
+box(0.06,1.5,0.06,0x666666,-1.15,3.25,2.2);box(0.06,1.5,0.06,0x666666,1.15,3.25,2.2);
 /* v1.4.1 platform ceiling light panels (emissive look, no extra lights) */
 const _ceilM=new THREE.MeshBasicMaterial({color:0xfff3d0});
 [-18,0,18].forEach(x=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(4,0.8),_ceilM);
@@ -598,8 +601,13 @@ const HVARIANTS={
  otaku:{h:1.7,w:1.15,shirt:0x5a6e46,pants:0x333333,shoes:0x222222,hair:"bob",bag:"bigbag"}};
 function buildHumanoid(t){
  const v=HVARIANTS[t.k]||HVARIANTS.salaryman;const g=new THREE.Group();
- const skin=stdMat(t.skin,0.55),suit=stdMat(t.suit,0.75),shirt=stdMat(v.shirt,0.8),
- hairM=stdMat(t.hair,0.95),pants=stdMat(v.pants,0.85),shoeM=stdMat(v.shoes,0.4,0.1);
+ /* v1.5.1: per-NPC colour jitter — same-type NPCs were pixel-identical clones;
+    a small per-channel offset makes the crowd read as distinct people. */
+ function jitHex(c,amt){const j=()=>Math.round((Math.random()*2-1)*amt);
+  const r=Math.max(0,Math.min(255,((c>>16)&255)+j())),gg=Math.max(0,Math.min(255,((c>>8)&255)+j())),b=Math.max(0,Math.min(255,(c&255)+j()));
+  return (r<<16)|(gg<<8)|b;}
+ const skin=stdMat(jitHex(t.skin,6),0.55),suit=stdMat(jitHex(t.suit,10),0.75),shirt=stdMat(jitHex(v.shirt,8),0.8),
+ hairM=stdMat(jitHex(t.hair,8),0.95),pants=stdMat(jitHex(v.pants,10),0.85),shoeM=stdMat(jitHex(v.shoes,8),0.4,0.1);
  const H=v.h,hipY=H*0.52;
  function leg(side){const hip=new THREE.Group();hip.position.set(0.11*side*v.w,hipY,0);g.add(hip);
   part(new THREE.CylinderGeometry(0.075*v.w,0.06*v.w,hipY*0.52,10),pants,0,-hipY*0.26,0,hip);
@@ -664,8 +672,10 @@ function poseSit(n){n.rig.legL.hip.rotation.x=-1.45;n.rig.legR.hip.rotation.x=-1
 function poseStand(n){n.rig.legL.hip.rotation.x=0;n.rig.legR.hip.rotation.x=0;
  n.rig.legL.knee.rotation.x=0;n.rig.legR.knee.rotation.x=0;
  n.rig.torso.rotation.x=(n.type.k==="elderly"?0.22:0);}
-function spawnNPC(x,z,opts){opts=opts||{};const t=NPC_TYPES[opts.type!==undefined?opts.type:Math.floor(Math.random()*5)];
+function spawnNPC(x,z,opts){opts=opts||{};const t=NPC_TYPES[opts.type!==undefined?opts.type:Math.floor(Math.random()*NPC_TYPES.length)]; /* v1.5.1: 全7タイプがランダム出現（従来は先頭5タイプのみ） */
  const g=new THREE.Group();g.position.set(x,0,z);
+ /* v1.5.1: per-NPC body variation — height/width jitter so same-type NPCs are not clones */
+ g.scale.set(0.95+Math.random()*0.1,0.96+Math.random()*0.09,0.95+Math.random()*0.1);
  const rig=buildHumanoid(t);g.add(rig.g);scene.add(g);
  const ic=makeIcon();ic.s.position.y=2.02;g.add(ic.s);
  const npc={id:npcId++,type:t,group:g,rig,bag:rig.bag,body:rig.torso,x,z,tx:x,tz:z,speed:1.1+Math.random()*0.7,
@@ -973,7 +983,24 @@ function updateNPCs(dt){
         n.group.rotation.z=n.lean*0.12*(n.seat<G.seatIdx?-1:1)*-1;}
       if(n.tellEmoji&&G.phase===3){ /* random idle actions feeding the slot machine */
         if(Math.random()<dt*0.1)setIcon(n,ACTIONS[Math.floor(Math.random()*ACTIONS.length)]);}}
-  }}
+  }
+  separateNPCs(); /* v1.5.1: パーソナルスペース */
+}
+/* v1.5.1: personal space — platform NPCs no longer stand inside each other
+   (a short NPC behind a tall one read as standing on the tall one's head).
+   Wanderers move; queue/stand/guard NPCs are anchors and are never moved,
+   so door queues and the guardian keep their gameplay positions. */
+function separateNPCs(){
+ const plats=npcs.filter(n=>n.state==="wander"||n.state==="queue"||n.state==="stand"||n.state==="guard");
+ for(let i=0;i<plats.length;i++)for(let j=i+1;j<plats.length;j++){
+  const a=plats[i],b=plats[j],pa=a.group.position,pb=b.group.position;
+  let dx=pb.x-pa.x,dz=pb.z-pa.z;const d0=Math.hypot(dx,dz);if(d0>=0.55)continue;
+  if(d0<0.001){dx=(a.id%2?1:-1);dz=0.5;} /* exactly coincident: deterministic direction */
+  const d=Math.hypot(dx,dz),ux=dx/d,uz=dz/d,overlap=0.55-d0;
+  const aMove=a.state==="wander",bMove=b.state==="wander";
+  if(aMove&&bMove){pa.x-=ux*overlap*0.5;pa.z-=uz*overlap*0.5;pb.x+=ux*overlap*0.5;pb.z+=uz*overlap*0.5;}
+  else if(aMove){pa.x-=ux*overlap;pa.z-=uz*overlap;}
+  else if(bMove){pb.x+=ux*overlap;pb.z+=uz*overlap;}}}
 /* ================= Player movement & bounds ================= */
 function updatePlayer(dt){const st=stats();
   const _lk=Math.min(1,dt*20);player.yaw+=(player.tYaw-player.yaw)*_lk;player.pitch+=(player.tPitch-player.pitch)*_lk;
