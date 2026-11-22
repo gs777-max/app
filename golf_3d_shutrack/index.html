@@ -239,7 +239,10 @@
       #quick-bar { display: flex; }
       /* AIコーチ：2行まで読める */
       #ai-coach-footer { min-height: 56px; height: auto; }
-      #ai-advice-text { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13px; }
+      #ai-advice-text { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13px; cursor: pointer; }
+      /* AIアドバイス：モバイルで2行に切れて読めないので、タップで全文表示（2026-11-22） */
+      #ai-coach-footer.ai-expanded .ai-advice-box { height: auto; min-height: 36px; }
+      #ai-coach-footer.ai-expanded #ai-advice-text { display: block; white-space: normal; -webkit-line-clamp: unset; overflow: visible; }
       /* ---- 2026-11-21 見やすさ・操作しやすさ改善 ---- */
       /* 3D上部バー：390pxでカメラ＋昼夜＋凡例がはみ出して切れていたのを2段化。カメラ行は横スクロール可、2段目は昼夜トグル＋凡例 */
       #panel-range > div.absolute { flex-wrap: wrap; row-gap: 6px; }
@@ -260,11 +263,9 @@
       /* FAB：bottom:172pxだとフッター（約100px）のせいでクイックバーのフェース操作部と指標ストリップに被っていた。クイックバーより上に浮かせる */
       #btn-fire-fab { bottom: 260px; }
       #ai-coach-footer { min-height: 96px; }
-      /* 指標ストリップ：基準値（±の小さい数字）が読みにくさのノイズになっていたので単位だけ残す。ラベルも大きく */
+      /* 指標ストリップ：下段は単位＋ラベル付き理想範囲だけに整理（意味不明な静的基準値は除去。2026-11-22）。ラベルも大きく */
       .tm-metric-card > div:first-child { font-size: 13px; }
       .tm-metric-card > div:last-child { justify-content: center; }
-      .tm-metric-card > div:last-child > span:first-child,
-      .tm-metric-card > div:last-child > span:last-child { display: none; }
       /* 数値入力：54×20pxでタップしにくかったので大きく */
       .inline-num-input { width: 64px; height: 28px; font-size: 13px; padding: 4px 6px; }
       /* 解析パネルのヘッダーボタン：高さ約20pxでタップしにくかったので32pxに（ヘッダー自体も36pxに） */
@@ -285,10 +286,14 @@
        キャリーサイド・パス等）が縦スクロール必須になっていた。1023px以下では
        flexの1行＋横スクロールにし、キャリーを先頭に全指標を横スワイプで見せる。 */
     @media (max-width: 1023px) {
-      #metric-strip { display: flex; flex-wrap: nowrap; overflow-x: auto; }
-      #metric-strip .tm-metric-card { flex: none; min-width: 118px; min-height: 76px; }
+      #metric-strip { display: flex; flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity; }
+      /* 769〜1023pxでも hidden lg:flex の4枚（パス・着地角・左右打出角・打出角）を表示する */
+      #metric-strip .tm-metric-card { display: flex !important; flex: none; min-width: 118px; min-height: 76px; scroll-snap-align: start; }
       #metric-strip #card-carry { order: -1; }
+      /* 横スクロールに気づきにくいので右端にフェードヒント（2026-11-22） */
+      .metric-scroll-hint { display: block; position: absolute; top: 0; right: 0; bottom: 0; width: 28px; pointer-events: none; background: linear-gradient(to left, #12141a 0%, rgba(18,20,26,0) 100%); z-index: 5; }
     }
+    .metric-scroll-hint { display: none; }
     /* ---- Shot-result hero overlay (TrackMan-style big carry readout) ---- */
     #shot-result-hero { position: absolute; top: 60px; left: 10px; z-index: 10; pointer-events: none; }
     #shot-result-hero .hero-card { background: rgba(16,18,22,0.86); backdrop-filter: blur(6px); border: 1px solid rgba(255,98,26,0.55); border-radius: 14px; padding: 8px 14px 9px; box-shadow: 0 8px 28px rgba(0,0,0,0.55); text-align: left; }
@@ -922,17 +927,15 @@
   </button>
 
   <!-- ==================== MIDDLE-LOWER: 12-METRIC TRACKMAN DATA STRIP ==================== -->
-  <section class="h-[88px] sm:h-[94px] shrink-0 bg-[#12141a] border-t border-[#282c37] px-2 py-1.5 z-30">
+  <section class="relative h-[88px] sm:h-[94px] shrink-0 bg-[#12141a] border-t border-[#282c37] px-2 py-1.5 z-30">
     <div id="metric-strip" class="h-full grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-1.5 overflow-x-auto">
 
       <!-- 1. クラブスピード -->
       <div id="card-chs" data-focus="inp-chs" class="tm-metric-card flex flex-col justify-between px-2 py-1" title="クリックでクラブスピード入力へ移動">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">クラブスピード</div>
         <div id="m-chs" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">44.4</div>
-        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
-          <span>37.2</span>
+        <div class="flex items-center justify-center text-[9.5px] font-num text-gray-300">
           <span class="text-gray-100 font-bold">m/s</span>
-          <span>±4.5</span>
         </div>
       </div>
 
@@ -940,10 +943,8 @@
       <div id="card-aoa" data-focus="inp-aoa" class="tm-metric-card flex flex-col justify-between px-2 py-1" title="クリックでアタックアングル入力へ移動">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">アタックアングル</div>
         <div id="m-aoa" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">0.4</div>
-        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
-          <span>0.5</span>
+        <div class="flex items-center justify-center text-[9.5px] font-num text-gray-300">
           <span class="text-gray-100 font-bold">deg</span>
-          <span>±3.4</span>
         </div>
       </div>
 
@@ -951,10 +952,8 @@
       <div id="card-bs" data-focus="inp-chs" class="tm-metric-card flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">ボールスピード</div>
         <div id="m-bs" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">66.2</div>
-        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
-          <span>52.6</span>
+        <div class="flex items-center justify-center text-[9.5px] font-num text-gray-300">
           <span class="text-gray-100 font-bold">m/s</span>
-          <span>±7.0</span>
         </div>
       </div>
 
@@ -962,10 +961,8 @@
       <div id="card-smash" data-focus="inp-chs" class="tm-metric-card flex flex-col justify-between px-2 py-1" title="クリックでクラブスピード入力へ移動">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">ミート率 <span class="warn-badge hidden text-rose-400">⚠</span></div>
         <div id="m-smash" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">1.490</div>
-        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
-          <span></span>
+        <div class="flex items-center justify-center text-[9.5px] font-num text-gray-300">
           <span id="m-smash-ideal" class="text-gray-100 font-bold">理想 1.45〜</span>
-          <span></span>
         </div>
       </div>
 
@@ -973,10 +970,8 @@
       <div id="card-spin" data-focus="inp-imp-y" class="tm-metric-card flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">スピン量 <span class="warn-badge hidden text-rose-400">⚠</span></div>
         <div id="m-spin" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">2775</div>
-        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
-          <span>3365</span>
-          <span class="text-gray-100 font-bold">rpm</span>
-          <span>±902</span>
+        <div class="flex items-center justify-center text-[9.5px] font-num text-gray-300">
+          <span id="m-spin-ideal" class="text-gray-100 font-bold">理想 2000〜2700 rpm</span>
         </div>
       </div>
 
@@ -984,10 +979,8 @@
       <div id="card-carry" data-focus="inp-chs" class="tm-metric-card flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">キャリー</div>
         <div id="m-carry" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">222.2</div>
-        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
-          <span>166.7</span>
+        <div class="flex items-center justify-center text-[9.5px] font-num text-gray-300">
           <span class="text-gray-100 font-bold">yds</span>
-          <span>±32.1</span>
         </div>
       </div>
 
@@ -995,10 +988,8 @@
       <div id="card-side" data-focus="inp-imp-x" class="tm-metric-card flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">キャリーサイド <span class="warn-badge hidden text-rose-400">⚠</span></div>
         <div id="m-side" class="text-2xl xl:text-[25px] leading-none font-extrabold font-num text-white text-center my-auto">0.0<span class="text-base"></span></div>
-        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
-          <span>5.2左</span>
+        <div class="flex items-center justify-center text-[9.5px] font-num text-gray-300">
           <span class="text-gray-100 font-bold">yds</span>
-          <span>±20.1</span>
         </div>
       </div>
 
@@ -1006,10 +997,8 @@
       <div id="card-lowpt" data-focus="inp-aoa" class="tm-metric-card hidden sm:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">ローポイント</div>
         <div id="m-lowpt" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">1.4B</div>
-        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
-          <span>3.6B</span>
+        <div class="flex items-center justify-center text-[9.5px] font-num text-gray-300">
           <span class="text-gray-100 font-bold">cm</span>
-          <span>±10.5</span>
         </div>
       </div>
 
@@ -1017,10 +1006,8 @@
       <div id="card-path" data-focus="inp-path" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">クラブパス <span class="warn-badge hidden text-rose-400">⚠</span></div>
         <div id="m-path" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">0.0</div>
-        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
-          <span>-4.8</span>
+        <div class="flex items-center justify-center text-[9.5px] font-num text-gray-300">
           <span class="text-gray-100 font-bold">deg</span>
-          <span>±5.4</span>
         </div>
       </div>
 
@@ -1028,10 +1015,8 @@
       <div id="card-land" data-focus="inp-dyn-loft" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">着地角</div>
         <div id="m-land" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">32.5</div>
-        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
-          <span>34.4</span>
+        <div class="flex items-center justify-center text-[9.5px] font-num text-gray-300">
           <span class="text-gray-100 font-bold">deg</span>
-          <span>±9.1</span>
         </div>
       </div>
 
@@ -1039,10 +1024,8 @@
       <div id="card-hla" data-focus="inp-face" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">左右打出角 <span class="warn-badge hidden text-rose-400">⚠</span></div>
         <div id="m-hla" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">0.0</div>
-        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
-          <span>-4.4</span>
+        <div class="flex items-center justify-center text-[9.5px] font-num text-gray-300">
           <span class="text-gray-100 font-bold">deg</span>
-          <span>±5.8</span>
         </div>
       </div>
 
@@ -1050,14 +1033,13 @@
       <div id="card-vla" data-focus="inp-dyn-loft" class="tm-metric-card hidden lg:flex flex-col justify-between px-2 py-1">
         <div class="text-[10.5px] font-bold text-[#ff7a33] text-center truncate">打出角</div>
         <div id="m-vla" class="text-2xl xl:text-[27px] leading-none font-extrabold font-num text-white text-center my-auto">10.8</div>
-        <div class="flex items-center justify-between text-[9.5px] font-num text-gray-300">
-          <span>15.0</span>
-          <span class="text-gray-100 font-bold">deg</span>
-          <span>±4.6</span>
+        <div class="flex items-center justify-center text-[9.5px] font-num text-gray-300">
+          <span id="m-vla-ideal" class="text-gray-100 font-bold">理想 12〜15°</span>
         </div>
       </div>
 
     </div>
+    <div class="metric-scroll-hint" aria-hidden="true"></div>
   </section>
 
   <!-- ==================== PATTERN B: FIXED BOTTOM DASHBOARD FOOTER (AI COACH BAR + UNDO) ==================== -->
@@ -1080,8 +1062,8 @@
       </svg>
     </div>
 
-    <div class="flex-1 h-[36px] bg-[#16181f] border border-[#2d313d] rounded-md px-3 flex items-center justify-between overflow-hidden shadow-inner">
-      <div id="ai-advice-text" class="text-xs font-bold text-gray-100 truncate pr-2">
+    <div class="ai-advice-box flex-1 h-[36px] bg-[#16181f] border border-[#2d313d] rounded-md px-3 flex items-center justify-between overflow-hidden shadow-inner">
+      <div id="ai-advice-text" class="text-xs font-bold text-gray-100 truncate pr-2 cursor-pointer" title="タップで全文表示／折りたたみ">
         <span class="text-rose-400 font-extrabold mr-1.5">改善ポイント:</span> ⚠️ 打点が下部(-6mm)です。ギア効果でバックスピンが増大し飛距離をロスしています。
       </div>
       <div class="shrink-0 flex items-center gap-1.5 ml-2">
@@ -1113,6 +1095,7 @@
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">打点を芯(0,0)へリセット</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">Esc</kbd></div>
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">3Dカメラ視点切替</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">1 / 2 / 3 / 4</kbd></div>
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">3D弾道を大きく見る／戻る</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">M</kbd></div>
+        <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">AIアドバイスの全文表示（スマホ）</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">タップ</kbd></div>
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">ショット結果をコピー</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">C</kbd></div>
         <div class="bg-[#21242c] p-2 rounded flex justify-between items-center"><span class="text-gray-300">左サイドバー開閉</span><kbd class="px-1.5 py-0.5 bg-[#121317] rounded border border-[#383c47] font-mono text-[10px] text-amber-300">H</kbd></div>
       </div>
@@ -2750,6 +2733,10 @@
       document.getElementById('m-smash').textContent = shot.smashFactor.toFixed(3);
       const smashIdealEl = document.getElementById('m-smash-ideal');
       if (smashIdealEl) smashIdealEl.textContent = `理想 ${(IDEAL_RANGES[state.club]?.smashMin ?? 1.45).toFixed(2)}〜`;
+      const spinIdealEl = document.getElementById('m-spin-ideal');
+      if (spinIdealEl) { const r = IDEAL_RANGES[state.club]?.spin; if (r) spinIdealEl.textContent = `理想 ${r[0]}〜${r[1]} rpm`; }
+      const vlaIdealEl = document.getElementById('m-vla-ideal');
+      if (vlaIdealEl) { const r = IDEAL_RANGES[state.club]?.launchV; if (r) vlaIdealEl.textContent = `理想 ${r[0]}〜${r[1]}°`; }
       document.getElementById('m-spin').textContent = shot.spinRate;
       document.getElementById('m-carry').textContent = shot.carryYards.toFixed(1);
 
@@ -3656,6 +3643,11 @@
       document.getElementById('btn-undo-ideal').classList.add('hidden');
       recalculateAndRefreshUI(false);
       update3DTrajectoryInRange(state.currentShot, true);
+    });
+
+    // AIアドバイス：モバイルでタップして全文表示／折りたたみ（2026-11-22）
+    document.getElementById('ai-advice-text')?.addEventListener('click', () => {
+      document.getElementById('ai-coach-footer')?.classList.toggle('ai-expanded');
     });
 
     // Metric Card Click -> Focus Input
