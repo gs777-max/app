@@ -3953,7 +3953,7 @@
           wHero("huoqubing", "冠", "#162d2c", "#061111", "#2dd4bf", "star", true, "霍去病（冠軍侯）", "Huo Qubing", "霍去病", "곽거병", "封狼居胥の疾風", "Lightning Marshal", "匈奴未滅 何以家爲", "「疾風のごとく敵の根幹を貫く！一瞬も見逃すな。」", "\"Swift as a hurricane across the northern steppe!\"", "「封狼居胥，一往无前！」", "「질풍처럼 적의 심장부를 꿰뚫겠다!」"),
           wHero("baiqi", "殺", "#2b161b", "#120709", "#f43f5e", "halberd", false, "白起（戦国人屠・武安君）", "Bai Qi", "白起", "백기", "無敗の戦神", "Undefeated Butcher of Qin", "伊闕長平 百戦百勝", "「死活の退路は既にすべて封じた。逃れられんぞ。」", "\"Every escape route is sealed with mathematical rigor.\"", "「十面埋伏，退路已绝！」", "「사활의 퇴로는 이미 전부 봉쇄했노라.」")
         ] },
-      { level: 9, rollouts: 4000, thinkMs: 6000, noise: 0.03, style: "creative",
+      { level: 9, rollouts: 8000, thinkMs: 10000, noise: 0.02, style: "creative",
         rank: { ja: "棋聖級・神算の軍師", en: "Grandmaster · Divine Strategists", zh: "棋圣级 · 千古谋圣", ko: "기성급 · 신산 군사" },
         warriors: [
           wHero("zhugeliang", "臥", "#1a2834", "#080e14", "#facc15", "plume", true, "諸葛亮（臥龍・孔明）", "Zhuge Liang (Sleeping Dragon)", "诸葛亮", "제갈량", "八陣図を描く稀代の丞相", "Sleeping Dragon", "鞠躬盡瘁 死而後已", "「八陣図すでに成れり。静かに次の一手をお待ちを。」", "\"The Eight-Trigram formation is set. Choose wisely.\"", "「八阵图已成，全局尽在羽扇之中。」", "「팔진도가 이미 반상 위에 완성되었소.」"),
@@ -3961,7 +3961,7 @@
           wHero("sunwu", "孫", "#22241c", "#0c0e09", "#fde047", "crown", true, "孫武（兵聖・孫子）", "Sun Tzu (Master Sun)", "孙武", "손무", "兵法十三篇の祖", "Sage of War", "不戰而屈人之兵 善之善者也", "「戦わずして大局を制す。形勢の理に従え。」", "\"Subdue the opponent effortlessly through superior shape.\"", "「兵者诡道也，善战者致人而不致于人。」", "「싸우지 않고도 대세를 제압함이 병법의 극치요.」"),
           wHero("zhangliang", "謀", "#1c2238", "#080b15", "#93c5fd", "plume", false, "張良（留侯・謀聖）", "Zhang Liang", "张良", "장량", "帷幄の中に勝を決する智聖", "Sage of Counsel", "運籌帷幄 決勝千里", "「帷幄の一手こそ、盤上千里の勝敗を決します。」", "\"One quiet plan in the tent settles a thousand li.\"", "「运筹帷幄之中，决胜千里之外。」", "「조용한 한 수가 천 리 밖의 승부를 가릅니다.」")
         ] },
-      { level: 10, rollouts: 10000, thinkMs: 12000, noise: 0, style: "katago",
+      { level: 10, rollouts: 120000, thinkMs: 20000, noise: 0, style: "katago",
         rank: { ja: "プロ九段超・千古の覇王", en: "Superhuman 9d+ · Eternal Sovereigns", zh: "超九段・千古一帝与棋圣", ko: "프로 9단 초월 · 천고 패왕" },
         warriors: [
           wHero("xiangyu", "覇", "#2d0b12", "#0c0204", "#fbbf24", "horns", true, "項羽（西楚の覇王）", "Xiang Yu (Overlord of Chu)", "项羽", "항우", "力山を抜く背水の英雄", "Hegemon-King of Chu", "力拔山兮氣蓋世", "「背水の陣を敷き、全力をもって一石一石を打ち下ろす！」", "\"Burning the boats—every move carries sovereign force!\"", "「破釜沉舟，力拔山兮气盖世！」", "「파부침주의 각오로 반상을 압도하리라!」"),
@@ -3992,8 +3992,8 @@
       { key: '2d',  rollouts: 100, noise: 0.14, style: 'fighting',  label: { ja: 'アマ二段', en: '2-dan',  zh: '业余二段', ko: '아마 2단' } },
       { key: '3d',  rollouts: 120, noise: 0.12, style: 'fighting',  label: { ja: 'アマ三段', en: '3-dan',  zh: '业余三段', ko: '아마 3단' } },
       { key: '5d',  rollouts: 1200, thinkMs: 2000, noise: 0.09, style: 'precise',   label: { ja: 'アマ五段', en: '5-dan',  zh: '业余五段', ko: '아마 5단' } },
-      { key: '7d',  rollouts: 3000, thinkMs: 4000, noise: 0.06, style: 'creative',  label: { ja: 'アマ七段', en: '7-dan',  zh: '业余七段', ko: '아마 7단' } },
-      { key: '9d',  rollouts: 8000, thinkMs: 10000, noise: 0.01, style: 'katago',    label: { ja: 'プロ九段', en: 'Pro 9d', zh: '职业九段', ko: '프로 9단' } }
+      { key: '7d',  rollouts: 6000, thinkMs: 8000, noise: 0.04, style: 'creative',  label: { ja: 'アマ七段', en: '7-dan',  zh: '业余七段', ko: '아마 7단' } },
+      { key: '9d',  rollouts: 100000, thinkMs: 18000, noise: 0, style: 'katago',    label: { ja: 'プロ九段', en: 'Pro 9d', zh: '职业九段', ko: '프로 9단' } }
     ];
     const HUMAN_SL_MAP = Object.fromEntries(HUMAN_SL_RANKS.map(r => [r.key, r]));
 
@@ -5370,6 +5370,7 @@
      * 6. ハイブリッドKataGoエンジン（外部JSON並列API + 内蔵Web Worker MCTS/UCT）
      * ========================================================================= */
     const workerCode = `
+
       const EMPTY = 0, BLACK = 1, WHITE = 2;
       function getNeighbors(x, y, w, h) {
         const res = [];
@@ -5504,117 +5505,348 @@
         }
         return bScore - wScore;
       }
-      function playout(boardIn, w, h, startColor, komi, lastIdx) {
-        const b = new Int8Array(boardIn), total = w * h;
+      /* ===== 高速エンジン (v4): 連・呼吸点の増分管理 + 割当なしプレイアウト ===== */
+      let _stk = new Int32Array(0), _gm = new Int32Array(0), _gid = 0, _lm = new Int32Array(0), _lid = 0;
+      let _sBuf = new Int32Array(0), _gTag = new Int32Array(0), _seen = new Int32Array(0), _seenId = 0;
+      let _gLibs = 0, _gCount = 0, _gLib1 = -1;
+      let _playB = new Int8Array(0), _emp = new Int32Array(0), _empPos = new Int32Array(0);
+      let _capList = new Int32Array(0), _aCap = 0, _aSl = 0, _aRoot = -1;
+      const _nbOwn = new Int32Array(4), _nbOpp = new Int32Array(4), _aff = new Int32Array(4);
+      function ensureScratch(total) {
+        if (_stk.length < total) {
+          _stk = new Int32Array(total); _gm = new Int32Array(total); _lm = new Int32Array(total);
+          _sBuf = new Int32Array(total); _gTag = new Int32Array(total); _seen = new Int32Array(total);
+          _playB = new Int8Array(total); _emp = new Int32Array(total); _empPos = new Int32Array(total);
+          _capList = new Int32Array(total);
+        }
+      }
+      function groupScan(board, w, h, start, collect) {
+        const c = board[start], total = w * h;
+        _gid++; _lid++;
+        let sp = 0, libs = 0, cnt = 0, lib1 = -1;
+        _stk[sp++] = start; _gm[start] = _gid; _gTag[start] = _gid;
+        while (sp > 0) {
+          const cur = _stk[--sp];
+          if (collect) collect[cnt] = cur;
+          cnt++;
+          const cx = cur % w;
+          if (cx > 0) { const n = cur - 1, v = board[n]; if (v === EMPTY) { if (_lm[n] !== _lid) { _lm[n] = _lid; libs++; lib1 = n; } } else if (v === c && _gm[n] !== _gid) { _gm[n] = _gid; _gTag[n] = _gid; _stk[sp++] = n; } }
+          if (cx < w - 1) { const n = cur + 1, v = board[n]; if (v === EMPTY) { if (_lm[n] !== _lid) { _lm[n] = _lid; libs++; lib1 = n; } } else if (v === c && _gm[n] !== _gid) { _gm[n] = _gid; _gTag[n] = _gid; _stk[sp++] = n; } }
+          if (cur >= w) { const n = cur - w, v = board[n]; if (v === EMPTY) { if (_lm[n] !== _lid) { _lm[n] = _lid; libs++; lib1 = n; } } else if (v === c && _gm[n] !== _gid) { _gm[n] = _gid; _gTag[n] = _gid; _stk[sp++] = n; } }
+          if (cur + w < total) { const n = cur + w, v = board[n]; if (v === EMPTY) { if (_lm[n] !== _lid) { _lm[n] = _lid; libs++; lib1 = n; } } else if (v === c && _gm[n] !== _gid) { _gm[n] = _gid; _gTag[n] = _gid; _stk[sp++] = n; } }
+        }
+        _gLibs = libs; _gCount = cnt; _gLib1 = libs === 1 ? lib1 : -1;
+      }
+      function fastIsEye(board, w, h, idx, color) {
+        const x = idx % w, y = (idx / w) | 0, opp = color === BLACK ? WHITE : BLACK;
+        if (x > 0 && board[idx - 1] !== color) return false;
+        if (x < w - 1 && board[idx + 1] !== color) return false;
+        if (y > 0 && board[idx - w] !== color) return false;
+        if (y < h - 1 && board[idx + w] !== color) return false;
+        let diagEnemy = 0, diagCnt = 0;
+        if (x > 0 && y > 0) { diagCnt++; if (board[idx - w - 1] === opp) diagEnemy++; }
+        if (x < w - 1 && y > 0) { diagCnt++; if (board[idx - w + 1] === opp) diagEnemy++; }
+        if (x > 0 && y < h - 1) { diagCnt++; if (board[idx + w - 1] === opp) diagEnemy++; }
+        if (x < w - 1 && y < h - 1) { diagCnt++; if (board[idx + w + 1] === opp) diagEnemy++; }
+        return diagCnt === 4 ? diagEnemy <= 1 : diagEnemy === 0;
+      }
+      function fastFinalScore(board, w, h, komi) {
+        const total = w * h;
+        _seenId++;
+        let bScore = 0, wScore = komi;
+        for (let i = 0; i < total; i++) {
+          const c = board[i];
+          if (c === BLACK) { bScore++; continue; }
+          if (c === WHITE) { wScore++; continue; }
+          if (_seen[i] === _seenId) continue;
+          let region = 0, touchB = false, touchW = false, sp = 0;
+          _stk[sp++] = i; _seen[i] = _seenId;
+          while (sp > 0) {
+            const cur = _stk[--sp]; region++;
+            const cx = cur % w;
+            if (cx > 0) { const n = cur - 1, v = board[n]; if (v === BLACK) touchB = true; else if (v === WHITE) touchW = true; else if (_seen[n] !== _seenId) { _seen[n] = _seenId; _stk[sp++] = n; } }
+            if (cx < w - 1) { const n = cur + 1, v = board[n]; if (v === BLACK) touchB = true; else if (v === WHITE) touchW = true; else if (_seen[n] !== _seenId) { _seen[n] = _seenId; _stk[sp++] = n; } }
+            if (cur >= w) { const n = cur - w, v = board[n]; if (v === BLACK) touchB = true; else if (v === WHITE) touchW = true; else if (_seen[n] !== _seenId) { _seen[n] = _seenId; _stk[sp++] = n; } }
+            if (cur + w < total) { const n = cur + w, v = board[n]; if (v === BLACK) touchB = true; else if (v === WHITE) touchW = true; else if (_seen[n] !== _seenId) { _seen[n] = _seenId; _stk[sp++] = n; } }
+          }
+          if (touchB && !touchW) bScore += region;
+          else if (touchW && !touchB) wScore += region;
+        }
+        return bScore - wScore;
+      }
+      /* --- 連の増分管理コンテキスト --- */
+      function makeCtx(total) {
+        return { gid: new Int32Array(total), lib: new Int32Array(total), nxt: new Int32Array(total), head: new Int32Array(total), tail: new Int32Array(total), size: new Int32Array(total) };
+      }
+      let _ctxP = null, _ctxL = null;
+      function buildCtx(ctx, board, w, h) {
+        const total = w * h;
+        ctx.gid.fill(-1);
+        for (let i = 0; i < total; i++) {
+          if (board[i] === EMPTY || ctx.gid[i] !== -1) continue;
+          groupScan(board, w, h, i, _sBuf);
+          const root = _sBuf[0];
+          for (let j = 0; j < _gCount; j++) { const s = _sBuf[j]; ctx.gid[s] = root; ctx.nxt[s] = j + 1 < _gCount ? _sBuf[j + 1] : -1; }
+          ctx.head[root] = root; ctx.tail[root] = _sBuf[_gCount - 1]; ctx.size[root] = _gCount; ctx.lib[root] = _gLibs;
+        }
+      }
+      // jr: 変更ジャーナル (数値の平坦配列) または null。結果は _aCap/_aSl/_aRoot
+      function applyCtx(ctx, board, w, h, idx, color, jr) {
+        const opp = color === BLACK ? WHITE : BLACK, total = w * h, x = idx % w;
+        let nOwn = 0, nOpp = 0;
+        if (jr) jr.push([6, idx, ctx.nxt[idx]]);
+        board[idx] = color;
+        for (let d = 0; d < 4; d++) {
+          let n;
+          if (d === 0) { if (x === 0) continue; n = idx - 1; }
+          else if (d === 1) { if (x === w - 1) continue; n = idx + 1; }
+          else if (d === 2) { if (idx < w) continue; n = idx - w; }
+          else { if (idx + w >= total) continue; n = idx + w; }
+          const v = board[n];
+          if (v === opp) { const r = ctx.gid[n]; let dup = false; for (let k = 0; k < nOpp; k++) if (_nbOpp[k] === r) { dup = true; break; } if (!dup) _nbOpp[nOpp++] = r; }
+          else if (v === color) { const r = ctx.gid[n]; let dup = false; for (let k = 0; k < nOwn; k++) if (_nbOwn[k] === r) { dup = true; break; } if (!dup) _nbOwn[nOwn++] = r; }
+        }
+        let capN = 0;
+        // 相手の連: 取れる連を確定してから処理する
+        const capRoots = [];
+        for (let k = 0; k < nOpp; k++) { const r = _nbOpp[k]; if (ctx.lib[r] - 1 === 0) capRoots.push(r); }
+        for (let k = 0; k < nOpp; k++) {
+          const r = _nbOpp[k];
+          if (capRoots.indexOf(r) >= 0) continue;
+          if (jr) jr.push([1, r, ctx.lib[r]]);
+          ctx.lib[r]--;
+        }
+        for (let ci = 0; ci < capRoots.length; ci++) {
+          const r = capRoots[ci];
+          let s = ctx.head[r];
+          while (s !== -1) {
+            const sNext = ctx.nxt[s];
+            board[s] = EMPTY;
+            if (jr) jr.push([2, s, r]);
+            ctx.gid[s] = -1;
+            _capList[capN++] = s;
+            // 取った石に隣接する他の連は呼吸点+1
+            let nAff = 0;
+            const sx = s % w;
+            for (let d = 0; d < 4; d++) {
+              let m;
+              if (d === 0) { if (sx === 0) continue; m = s - 1; }
+              else if (d === 1) { if (sx === w - 1) continue; m = s + 1; }
+              else if (d === 2) { if (s < w) continue; m = s - w; }
+              else { if (s + w >= total) continue; m = s + w; }
+              if (board[m] === EMPTY) continue;
+              const r2 = ctx.gid[m];
+              if (r2 < 0 || r2 === r) continue;
+              let dup = false; for (let k = 0; k < nAff; k++) if (_aff[k] === r2) { dup = true; break; }
+              if (dup) continue;
+              _aff[nAff++] = r2;
+              let isOwn = false; for (let k = 0; k < nOwn; k++) if (_nbOwn[k] === r2) { isOwn = true; break; }
+              if (isOwn) continue; // 自軍の合体後の呼吸点は走査で再計算する
+              if (jr) jr.push([1, r2, ctx.lib[r2]]);
+              ctx.lib[r2]++;
+            }
+            s = sNext;
+          }
+        }
+        // 自軍の合体
+        let root;
+        if (nOwn === 0) {
+          root = idx;
+          if (jr) jr.push([4, root, ctx.head[root], ctx.tail[root], ctx.size[root], ctx.lib[root]]);
+          ctx.gid[idx] = idx; ctx.head[idx] = idx; ctx.tail[idx] = idx; ctx.nxt[idx] = -1; ctx.size[idx] = 1;
+        } else {
+          root = _nbOwn[0];
+          for (let k = 1; k < nOwn; k++) if (ctx.size[_nbOwn[k]] > ctx.size[root]) root = _nbOwn[k];
+          if (jr) jr.push([4, root, ctx.head[root], ctx.tail[root], ctx.size[root], ctx.lib[root]]);
+          for (let k = 0; k < nOwn; k++) {
+            const r = _nbOwn[k];
+            if (r === root) continue;
+            let s = ctx.head[r];
+            while (s !== -1) { if (jr) jr.push([3, s, r]); ctx.gid[s] = root; s = ctx.nxt[s]; }
+            if (jr) jr.push([5, ctx.tail[root], ctx.nxt[ctx.tail[root]]]);
+            ctx.nxt[ctx.tail[root]] = ctx.head[r];
+            ctx.tail[root] = ctx.tail[r];
+            ctx.size[root] += ctx.size[r];
+          }
+          ctx.gid[idx] = root;
+          ctx.nxt[idx] = ctx.head[root];
+          ctx.head[root] = idx;
+          ctx.size[root] += 1;
+        }
+        // 合体後の呼吸点を正確に数え直す
+        _lid++;
+        let libs = 0;
+        let s = ctx.head[root];
+        while (s !== -1) {
+          const sx = s % w;
+          if (sx > 0) { const n = s - 1; if (board[n] === EMPTY && _lm[n] !== _lid) { _lm[n] = _lid; libs++; } }
+          if (sx < w - 1) { const n = s + 1; if (board[n] === EMPTY && _lm[n] !== _lid) { _lm[n] = _lid; libs++; } }
+          if (s >= w) { const n = s - w; if (board[n] === EMPTY && _lm[n] !== _lid) { _lm[n] = _lid; libs++; } }
+          if (s + w < total) { const n = s + w; if (board[n] === EMPTY && _lm[n] !== _lid) { _lm[n] = _lid; libs++; } }
+          s = ctx.nxt[s];
+        }
+        ctx.lib[root] = libs;
+        _aCap = capN; _aSl = libs; _aRoot = root;
+      }
+      function undoCtx(ctx, board, jr, idx, color) {
+        const opp = color === BLACK ? WHITE : BLACK;
+        for (let i = jr.length - 1; i >= 0; i--) {
+          const rec = jr[i], op = rec[0];
+          if (op === 1) ctx.lib[rec[1]] = rec[2];
+          else if (op === 2) { board[rec[1]] = opp; ctx.gid[rec[1]] = rec[2]; }
+          else if (op === 3) ctx.gid[rec[1]] = rec[2];
+          else if (op === 4) { const r = rec[1]; ctx.head[r] = rec[2]; ctx.tail[r] = rec[3]; ctx.size[r] = rec[4]; ctx.lib[r] = rec[5]; }
+          else if (op === 5) ctx.nxt[rec[1]] = rec[2];
+          else if (op === 6) ctx.nxt[rec[1]] = rec[2];
+        }
+        board[idx] = EMPTY;
+        ctx.gid[idx] = -1;
+        jr.length = 0;
+      }
+      function ctxPlayout(boardIn, w, h, startColor, komi, lastIdx) {
+        const total = w * h;
+        if (!_ctxP || _ctxP.gid.length < total) _ctxP = makeCtx(total);
+        const ctx = _ctxP, b = _playB;
+        b.set(boardIn);
+        buildCtx(ctx, b, w, h);
+        let empN = 0;
+        for (let i = 0; i < total; i++) { if (b[i] === EMPTY) { _empPos[i] = empN; _emp[empN++] = i; } else _empPos[i] = -1; }
         let color = startColor, passes = 0, last = lastIdx;
         const maxSteps = Math.floor(total * 1.7) + 20;
+        const jr = [];
         for (let step = 0; step < maxSteps; step++) {
+          const oppC = color === BLACK ? WHITE : BLACK;
           let chosenIdx = -1;
           if (last >= 0 && Math.random() < 0.75) {
-            const lx = last % w, ly = (last / w) | 0, oppC = color === BLACK ? WHITE : BLACK;
-            const seenG = new Set();
-            let bestVal = 0, bestUndo = null;
+            const lx = last % w, ly = (last / w) | 0;
+            let bestVal = 0, bestIdx = -1;
+            const seenRoots = [];
             for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
               const x = lx + dx, y = ly + dy;
               if (x < 0 || x >= w || y < 0 || y >= h) continue;
               const idx = y * w + x, c = b[idx];
-              if (c === EMPTY || seenG.has(idx)) continue;
-              const g = getGroup(b, w, h, x, y);
-              for (let j = 0; j < g.stones.length; j++) seenG.add(g.stones[j]);
-              if (g.libsSize !== 1) continue;
-              const libIdx = g.libs[0], libX = libIdx % w, libY = (libIdx / w) | 0;
-              if (isOwnEye(b, w, h, libX, libY, color)) continue;
-              const undo = applyWithUndo(b, w, h, libIdx, color);
-              if (!undo) continue;
+              if (c === EMPTY) continue;
+              const r = ctx.gid[idx];
+              if (seenRoots.indexOf(r) >= 0) continue;
+              seenRoots.push(r);
+              if (ctx.lib[r] !== 1) continue;
+              // 呼吸点が1つだけの連: その呼吸点を探す
+              let libIdx = -1;
+              let s = ctx.head[r];
+              while (s !== -1 && libIdx < 0) {
+                const sx = s % w;
+                if (sx > 0 && b[s - 1] === EMPTY) libIdx = s - 1;
+                else if (sx < w - 1 && b[s + 1] === EMPTY) libIdx = s + 1;
+                else if (s >= w && b[s - w] === EMPTY) libIdx = s - w;
+                else if (s + w < total && b[s + w] === EMPTY) libIdx = s + w;
+                s = ctx.nxt[s];
+              }
+              if (libIdx < 0) continue;
+              if (fastIsEye(b, w, h, libIdx, color)) continue;
+              const gStones = ctx.size[r];
+              jr.length = 0;
+              applyCtx(ctx, b, w, h, libIdx, color, jr);
               let val = 0;
-              if (c === oppC && undo.captured.length > 0) val = 100 + undo.captured.length * 30;
-              else if (c === color && (undo.selfLibs >= 2 || undo.captured.length > 0)) val = 80 + g.stones.length * 20;
-              if (val > bestVal) {
-                if (bestUndo) undoMove(b, bestUndo, color);
-                bestVal = val; bestUndo = undo; chosenIdx = libIdx;
-              } else undoMove(b, undo, color);
+              if (c === oppC && _aCap > 0) val = 100 + _aCap * 30;
+              else if (c === color && (_aSl >= 2 || _aCap > 0)) val = 80 + gStones * 20;
+              undoCtx(ctx, b, jr, libIdx, color);
+              if (val > bestVal) { bestVal = val; bestIdx = libIdx; }
             }
-            if (bestUndo) { passes = 0; last = chosenIdx; color = color === BLACK ? WHITE : BLACK; continue; }
+            if (bestIdx >= 0) chosenIdx = bestIdx;
           }
-          let applied = false;
-          for (let tries = 0; tries < 28 && !applied; tries++) {
-            const idx = Math.floor(Math.random() * total);
-            if (b[idx] !== EMPTY) continue;
-            const x = idx % w, y = (idx / w) | 0;
-            if (isOwnEye(b, w, h, x, y, color)) continue;
-            const undo = applyWithUndo(b, w, h, idx, color);
-            if (undo && (undo.selfLibs > 1 || undo.captured.length > 0)) { chosenIdx = idx; applied = true; break; }
-            if (undo) undoMove(b, undo, color);
-          }
-          if (!applied) {
-            const startIdx = Math.floor(Math.random() * total);
-            for (let k = 0; k < total; k++) {
-              const idx = (startIdx + k) % total;
-              if (b[idx] !== EMPTY) continue;
-              const x = idx % w, y = (idx / w) | 0;
-              if (isOwnEye(b, w, h, x, y, color)) continue;
-              const undo = applyWithUndo(b, w, h, idx, color);
-              if (undo && (undo.selfLibs > 1 || undo.captured.length > 0)) { chosenIdx = idx; applied = true; break; }
-              if (undo) undoMove(b, undo, color);
+          if (chosenIdx < 0 && empN > 0) {
+            // ランダム着手: 合法性と自滅回避を呼吸点数だけで事前判定する
+            for (let tries = 0; tries < 40 && chosenIdx < 0; tries++) {
+              const idx = _emp[Math.floor(Math.random() * empN)];
+              if (fastIsEye(b, w, h, idx, color)) continue;
+              const x = idx % w;
+              let emptyNb = 0, capture = false, lb = 0, nOwnL = 0;
+              const ownRoots = [];
+              for (let d = 0; d < 4; d++) {
+                let n;
+                if (d === 0) { if (x === 0) continue; n = idx - 1; }
+                else if (d === 1) { if (x === w - 1) continue; n = idx + 1; }
+                else if (d === 2) { if (idx < w) continue; n = idx - w; }
+                else { if (idx + w >= total) continue; n = idx + w; }
+                const v = b[n];
+                if (v === EMPTY) { emptyNb++; continue; }
+                const r = ctx.gid[n];
+                if (v === oppC) { if (ctx.lib[r] === 1) capture = true; }
+                else if (ownRoots.indexOf(r) < 0) { ownRoots.push(r); if (ctx.lib[r] - 1 > lb) lb = ctx.lib[r] - 1; nOwnL++; }
+              }
+              if (!capture && emptyNb === 0 && lb === 0) continue; // 自殺手
+              let accept;
+              if (capture) accept = true;
+              else if (Math.max(emptyNb, lb) >= 2) accept = true;
+              else {
+                // 境界ケースのみ合体後の呼吸点を正確に数える
+                _lid++;
+                let cnt = 0;
+                for (let d2 = 0; d2 < 4; d2++) {
+                  let n;
+                  if (d2 === 0) { if (x === 0) continue; n = idx - 1; }
+                  else if (d2 === 1) { if (x === w - 1) continue; n = idx + 1; }
+                  else if (d2 === 2) { if (idx < w) continue; n = idx - w; }
+                  else { if (idx + w >= total) continue; n = idx + w; }
+                  if (b[n] === EMPTY && _lm[n] !== _lid) { _lm[n] = _lid; cnt++; }
+                }
+                for (let k = 0; k < ownRoots.length; k++) {
+                  let s = ctx.head[ownRoots[k]];
+                  while (s !== -1) {
+                    const sx = s % w;
+                    if (sx > 0) { const n = s - 1; if (b[n] === EMPTY && n !== idx && _lm[n] !== _lid) { _lm[n] = _lid; cnt++; } }
+                    if (sx < w - 1) { const n = s + 1; if (b[n] === EMPTY && n !== idx && _lm[n] !== _lid) { _lm[n] = _lid; cnt++; } }
+                    if (s >= w) { const n = s - w; if (b[n] === EMPTY && n !== idx && _lm[n] !== _lid) { _lm[n] = _lid; cnt++; } }
+                    if (s + w < total) { const n = s + w; if (b[n] === EMPTY && n !== idx && _lm[n] !== _lid) { _lm[n] = _lid; cnt++; } }
+                    s = ctx.nxt[s];
+                  }
+                }
+                accept = cnt >= 2;
+              }
+              if (accept) chosenIdx = idx;
             }
           }
-          if (!applied) { passes++; if (passes >= 2) break; last = -1; }
-          else { passes = 0; last = chosenIdx; }
-          color = color === BLACK ? WHITE : BLACK;
+          if (chosenIdx < 0) { passes++; if (passes >= 2) break; last = -1; }
+          else {
+            applyCtx(ctx, b, w, h, chosenIdx, color, null);
+            const p = _empPos[chosenIdx], lastE = _emp[--empN]; _emp[p] = lastE; _empPos[lastE] = p; _empPos[chosenIdx] = -1;
+            for (let j = 0; j < _aCap; j++) { const si = _capList[j]; _empPos[si] = empN; _emp[empN++] = si; }
+            passes = 0; last = chosenIdx;
+          }
+          color = oppC;
         }
-        return finalScore(b, w, h, komi);
+        return fastFinalScore(b, w, h, komi);
       }
       function makeNode(board, colorToMove) {
         return { board, color: colorToMove, children: null, visits: 0, value: 0 };
       }
-      // 高速着手 (in-place + undo記録)。合法なら undo オブジェクト、非合法なら null。
-      function applyWithUndo(board, w, h, idx, color) {
-        if (board[idx] !== EMPTY) return null;
-        const opp = color === BLACK ? WHITE : BLACK;
-        const x = idx % w, y = (idx / w) | 0;
-        board[idx] = color;
-        const captured = [];
-        const nbs = getNeighbors(x, y, w, h);
-        for (let i = 0; i < nbs.length; i++) {
-          const nx = nbs[i][0], ny = nbs[i][1];
-          if (board[ny * w + nx] === opp) {
-            const grp = getGroup(board, w, h, nx, ny);
-            if (grp.libsSize === 0) for (let j = 0; j < grp.stones.length; j++) { const si = grp.stones[j]; board[si] = EMPTY; captured.push(si); }
-          }
-        }
-        const selfGrp = getGroup(board, w, h, x, y);
-        if (selfGrp.libsSize === 0) {
-          board[idx] = EMPTY;
-          for (let j = 0; j < captured.length; j++) board[captured[j]] = opp;
-          return null;
-        }
-        return { idx, captured, selfLibs: selfGrp.libsSize };
-      }
-      function undoMove(board, undo, color) {
-        const opp = color === BLACK ? WHITE : BLACK;
-        board[undo.idx] = EMPTY;
-        for (let j = 0; j < undo.captured.length; j++) board[undo.captured[j]] = opp;
-      }
-      // 軽量 prior: 隣接連の情報だけで候補手を採点する (展開を高速化)
+      const _jrL = [];
       function lightPrior(board, w, h, idx, color, lastIdx, moveCount) {
         const x = idx % w, y = (idx / w) | 0;
-        if (isOwnEye(board, w, h, x, y, color)) return -1;
-        const undo = applyWithUndo(board, w, h, idx, color);
-        if (!undo) return -1;
+        if (fastIsEye(board, w, h, idx, color)) return -1;
+        const ctx = _ctxL;
+        _jrL.length = 0;
+        applyCtx(ctx, board, w, h, idx, color, _jrL);
+        if (_aSl === 0) { undoCtx(ctx, board, _jrL, idx, color); return -1; }
+        const captured = _aCap;
         const opp = color === BLACK ? WHITE : BLACK;
-        let prior = 0.16 + Math.min(undo.selfLibs, 4) * 0.02;
-        if (undo.captured.length > 0) prior += 0.34 + undo.captured.length * 0.08;
-        const nbs = getNeighbors(x, y, w, h);
-        for (let i = 0; i < nbs.length; i++) {
-          const nx = nbs[i][0], ny = nbs[i][1], v = board[ny * w + nx];
-          if (v === opp) { const g = getGroup(board, w, h, nx, ny); if (g.libsSize === 1) prior += 0.18; }
+        let prior = 0.16 + Math.min(_aSl, 4) * 0.02;
+        if (captured > 0) prior += 0.34 + captured * 0.08;
+        const total = w * h;
+        const seenR = [];
+        for (let d = 0; d < 4; d++) {
+          let n;
+          if (d === 0) { if (x === 0) continue; n = idx - 1; }
+          else if (d === 1) { if (x === w - 1) continue; n = idx + 1; }
+          else if (d === 2) { if (idx < w) continue; n = idx - w; }
+          else { if (idx + w >= total) continue; n = idx + w; }
+          if (board[n] === opp) { const r = ctx.gid[n]; if (seenR.indexOf(r) < 0) { seenR.push(r); if (ctx.lib[r] === 1) prior += 0.18; } }
         }
-        undoMove(board, undo, color);
+        undoCtx(ctx, board, _jrL, idx, color);
         if (lastIdx >= 0) {
           const md = Math.abs(x - (lastIdx % w)) + Math.abs(y - ((lastIdx / w) | 0));
           if (md <= 2) prior += 0.10; else if (md <= 4) prior += 0.04;
         }
-        const total = w * h;
         if (moveCount < total * 0.12) {
           const dX = Math.min(x, w - 1 - x), dY = Math.min(y, h - 1 - y), minDim = Math.min(w, h);
           const star = minDim >= 13 ? 3 : (minDim >= 7 ? 2 : 1);
@@ -5627,6 +5859,8 @@
       }
       function expandNode(node, w, h, moveCount, lastIdx) {
         const total = w * h, cand = new Uint8Array(total);
+        if (!_ctxL || _ctxL.gid.length < total) _ctxL = makeCtx(total);
+        buildCtx(_ctxL, node.board, w, h);
         let stones = 0;
         for (let idx = 0; idx < total; idx++) {
           if (node.board[idx] === EMPTY) continue;
@@ -5663,6 +5897,7 @@
         const moveCount = d.moveCount || 0, lastMove = d.lastMove || null, style = d.style || "katago", noise = d.noise || 0, colLetters = d.colLetters;
         const board = Int8Array.from(d.board);
         const total = w * h;
+        ensureScratch(total);
         const visitsTarget = Math.max(16, d.rollouts || 200);
         const areaFactor = Math.max(0.12, Math.min(1, total / 361));
         const timeMs = d.thinkMs && d.thinkMs > 0 ? Math.max(60, Math.round(d.thinkMs * (0.35 + 0.65 * areaFactor))) : Math.min(9000, visitsTarget * 3);
@@ -5698,7 +5933,7 @@
             node = bestChild.node; path.push(node);
           }
           if (!node.children) expandNode(node, w, h, moveCount + path.length, node.lastIdx != null ? node.lastIdx : -1);
-          const sc = playout(node.board, w, h, node.color, komi, node.lastIdx != null ? node.lastIdx : -1);
+          const sc = ctxPlayout(node.board, w, h, node.color, komi, node.lastIdx != null ? node.lastIdx : -1);
           const blackVal = 1 / (1 + Math.exp(-sc / 7));
           let mover = node.color === BLACK ? WHITE : BLACK;
           for (let i = path.length - 1; i >= 1; i--) {
@@ -5745,7 +5980,8 @@
         }
         self.postMessage({ id, mode, pass: false, best, topMoves: toMove });
       };
-`;
+
+      `;
 
     class HybridKataGoController {
       constructor() {
@@ -8107,7 +8343,7 @@
       const res = await aiController.request({
         mode: 'analyze', board: engine.board, width: engine.width, height: engine.height,
         color: engine.turn, komi: engine.komi, moveCount: engine.moves.length, lastMove: last,
-        rollouts: 6000, thinkMs: 8000, noise: 0, style: 'katago'
+        rollouts: 60000, thinkMs: 12000, noise: 0, style: 'katago'
       });
       btn.disabled = false; btn.querySelector('span').textContent = t('btn_best_move');
       const legalTop = (res.topMoves || []).filter(m => engine.checkMove(m.x, m.y, engine.turn).legal);
@@ -8148,7 +8384,7 @@
       btn.disabled = true; btn.querySelector('span').textContent = t('comparing');
       const last = engine.moves[engine.moves.length - 1] || null;
       const [proRes, humRes] = await Promise.all([
-        aiController.request({ mode: 'analyze', board: engine.board, width: engine.width, height: engine.height, color: engine.turn, komi: engine.komi, moveCount: engine.moves.length, lastMove: last, rollouts: 3000, thinkMs: 4000, noise: 0, style: 'katago' }),
+        aiController.request({ mode: 'analyze', board: engine.board, width: engine.width, height: engine.height, color: engine.turn, komi: engine.komi, moveCount: engine.moves.length, lastMove: last, rollouts: 8000, thinkMs: 8000, noise: 0, style: 'katago' }),
         aiController.request({ mode: 'play', board: engine.board, width: engine.width, height: engine.height, color: engine.turn, komi: engine.komi, moveCount: engine.moves.length, lastMove: last, rollouts: hsl.rollouts, noise: hsl.noise + 0.14, style: hsl.style, useExternalApi: false })
       ]);
       btn.disabled = false; btn.querySelector('span').textContent = t('btn_human_compare');
