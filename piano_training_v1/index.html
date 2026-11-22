@@ -4,6 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Virtuoso Studio — Classical Piano Trainer</title>
+    <meta name="description" content="Virtuoso Studioは、バッハ／ベートーヴェン／ショパン等のクラシック名曲を49鍵ピアノで練習できるWebアプリ。待機モード・実時間採点・和声分析・AI講評（Gemini）対応。" />
+    <meta property="og:title" content="Virtuoso Studio — Classical Piano Trainer" />
+    <meta property="og:description" content="クラシック名曲を弾いて学ぶピアノ練習アプリ。採点・和声分析・AI講評つき。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://gs777-max.github.io/app/piano_training_v1/index.html" />
+    <meta name="theme-color" content="#0B0D12" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230B0D12'/%3E%3Ctext x='50' y='70' font-size='58' text-anchor='middle' fill='%23D4AF37'%3E%E2%99%AB%3C/text%3E%3C/svg%3E" />
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -1431,7 +1438,8 @@
         // Spawn golden sparkle at hit line
         spawnKeyParticles(midi, '#D4AF37');
 
-        if (state.isPlaying && !state.isDemo) {
+        // P1 fix (2026-11-22): count-in period (currentBeat < 0) plays sound/visuals only, never judged
+        if (state.isPlaying && !state.isDemo && state.currentBeat >= 0) {
           evaluateUserNoteHit(midi, velocity);
         }
       }
@@ -1613,8 +1621,17 @@
         state.isPlaying = false;
         state.isDemo = false;
         stopAllAutoNotes();
+        // P0 fix (2026-11-22): keep the finished performance so 採点・講評 still works after Stop
+        const sess = state.session;
+        const hasActivity = sess && (sess.wrongNotes.length > 0 || sess.noteStates.some(ns => ns.hit));
+        if (hasActivity) {
+          state.lastSession = { pieceId: state.piece.id, session: sess };
+        }
         resetSessionForPiece();
         updatePlayButtons();
+        if (hasActivity) {
+          showToast('演奏を停止しました。「採点・講評」から結果が見られます', 'info');
+        }
       }
 
       function stopAllAutoNotes() {
@@ -2125,7 +2142,13 @@
       function computeEvaluationMetrics() {
         const piece = state.piece;
         const notes = piece.notes;
-        const states = state.session.noteStates;
+        // P0 fix (2026-11-22): after Stop the live session is reset, so evaluate the saved performance
+        let evalSession = state.session;
+        const curHasActivity = evalSession.wrongNotes.length > 0 || evalSession.noteStates.some(ns => ns.hit);
+        if (!curHasActivity && state.lastSession && state.lastSession.pieceId === piece.id) {
+          evalSession = state.lastSession.session;
+        }
+        const states = evalSession.noteStates;
 
         const targetIndices = [];
         notes.forEach((n, i) => { if (isNoteTargetForUser(n)) targetIndices.push(i); });
@@ -2133,7 +2156,7 @@
         const hitIndices = targetIndices.filter(i => states[i].hit);
         const totalTarget = Math.max(1, targetIndices.length);
         const hitCount = hitIndices.length;
-        const wrongCount = state.session.wrongNotes.length;
+        const wrongCount = evalSession.wrongNotes.length;
 
         // 1. Pitch Accuracy (0-100)
         const rawHitRate = hitCount / totalTarget;
@@ -2463,9 +2486,11 @@ ${JSON.stringify(state.lastEvalSummary, null, 2)}`;
       ===================================================================== */
       function populatePieceSelector() {
         const sel = document.getElementById('pieceSelect');
-        sel.innerHTML = REPERTOIRE.map((p, idx) =>
-          `<option value="${idx}">${p.title} [${p.difficulty}]</option>`
-        ).join('');
+        sel.innerHTML = REPERTOIRE.map((p, idx) => {
+          // P3 fix (2026-11-22): label excerpts honestly (all classical pieces are excerpts)
+          const suffix = p.id === 'hanon_dojo' ? `・全${p.totalMeasures}小節` : `・抜粋${p.totalMeasures}小節`;
+          return `<option value="${idx}">${p.title} [${p.difficulty}]${suffix}</option>`;
+        }).join('');
       }
 
       function syncLoopControls() {
@@ -2481,6 +2506,11 @@ ${JSON.stringify(state.lastEvalSummary, null, 2)}`;
           endSel.innerHTML += `<option value="${m}" ${m === state.loopEndMeasure ? 'selected' : ''}>M${m}</option>`;
         }
 
+        // P8 fix (2026-11-22): measure selectors only visible while loop is ON
+        const loopVis = state.loopEnabled ? '' : 'none';
+        startSel.style.display = loopVis;
+        endSel.style.display = loopVis;
+        if (startSel.nextElementSibling) startSel.nextElementSibling.style.display = loopVis;
         btn.textContent = `A-Bループ: ${state.loopEnabled ? 'ON' : 'OFF'}`;
         btn.className = state.loopEnabled
           ? 'font-semibold text-goldLight transition'
@@ -2501,6 +2531,7 @@ ${JSON.stringify(state.lastEvalSummary, null, 2)}`;
 
       function selectPiece(idx) {
         stopPractice();
+        state.lastSession = null;
         state.piece = REPERTOIRE[idx];
         state.loopEnabled = false;
         state.loopStartMeasure = 1;
