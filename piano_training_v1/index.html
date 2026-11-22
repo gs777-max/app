@@ -244,7 +244,26 @@
     .pulse-gold {
       animation: pulseGold 2s infinite;
     }
-  </style>
+  
+    /* ===== スマホ横画面（ランドスケープ）対応 2026-11-22 =====
+       横向き・丈の低い画面では、ヘッダーと操作バーを圧縮し、ステージ幅を
+       画面幅に合わせ、ピアノロールと鍵盤を画面内に収めて
+       スクロールなしで弾けるようにする（縦画面・PCには影響しない） */
+    @media (orientation: landscape) and (max-height: 560px) {
+      html, body { height: 100vh; height: 100dvh; }
+      body { min-height: 100vh; min-height: 100dvh; overflow: hidden; }
+      header { padding-top: 4px; padding-bottom: 4px; }
+      main { overflow: hidden; }
+      main > div:first-of-type { padding-top: 4px; padding-bottom: 4px; }
+      main > div:first-of-type > div { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; }
+      main > div:first-of-type > div::-webkit-scrollbar { display: none; }
+      #stageScrollWrapper { overflow-x: hidden; }
+      #stageInner { min-width: 100% !important; max-width: 100% !important; }
+      #stageInner > div:first-child { height: 26vh !important; height: 26dvh !important; min-height: 84px; }
+      .piano-container { height: 38vh !important; height: 38dvh !important; min-height: 124px; }
+      .white-key { padding-bottom: 2px; }
+    }
+</style>
 </head>
 <body class="min-h-screen flex flex-col bg-obsidian text-ivory">
 
