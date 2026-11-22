@@ -2665,21 +2665,24 @@
        ・一度手動で記録したら永久に保存、読み取り、反映
        ・1ホールで2グリーンの場合はそれぞれ独立して保存、読み取り、反映
     ========================================================== */
-    function getCalibratedTeePinCoord(courseId, holeNum, teeType, greenSide = currentGreenSide) {
+    function getCalibratedTeePinCoord(courseId, holeNum, teeType, greenSide = currentGreenSide, hole) {
       if (!courseId) courseId = currentCourse.id;
+      // ★ v21: hole を渡された場合、非正準ホールでは修飾キー（サブコース id 付き）を読み、
+      //   正準ホールの h-only キーは読まない（汚染防止）。hole 未指定時は従来通り h-only キー。
+      const suffix = (hole && typeof hole.h !== 'undefined') ? calibKeySuffixForHole(courseId, hole) : '';
       try {
         let tee = null;
         let pin = null;
 
         // 1. 独立キーからの取得 (ティー位置はグリーン不問、ピン位置はティー色不問)
-        const teeKey = `golf_calib_tee_${courseId}_${holeNum}_${teeType}`;
+        const teeKey = `golf_calib_tee_${courseId}_${holeNum}_${teeType}${suffix}`;
         const teeStr = localStorage.getItem(teeKey);
         if (teeStr) {
           const obj = JSON.parse(teeStr);
           if (obj && Array.isArray(obj.tee) && isValidCoord(obj.tee)) tee = obj.tee;
         }
 
-        const pinKey = `golf_calib_pin_${courseId}_${holeNum}_${greenSide}`;
+        const pinKey = `golf_calib_pin_${courseId}_${holeNum}_${greenSide}${suffix}`;
         const pinStr = localStorage.getItem(pinKey);
         if (pinStr) {
           const obj = JSON.parse(pinStr);
@@ -2688,7 +2691,7 @@
 
         // 2. 過去の複合キーからのフォールバック
         if (!tee || !pin) {
-          const keySide = `golf_calib_${courseId}_${holeNum}_${teeType}_${greenSide}`;
+          const keySide = `golf_calib_${courseId}_${holeNum}_${teeType}_${greenSide}${suffix}`;
           const strSide = localStorage.getItem(keySide);
           if (strSide) {
             const obj = JSON.parse(strSide);
@@ -2697,7 +2700,7 @@
           }
         }
         if (!tee || !pin) {
-          const keyOld = `golf_calib_${courseId}_${holeNum}_${teeType}`;
+          const keyOld = `golf_calib_${courseId}_${holeNum}_${teeType}${suffix}`;
           const strOld = localStorage.getItem(keyOld);
           if (strOld) {
             const obj = JSON.parse(strOld);
@@ -2713,21 +2716,23 @@
       return null;
     }
 
-    function saveCalibratedTeePinCoord(courseId, holeNum, teeType, tee, pin, greenSide = currentGreenSide) {
+    function saveCalibratedTeePinCoord(courseId, holeNum, teeType, tee, pin, greenSide = currentGreenSide, hole) {
       if (!courseId) courseId = currentCourse.id;
+      // ★ v21: hole を渡された場合、非正準ホールでは修飾キーに保存し、h-only キーは書かない（汚染防止）。
+      const suffix = (hole && typeof hole.h !== 'undefined') ? calibKeySuffixForHole(courseId, hole) : '';
       try {
         const now = new Date().toISOString();
         if (tee && isValidCoord(tee)) {
-          const teeKey = `golf_calib_tee_${courseId}_${holeNum}_${teeType}`;
+          const teeKey = `golf_calib_tee_${courseId}_${holeNum}_${teeType}${suffix}`;
           localStorage.setItem(teeKey, JSON.stringify({ tee, teeType, updatedAt: now }));
         }
         if (pin && isValidCoord(pin)) {
-          const pinKey = `golf_calib_pin_${courseId}_${holeNum}_${greenSide}`;
+          const pinKey = `golf_calib_pin_${courseId}_${holeNum}_${greenSide}${suffix}`;
           localStorage.setItem(pinKey, JSON.stringify({ pin, greenSide, updatedAt: now }));
         }
         // 過去バージョン互換複合キー
         // 渡されなかった側(null)は既存の保存値を維持し、未調整の側を「手動調整済み」として固定しない
-        const legacyKey = `golf_calib_${courseId}_${holeNum}_${teeType}_${greenSide}`;
+        const legacyKey = `golf_calib_${courseId}_${holeNum}_${teeType}_${greenSide}${suffix}`;
         let prev = null;
         try { prev = JSON.parse(localStorage.getItem(legacyKey)); } catch (e2) { prev = null; }
         const legacyTee = (tee && isValidCoord(tee)) ? tee : ((prev && Array.isArray(prev.tee) && isValidCoord(prev.tee)) ? prev.tee : null);
@@ -2744,9 +2749,10 @@
     function resolveTeeCoordinate(hole, teeType) {
       // ★ Gold を選べないコース（戸田パブリック）では Gold 要求を White に落とす
       if (teeType === 'gold' && !courseHasGold(currentCourse)) teeType = 'white';
-      // ★ v20: キーは正準ホール（デフォルトの h）と同一の物理ホールにのみ適用する
-      if (holeKeyApplies(currentCourse.id, hole)) {
-        const calib = getCalibratedTeePinCoord(currentCourse.id, hole.h, teeType, currentGreenSide);
+      // ★ v20/v21: キーは正準ホール（デフォルトの h）と同一の物理ホールにのみ適用する。
+      //   非正準ホールではサブコース修飾キー（hole 引数で解決）を参照し、埋込 calibTees より優先する。
+      {
+        const calib = getCalibratedTeePinCoord(currentCourse.id, hole.h, teeType, currentGreenSide, hole);
         if (calib && Array.isArray(calib.tee) && isValidCoord(calib.tee)) {
           return [...calib.tee];
         }
@@ -2773,6 +2779,20 @@
     function resolvePinCoordinate(hole, greenSide = currentGreenSide) {
       if (!hole) return [35.9, 140.1];
 
+      // ★ v21: 非正準ホールでは修飾キー（ユーザーのドラッグ）が埋込 calibPins より優先。
+      //   正準ホールでは従来通り、埋込 calibPins が最優先（配線データとキーが一致するため）。
+      const keyApplies = holeKeyApplies(currentCourse.id, hole);
+      if (!keyApplies) {
+        const qCalib = getCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, greenSide, hole);
+        if (qCalib && Array.isArray(qCalib.pin) && isValidCoord(qCalib.pin)) {
+          return [...qCalib.pin];
+        }
+        const qManual = loadManualHole(currentCourse.id, hole.h, greenSide, hole);
+        if (qManual && Array.isArray(qManual.pin) && isValidCoord(qManual.pin)) {
+          return [...qManual.pin];
+        }
+      }
+
       // 1. メモリ上の即時微調整ピン位置 (L/R完全独立・最優先)
       if (hole.calibPins && Array.isArray(hole.calibPins[greenSide]) && isValidCoord(hole.calibPins[greenSide])) {
         return [...hole.calibPins[greenSide]];
@@ -2780,9 +2800,8 @@
 
       // 2. キャリブレーション登録位置 (手動ドラッグ微調整 - localStorage独立キー)
       // ★ v20: キーは正準ホールと同一の物理ホールにのみ適用する
-      const keyApplies = holeKeyApplies(currentCourse.id, hole);
       if (keyApplies) {
-        const calib = getCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, greenSide);
+        const calib = getCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, greenSide, hole);
         if (calib && Array.isArray(calib.pin) && isValidCoord(calib.pin)) {
           return [...calib.pin];
         }
@@ -2790,7 +2809,7 @@
 
       // 3. 2タップ手動登録位置 (グリーン別)
       if (keyApplies) {
-        const manual = loadManualHole(currentCourse.id, hole.h, greenSide);
+        const manual = loadManualHole(currentCourse.id, hole.h, greenSide, hole);
         if (manual && Array.isArray(manual.pin) && isValidCoord(manual.pin)) {
           return [...manual.pin];
         }
@@ -2903,11 +2922,25 @@
       return null;
     }
 
-    async function fetchRealWeather(lat, lon) {
+    // ★ 風の取得（リトライ付き）: 取得失敗時は最大3回まで再試行する。
+    //   従来は起動時の一度きり＋30分ごとの再取得のみで、ゴルフ場の不安定なモバイル回線で
+    //   一度失敗すると「取得失敗」が最大30分表示され続けた。タイムアウト10秒で hung を防ぎ、
+    //   成功時は HUD を即座に更新して表示へ反映する。
+    let windFetchRetries = 0;
+    let windRetryTimer = null;
+    async function fetchRealWeather(lat, lon, _attempt) {
+      const attempt = _attempt || 0;
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=Asia%2FTokyo`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error();
+        const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        const timer = ctrl ? setTimeout(() => { try { ctrl.abort(); } catch (e) {} }, 10000) : null;
+        let res;
+        try {
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=Asia%2FTokyo`;
+          res = await fetch(url, ctrl ? { signal: ctrl.signal } : undefined);
+        } finally {
+          if (timer) clearTimeout(timer);
+        }
+        if (!res.ok) throw new Error('wind http ' + res.status);
         const data = await res.json();
         if (data && data.current) {
           windInfo.speed = data.current.wind_speed_10m ?? windInfo.speed;
@@ -2916,8 +2949,26 @@
           windInfo.temp = data.current.temperature_2m ?? windInfo.temp;
           windInfo.fetchedAt = Date.now(); // ★ 鮮度表示用
           windInfo.failed = false;
+          windFetchRetries = 0;
+          if (windRetryTimer) { clearTimeout(windRetryTimer); windRetryTimer = null; }
+          if (typeof updateHUDAndSimulation === 'function') { try { updateHUDAndSimulation(); } catch (e) {} }
+        } else {
+          throw new Error('wind no current');
         }
-      } catch (e) { windInfo.failed = true; }
+      } catch (e) {
+        windInfo.failed = true;
+        // ★ 一時的な通信失敗の可能性があるため、短い間隔で再試行する（最大3回）。
+        //   再試行時は現在表示中のコースの座標を使う（コースを切り替えていた場合の誤表示防止）。
+        if (attempt < 3) {
+          const delay = attempt === 0 ? 15000 : 60000;
+          if (windRetryTimer) clearTimeout(windRetryTimer);
+          windRetryTimer = setTimeout(() => {
+            const cLat = (typeof currentCourse !== 'undefined' && currentCourse && currentCourse.lat) ? currentCourse.lat : lat;
+            const cLon = (typeof currentCourse !== 'undefined' && currentCourse && currentCourse.lon) ? currentCourse.lon : lon;
+            fetchRealWeather(cLat, cLon, attempt + 1);
+          }, delay);
+        }
+      }
     }
 
     async function fetchSunsetTime(lat, lon) {
@@ -3071,7 +3122,7 @@
         markLocalModified(currentCourse.id); // ★ 自端末の更新フラグを確実に立てる
         hole.yard = calcDistanceYards(currentTeeCoord, currentPinCoord);
         synchronizeAllHoleYards();
-        saveCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, currentTeeCoord, null, currentGreenSide);
+        saveCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, currentTeeCoord, null, currentGreenSide, hole);
         showCalibrationToast(`⏳ ⚪ ${hole.h}H ティー位置を保存中 (Vercel KV同期中...)`);
         updateIpRoute();
         updateHUDAndSimulation();
@@ -3104,7 +3155,7 @@
         markLocalModified(currentCourse.id); // ★ 自端末の更新フラグを確実に立てる
         hole.yard = calcDistanceYards(currentTeeCoord, currentPinCoord);
         synchronizeAllHoleYards();
-        saveCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, null, currentPinCoord, currentGreenSide);
+        saveCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, null, currentPinCoord, currentGreenSide, hole);
         showCalibrationToast(`⏳ 📍 ${hole.h}H (${currentGreenSide}グリーン) ピン位置を保存中 (Vercel KV同期中...)`);
         drawYardArcs();
         updateIpRoute();
@@ -3604,7 +3655,7 @@
       renderHoleBoundaries(hole);
       if (hole.placeholder) { currentIpCoords = []; return; } // 仮座標では線を引かない
 
-      const savedIps = loadSavedIpCoords(currentCourse.id, hole.h, currentTeeType, currentGreenSide);
+      const savedIps = loadSavedIpCoords(currentCourse.id, hole.h, currentTeeType, currentGreenSide, hole);
       if (savedIps && savedIps.length > 0) {
         currentIpCoords = savedIps;
       } else if ((() => { ensureAstarRoute(hole); return Array.isArray(hole.routePts) && hole.routePts.length >= 2; })()) {
@@ -3717,7 +3768,7 @@
           const hole = holeList[currentHoleIndex];
           hole.savedIps = hole.savedIps || {};
           hole.savedIps[`${currentTeeType}_${currentGreenSide}`] = [...currentIpCoords];
-          saveIpCoords(currentCourse.id, hole.h, currentTeeType, currentIpCoords, currentGreenSide);
+          saveIpCoords(currentCourse.id, hole.h, currentTeeType, currentIpCoords, currentGreenSide, hole);
           showCalibrationToast(`⏳ 📍 IP${idx + 1} の配置を保存中 (Vercel KV同期中...)`);
           updateHUDAndSimulation();
           saveCourseToVercelKv(currentCourse.id);
@@ -3790,10 +3841,12 @@
       calculateAndRenderIpRoute();
     }
 
-    function saveIpCoords(courseId, holeNum, teeType, coords, greenSide = currentGreenSide) {
+    function saveIpCoords(courseId, holeNum, teeType, coords, greenSide = currentGreenSide, hole) {
       if (!courseId) courseId = currentCourse.id;
+      // ★ v21: 非正準ホールでは修飾キーに保存し、h-only キーは書かない（汚染防止）。
+      const suffix = (hole && typeof hole.h !== 'undefined') ? calibKeySuffixForHole(courseId, hole) : '';
       try {
-        const keySide = `smart_ip_route_${courseId}_${holeNum}_${teeType}_${greenSide}`;
+        const keySide = `smart_ip_route_${courseId}_${holeNum}_${teeType}_${greenSide}${suffix}`;
         // ★ updatedAt 付きで保存する (KV側のキー単位マージで新旧比較できるようにする)
         localStorage.setItem(keySide, JSON.stringify({ coords: coords, updatedAt: new Date().toISOString(), deviceId: (typeof getDeviceId === 'function' ? getDeviceId() : undefined) }));
         triggerVercelKvAutoSync(courseId);
@@ -3807,16 +3860,19 @@
       return null;
     }
 
-    function loadSavedIpCoords(courseId, holeNum, teeType, greenSide = currentGreenSide) {
+    function loadSavedIpCoords(courseId, holeNum, teeType, greenSide = currentGreenSide, hole) {
+      // ★ v21: 非正準ホールでは修飾キーを読む（h-only キーは正準ホールの IP ルートのため読まない）。
+      //   v20 では IP の読取にガードがなく、非正準ホールで正準ホールの IP を読んでいた。
+      const suffix = (hole && typeof hole.h !== 'undefined') ? calibKeySuffixForHole(courseId, hole) : '';
       try {
         // 1. グリーン別IPルート
-        const keySide = `smart_ip_route_${courseId}_${holeNum}_${teeType}_${greenSide}`;
+        const keySide = `smart_ip_route_${courseId}_${holeNum}_${teeType}_${greenSide}${suffix}`;
         const strSide = localStorage.getItem(keySide);
         if (strSide) { const c = unwrapIpCoords(JSON.parse(strSide)); if (c) return c; }
 
         // 2. 従来互換キー (Lグリーン時のみフォールバック)
         if (greenSide === 'L') {
-          const keyOld = `smart_ip_route_${courseId}_${holeNum}_${teeType}`;
+          const keyOld = `smart_ip_route_${courseId}_${holeNum}_${teeType}${suffix}`;
           const strOld = localStorage.getItem(keyOld);
           if (strOld) { const c = unwrapIpCoords(JSON.parse(strOld)); if (c) return c; }
         }
@@ -3828,9 +3884,11 @@
       const hole = holeList[currentHoleIndex];
       if (!hole) return;
       try {
+        // ★ v21: 非正準ホールでは修飾キーを削除する（h-only キーは正準ホールのもののため消さない）。
+        const suffix = calibKeySuffixForHole(currentCourse.id, hole);
         // 削除を他端末へも伝播させるため、削除マーク付きで消す
-        deleteSyncedKey(currentCourse.id, `smart_ip_route_${currentCourse.id}_${hole.h}_${currentTeeType}_${currentGreenSide}`);
-        deleteSyncedKey(currentCourse.id, `smart_ip_route_${currentCourse.id}_${hole.h}_${currentTeeType}`);
+        deleteSyncedKey(currentCourse.id, `smart_ip_route_${currentCourse.id}_${hole.h}_${currentTeeType}_${currentGreenSide}${suffix}`);
+        deleteSyncedKey(currentCourse.id, `smart_ip_route_${currentCourse.id}_${hole.h}_${currentTeeType}${suffix}`);
       } catch (e) {}
       const totalYard = calcDistanceYards(currentTeeCoord, currentPinCoord);
       currentIpCoords = calculateDefaultIpCoords(currentTeeCoord, currentPinCoord, hole.par, totalYard);
@@ -6650,6 +6708,23 @@
       if (canon.sub == null || canon.no == null || hole.sub == null || hole.no == null) return true;
       return canon.sub === hole.sub && canon.no === hole.no;
     }
+    // ★ 保存側の名前空間 (v21): h-only キーは正準ホール（デフォルトの h）のもの。
+    //   非デフォルトローテーションのホール（holeKeyApplies が false）でドラッグして
+    //   h-only キーを保存すると、正準ホールのキーを汚染し、かつドラッグしたホール
+    //   自身には適用されない（v20 の読取ガードが弾く）。そのため非正準ホールでは
+    //   サブコース id で修飾したキー（例：golf_calib_pin_kasumidai_12_L__kasumi_tsukuba）
+    //   を使う。正準ホールでは従来の h-only キーをそのまま使い、既存キーと互換性を保つ。
+    //   修飾キーも既存の prefix（golf_calib_* / golf_manual_hole_* / smart_ip_route_*）
+    //   を保つため、クラウド同期（collectLocalCourseData）の収集対象になる。
+    //   注意：修飾キーは (ローテーション, h) で物理ホールを識別する。コンボ専用ホールは
+    //   1つのローテーションにしか現れないため安定だが、複数ローテーションに現れるホールでは
+    //   ローテーションをまたいで持ち越されない（汚染はしない。持ち越しなしの劣化のみ）。
+    function calibKeySuffixForHole(courseId, hole) {
+      if (!hole || typeof hole.h === 'undefined') return '';
+      if (holeKeyApplies(courseId, hole)) return '';
+      const sc = (typeof currentSubCourse !== 'undefined' && currentSubCourse && currentSubCourse.id) ? String(currentSubCourse.id) : '';
+      return sc ? '__' + sc : '';
+    }
     function currentComboKey() {
       return ((currentSubCourse && currentSubCourse.name) || '').replace(/コース/g, '').replace(/➔/g, '→').replace(/\s/g, '');
     }
@@ -6744,17 +6819,21 @@
             const pinValR = (Array.isArray(cHole.pinR) && isValidCoord(cHole.pinR))
               ? cHole.pinR
               : (cHole.calibPins && Array.isArray(cHole.calibPins.R) && isValidCoord(cHole.calibPins.R) ? cHole.calibPins.R : null);
-            if (isValidCoord(pinValL)) {
+            // ★ v21: 派生キーは正準ホール（cHole がその h の正準ホール）に対してのみ書く。
+            //   非正準のコンボホールから h-only 派生キーを書くと、正準ホールのキーを汚染する。
+            //   非正準ホールは埋込 calibPins/calibTees が読取の主経路であり、派生キーは不要。
+            const derivedApplies = holeKeyApplies(courseId, cHole);
+            if (derivedApplies && isValidCoord(pinValL)) {
               writeDerivedKey(`golf_calib_pin_${courseId}_${cHole.h}_L`, { pin: pinValL, greenSide: 'L', updatedAt: cloudData.updatedAt });
             }
-            if (isValidCoord(pinValR)) {
+            if (derivedApplies && isValidCoord(pinValR)) {
               writeDerivedKey(`golf_calib_pin_${courseId}_${cHole.h}_R`, { pin: pinValR, greenSide: 'R', updatedAt: cloudData.updatedAt });
             }
-            if (Array.isArray(cHole.tee) && isValidCoord(cHole.tee)) {
+            if (derivedApplies && Array.isArray(cHole.tee) && isValidCoord(cHole.tee)) {
               writeDerivedKey(`golf_calib_tee_${courseId}_${cHole.h}_white`, { tee: cHole.tee, teeType: 'white', updatedAt: cloudData.updatedAt });
             }
             // ★ 全ティー種別(blue, black, gold, red等)のキャリブレーションも個別キーへ完全展開
-            if (cHole.calibTees && typeof cHole.calibTees === 'object') {
+            if (derivedApplies && cHole.calibTees && typeof cHole.calibTees === 'object') {
               Object.keys(cHole.calibTees).forEach(tType => {
                 const tCoord = cHole.calibTees[tType];
                 if (Array.isArray(tCoord) && isValidCoord(tCoord)) {
@@ -6763,7 +6842,7 @@
               });
             }
             // ★ 全グリーン面(L, R)のキャリブレーションも個別キーへ完全展開
-            if (cHole.calibPins && typeof cHole.calibPins === 'object') {
+            if (derivedApplies && cHole.calibPins && typeof cHole.calibPins === 'object') {
               Object.keys(cHole.calibPins).forEach(gSide => {
                 const pCoord = cHole.calibPins[gSide];
                 if (Array.isArray(pCoord) && isValidCoord(pCoord)) {
@@ -6997,8 +7076,32 @@
         if (currentCourse && currentCourse.id === courseId) {
           const cachedCombos = lastCloudCombosByCourse[courseId];
           if (cachedCombos) {
-            // ★ 組合せ別レコードでは現在の組合せの節だけを更新し、holes 本体 (主組合せ) は送らず保持させる
-            payload.combos = { ...cachedCombos, [currentComboKey()]: { holes: holeList } };
+            // ★ v21: 組合せのアップロードは、キャッシュされたクラウドデータを土台にし、
+            //   端末の calibPins/calibTees（ユーザーのドラッグ）のみを重ねる。
+            //   端末の hole.yard（直線距離）や placeholder 形式でクラウドの配線データ
+            //   （yard/sub/no/pinR/routePts 等）を上書きしない（教訓65・66 の汚染防止）。
+            //   端末の holeList が placeholder を含む場合はコンボを送らない（キャッシュの方が正しい）。
+            const comboKey = currentComboKey();
+            const cachedEntry = cachedCombos[comboKey];
+            const hasPlaceholder = Array.isArray(holeList) && holeList.some(h => h && h.placeholder === true);
+            if (!hasPlaceholder && cachedEntry && Array.isArray(cachedEntry.holes)) {
+              const byH = new Map();
+              holeList.forEach(h => { if (h && typeof h.h !== 'undefined') byH.set(h.h, h); });
+              const comboHoles = cachedEntry.holes.map(ch => {
+                const mh = byH.get(ch.h);
+                if (!mh) return ch;
+                const out = { ...ch };
+                if (mh.calibPins && typeof mh.calibPins === 'object') out.calibPins = { ...(ch.calibPins || {}), ...mh.calibPins };
+                if (mh.calibTees && typeof mh.calibTees === 'object') out.calibTees = { ...(ch.calibTees || {}), ...mh.calibTees };
+                return out;
+              });
+              payload.combos = { ...cachedCombos, [comboKey]: { holes: comboHoles } };
+            } else if (!cachedEntry && !hasPlaceholder) {
+              // キャッシュに当該コンボがない場合は従来通り（新規コンボの作成）
+              payload.combos = { ...cachedCombos, [comboKey]: { holes: holeList } };
+            }
+            // cachedEntry があり placeholder の場合は payload.combos を送らない
+            // （キー群のみ同期し、コンボはクラウドのものを保持する）
           } else {
             payload.holes = holeList;
           }
@@ -7557,17 +7660,19 @@
       return null;
     }
 
-    function loadManualHole(courseId, h, greenSide = currentGreenSide) {
+    function loadManualHole(courseId, h, greenSide = currentGreenSide, hole) {
+      // ★ v21: hole を渡された場合、非正準ホールでは修飾キーを読む（h-only キーは正準ホールのもの）。
+      const suffix = (hole && typeof hole.h !== 'undefined') ? calibKeySuffixForHole(courseId, hole) : '';
       try {
         // 1. グリーン別手動登録
-        const strSide = localStorage.getItem(`golf_manual_hole_${courseId}_${h}_${greenSide}`);
+        const strSide = localStorage.getItem(`golf_manual_hole_${courseId}_${h}_${greenSide}${suffix}`);
         if (strSide) {
           const o = JSON.parse(strSide);
           if (isValidCoord(o.tee) && isValidCoord(o.pin)) return o;
         }
         // 2. 従来互換手動登録 (Lグリーン時のみフォールバック)
         if (greenSide === 'L') {
-          const strOld = localStorage.getItem(`golf_manual_hole_${courseId}_${h}`);
+          const strOld = localStorage.getItem(`golf_manual_hole_${courseId}_${h}${suffix}`);
           if (strOld) {
             const o = JSON.parse(strOld);
             if (isValidCoord(o.tee) && isValidCoord(o.pin)) return o;
@@ -7595,10 +7700,10 @@
 
     function mergeManualHoles(course, list) {
       list.forEach(hole => {
-        // ★ v20: キーは正準ホールと同一の物理ホールにのみ適用する（ローテーション汚染防止）
-        const keyApplies = holeKeyApplies(course.id, hole);
-        const mL = keyApplies ? loadManualHole(course.id, hole.h, 'L') : null;
-        const mR = keyApplies ? loadManualHole(course.id, hole.h, 'R') : null;
+        // ★ v20/v21: キーはホール対応で読む（正準なら h-only、非正準なら修飾キー）。
+        //   getter が正しいキーを選ぶため、keyApplies による分岐は不要。
+        const mL = loadManualHole(course.id, hole.h, 'L', hole);
+        const mR = loadManualHole(course.id, hole.h, 'R', hole);
         if (mL) {
           hole.tee = [...mL.tee];
           hole.pinL = [...mL.pin];
@@ -7617,13 +7722,13 @@
           }
         }
         // ★ キャリブレーションピン(ドラッグ微調整)も復元反映し、2グリーンの座標を完全独立保持
-        const calibL = keyApplies ? getCalibratedTeePinCoord(course.id, hole.h, 'white', 'L') : null;
+        const calibL = getCalibratedTeePinCoord(course.id, hole.h, 'white', 'L', hole);
         if (calibL && isValidCoord(calibL.pin)) {
           hole.pinL = [...calibL.pin];
           hole.calibPins = hole.calibPins || {};
           hole.calibPins['L'] = [...calibL.pin];
         }
-        const calibR = keyApplies ? getCalibratedTeePinCoord(course.id, hole.h, 'white', 'R') : null;
+        const calibR = getCalibratedTeePinCoord(course.id, hole.h, 'white', 'R', hole);
         if (calibR && isValidCoord(calibR.pin)) {
           hole.pinR = [...calibR.pin];
           hole.calibPins = hole.calibPins || {};
@@ -7982,13 +8087,16 @@
       const par = hole.manual ? hole.par : parFromYard(yard);
       try {
         markLocalModified(currentCourse.id);
-        localStorage.setItem(`golf_manual_hole_${currentCourse.id}_${hole.h}_${currentGreenSide}`, JSON.stringify({ tee, pin, par, greenSide: currentGreenSide, updatedAt: new Date().toISOString() }));
+        // ★ v21: 非正準ホールでは修飾キーに保存し、h-only キーは書かない・消さない（正準ホールのキーを守る）。
+        const suffix = calibKeySuffixForHole(currentCourse.id, hole);
+        localStorage.setItem(`golf_manual_hole_${currentCourse.id}_${hole.h}_${currentGreenSide}${suffix}`, JSON.stringify({ tee, pin, par, greenSide: currentGreenSide, updatedAt: new Date().toISOString() }));
         // 当該グリーンの古いキャリブピンのみ破棄 (別グリーンおよびティーキャリブは絶対消さない！)
         // 破棄は削除マーク付きで行い、他端末の古いコピーも消えるようにする
-        deleteSyncedKey(currentCourse.id, `golf_calib_pin_${currentCourse.id}_${hole.h}_${currentGreenSide}`);
+        deleteSyncedKey(currentCourse.id, `golf_calib_pin_${currentCourse.id}_${hole.h}_${currentGreenSide}${suffix}`);
         Object.keys(TEE_DEFINITIONS).forEach(t => {
-          deleteSyncedKey(currentCourse.id, `golf_calib_${currentCourse.id}_${hole.h}_${t}_${currentGreenSide}`);
-          deleteSyncedKey(currentCourse.id, `smart_ip_route_${currentCourse.id}_${hole.h}_${t}_${currentGreenSide}`);
+          deleteSyncedKey(currentCourse.id, `golf_calib_${currentCourse.id}_${hole.h}_${t}_${currentGreenSide}${suffix}`);
+          deleteSyncedKey(currentCourse.id, `smart_ip_route_${currentCourse.id}_${hole.h}_${t}_${currentGreenSide}${suffix}`);
+          deleteSyncedKey(currentCourse.id, `smart_ip_route_${currentCourse.id}_${hole.h}_${t}${suffix}`);
         });
       } catch (e) {}
       hole.tee = tee;
