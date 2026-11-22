@@ -2721,7 +2721,7 @@ const ChessGame = (() => {
     const cap = captured ? 'x' : '';
     const sq = FILES[mv.toC] + (8 - mv.toR);
     const pro = mv.promo ? '=' + mv.promo : '';
-    return `${piece.color === 'w' ? '♔' : '♚'} ${pChar}${cap}${sq}${pro}`;
+    return `${pChar}${cap}${sq}${pro}`;
   }
 
   function executeMove(mv) {
@@ -3002,9 +3002,14 @@ const MahjongGame = (() => {
   let pendingCall = null; // { from, tile, canRon, canPon, canKan }
   let hintTileIdx = -1;
   let undoSnap = null;
+  let lastDecisionSnap = null;
 
-  function saveUndoSnapshot() {
-    undoSnap = JSON.stringify({ wall, doraInd, roundNum, players, turn, phase, pendingCall, logs });
+  function saveDecisionSnapshot() {
+    lastDecisionSnap = JSON.stringify({ wall, doraInd, roundNum, players, turn, phase, pendingCall, logs });
+  }
+
+  function commitUndoPoint() {
+    if (lastDecisionSnap) undoSnap = lastDecisionSnap;
   }
 
   function undo() {
@@ -3317,6 +3322,7 @@ const MahjongGame = (() => {
     pendingCall = null;
     hintTileIdx = -1;
     undoSnap = null;
+    lastDecisionSnap = null;
     drawTile(turn);
   }
 
@@ -3344,7 +3350,7 @@ const MahjongGame = (() => {
 
     if (seat === 0) {
       phase = 'player_discard';
-      saveUndoSnapshot();
+      saveDecisionSnapshot();
       App.setStatus('あなたの番 — 打牌を選択してください', 'normal');
       render();
       // If riichi and cannot tsumo, auto-discard drawn tile after short delay
@@ -3383,6 +3389,7 @@ const MahjongGame = (() => {
   }
 
   function discardTile(seat, idx) {
+    if (seat === 0) commitUndoPoint();
     const p = players[seat];
     const tile = p.hand.splice(idx, 1)[0];
     p.hand.sort((a, b) => a - b);
@@ -3402,7 +3409,7 @@ const MahjongGame = (() => {
       if (canRon || canPon || canKan) {
         pendingCall = { from: seat, tile, canRon, canPon, canKan };
         phase = 'player_call';
-        saveUndoSnapshot();
+        saveDecisionSnapshot();
         App.setStatus(`${tileInfo(tile).label} に対してアクション可能です`, 'warning');
         SoundEngine.chime();
         render();
@@ -3457,6 +3464,7 @@ const MahjongGame = (() => {
   }
 
   function handlePlayerAction(act) {
+    commitUndoPoint();
     const p0 = players[0];
     if (act === 'tsumo' && phase === 'player_discard') {
       finishWin(0, true, 0);
@@ -3728,7 +3736,7 @@ const PokerGame = (() => {
   let logs = [];
   let aiTimer = null;
   let undoSnap = null;
-  let undoRestoring = false;
+  let lastDecisionSnap = null;
 
   function makeDeck() {
     const d = [];
@@ -3861,6 +3869,7 @@ const PokerGame = (() => {
 
     turn = (dealerIdx + 3) % 4;
     undoSnap = null;
+    lastDecisionSnap = null;
     logs = ['新規ハンド開始（SB:10 / BB:20）'];
     App.setLogs(logs, 'アクションログ（ポーカー）', '件');
     App.resetTimers(600);
@@ -3981,6 +3990,7 @@ const PokerGame = (() => {
   }
 
   function applyAction(seat, type, raiseAmt = 0) {
+    if (seat === 0) commitUndoPoint();
     const p = players[seat];
     const toCall = Math.max(0, currentBet - p.bet);
     p.acted = true;
@@ -4034,8 +4044,12 @@ const PokerGame = (() => {
     }
   }
 
-  function saveUndoSnapshot() {
-    undoSnap = JSON.stringify({ players, deck, community, pot, dealerIdx, turn, currentBet, stage, logs });
+  function saveDecisionSnapshot() {
+    lastDecisionSnap = JSON.stringify({ players, deck, community, pot, dealerIdx, turn, currentBet, stage, logs });
+  }
+
+  function commitUndoPoint() {
+    if (lastDecisionSnap) undoSnap = lastDecisionSnap;
   }
 
   function undo() {
@@ -4045,16 +4059,15 @@ const PokerGame = (() => {
     players = s.players; deck = s.deck; community = s.community; pot = s.pot;
     dealerIdx = s.dealerIdx; turn = s.turn; currentBet = s.currentBet; stage = s.stage; logs = s.logs;
     undoSnap = null;
+    lastDecisionSnap = null;
     App.setLogs(logs, 'アクションログ（ポーカー）', '件');
-    undoRestoring = true;
     processTurn();
-    undoRestoring = false;
     App.setStatus('待った — アクションからやり直せます', 'normal');
     SoundEngine.card();
   }
 
   function processTurn() {
-    if (turn === 0 && stage !== 'showdown' && !undoRestoring) saveUndoSnapshot();
+    if (turn === 0 && stage !== 'showdown') saveDecisionSnapshot();
     App.setPlayersUI(
       { avatar: '♠', name: 'AI 3名（テーブル対戦）', meta: `POT: ${pot}` },
       { avatar: '♦', name: 'あなた', meta: `チップ: ${players[0].chips}` },
