@@ -470,6 +470,71 @@
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(216, 179, 90, 0.42); border-radius: 9999px; }
+
+    /* ドラクエ風 3D定石RPG＆定石マスター道場 UIスタイル */
+    .dq-window {
+      background: linear-gradient(180deg, rgba(10, 12, 22, 0.96) 0%, rgba(5, 7, 14, 0.98) 100%);
+      border: 2px solid #f4ebd0;
+      box-shadow:
+        inset 0 0 0 2px #090b12,
+        inset 0 0 0 3.5px rgba(216, 179, 90, 0.72),
+        0 14px 36px rgba(0, 0, 0, 0.72);
+      border-radius: 0.75rem;
+      color: #f8f5ec;
+    }
+    .dq-cmd-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.65rem 0.45rem 1.25rem;
+      min-height: 40px;
+      border-radius: 0.45rem;
+      border: 1px solid rgba(244, 235, 208, 0.25);
+      background: rgba(255, 255, 255, 0.04);
+      color: #f8f5ec;
+      font-weight: 700;
+      text-align: left;
+      transition: all 0.14s ease;
+    }
+    .dq-cmd-btn::before {
+      content: "▶";
+      position: absolute;
+      left: 0.45rem;
+      color: var(--gold-bright);
+      opacity: 0;
+      transform: translateX(-2px);
+      transition: opacity 0.14s ease;
+      font-size: 0.72rem;
+    }
+    .dq-cmd-btn:hover:not(:disabled)::before,
+    .dq-cmd-btn:focus-visible::before,
+    .dq-cmd-btn.dq-active::before {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .dq-cmd-btn:hover:not(:disabled),
+    .dq-cmd-btn.dq-active {
+      background: rgba(216, 179, 90, 0.18);
+      border-color: var(--gold-bright);
+      color: #fff8df;
+    }
+    .dq-cmd-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    @keyframes dqShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-7px) rotate(-1.5deg); }
+      40% { transform: translateX(7px) rotate(1.5deg); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+    }
+    .dq-shake { animation: dqShake 0.42s ease-out; }
+    @keyframes dqFlash {
+      0% { filter: brightness(2.2); }
+      100% { filter: brightness(1); }
+    }
+    .dq-flash { animation: dqFlash 0.38s ease-out; }
+    .joseki-star-on { color: #f6d578; text-shadow: 0 0 6px rgba(246, 213, 120, 0.55); }
+    .joseki-star-off { color: rgba(148, 163, 184, 0.35); }
   </style>
 </head>
 <body class="h-[100dvh] w-screen overflow-hidden select-none flex flex-col">
@@ -621,6 +686,9 @@
     </symbol>
     <symbol id="ico-swords" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M14.5 6.5L21 3v3l-6.5 6.5M5 13l6 6M8 16l-4 4M5 21l-2-2"/>
+    </symbol>
+    <symbol id="ico-crown" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z"/><path d="M4 21h16"/>
     </symbol>
   </svg>
 
@@ -800,8 +868,8 @@
         </div>
       </div>
 
-      <!-- 5つの大型モードカード -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- 8つの大型モードカード（対称2×4グリッド） -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <!-- 1. KataGo / プロ級AI対局 -->
         <div id="card-ai-match" class="mode-card wa-panel rounded-2xl p-5 flex flex-col justify-between gap-4">
           <div>
@@ -931,6 +999,46 @@
           <button type="button" class="wa-btn-shu w-full py-3 rounded-xl text-sm sm:text-base">
             <svg class="w-4 h-4 shrink-0"><use href="#ico-swords"></use></svg>
             <span data-i18n="card6_cta">CPU同士の対局を設定して開始</span>
+          </button>
+        </div>
+
+        <!-- 7. レベル別・完全定石マスター道場 -->
+        <div id="card-joseki-dojo" class="mode-card wa-panel rounded-2xl p-5 flex flex-col justify-between gap-4 border-amber-400/50">
+          <div>
+            <div class="flex items-center justify-between mb-3 gap-1">
+              <div class="w-12 h-12 rounded-2xl wa-inset flex items-center justify-center text-amber-300">
+                <svg class="w-7 h-7"><use href="#ico-scroll"></use></svg>
+              </div>
+              <span id="menu-joseki-progress" class="text-xs font-bold px-3 py-1 rounded-full wa-inset text-amber-200">習得 0 / 28 · ★0</span>
+            </div>
+            <h3 class="font-mincho text-lg sm:text-xl font-bold text-gold-bright" data-i18n="card7_title">定石大典・没入マスター道場</h3>
+            <p class="mt-2 text-xs sm:text-sm text-sub leading-relaxed" data-i18n="card7_desc">
+              入門から有段・KataGo最新AI定石まで現存する主要28定石を5階層で網羅。鑑賞解説・ガイド練習・ノーヒント暗記テストの3モードで完全習得へ。
+            </p>
+          </div>
+          <button type="button" class="wa-btn-gold w-full py-3 rounded-xl text-sm sm:text-base">
+            <svg class="w-4 h-4 shrink-0"><use href="#ico-scroll"></use></svg>
+            <span data-i18n="card7_cta">定石マスター道場へ</span>
+          </button>
+        </div>
+
+        <!-- 8. ドラクエ風 3D定石RPG「棋聖伝」 -->
+        <div id="card-go-rpg" class="mode-card wa-panel rounded-2xl p-5 flex flex-col justify-between gap-4 border-emerald-400/50">
+          <div>
+            <div class="flex items-center justify-between mb-3 gap-1">
+              <div class="w-12 h-12 rounded-2xl wa-inset flex items-center justify-center text-emerald-300">
+                <svg class="w-7 h-7"><use href="#ico-crown"></use></svg>
+              </div>
+              <span id="menu-rpg-progress" class="text-xs font-bold px-3 py-1 rounded-full wa-inset text-emerald-300">LV.1 · 0 / 15 関門</span>
+            </div>
+            <h3 class="font-mincho text-lg sm:text-xl font-bold text-emerald-300" data-i18n="card8_title">叙事漢詩 棋聖伝 3D定石RPG</h3>
+            <p class="mt-2 text-xs sm:text-sm text-sub leading-relaxed" data-i18n="card8_desc">
+              3D本榧碁盤がRPGの決戦場！全5章15人の歴代猛者たちを定石の閃き（たたかう）・奥義呪文・道具で撃破しレベルアップする独立RPGモード。
+            </p>
+          </div>
+          <button type="button" class="wa-btn-jade w-full py-3 rounded-xl text-sm sm:text-base">
+            <svg class="w-4 h-4 shrink-0"><use href="#ico-crown"></use></svg>
+            <span data-i18n="card8_cta">3D定石RPGに出陣</span>
           </button>
         </div>
       </div>
@@ -1072,6 +1180,32 @@
                 <button id="btn-cancel-score" type="button" class="wa-btn px-3 py-2 rounded-xl text-xs sm:text-sm" data-i18n="btn_resume_play">対局再開</button>
               </div>
             </div>
+
+            <!-- 定石マスター道場 最小バナー（盤面視界70%+維持） -->
+            <div id="joseki-hud-banner" class="hidden wa-panel rounded-2xl px-3 py-2 text-xs flex flex-wrap items-center gap-2 pointer-events-auto border-amber-400/70">
+              <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-gold-bright font-bold" id="joseki-hud-step">0/0</span>
+              <span id="joseki-hud-title" class="font-bold text-amber-100 truncate max-w-[190px]">定石道場</span>
+              <span id="joseki-hud-streak" class="text-emerald-300 font-mono-num font-bold">連勝 0</span>
+              <button id="btn-joseki-hud-hint" type="button" class="wa-btn px-2.5 py-1 rounded-lg text-[11px]" style="min-height:34px;" data-i18n="jos_hint_btn">閃き</button>
+              <button id="btn-joseki-hud-next" type="button" class="wa-btn-gold px-2.5 py-1 rounded-lg text-[11px]" style="min-height:34px;" data-i18n="jos_next_btn">次題</button>
+            </div>
+
+            <!-- 3D定石RPG 敵将ステータスバナー -->
+            <div id="rpg-enemy-bar" class="hidden dq-window px-3 py-2 flex items-center gap-3 pointer-events-auto relative">
+              <div id="rpg-enemy-portrait" class="w-11 h-11 rounded-xl overflow-hidden border-2 border-amber-300 bg-slate-900 shrink-0"></div>
+              <div class="min-w-0 flex-1 space-y-1">
+                <div class="flex items-center justify-between gap-2 text-xs">
+                  <span id="rpg-enemy-stage" class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/25 text-rose-200 border border-rose-400/40 shrink-0">第1章</span>
+                  <span id="rpg-enemy-name" class="font-mincho font-bold text-gold-bright truncate">関羽</span>
+                  <span id="rpg-enemy-hp-text" class="font-mono-num text-rose-300 font-bold shrink-0">HP 60/60</span>
+                </div>
+                <div class="h-2 rounded-full bg-zinc-900 border border-amber-400/40 overflow-hidden">
+                  <div id="rpg-enemy-hp-fill" class="h-full bg-gradient-to-r from-rose-500 to-amber-400 transition-all duration-300" style="width:100%"></div>
+                </div>
+                <div id="rpg-enemy-joseki-lbl" class="text-[11px] text-amber-200/90 truncate">必殺定石: —</div>
+              </div>
+              <span id="rpg-damage-pop" class="hidden absolute -bottom-5 right-3 text-sm font-black text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]"></span>
+            </div>
           </div>
 
           <!-- 安全入力（誤タップ防止）スマート対向半面配置 虫眼鏡ルーペ＆十字キー -->
@@ -1134,6 +1268,49 @@
             <button id="btn-toggle-studio-bottom" type="button" class="play-bar-btn wa-btn py-1 px-1.5 rounded-xl text-xs flex-col sm:flex-row border-amber-400/50">
               <svg class="w-4 h-4 shrink-0 text-gold"><use href="#ico-panel"></use></svg><span id="lbl-drawer-bottom" data-i18n="drawer_short">ツール</span>
             </button>
+          </div>
+        </div>
+
+        <!-- ドック型 DQ風 3D定石RPGバトルウィンドウ（盤面下部に独立ドック・盤面重なりゼロ） -->
+        <div id="rpg-battle-dock" class="hidden dq-window safe-bottom mx-1.5 sm:mx-3 mb-1.5 px-2.5 sm:px-4 py-2 z-20 shrink-0">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-stretch max-w-6xl mx-auto">
+            <!-- 勇者ステータスウィンドウ -->
+            <div class="md:col-span-3 rounded-lg bg-white/[0.03] border border-amber-200/25 p-2 flex flex-col justify-between text-xs">
+              <div class="flex items-center justify-between gap-1 font-bold">
+                <span id="rpg-hero-name" class="text-gold-bright truncate">kenji</span>
+                <span id="rpg-hero-lv" class="font-mono-num text-emerald-300">LV.1</span>
+              </div>
+              <div class="space-y-1 mt-1">
+                <div class="flex justify-between text-[11px]"><span>HP</span><span id="rpg-hero-hp-text" class="font-mono-num font-bold text-emerald-300">100/100</span></div>
+                <div class="h-1.5 rounded-full bg-zinc-900 overflow-hidden"><div id="rpg-hero-hp-fill" class="h-full bg-emerald-400 transition-all duration-300" style="width:100%"></div></div>
+                <div class="flex justify-between text-[11px]"><span>MP</span><span id="rpg-hero-mp-text" class="font-mono-num font-bold text-sky-300">30/30</span></div>
+                <div class="h-1.5 rounded-full bg-zinc-900 overflow-hidden"><div id="rpg-hero-mp-fill" class="h-full bg-sky-400 transition-all duration-300" style="width:100%"></div></div>
+              </div>
+              <div class="flex items-center justify-between text-[11px] text-amber-200 font-mono-num mt-1 pt-1 border-t border-white/10">
+                <span id="rpg-hero-gold">0 G</span>
+                <span id="rpg-hero-exp">EXP 0/40</span>
+              </div>
+            </div>
+
+            <!-- 4択コマンドウィンドウ -->
+            <div class="md:col-span-4 rounded-lg bg-white/[0.03] border border-amber-200/25 p-1.5 flex flex-col justify-center">
+              <div id="rpg-cmd-main" class="grid grid-cols-2 gap-1.5 text-xs sm:text-sm">
+                <button id="btn-rpg-fight" type="button" class="dq-cmd-btn" data-i18n="rpg_cmd_fight">たたかう</button>
+                <button id="btn-rpg-spell" type="button" class="dq-cmd-btn" data-i18n="rpg_cmd_spell">じゅもん</button>
+                <button id="btn-rpg-item" type="button" class="dq-cmd-btn" data-i18n="rpg_cmd_item">どうぐ</button>
+                <button id="btn-rpg-flee" type="button" class="dq-cmd-btn" data-i18n="rpg_cmd_flee">にげる / 地図</button>
+              </div>
+              <div id="rpg-cmd-sub" class="hidden grid grid-cols-2 gap-1.5 text-xs"></div>
+            </div>
+
+            <!-- 戦況メッセージウィンドウ -->
+            <div class="md:col-span-5 rounded-lg bg-white/[0.03] border border-amber-200/25 p-2 flex flex-col justify-between text-xs sm:text-sm">
+              <div id="rpg-msg-log" class="text-amber-50 leading-snug font-mincho min-h-[2.6em]">▶ 歴代の猛者が現れた！コマンドを選べ！</div>
+              <div class="flex items-center justify-between gap-2 mt-1 pt-1 border-t border-white/10 text-[11px]">
+                <span id="rpg-board-hint-chip" class="text-amber-300 font-bold truncate">「たたかう」で3D碁盤に着手せよ</span>
+                <button id="btn-rpg-open-map" type="button" class="wa-btn px-2.5 py-0.5 rounded-lg text-[11px]" style="min-height:30px;" data-i18n="rpg_btn_map">冒険マップ・茶屋</button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1266,6 +1443,70 @@
             <button id="btn-tut-retry" type="button" class="wa-btn-indigo py-2.5 rounded-xl text-xs sm:text-sm" data-i18n="tut_retry">やり直す</button>
             <button id="btn-tut-next" type="button" class="wa-btn-gold py-2.5 rounded-xl text-xs sm:text-sm" data-i18n="tut_next">次へ</button>
           </div>
+        </div>
+
+        <!-- 【定石大典・レベル別マスター道場パネル】 -->
+        <div id="joseki-panel" class="hidden wa-card rounded-2xl border-amber-400/75 p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-gold shrink-0"><use href="#ico-scroll"></use></svg>
+              <span class="text-xs sm:text-sm font-bold text-gold-bright" data-i18n="jos_panel_title">定石マスター道場</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span id="joseki-rank-badge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/45">初伝</span>
+              <button id="btn-joseki-exit" type="button" class="wa-btn px-2.5 py-1 rounded-xl text-xs" style="min-height:34px;" data-i18n="btn_exit">終了</button>
+            </div>
+          </div>
+
+          <div class="wa-inset rounded-xl p-2 space-y-1">
+            <div class="flex justify-between text-[11px] font-bold">
+              <span class="text-sub" data-i18n="jos_mastery_lbl">全28定石 修練達成度</span>
+              <span id="joseki-mastery-pct" class="text-gold-bright font-mono-num">0 / 28 (0%)</span>
+            </div>
+            <div class="h-2 rounded-full bg-zinc-900 overflow-hidden"><div id="joseki-mastery-bar" class="h-full bg-gradient-to-r from-emerald-400 to-amber-400 transition-all duration-300" style="width:0%"></div></div>
+          </div>
+
+          <!-- 5レベル選択タブ -->
+          <div class="grid grid-cols-5 gap-1">
+            <button type="button" data-jtier="1" class="joseki-tier-btn wa-btn wa-pill-active px-1 py-1 rounded-lg text-[11px]" style="min-height:34px;" data-i18n="jos_t1">入門</button>
+            <button type="button" data-jtier="2" class="joseki-tier-btn wa-btn px-1 py-1 rounded-lg text-[11px]" style="min-height:34px;" data-i18n="jos_t2">中級</button>
+            <button type="button" data-jtier="3" class="joseki-tier-btn wa-btn px-1 py-1 rounded-lg text-[11px]" style="min-height:34px;" data-i18n="jos_t3">上級</button>
+            <button type="button" data-jtier="4" class="joseki-tier-btn wa-btn px-1 py-1 rounded-lg text-[11px]" style="min-height:34px;" data-i18n="jos_t4">有段</button>
+            <button type="button" data-jtier="5" class="joseki-tier-btn wa-btn px-1 py-1 rounded-lg text-[11px]" style="min-height:34px;" data-i18n="jos_t5">AI流</button>
+          </div>
+
+          <!-- 演習モード & 黒白選択 -->
+          <div class="grid grid-cols-3 gap-1">
+            <button id="btn-jmode-study" type="button" class="wa-btn px-1.5 py-1 rounded-lg text-[11px]" style="min-height:34px;" data-i18n="jos_m_study">鑑賞解説</button>
+            <button id="btn-jmode-guide" type="button" class="wa-btn wa-pill-active px-1.5 py-1 rounded-lg text-[11px]" style="min-height:34px;" data-i18n="jos_m_guide">ガイド練習</button>
+            <button id="btn-jmode-blind" type="button" class="wa-btn px-1.5 py-1 rounded-lg text-[11px]" style="min-height:34px;" data-i18n="jos_m_blind">暗記テスト</button>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5">
+            <button id="btn-jcolor-black" type="button" class="wa-btn wa-pill-active px-2 py-1 rounded-lg text-xs" style="min-height:34px;" data-i18n="jos_col_black">● 黒側で打つ</button>
+            <button id="btn-jcolor-white" type="button" class="wa-btn px-2 py-1 rounded-lg text-xs" style="min-height:34px;" data-i18n="jos_col_white">○ 白側で打つ</button>
+          </div>
+
+          <!-- 現在の定石詳細 -->
+          <div class="wa-inset rounded-xl p-2.5 space-y-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <strong id="joseki-active-title" class="text-xs sm:text-sm text-gold-bright truncate">—</strong>
+              <span id="joseki-active-stars" class="text-xs font-mono-num shrink-0">☆☆☆</span>
+            </div>
+            <div id="joseki-active-theme" class="text-[11px] text-emerald-300 font-bold"></div>
+            <div id="joseki-active-poem" class="text-[11px] font-brush text-amber-200/85"></div>
+            <p id="joseki-step-explain" class="text-xs text-sub leading-relaxed bg-black/30 rounded-lg p-2"></p>
+            <div id="joseki-feedback" class="hidden text-xs font-bold rounded-lg p-2"></div>
+          </div>
+
+          <div class="grid grid-cols-5 gap-1">
+            <button id="btn-j-prev-step" type="button" class="wa-btn px-1 py-1.5 rounded-lg text-xs" style="min-height:36px;">◀</button>
+            <button id="btn-j-next-step" type="button" class="wa-btn px-1 py-1.5 rounded-lg text-xs" style="min-height:36px;">▶</button>
+            <button id="btn-j-retry" type="button" class="wa-btn-indigo px-1 py-1.5 rounded-lg text-[11px]" style="min-height:36px;" data-i18n="tut_retry">やり直す</button>
+            <button id="btn-j-unmastered" type="button" class="wa-btn px-1 py-1.5 rounded-lg text-[11px]" style="min-height:36px;" data-i18n="jos_unmastered">未習得</button>
+            <button id="btn-j-next-item" type="button" class="wa-btn-gold px-1 py-1.5 rounded-lg text-[11px]" style="min-height:36px;" data-i18n="tut_next">次へ</button>
+          </div>
+
+          <div id="joseki-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-0.5"></div>
         </div>
 
         <!-- 【KataGo 棋譜一括振り返り・解析室パネル】 -->
@@ -1458,8 +1699,10 @@
       <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1 text-sm">
         <!-- 1. 盤面サイズ（正方形＆長方形カスタム） -->
         <div>
-          <label class="block font-bold text-gold-bright mb-2" data-i18n="setup_board_lbl">1. 盤面サイズ（長方形の変則盤面・自由カスタム対応）</label>
-          <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          <label class="block font-bold text-gold-bright mb-2" data-i18n="setup_board_lbl">1. 盤面サイズ（3〜19路・長方形の変則盤面・自由カスタム対応）</label>
+          <div class="grid grid-cols-4 gap-2">
+            <button type="button" data-board="3x3" class="setup-board-btn wa-btn py-2 rounded-xl text-xs">3×3</button>
+            <button type="button" data-board="6x6" class="setup-board-btn wa-btn py-2 rounded-xl text-xs">6×6</button>
             <button type="button" data-board="9x9" class="setup-board-btn wa-btn py-2 rounded-xl text-xs">9×9</button>
             <button type="button" data-board="13x13" class="setup-board-btn wa-btn py-2 rounded-xl text-xs">13×13</button>
             <button type="button" data-board="19x19" class="setup-board-btn wa-btn wa-pill-active py-2 rounded-xl text-xs">19×19</button>
@@ -1468,10 +1711,10 @@
             <button type="button" data-board="13x19" class="setup-board-btn wa-btn py-2 rounded-xl text-xs">13×19</button>
           </div>
           <div class="mt-2 flex flex-wrap items-center gap-2 text-xs wa-inset rounded-xl p-2.5">
-            <span class="text-sub font-bold" data-i18n="setup_custom_size">カスタム縦×横 (5〜19):</span>
-            <input id="custom-w" type="number" min="5" max="19" value="19" class="wa-input w-16 rounded-lg px-2 py-1 text-center font-mono-num font-bold text-gold-bright" />
+            <span class="text-sub font-bold" data-i18n="setup_custom_size">カスタム縦×横 (3〜19):</span>
+            <input id="custom-w" type="number" min="3" max="19" value="19" class="wa-input w-16 rounded-lg px-2 py-1 text-center font-mono-num font-bold text-gold-bright" />
             <span>×</span>
-            <input id="custom-h" type="number" min="5" max="19" value="19" class="wa-input w-16 rounded-lg px-2 py-1 text-center font-mono-num font-bold text-gold-bright" />
+            <input id="custom-h" type="number" min="3" max="19" value="19" class="wa-input w-16 rounded-lg px-2 py-1 text-center font-mono-num font-bold text-gold-bright" />
             <button id="btn-apply-custom-size" type="button" class="wa-btn px-4 py-1.5 rounded-lg text-xs" data-i18n="btn_apply">適用</button>
           </div>
         </div>
@@ -1740,9 +1983,13 @@
               <span class="text-xs sm:text-sm font-bold" data-i18n="opt_particles">幽玄の光の粒子エフェクト</span>
               <input id="opt-particles" type="checkbox" checked class="w-5 h-5 accent-amber-400" />
             </label>
-            <label class="wa-inset rounded-xl p-3 flex items-center justify-between gap-2 cursor-pointer sm:col-span-2">
+            <label class="wa-inset rounded-xl p-3 flex items-center justify-between gap-2 cursor-pointer">
               <span class="text-xs sm:text-sm font-bold" data-i18n="opt_kanshi_fx">対局中の叙事漢詩カットイン詠唱</span>
               <input id="opt-kanshi-fx" type="checkbox" checked class="w-5 h-5 accent-amber-400" />
+            </label>
+            <label class="wa-inset rounded-xl p-3 flex items-center justify-between gap-2 cursor-pointer">
+              <span class="text-xs sm:text-sm font-bold" data-i18n="opt_ai_resign">勝敗確定時のAI投了可否表示（全試合）</span>
+              <input id="opt-ai-resign" type="checkbox" checked class="w-5 h-5 accent-amber-400" />
             </label>
           </div>
         </div>
@@ -1959,6 +2206,64 @@
     </div>
   </div>
 
+  <!-- 8. ドラクエ風 3D定石RPG ワールドマップ＆旅の茶屋モーダル -->
+  <div id="rpg-map-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="dq-window modal-anim max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-3.5 border-b border-amber-200/25 flex items-center justify-between gap-2 flex-wrap">
+        <div>
+          <h3 class="font-mincho text-lg sm:text-xl font-bold text-gold-bright flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-300 shrink-0"><use href="#ico-crown"></use></svg>
+            <span data-i18n="rpg_map_title">叙事漢詩 棋聖伝 — 冒険マップ＆旅の茶屋</span>
+          </h3>
+          <div id="rpg-map-hero-stats" class="text-xs text-amber-200/90 font-mono-num mt-0.5">LV.1 ｜ HP 100/100 ｜ MP 30/30 ｜ 0 G</div>
+        </div>
+        <button id="close-rpg-map" type="button" class="wa-btn px-3.5 py-2 rounded-xl text-sm">
+          <svg class="w-4 h-4"><use href="#ico-close"></use></svg><span data-i18n="btn_close">閉じる</span>
+        </button>
+      </div>
+      <div class="px-5 pt-2.5 pb-2.5 flex gap-2 border-b border-amber-200/15">
+        <button id="rpg-tab-stages" type="button" class="dq-cmd-btn dq-active flex-1 justify-center text-xs sm:text-sm" data-i18n="rpg_tab_stages">冒険マップ（全5章・15関門）</button>
+        <button id="rpg-tab-shop" type="button" class="dq-cmd-btn flex-1 justify-center text-xs sm:text-sm" data-i18n="rpg_tab_shop">旅の茶屋（宿屋・道具屋）</button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1 space-y-3">
+        <div id="rpg-map-list" class="space-y-3"></div>
+        <div id="rpg-shop-list" class="hidden space-y-3 text-xs sm:text-sm">
+          <div class="rounded-xl bg-white/[0.04] border border-amber-200/25 p-3.5 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div class="font-bold text-emerald-300 text-sm" data-i18n="rpg_inn_title">漢詩宿「望月亭」に泊まる</div>
+              <div class="text-sub text-xs mt-0.5" data-i18n="rpg_inn_desc">HPとMPを全回復します（所持金 30 G）</div>
+            </div>
+            <button id="btn-rpg-inn" type="button" class="wa-btn-jade px-4 py-2 rounded-xl text-xs font-bold">30 G · 休む</button>
+          </div>
+          <div class="rounded-xl bg-white/[0.04] border border-amber-200/25 p-3.5 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div class="font-bold text-gold-bright text-sm" data-i18n="rpg_tea_title">銘茶・龍井 (薬草)</div>
+              <div class="text-sub text-xs mt-0.5" data-i18n="rpg_tea_desc">バトル中にHPを45回復（単価 25 G）</div>
+            </div>
+            <button id="btn-buy-tea" type="button" class="wa-btn-gold px-4 py-2 rounded-xl text-xs font-bold">25 G · 購入</button>
+          </div>
+          <div class="rounded-xl bg-white/[0.04] border border-amber-200/25 p-3.5 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div class="font-bold text-sky-300 text-sm" data-i18n="rpg_elixir_title">霊薬・仙丹 (まほうのせいすい)</div>
+              <div class="text-sub text-xs mt-0.5" data-i18n="rpg_elixir_desc">バトル中にMPを20回復（単価 40 G）</div>
+            </div>
+            <button id="btn-buy-elixir" type="button" class="wa-btn-indigo px-4 py-2 rounded-xl text-xs font-bold">40 G · 購入</button>
+          </div>
+          <div class="rounded-xl bg-white/[0.04] border border-amber-200/25 p-3.5 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div class="font-bold text-amber-300 text-sm" data-i18n="rpg_scroll_title">必勝・定石の巻物</div>
+              <div class="text-sub text-xs mt-0.5" data-i18n="rpg_scroll_desc">定石の次の一手を自動正解＆会心の一撃（単価 70 G）</div>
+            </div>
+            <button id="btn-buy-scroll" type="button" class="wa-btn px-4 py-2 rounded-xl text-xs font-bold">70 G · 購入</button>
+          </div>
+          <div class="pt-3 border-t border-white/10 flex justify-end">
+            <button id="btn-rpg-reset-save" type="button" class="wa-btn-shu px-3.5 py-2 rounded-xl text-xs" data-i18n="rpg_reset_save">セーブデータを初期化（LV1から）</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 7. 汎用結果・確認モーダル -->
   <div id="modal-overlay" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="wa-panel modal-anim rounded-2xl max-w-md w-full p-5">
@@ -2079,7 +2384,7 @@
         setup_title: "対局・置碁 詳細設定",
         setup_title_hcp: "置碁・指導碁 詳細セットアップ",
         setup_board_lbl: "1. 盤面サイズ（長方形の変則盤面・自由カスタム対応）",
-        setup_custom_size: "カスタム縦×横 (5〜19):",
+        setup_custom_size: "カスタム縦×横 (3〜19):",
         btn_apply: "適用",
         setup_rule_lbl: "2. ルール方式",
         rule_jp: "日本ルール",
@@ -2253,7 +2558,68 @@
         user_dup_err: "同名のユーザーが既に存在します",
         user_restored_default: "規定ユーザー「kenji」を復元しました",
         res_turning_btn: "勝負の分かれ目（第{n}手）から振り返る",
-        res_coach_btn: "AI講評・短期/長期改善策を見る"
+        res_coach_btn: "AI講評・短期/長期改善策を見る",
+        card7_title: "定石大典・没入マスター道場",
+        card7_desc: "入門から有段・KataGo最新AI定石まで現存する主要28定石を5階層で網羅。鑑賞解説・ガイド練習・ノーヒント暗記テストの3モードで完全習得へ。",
+        card7_cta: "定石マスター道場へ",
+        card8_title: "叙事漢詩 棋聖伝 3D定石RPG",
+        card8_desc: "3D本榧碁盤がRPGの決戦場！全5章15人の歴代猛者たちを定石の閃き（たたかう）・奥義呪文・道具で撃破しレベルアップする独立RPGモード。",
+        card8_cta: "3D定石RPGに出陣",
+        menu_joseki_prog: "習得 {c} / {n} · ★{s}",
+        menu_rpg_prog: "LV.{lv} · {c} / {n} 関門",
+        turn_joseki: "定石マスター道場",
+        turn_rpg: "3D定石RPG 決戦",
+        jos_panel_title: "定石マスター道場",
+        jos_mastery_lbl: "全28定石 修練達成度",
+        jos_t1: "入門",
+        jos_t2: "中級",
+        jos_t3: "上級",
+        jos_t4: "有段",
+        jos_t5: "AI流",
+        jos_m_study: "鑑賞解説",
+        jos_m_guide: "ガイド練習",
+        jos_m_blind: "暗記テスト",
+        jos_col_black: "● 黒側で打つ",
+        jos_col_white: "○ 白側で打つ",
+        jos_unmastered: "未習得",
+        jos_hint_btn: "閃き",
+        jos_next_btn: "次題",
+        jos_streak_lbl: "連続正解 {n}",
+        jos_completed_toast: "定石「{name}」を完全習得しました！ ★{stars}",
+        jos_wrong_hint: "不正解（{c}）：緑の急所ではなく別の意図がある手です。再挑戦！",
+        jos_rank_1: "初伝",
+        jos_rank_2: "中伝",
+        jos_rank_3: "奥伝",
+        jos_rank_4: "皆伝",
+        jos_rank_5: "定石棋聖",
+        rpg_cmd_fight: "たたかう",
+        rpg_cmd_spell: "じゅもん",
+        rpg_cmd_item: "どうぐ",
+        rpg_cmd_flee: "にげる / 地図",
+        rpg_btn_map: "冒険マップ・茶屋",
+        rpg_map_title: "叙事漢詩 棋聖伝 — 冒険マップ＆旅の茶屋",
+        rpg_tab_stages: "冒険マップ（全5章・15関門）",
+        rpg_tab_shop: "旅の茶屋（宿屋・道具屋）",
+        rpg_inn_title: "漢詩宿「望月亭」に泊まる",
+        rpg_inn_desc: "HPとMPを全回復します（所持金 30 G）",
+        rpg_tea_title: "銘茶・龍井 (薬草)",
+        rpg_tea_desc: "バトル中にHPを45回復（単価 25 G）",
+        rpg_elixir_title: "霊薬・仙丹 (まほうのせいすい)",
+        rpg_elixir_desc: "バトル中にMPを20回復（単価 40 G）",
+        rpg_scroll_title: "必勝・定石の巻物",
+        rpg_scroll_desc: "定石の次の一手を自動正解＆会心の一撃（単価 70 G）",
+        rpg_reset_save: "セーブデータを初期化（LV1から）",
+        rpg_spell_eye: "天眼通 (MP 8)",
+        rpg_spell_heal: "回春詩 (MP 10)",
+        rpg_spell_fire: "赤壁の業火 (MP 14)",
+        rpg_back_cmd: "← 戻る",
+        opt_ai_resign: "勝敗確定時のAI投了可否表示（全試合）",
+        ai_resign_title: "AI 投了判定 — 勝敗がほぼ決定",
+        ai_resign_body_human: "AI解析により <strong>{loser}</strong> の逆転は極めて困難と判断されました（{winner} 勝率約 <strong>{wr}%</strong> ・ 推定差 <strong>{lead}目</strong>）。ここで投了してAI振り返りへ進みますか？",
+        ai_resign_body_cpu: "AI解析により <strong>{loser}</strong> の勝勢が失われました（{winner} 勝率約 <strong>{wr}%</strong> ・ 推定差 <strong>{lead}目</strong>）。この対局を終局・投了としますか？",
+        ai_resign_accept_btn: "投了して終局・振り返りへ",
+        ai_resign_accept_cpu_btn: "投了を認めて終局へ",
+        ai_resign_continue_btn: "まだ粘る／最後まで打つ"
       },
       en: {
         title_badge: "KataGo Analysis JSON & Historical Warriors",
@@ -2357,7 +2723,7 @@
         setup_title: "Match & Handicap Setup",
         setup_title_hcp: "Handicap & Teaching Setup",
         setup_board_lbl: "1. Board Size (Square & Rectangular Custom)",
-        setup_custom_size: "Custom W×H (5–19):",
+        setup_custom_size: "Custom W×H (3–19):",
         btn_apply: "Apply",
         setup_rule_lbl: "2. Rule Set",
         rule_jp: "Japanese",
@@ -2530,7 +2896,68 @@
         user_dup_err: "That player name already exists",
         user_restored_default: "Restored default player 'kenji'",
         res_turning_btn: "Review Turning Point (Move #{n})",
-        res_coach_btn: "Open AI Coaching & Advice"
+        res_coach_btn: "Open AI Coaching & Advice",
+        card7_title: "Grand Joseki Mastery Dojo",
+        card7_desc: "Master 28 essential classical & KataGo AI joseki sequences across 5 tiers with Study Commentary, Guided Drills, and Blind Mastery Tests.",
+        card7_cta: "Enter Joseki Dojo",
+        card8_title: "Epic Kanshi 3D Joseki RPG",
+        card8_desc: "Dragon Quest-style 3D RPG! Battle 15 legendary generals across 5 chapters on the 3D Goban using Joseki strikes, spells, and items.",
+        card8_cta: "Embark on 3D RPG",
+        menu_joseki_prog: "Mastered {c} / {n} · ★{s}",
+        menu_rpg_prog: "LV.{lv} · {c} / {n} Stages",
+        turn_joseki: "Joseki Mastery Dojo",
+        turn_rpg: "3D Joseki RPG Battle",
+        jos_panel_title: "Joseki Mastery Dojo",
+        jos_mastery_lbl: "28-Joseki Mastery Progress",
+        jos_t1: "Intro",
+        jos_t2: "Inter",
+        jos_t3: "Adv",
+        jos_t4: "Dan",
+        jos_t5: "AI",
+        jos_m_study: "Study",
+        jos_m_guide: "Guided",
+        jos_m_blind: "Blind",
+        jos_col_black: "● Play Black",
+        jos_col_white: "○ Play White",
+        jos_unmastered: "Unmastered",
+        jos_hint_btn: "Hint",
+        jos_next_btn: "Next",
+        jos_streak_lbl: "Streak {n}",
+        jos_completed_toast: "Joseki '{name}' mastered! ★{stars}",
+        jos_wrong_hint: "Not quite ({c}) — look for the vital joseki point and try again!",
+        jos_rank_1: "Initiate",
+        jos_rank_2: "Adept",
+        jos_rank_3: "Master",
+        jos_rank_4: "Grandmaster",
+        jos_rank_5: "Joseki Sage",
+        rpg_cmd_fight: "FIGHT",
+        rpg_cmd_spell: "SPELL",
+        rpg_cmd_item: "ITEM",
+        rpg_cmd_flee: "FLEE / MAP",
+        rpg_btn_map: "Map & Inn",
+        rpg_map_title: "Epic Kanshi Chronicles — World Map & Tea House",
+        rpg_tab_stages: "World Map (5 Chapters · 15 Stages)",
+        rpg_tab_shop: "Traveler's Tea House (Inn & Shop)",
+        rpg_inn_title: "Rest at Moonview Pavilion Inn",
+        rpg_inn_desc: "Fully restore HP & MP (Cost: 30 G)",
+        rpg_tea_title: "Longjing Tea (Medicinal Herb)",
+        rpg_tea_desc: "Restores 45 HP in battle (25 G)",
+        rpg_elixir_title: "Immortal Elixir (Magic Water)",
+        rpg_elixir_desc: "Restores 20 MP in battle (40 G)",
+        rpg_scroll_title: "Secret Joseki Scroll",
+        rpg_scroll_desc: "Auto-plays next joseki move with Critical Hit (70 G)",
+        rpg_reset_save: "Reset RPG Save Data (From LV.1)",
+        rpg_spell_eye: "Heaven's Eye (8 MP)",
+        rpg_spell_heal: "Spring Verse (10 MP)",
+        rpg_spell_fire: "Red Cliff Flame (14 MP)",
+        rpg_back_cmd: "← Back",
+        opt_ai_resign: "AI Resign Judgment Prompt (All Matches)",
+        ai_resign_title: "AI Resignation Evaluation",
+        ai_resign_body_human: "AI evaluates <strong>{loser}</strong> as virtually defeated (<strong>{winner}</strong> win probability ~<strong>{wr}%</strong>, lead ~<strong>{lead} pts</strong>). Resign now and open AI Review?",
+        ai_resign_body_cpu: "AI evaluates <strong>{loser}</strong> has lost all winning chances (<strong>{winner}</strong> ~<strong>{wr}%</strong>, lead ~<strong>{lead} pts</strong>). Conclude by resignation?",
+        ai_resign_accept_btn: "Resign & Open Review",
+        ai_resign_accept_cpu_btn: "Accept Resignation & Finish",
+        ai_resign_continue_btn: "Keep Playing"
       },
       zh: {
         title_badge: "支持 KataGo Analysis JSON 与 历代名将AI",
@@ -2634,7 +3061,7 @@
         setup_title: "对局与让子详细设置",
         setup_title_hcp: "让子指导棋设置",
         setup_board_lbl: "1. 棋盘尺寸（支持长方形自定义）",
-        setup_custom_size: "自定义宽×高 (5–19):",
+        setup_custom_size: "自定义宽×高 (3–19):",
         btn_apply: "应用",
         setup_rule_lbl: "2. 规则选择",
         rule_jp: "日本规则",
@@ -2807,7 +3234,68 @@
         user_dup_err: "该用户名已存在",
         user_restored_default: "已恢复默认用户 kenji",
         res_turning_btn: "从胜负分水岭（第{n}手）复盘",
-        res_coach_btn: "查看AI总结与改善方案"
+        res_coach_btn: "查看AI总结与改善方案",
+        card7_title: "定式大典・分级精修道场",
+        card7_desc: "涵盖入门到段位及KataGo最新AI定式的28大核心定式，支持鉴赏讲解、引导练习与无提示盲测三种沉浸训练模式。",
+        card7_cta: "进入定式道场",
+        card8_title: "叙事汉诗 棋圣传 3D定式RPG",
+        card8_desc: "勇者斗恶龙式3D棋盘RPG！在立体榧木棋盘上用定式「战斗」、奥义咒语与道具讨伐5章15位历代名将！",
+        card8_cta: "出征3D定式RPG",
+        menu_joseki_prog: "已掌握 {c} / {n} · ★{s}",
+        menu_rpg_prog: "LV.{lv} · {c} / {n} 关卡",
+        turn_joseki: "定式大师道场",
+        turn_rpg: "3D定式RPG激战",
+        jos_panel_title: "定式精修道场",
+        jos_mastery_lbl: "28大定式掌握进度",
+        jos_t1: "入门",
+        jos_t2: "中级",
+        jos_t3: "上级",
+        jos_t4: "段位",
+        jos_t5: "AI流",
+        jos_m_study: "鉴赏解说",
+        jos_m_guide: "引导练习",
+        jos_m_blind: "盲测考核",
+        jos_col_black: "● 执黑演练",
+        jos_col_white: "○ 执白演练",
+        jos_unmastered: "未掌握",
+        jos_hint_btn: "灵感",
+        jos_next_btn: "下一题",
+        jos_streak_lbl: "连对 {n}",
+        jos_completed_toast: "恭喜掌握定式「{name}」！ ★{stars}",
+        jos_wrong_hint: "此处（{c}）并非定式正着，请结合解说再试一试！",
+        jos_rank_1: "初传",
+        jos_rank_2: "中传",
+        jos_rank_3: "奥传",
+        jos_rank_4: "皆传",
+        jos_rank_5: "定式棋圣",
+        rpg_cmd_fight: "战斗",
+        rpg_cmd_spell: "咒文",
+        rpg_cmd_item: "道具",
+        rpg_cmd_flee: "撤退 / 地图",
+        rpg_btn_map: "冒险地图・茶屋",
+        rpg_map_title: "叙事汉诗 棋圣传 — 冒险地图与旅途茶屋",
+        rpg_tab_stages: "冒险地图（共5章・15关）",
+        rpg_tab_shop: "旅途茶屋（客栈・道具店）",
+        rpg_inn_title: "投宿汉诗客栈「望月亭」",
+        rpg_inn_desc: "完全恢复HP与MP（费用 30 G）",
+        rpg_tea_title: "铭茶・龙井 (药草)",
+        rpg_tea_desc: "战斗中恢复 45 HP（单价 25 G）",
+        rpg_elixir_title: "灵药・仙丹 (魔法圣水)",
+        rpg_elixir_desc: "战斗中恢复 20 MP（单价 40 G）",
+        rpg_scroll_title: "必胜・定式卷轴",
+        rpg_scroll_desc: "自动下出定式正解并触发会心一击（单价 70 G）",
+        rpg_reset_save: "重置RPG存档（从LV.1重新开始）",
+        rpg_spell_eye: "天眼通 (MP 8)",
+        rpg_spell_heal: "回春诗 (MP 10)",
+        rpg_spell_fire: "赤壁业火 (MP 14)",
+        rpg_back_cmd: "← 返回",
+        opt_ai_resign: "胜负已定时AI自动提示认输（全模式）",
+        ai_resign_title: "AI 胜负判定 — 认输建议",
+        ai_resign_body_human: "AI评估 <strong>{loser}</strong> 已极难逆转（<strong>{winner}</strong> 胜率约 <strong>{wr}%</strong> ・ 预计领先 <strong>{lead}目</strong>）。是否就此认输并进入AI复盘？",
+        ai_resign_body_cpu: "AI评估 <strong>{loser}</strong> 已失去逆转机会（<strong>{winner}</strong> 胜率约 <strong>{wr}%</strong> ・ 预计领先 <strong>{lead}目</strong>）。是否判认输终局？",
+        ai_resign_accept_btn: "认输并复盘",
+        ai_resign_accept_cpu_btn: "判定认输并终局",
+        ai_resign_continue_btn: "顽强坚持 / 下完本局"
       },
       ko: {
         title_badge: "KataGo Analysis JSON & 역대 맹장 AI",
@@ -2911,7 +3399,7 @@
         setup_title: "대국・접바둑 상세 설정",
         setup_title_hcp: "접바둑・지도기 설정",
         setup_board_lbl: "1. 바둑판 크기 (직사각형 커스텀 지원)",
-        setup_custom_size: "사용자 가로×세로 (5–19):",
+        setup_custom_size: "사용자 가로×세로 (3–19):",
         btn_apply: "적용",
         setup_rule_lbl: "2. 룰 방식",
         rule_jp: "일본 룰",
@@ -3084,7 +3572,68 @@
         user_dup_err: "이미 등록된 사용자 이름입니다",
         user_restored_default: "기본 사용자 'kenji'를 복원했습니다",
         res_turning_btn: "승부처 (제{n}수)부터 복기",
-        res_coach_btn: "AI 총평·개선책 보기"
+        res_coach_btn: "AI 총평·개선책 보기",
+        card7_title: "정석대전・레벨별 마스터 도장",
+        card7_desc: "입문부터 유단자・KataGo 최신 AI 정석까지 핵심 28대 정석을 5단계로 완비. 감상 해설・가이드 연습・암기 테스트 3모드를 지원합니다.",
+        card7_cta: "정석 도장 입장",
+        card8_title: "서사한시 기성전 3D 정석 RPG",
+        card8_desc: "드래곤 퀘스트 스타일 3D 반상 RPG! 5장 15명의 역대 맹장을 정석 공략(싸우기)・비기 주문・도구로 물리치고 레벨업하세요.",
+        card8_cta: "3D 정석 RPG 출진",
+        menu_joseki_prog: "습득 {c} / {n} · ★{s}",
+        menu_rpg_prog: "LV.{lv} · {c} / {n} 스테이지",
+        turn_joseki: "정석 마스터 도장",
+        turn_rpg: "3D 정석 RPG 결전",
+        jos_panel_title: "정석 마스터 도장",
+        jos_mastery_lbl: "전 28대 정석 숙련도",
+        jos_t1: "입문",
+        jos_t2: "중급",
+        jos_t3: "상급",
+        jos_t4: "유단",
+        jos_t5: "AI류",
+        jos_m_study: "감상해설",
+        jos_m_guide: "가이드",
+        jos_m_blind: "암기시험",
+        jos_col_black: "● 흑번 연습",
+        jos_col_white: "○ 백번 연습",
+        jos_unmastered: "미습득",
+        jos_hint_btn: "힌트",
+        jos_next_btn: "다음",
+        jos_streak_lbl: "연속 {n}",
+        jos_completed_toast: "정석 '{name}' 마스터! ★{stars}",
+        jos_wrong_hint: "오답({c}) — 정석의 핵심 맥점을 다시 찾아보세요!",
+        jos_rank_1: "초전",
+        jos_rank_2: "중전",
+        jos_rank_3: "오전",
+        jos_rank_4: "개전",
+        jos_rank_5: "정석기성",
+        rpg_cmd_fight: "싸운다",
+        rpg_cmd_spell: "주문",
+        rpg_cmd_item: "도구",
+        rpg_cmd_flee: "도망 / 지도",
+        rpg_btn_map: "모험 지도・찻집",
+        rpg_map_title: "서사한시 기성전 — 모험 지도 & 나그네 찻집",
+        rpg_tab_stages: "모험 지도 (전 5장・15관문)",
+        rpg_tab_shop: "나그네 찻집 (여관・도구점)",
+        rpg_inn_title: "한시 여관 '망월정' 투숙",
+        rpg_inn_desc: "HP와 MP를 완전히 회복합니다 (30 G)",
+        rpg_tea_title: "명차・용정차 (약초)",
+        rpg_tea_desc: "전투 중 HP 45 회복 (25 G)",
+        rpg_elixir_title: "영약・선단 (마법 성수)",
+        rpg_elixir_desc: "전투 중 MP 20 회복 (40 G)",
+        rpg_scroll_title: "필승・정석 두루마리",
+        rpg_scroll_desc: "정석 정답 자동 착수 + 회심의 일격 (70 G)",
+        rpg_reset_save: "RPG 세이브 초기화 (LV.1부터)",
+        rpg_spell_eye: "천안통 (MP 8)",
+        rpg_spell_heal: "회춘시 (MP 10)",
+        rpg_spell_fire: "적벽업화 (MP 14)",
+        rpg_back_cmd: "← 뒤로",
+        opt_ai_resign: "승패 결정 시 AI 기권 안내 (모든 대국)",
+        ai_resign_title: "AI 기권 판정 — 승부 결정",
+        ai_resign_body_human: "AI 분석 결과 <strong>{loser}</strong>의 역전이 매우 어렵습니다(<strong>{winner}</strong> 승률 약 <strong>{wr}%</strong> · 예상 격차 <strong>{lead}집</strong>). 기권하고 AI 복기로 이동할까요?",
+        ai_resign_body_cpu: "AI 분석 결과 <strong>{loser}</strong>의 승산이 사라졌습니다(<strong>{winner}</strong> 약 <strong>{wr}%</strong> · 예상 격차 <strong>{lead}집</strong>). 기권 종국 처리할까요?",
+        ai_resign_accept_btn: "기권 후 복기하기",
+        ai_resign_accept_cpu_btn: "기권 인정 및 종국",
+        ai_resign_continue_btn: "끝까지 두기"
       }
     };
 
@@ -3684,6 +4233,493 @@
     ];
 
     /* =========================================================================
+     * 3B. レベル別・完全定石大典（全5階層・28定石）＆ DQ風3D定石RPG（全5章・15関門）
+     * ========================================================================= */
+    const JOSEKI_LIBRARY = [
+      // Tier 1: 入門 (6)
+      {
+        id: "t1_star_33_old", tier: 1, category: "星",
+        name: { ja: "星・三々入り基本（旧標準）", en: "Star: Classic 3-3 Invasion", zh: "星位・经典点三三", ko: "화점・고전 삼삼 침입" },
+        theme: { ja: "隅の実利 vs 外勢の厚み", en: "Corner Territory vs Outer Wall" },
+        poem: "守株待兎非良策　一壁長城鎮四方",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒は右上の星(Q16)に構えます。" },
+          { c: 2, gtp: "R17", note: "白は隅の急所・三々(R17)に直接侵入します。" },
+          { c: 1, gtp: "Q17", note: "黒は上辺側(Q17)からオサエて外勢の壁を作る方向を選びます。" },
+          { c: 2, gtp: "R16", note: "白は右辺側へノビて隅の根拠を広げます。" },
+          { c: 1, gtp: "Q15", note: "黒も堂々と4線へノビて厚みを築きます。" },
+          { c: 2, gtp: "R15", note: "白は3線を這って隅の地と二眼のスペースを確保します。" },
+          { c: 1, gtp: "Q14", note: "黒はさらにノビて完璧な外勢の壁を整えます。" },
+          { c: 2, gtp: "R18", note: "白は2線へ下がって上側の眼形とハネ出しを防ぎます。" },
+          { c: 1, gtp: "Q18", note: "黒は2線でしっかりオサエて白を隅に封じ込めます。" },
+          { c: 2, gtp: "S17", note: "白がカケツギで隅に確定二眼を作って一段落です。" }
+        ]
+      },
+      {
+        id: "t1_star_knight_peace", tier: 1, category: "星",
+        name: { ja: "星・小ゲイマカカリ〜小ゲイマ受け", en: "Star: Knight Approach & Reply", zh: "星位・小飞挂小飞应", ko: "화점・날일자 걸침과 응수" },
+        theme: { ja: "双方バランス重視の穏健定石", en: "Balanced Peaceful Opening" },
+        poem: "雙翼齊飛風自起　清和一局兩無争",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒の星(Q16)。" },
+          { c: 2, gtp: "O17", note: "白が小ゲイマ(O17)で上辺からカカリます。" },
+          { c: 1, gtp: "Q14", note: "黒は右辺側へ小ゲイマ(Q14)で受け、隅の陣地を守ります。" },
+          { c: 2, gtp: "M17", note: "白は上辺に二間ビラキ(M17)を打ち、根拠を作って互角です。" },
+          { c: 1, gtp: "Q12", note: "余裕があれば黒も右辺へ一間・二間と広げて盤面をリードします。" }
+        ]
+      },
+      {
+        id: "t1_star_one_space_jump", tier: 1, category: "星",
+        name: { ja: "星・小ゲイマカカリ〜一間トビ受け", en: "Star: One-Space Jump Defense", zh: "星位・小飞挂单关跳守", ko: "화점・한칸 뜀 응수" },
+        theme: { ja: "軽やかに中央を指向する受け", en: "Light & Flexible Center Defense" },
+        poem: "身輕一躍雲霄外　進退從容氣象開",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒の星(Q16)。" },
+          { c: 2, gtp: "O17", note: "白の小ゲイマカカリ。" },
+          { c: 1, gtp: "O15", note: "黒が白石の肩越しに一間トビ(O15)で軽く受け、隅と中央を見合いにします。" },
+          { c: 2, gtp: "M17", note: "白は上辺二間ビラキで根拠を整えます。" },
+          { c: 1, gtp: "R15", note: "黒は右辺小ゲイマで隅の地をさらに固めて安定します。" }
+        ]
+      },
+      {
+        id: "t1_komoku_kosumi_tsuke", tier: 1, category: "小目",
+        name: { ja: "小目・小ゲイマカカリ〜コスミツケ基本", en: "Komoku: Diagonal Attach (Kosumi-tsuke)", zh: "小目・小飞挂尖顶定式", ko: "소목・마늘모 붙임 기본" },
+        theme: { ja: "隅の実利を堅実に守る基本形", en: "Solid Corner Territory Retention" },
+        poem: "磐石深根固根本　風雷不驚寸地金",
+        moves: [
+          { c: 1, gtp: "Q17", note: "黒は4-3の小目(Q17)に布石。" },
+          { c: 2, gtp: "O16", note: "白は小ゲイマ(O16)から小目にカカリます。" },
+          { c: 1, gtp: "P16", note: "黒が白にコスミツケ(P16)し、隅の連絡と根拠を主張します。" },
+          { c: 2, gtp: "O15", note: "白は頭を出さずに素直にノビ(O15)て形を整えます。" },
+          { c: 1, gtp: "R15", note: "黒は右辺に小ゲイマ(R15)で隅の連絡と実利を確定させます。" },
+          { c: 2, gtp: "M17", note: "白は上辺に開いて安定した根拠を築きます。" }
+        ]
+      },
+      {
+        id: "t1_komoku_tsukehiki", tier: 1, category: "小目",
+        name: { ja: "小目・一間高ガカリ〜ツケノビ基本", en: "Komoku: High 1-Space Contact & Extend", zh: "小目・一间高挂托退定式", ko: "소목・한칸 높은 걸침 붙이고 젖힘" },
+        theme: { ja: "黒は実利・白は中央厚みの古典王道", en: "Classical Territory vs Influence" },
+        poem: "退一歩處見天海　各得其所定乾坤",
+        moves: [
+          { c: 1, gtp: "R16", note: "黒が3-4の小目(R16)。" },
+          { c: 2, gtp: "P16", note: "白が一間高ガカリ(P16)で中央重視の構え。" },
+          { c: 1, gtp: "P17", note: "黒が3線にツケ(P17)て上辺側から反発します。" },
+          { c: 2, gtp: "O16", note: "白は外へ堂々とノビ(O16)て厚みを目指します。" },
+          { c: 1, gtp: "Q17", note: "黒がヒキ(Q17)で隅を固く守りつつ白の切りを防ぎます。" },
+          { c: 2, gtp: "P14", note: "白が小ゲイマ(P14)に構えて厚みを完成させ、互角の分かれです。" }
+        ]
+      },
+      {
+        id: "t1_33_shoulder", tier: 1, category: "三々",
+        name: { ja: "三々・カタツキ基本定石", en: "3-3 Point: Classic Shoulder Hit", zh: "三三・肩冲基本定式", ko: "삼삼・어깨짚기 기본" },
+        theme: { ja: "実利の三々を上から押さえる攻防", en: "Pressing Outside vs Secure Corner" },
+        poem: "俯瞰群峰立高處　隅中雖安勢自歸",
+        moves: [
+          { c: 1, gtp: "R17", note: "黒が最初から隅の急所・三々(R17)を占めます。" },
+          { c: 2, gtp: "Q16", note: "白は星の位置にカタツキ(Q16)して外勢を築く作戦に出ます。" },
+          { c: 1, gtp: "R16", note: "黒は右辺側へスベリ(R16)て地を広げます。" },
+          { c: 2, gtp: "Q15", note: "白はさらに押して強固な壁を作ります。" },
+          { c: 1, gtp: "P17", note: "黒が上辺へ小ゲイマ(P17)し、白の封鎖を回避して隅を確保します。" },
+          { c: 2, gtp: "N15", note: "白は中央に厚みを持つ大場へ開いて完了です。" }
+        ]
+      },
+
+      // Tier 2: 中級 (6)
+      {
+        id: "t2_star_1pincer_33", tier: 2, category: "星",
+        name: { ja: "星・一間低バサミ〜三々変換定石", en: "Star: 1-Space Low Pincer to 3-3", zh: "星位・一间低夹转点三三", ko: "화점・한칸 낮은 협공과 삼삼 변환" },
+        theme: { ja: "上辺連絡と右辺厚みの立体交換", en: "Side Connection vs Right Wall" },
+        poem: "東邊失利西邊得　轉戰乾坤勢未窮",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒の星。" },
+          { c: 2, gtp: "O17", note: "白の小ゲイマカカリ。" },
+          { c: 1, gtp: "M17", note: "黒は上辺に一間低バサミ(M17)を放ち、白を攻める姿勢を示します。" },
+          { c: 2, gtp: "R17", note: "白はハサミに対して隅の三々(R17)に入り、手早く根拠を奪います。" },
+          { c: 1, gtp: "R16", note: "黒は右辺側(R16)を止めて上辺の戦いへ導きます。" },
+          { c: 2, gtp: "Q17", note: "白は上辺側へノビて連絡を目指します。" },
+          { c: 1, gtp: "R15", note: "黒は右辺を厚くノビて白の隅との分断を狙います。" },
+          { c: 2, gtp: "P17", note: "白は上辺の石と渡り(P17)て安定します。" },
+          { c: 1, gtp: "R14", note: "黒が右辺の壁をさらに伸ばし、雄大な模様を描きます。" },
+          { c: 2, gtp: "O15", note: "白は上辺の傷を補強しつつ中央へトビ出して互角です。" }
+        ]
+      },
+      {
+        id: "t2_star_2high_double", tier: 2, category: "星",
+        name: { ja: "星・二間高バサミ〜両ガカリ簡明定石", en: "Star: 2-Space High Pincer & Counter", zh: "星位・二间高夹两挂简明定式", ko: "화점・두칸 높은 협공과 양걸침" },
+        theme: { ja: "サバキの呼吸・両ガカリからの整形", en: "Sabaki & Shape in Double Approach" },
+        poem: "左右逢源如流水　輕舟已過萬重山",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒の星(Q16)。" },
+          { c: 2, gtp: "O17", note: "白の小ゲイマカカリ。" },
+          { c: 1, gtp: "L16", note: "黒は二間高バサミ(L16)で上辺全体を大きく構えます。" },
+          { c: 2, gtp: "R14", note: "白は反対側から両ガカリ(R14)して黒の反応を見ます。" },
+          { c: 1, gtp: "Q14", note: "黒は堅実に下からコスミ受け(Q14)て反撃の準備。" },
+          { c: 2, gtp: "O15", note: "白は上辺の石を中央へトビ(O15)て連絡を保ちます。" },
+          { c: 1, gtp: "P16", note: "黒が要石をノゾキつつの形(P16)で連絡を計り、白の分割を狙います。" },
+          { c: 2, gtp: "N17", note: "白が上辺を強化し、次の攻め合いへ繋げる簡明形です。" }
+        ]
+      },
+      {
+        id: "t2_star_high_tsukenobi", tier: 2, category: "星",
+        name: { ja: "星・一間高ガカリ〜ツケノビ定石", en: "Star: High 1-Space Tsuke-Nobi", zh: "星位・一间高挂托退定式", ko: "화점・한칸 높은 걸침 붙이고 뻗기" },
+        theme: { ja: "隅の実利を素早く確定させる実戦型", en: "Fast Corner Cash vs Outer Thickness" },
+        poem: "急流勇退収実利　壁立千仞任風吹",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒の星。" },
+          { c: 2, gtp: "O16", note: "白は一間高ガカリ(O16)で中央重視を主張。" },
+          { c: 1, gtp: "O17", note: "黒は白石の下(O17)にツケて実利を要求します。" },
+          { c: 2, gtp: "N16", note: "白は迷わず外へノビ(N16)て厚みを作ります。" },
+          { c: 1, gtp: "P17", note: "黒は上辺を堅実に連絡(P17)し、隅の地を確保します。" },
+          { c: 2, gtp: "N14", note: "白が小ゲイマに構えて素晴らしい厚みを得ます。" }
+        ]
+      },
+      {
+        id: "t2_komoku_high_nobi", tier: 2, category: "小目",
+        name: { ja: "小目・一間受け〜二間ビラキ", en: "Komoku: 1-Space Reply & 2-Space Base", zh: "小目・一间跳应拆二", ko: "소목・한칸 응수와 두칸 벌림" },
+        theme: { ja: "実戦最多の基本布石・スピード重視", en: "Fast Modern Opening Development" },
+        poem: "簡明直截無多事　先手一着重千鈞",
+        moves: [
+          { c: 1, gtp: "R16", note: "黒の小目(R16)。" },
+          { c: 2, gtp: "P17", note: "白が小ゲイマ(P17)からカカリます。" },
+          { c: 1, gtp: "R14", note: "黒は右辺へ一間受け(R14)で隅と辺をバランス良く守ります。" },
+          { c: 2, gtp: "M17", note: "白は上辺に二間ビラキ(M17)を打ち、確実な根拠を得ます。" },
+          { c: 1, gtp: "Q16", note: "あるいは黒が隅の厚みを補強して盤面全体の主導権を握ります。" }
+        ]
+      },
+      {
+        id: "t2_komoku_large_knight_slide", tier: 2, category: "小目",
+        name: { ja: "小目・大ゲイマカカリ〜コスミ・スベリ", en: "Komoku: Large Knight & Slide", zh: "小目・大飞挂尖应滑步", ko: "소목・눈목자 걸침과 날일자 빠짐" },
+        theme: { ja: "隅へのスベリと外側のオサエの駆け引き", en: "Corner Slide Timing & Outside Wall" },
+        poem: "潜入深淵探明珠　外勢如山鎮海疆",
+        moves: [
+          { c: 1, gtp: "R16", note: "黒の小目(R16)。" },
+          { c: 2, gtp: "O17", note: "白は大ゲイマカカリ(O17)で距離を取って様子を見ます。" },
+          { c: 1, gtp: "Q15", note: "黒は堅実にコスミ(Q15)で隅の勢力を確保。" },
+          { c: 2, gtp: "R18", note: "白は2線へ深くスベリ(R18)込み、隅の根拠を主張します。" },
+          { c: 1, gtp: "Q17", note: "黒は上辺側を止める急所(Q17)へ打って外勢を厚くします。" },
+          { c: 2, gtp: "P18", note: "白は2線へ連絡・眼形確保のサガリを打ちます。" }
+        ]
+      },
+      {
+        id: "t2_mokuhazushi_basic", tier: 2, category: "目外し",
+        name: { ja: "目外し・カカリ〜ノビ基本定石", en: "Mokuhazushi (3-5): Classic Line", zh: "目外・挂角长出基本定式", ko: "외목・걸침과 뻗기 기본" },
+        theme: { ja: "辺と外勢を指向する変幻自在の目外し", en: "Dynamic Side-Oriented Mokuhazushi" },
+        poem: "不拘常格出奇兵　三五之交藏妙機",
+        moves: [
+          { c: 1, gtp: "R15", note: "黒は3-5の目外し(R15)に布石。" },
+          { c: 2, gtp: "Q17", note: "白が4-3の位置(Q17)から隅にカカリます。" },
+          { c: 1, gtp: "R17", note: "黒は隅の三々(R17)にスベリ、地を主張します。" },
+          { c: 2, gtp: "P17", note: "白は3線へノビ(P17)て上辺に展開。" },
+          { c: 1, gtp: "R16", note: "黒はツギ(R16)で隅と右辺を完全に連絡します。" },
+          { c: 2, gtp: "N17", note: "白は上辺を二間ビラキに準じた展開で互角の戦いへ。" }
+        ]
+      },
+
+      // Tier 3: 上級 (6)
+      {
+        id: "t3_star_ai_nidanbane", tier: 3, category: "星(AI)",
+        name: { ja: "星・三々入り 二段バネ定石", en: "Star: Modern 3-3 Double Hane", zh: "星位・点三三二段扳定式", ko: "화점・삼삼 양단 젖힘 정석" },
+        theme: { ja: "現代囲碁の代名詞・鋭い二段バネの攻防", en: "Signature Sharp Double-Hane Battle" },
+        poem: "二段連環風雷動　巧奪先機破千軍",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒の星。" },
+          { c: 2, gtp: "R17", note: "白が三々(R17)へダイレクトに侵入。" },
+          { c: 1, gtp: "Q17", note: "黒は上辺側をブロック。" },
+          { c: 2, gtp: "R16", note: "白は右辺へ這います。" },
+          { c: 1, gtp: "Q15", note: "黒は4線へオサエます。" },
+          { c: 2, gtp: "R15", note: "白は3線をもう一手這います。" },
+          { c: 1, gtp: "R14", note: "ここで黒が頭をハネる(R14)のが現代の勝負手！" },
+          { c: 2, gtp: "Q14", note: "白は当然キッて反撃します。" },
+          { c: 1, gtp: "S14", note: "切りに対して2線から二段バネ(S14)を放つのが妙手！" },
+          { c: 2, gtp: "S15", note: "白はアテ・連絡で形を決めに来ます。" },
+          { c: 1, gtp: "R13", note: "黒はツギ(R13)で味方の連を繋ぎつつ右辺を遮断します。" },
+          { c: 2, gtp: "Q13", note: "白も切り石をノビて中央へ進出。" },
+          { c: 1, gtp: "S13", note: "黒は抱え・下がり(S13)で隅の眼形を奪いつつ右辺を厚くします。" },
+          { c: 2, gtp: "R18", note: "白は隅で生きるために2線(R18)へ這います。" },
+          { c: 1, gtp: "Q18", note: "黒は2線でしっかりオサエ、壮大な厚みと主導権を手に入れます。" }
+        ]
+      },
+      {
+        id: "t3_star_2low_33_jump", tier: 3, category: "星",
+        name: { ja: "星・二間低バサミ〜三々トビ出し", en: "Star: 2-Space Low Pincer to 3-3", zh: "星位・二间低夹点三三跳出", ko: "화점・두칸 낮은 협공 삼삼 뜀" },
+        theme: { ja: "ハサミ石を軽く見て隅と中央へ捌く", en: "Light Escape After Pincer Exchange" },
+        poem: "棄輕就重如神算　一躍龍門勢自新",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒の星。" },
+          { c: 2, gtp: "O17", note: "白の小ゲイマカカリ。" },
+          { c: 1, gtp: "L17", note: "黒は上辺に二間低バサミ(L17)を打ち、厳しく根拠を奪います。" },
+          { c: 2, gtp: "R17", note: "白はすぐさま三々(R17)に入って隅を換えます。" },
+          { c: 1, gtp: "Q17", note: "黒はハサミ側の厚みと連動するよう上辺側からオサエます。" },
+          { c: 2, gtp: "R16", note: "白は右辺側へノビ。" },
+          { c: 1, gtp: "Q15", note: "黒も4線にノビ。" },
+          { c: 2, gtp: "R15", note: "白は3線をノビて隅のスペースを作ります。" },
+          { c: 1, gtp: "Q14", note: "黒は厚くノビて右辺の大模様を狙います。" },
+          { c: 2, gtp: "O15", note: "白は上辺の石をトビ出して(O15)厚みへの消しと連絡を見ます。" }
+        ]
+      },
+      {
+        id: "t3_komoku_1low_pincer", tier: 3, category: "小目",
+        name: { ja: "小目・一間低バサミ戦型", en: "Komoku: 1-Space Low Pincer Fight", zh: "小目・小飞挂一间低夹战型", ko: "소목・날일자 걸침 한칸 낮은 협공" },
+        theme: { ja: "両者の戦力が激突する攻め合いの起点", en: "Fighting Pincer Launching Pad" },
+        poem: "狹路相逢勇者勝　交鋒一處定雄風",
+        moves: [
+          { c: 1, gtp: "R16", note: "黒の小目(R16)。" },
+          { c: 2, gtp: "P17", note: "白の小ゲイマカカリ。" },
+          { c: 1, gtp: "N17", note: "黒は一間低バサミ(N17)で白を挟み撃ちにします。" },
+          { c: 2, gtp: "P15", note: "白は一間トビ(P15)で軽快に中央へ脱出。" },
+          { c: 1, gtp: "R14", note: "黒は一間受けで隅を固め、上辺・中央の攻防に備えます。" },
+          { c: 2, gtp: "L16", note: "白は左の黒石を逆に挟む好手(L16)で反撃します。" }
+        ]
+      },
+      {
+        id: "t3_komoku_high_keima_press", tier: 3, category: "小目",
+        name: { ja: "小目・一間高ガカリ〜二間高バサミ戦", en: "Komoku: High 2-Space Pincer Battle", zh: "小目・一间高挂二间高夹战", ko: "소목・높은 두칸 협공 전투" },
+        theme: { ja: "スソの攻防から連絡・厚みを築く高等戦術", en: "Subtle Contact & Side Consolidation" },
+        poem: "千變萬化皆由心　縱横盤上自成章",
+        moves: [
+          { c: 1, gtp: "R16", note: "黒の小目(R16)。" },
+          { c: 2, gtp: "P16", note: "白の一間高ガカリ。" },
+          { c: 1, gtp: "L16", note: "黒は二間高バサミ(L16)で広く構えます。" },
+          { c: 2, gtp: "R14", note: "白は小目の下側(R14)へカカリ、黒の薄みを突きます。" },
+          { c: 1, gtp: "Q14", note: "黒はコスミツケ・オサエ(Q14)で反発。" },
+          { c: 2, gtp: "P14", note: "白も力強くノビ(P14)て中央を指向します。" },
+          { c: 1, gtp: "Q13", note: "黒は下をノビて白の分断を防ぎます。" },
+          { c: 2, gtp: "R15", note: "白は覗き・アタリの味を見つつ右辺の急所(R15)を打ちます。" },
+          { c: 1, gtp: "Q16", note: "黒がツギで連絡を保ち、" },
+          { c: 2, gtp: "O15", note: "白は要石を連絡(O15)して互いに厚みを得る名型です。" }
+        ]
+      },
+      {
+        id: "t3_takamoku_push", tier: 3, category: "高目",
+        name: { ja: "高目・小目ガカリ〜外押し定石", en: "Takamoku (4-5): Corner Press", zh: "高目・挂角压迫定式", ko: "외목·고목 걸침과 압박 정석" },
+        theme: { ja: "高目の特徴・中央の大模様 vs 隅の確定地", en: "Grand Center Moyo vs 3rd-Line Cash" },
+        poem: "高瞻遠矚呑天地　萬里山河入畫圖",
+        moves: [
+          { c: 1, gtp: "Q15", note: "黒は中央志向の4-5 高目(Q15)に布石。" },
+          { c: 2, gtp: "Q17", note: "白が4-3(Q17)にカカリ、隅の実利を取りに行きます。" },
+          { c: 1, gtp: "Q16", note: "黒は上から真っ直ぐツケて(Q16)白を押さえつけます。" },
+          { c: 2, gtp: "P17", note: "白は3線を堅実にノビ(P17)。" },
+          { c: 1, gtp: "P16", note: "黒も連打して4線の厚みを押し上げます。" },
+          { c: 2, gtp: "O17", note: "白は上辺で地と根拠を広げます。" },
+          { c: 1, gtp: "R17", note: "黒は三々(R17)へ踏み込んで隅の根拠を奪いつつ右辺を固めます。" },
+          { c: 2, gtp: "M16", note: "白が上辺を大きく開いて中央との均衡を取ります。" }
+        ]
+      },
+      {
+        id: "t3_33_press_battle", tier: 3, category: "三々",
+        name: { ja: "三々・一間ガカリ〜押し合い定石", en: "3-3: 1-Space Approach Battle", zh: "三三・一间挂压战定式", ko: "삼삼・한칸 걸침 접전 정석" },
+        theme: { ja: "地を取り合う鋭い中央接戦", en: "Sharp Close-Quarters Shape" },
+        poem: "寸土必争鋒芒露　剛柔並濟乃名手",
+        moves: [
+          { c: 1, gtp: "R17", note: "黒が三々(R17)を先占。" },
+          { c: 2, gtp: "P17", note: "白は一間ガカリ(P17)で隅を圧迫。" },
+          { c: 1, gtp: "R15", note: "黒は一間トビ(R15)で右辺へ広げます。" },
+          { c: 2, gtp: "Q15", note: "白は中央側から急所(Q15)へツケて分断を狙います。" },
+          { c: 1, gtp: "Q16", note: "黒は力強くハネ(Q16)て連絡を計ります。" },
+          { c: 2, gtp: "P15", note: "白はノビて中央に厚みを築きます。" },
+          { c: 1, gtp: "R16", note: "黒が堅実に連絡して隅の地を確定し、" },
+          { c: 2, gtp: "N17", note: "白が上辺を強化して一段落です。" }
+        ]
+      },
+
+      // Tier 4: 有段 (5)
+      {
+        id: "t4_star_33_hiki_cut", tier: 4, category: "星",
+        name: { ja: "星・一間高バサミ〜三々右オサエ戦", en: "Star: High Pincer Right Block 3-3", zh: "星位・一间高夹右挡转战", ko: "화점・높은 한칸 협공 삼삼 우측 막음" },
+        theme: { ja: "高バサミ石を活かした大局的な転換", en: "Strategic Pivot Leveraging High Pincer" },
+        poem: "運籌帷幄千里外　一子連環破萬重",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒の星。" },
+          { c: 2, gtp: "O17", note: "白の小ゲイマカカリ。" },
+          { c: 1, gtp: "M16", note: "黒が中央にも働く一間高バサミ(M16)を選択。" },
+          { c: 2, gtp: "R17", note: "白はすぐ三々(R17)へ侵入します。" },
+          { c: 1, gtp: "R16", note: "高バサミがある場合、黒は右辺側(R16)を止める変化も有力！" },
+          { c: 2, gtp: "Q17", note: "白は上辺側へノビて渡りを目指します。" },
+          { c: 1, gtp: "R15", note: "黒は右辺へ力強くノビ。" },
+          { c: 2, gtp: "P17", note: "白は上辺連絡を完成させます。" },
+          { c: 1, gtp: "R14", note: "黒は右辺に厚い壁を作り、" },
+          { c: 2, gtp: "O15", note: "白がトビ出して(O15)高バサミ石にプレッシャーをかけます。" }
+        ]
+      },
+      {
+        id: "t4_komoku_small_nadare", tier: 4, category: "小目",
+        name: { ja: "小目・小ナダレ定石（標準型）", en: "Komoku: Small Avalanche (Ko-Nadare)", zh: "小目・小雪崩定式", ko: "소목・소눈사태 정석" },
+        theme: { ja: "有段者必携・雪崩の如き迫力の攻め合い", en: "Dan-Level Tactical Avalanche Clash" },
+        poem: "山崩石裂勢如潮　敢戰方能見真章",
+        moves: [
+          { c: 1, gtp: "R16", note: "黒の小目(R16)。" },
+          { c: 2, gtp: "P16", note: "白の一間高ガカリ。" },
+          { c: 1, gtp: "P17", note: "黒が3線にツケます。" },
+          { c: 2, gtp: "O16", note: "白は外にノビ。" },
+          { c: 1, gtp: "P15", note: "ここで下ハネのナダレ(P15)を放つのが小ナダレの始まり！" },
+          { c: 2, gtp: "O15", note: "白は強く外をハネ(O15)て戦いに応じます。" },
+          { c: 1, gtp: "P14", note: "黒は切らずにノビ(P14)て味を残します。" },
+          { c: 2, gtp: "O14", note: "白も壁をノビて反撃を許しません。" },
+          { c: 1, gtp: "Q17", note: "黒が隅(Q17)をしっかり守って味方の連絡を確保し、互角の大戦となります。" }
+        ]
+      },
+      {
+        id: "t4_komoku_nadare_inner", tier: 4, category: "小目",
+        name: { ja: "小目・ツケノビ内マガリ変化定石", en: "Komoku: Inner Bend Variation", zh: "小目・托退内拐定式", ko: "소목・붙이고 젖힌 후 안쪽 꺾기" },
+        theme: { ja: "右辺の実利と厚みを確保する実戦手筋", en: "Solidifying Corner Profit & Side Wall" },
+        poem: "以静制動藏鋭氣　一隅安穏萬軍齊",
+        moves: [
+          { c: 1, gtp: "R16", note: "黒の小目(R16)。" },
+          { c: 2, gtp: "P16", note: "白の一間高ガカリ。" },
+          { c: 1, gtp: "P17", note: "黒がツケ(P17)。" },
+          { c: 2, gtp: "O16", note: "白は外へノビ。" },
+          { c: 1, gtp: "Q17", note: "黒が堅く隅をヒキ(Q17)ます。" },
+          { c: 2, gtp: "P14", note: "白は小ゲイマに構えます。" },
+          { c: 1, gtp: "R14", note: "黒は右辺に一間のシマリ・抑え(R14)で地を固めつつ白に迫ります。" },
+          { c: 2, gtp: "M17", note: "白が上辺へ二間ビラキを打って安定します。" }
+        ]
+      },
+      {
+        id: "t4_mokuhazushi_shoulder", tier: 4, category: "目外し",
+        name: { ja: "目外し・外カカリ反発定石", en: "Mokuhazushi: Outer Counter Attack", zh: "目外・外靠反击大定式", ko: "외목・외곽 반격 정석" },
+        theme: { ja: "激しい攻めから厚みを築く難解系入門", en: "Double-Layer Pressure & Corner Trade" },
+        poem: "反客為主奪先機　奇兵突起破重圍",
+        moves: [
+          { c: 1, gtp: "R15", note: "黒の3-5目外し(R15)。" },
+          { c: 2, gtp: "Q17", note: "白が4-3にカカリ。" },
+          { c: 1, gtp: "O16", note: "黒は外側から大ゲイマに反発(O16)し、隅を譲る代わりに大模様を狙います！" },
+          { c: 2, gtp: "R17", note: "白は三々(R17)に入り隅を確定させます。" },
+          { c: 1, gtp: "Q16", note: "黒は堂々とオサエ(Q16)て白の脱出を抑止します。" },
+          { c: 2, gtp: "P17", note: "白は上辺3線へ押し。" },
+          { c: 1, gtp: "P16", note: "黒は4線で強くハネノビ。" },
+          { c: 2, gtp: "O17", note: "白は上辺に勢力を伸ばして連絡を図り、" },
+          { c: 1, gtp: "Q15", note: "黒は要石(Q15)を繋いで鉄壁の厚みを完成させます！" }
+        ]
+      },
+      {
+        id: "t4_star_33_sente_keima", tier: 4, category: "星",
+        name: { ja: "星・大ゲイマ受け〜肩ツキ攻防", en: "Star: Large Knight & Shoulder Battle", zh: "星位・大飞应肩冲攻防", ko: "화점・눈목자 응수와 어깨짚기" },
+        theme: { ja: "大ゲイマ受けの急所である肩ツキの対処", en: "Punishing & Stabilizing Shoulder Probes" },
+        poem: "肩上輕點試虚実　應對如神局面開",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒の星。" },
+          { c: 2, gtp: "O17", note: "白の小ゲイマカカリ。" },
+          { c: 1, gtp: "R14", note: "黒は広く大ゲイマ(R14)で受けます。" },
+          { c: 2, gtp: "P15", note: "大ゲイマには肩ツキ(P15)が白の厳しい急所！" },
+          { c: 1, gtp: "Q14", note: "黒は下からツケ(Q14)て隅を固めつつ反発。" },
+          { c: 2, gtp: "P16", note: "白は中央側へノビて厚みを築きます。" },
+          { c: 1, gtp: "R16", note: "黒は隅の急所(R16)を守って大ゲイマ連を連絡し、" },
+          { c: 2, gtp: "M17", note: "白が上辺へ開いて互角の分かれです。" }
+        ]
+      },
+
+      // Tier 5: AI流・KataGo最新定石 (5)
+      {
+        id: "t5_katago_direct_33_nidan", tier: 5, category: "AI流",
+        name: { ja: "KataGo流・三々入り現代延長形", en: "KataGo AI: Extended Modern 3-3", zh: "KataGo流・现代AI点三三定式", ko: "KataGo류・현대 AI 삼삼 연장 정석" },
+        theme: { ja: "AIが確立したもう一つの最新三々バランス", en: "AI Balancing Profit, Wall & Corner Aji" },
+        poem: "電算精微窮千變　天元之外見真知",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒の星。" },
+          { c: 2, gtp: "R17", note: "白の序盤ダイレクト三々。" },
+          { c: 1, gtp: "Q17", note: "黒は上辺側をブロック。" },
+          { c: 2, gtp: "R16", note: "白は右辺へノビ。" },
+          { c: 1, gtp: "Q15", note: "黒も4線にノビ。" },
+          { c: 2, gtp: "R15", note: "白は3線をもう一手。" },
+          { c: 1, gtp: "Q14", note: "黒はノビて右辺への厚みを重視。" },
+          { c: 2, gtp: "R18", note: "白は上側の2線へノビて生形と先手を伺います。" },
+          { c: 1, gtp: "Q18", note: "黒も素直に2線オサエ。" },
+          { c: 2, gtp: "R14", note: "ここでKataGo流にもう一手 R14 へ這い、右辺の地を削るのが現代流！" },
+          { c: 1, gtp: "Q13", note: "黒がしっかり頭をオサエ、" },
+          { c: 2, gtp: "S16", note: "白は隅のサガリ・カケツギ(S16)で無条件活きを決めます。" }
+        ]
+      },
+      {
+        id: "t5_katago_direct_tsuke_44", tier: 5, category: "AI流",
+        name: { ja: "KataGo流・星へのダイレクトツケ定石", en: "KataGo AI: Direct Attachment on 4-4", zh: "KataGo流・星位直靠新定式", ko: "KataGo류・화점 직접 붙임 신정석" },
+        theme: { ja: "星に対していきなり4-3にツケるAI最新手法", en: "Direct 4-3 Attachment Seeking Fast Sabaki" },
+        poem: "直入中軍破常理　AI新法驚古今",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒の星(Q16)。" },
+          { c: 2, gtp: "Q17", note: "白がいきなり星の真上(Q17)にダイレクトツケするのがAI流！" },
+          { c: 1, gtp: "R16", note: "黒は3-4(R16)にハネて隅と右辺を厚く構えます。" },
+          { c: 2, gtp: "P17", note: "白は左へノビて上辺に展開。" },
+          { c: 1, gtp: "R15", note: "黒は右辺にしっかりノビて盤石の壁を構築。" },
+          { c: 2, gtp: "N17", note: "白は上辺を足早に展開して互角の進行です。" }
+        ]
+      },
+      {
+        id: "t5_katago_komoku_tsuke", tier: 5, category: "AI流",
+        name: { ja: "KataGo流・小目高バサミへのツケ新定石", en: "KataGo AI: Komoku Under-Clip vs Pincer", zh: "KataGo流・小目夹攻靠压新定式", ko: "KataGo류・소목 협공 하단 붙임 신정석" },
+        theme: { ja: "高バサミに対して4-5にツケる現代AIの妙手", en: "Modern 4-5 Attachment Against High Pincer" },
+        poem: "機巧無窮出奇陣　進攻退守兩皆宜",
+        moves: [
+          { c: 1, gtp: "Q17", note: "黒の小目(Q17)。" },
+          { c: 2, gtp: "O16", note: "白の小ゲイマカカリ。" },
+          { c: 1, gtp: "M16", note: "黒は一間高バサミ(M16)で厳しく攻めます。" },
+          { c: 2, gtp: "Q15", note: "ここで白が4-5(Q15)にツケ返すのがKataGo流の軽妙な一手！" },
+          { c: 1, gtp: "R16", note: "黒は隅の実利を重視して3-4(R16)に引き締めます。" },
+          { c: 2, gtp: "P16", note: "白はワリコミ気味の連絡(P16)で上辺の石と響き合わせます。" },
+          { c: 1, gtp: "Q16", note: "黒は強くアタリ気味に遮断を狙い、" },
+          { c: 2, gtp: "P15", note: "白はポンとツギ(P15)で厚い形を整えて五分以上の戦いに。" }
+        ]
+      },
+      {
+        id: "t5_katago_double_approach", tier: 5, category: "AI流",
+        name: { ja: "KataGo流・小ゲイマ受け〜三々ハネ定石", en: "KataGo AI: Early 3-3 After Knight Reply", zh: "KataGo流・小飞应后即点三三新定式", ko: "KataGo류・날일자 응수 후 즉시 삼삼" },
+        theme: { ja: "右辺の備えを活かして3-5へハネ出すAI判断", en: "Leveraging Q14 to Hane at R15 Immediately" },
+        poem: "先據要津待時變　一舉兩得化無窮",
+        moves: [
+          { c: 1, gtp: "Q16", note: "黒の星。" },
+          { c: 2, gtp: "O17", note: "白の小ゲイマカカリ。" },
+          { c: 1, gtp: "Q14", note: "黒の小ゲイマ受け。" },
+          { c: 2, gtp: "R17", note: "この状況で白から即三々(R17)に入るのがAIの好判断。" },
+          { c: 1, gtp: "Q17", note: "黒は上辺側からオサエ。" },
+          { c: 2, gtp: "R16", note: "白は右辺へノビます。" },
+          { c: 1, gtp: "R15", note: "Q14に黒石があるため、ここで強く R15 にハネるのが最強手！" },
+          { c: 2, gtp: "R18", note: "白は隅を生き切るため2線へノビ。" },
+          { c: 1, gtp: "Q18", note: "黒がしっかりオサエて白を封鎖。" },
+          { c: 2, gtp: "S16", note: "白がカケツギ(S16)で生きて一段落、黒は素晴らしい厚みです。" }
+        ]
+      },
+      {
+        id: "t5_katago_shimari_probe", tier: 5, category: "AI流",
+        name: { ja: "KataGo流・小ゲイマシマリへの肩ツキ", en: "KataGo AI: Shoulder Hit on Enclosure", zh: "KataGo流・小飞守角肩冲试应手", ko: "KataGo류・소목 날일자 굳힘 어깨짚기" },
+        theme: { ja: "強固なシマリを崩すAI流・肩ツキの常套手段", en: "Standard AI Probe Against Solid Corner Enclosure" },
+        poem: "堅城之下尋微隙　以輕制重妙入神",
+        initial: [{ c: 1, gtp: "R16" }, { c: 1, gtp: "P17" }],
+        moves: [
+          { c: 2, gtp: "O16", note: "黒の小ゲイマシマリ(R16+P17)に対し、白はO16へ肩ツキします！" },
+          { c: 1, gtp: "P16", note: "黒は内側から強くハネ返して(P16)隅の威厳を守ります。" },
+          { c: 2, gtp: "O15", note: "白は素直に中央へノビ(O15)て主導権を伺います。" },
+          { c: 1, gtp: "Q15", note: "黒はツギ・厚み(Q15)で堅実な壁を形成。" },
+          { c: 2, gtp: "M17", note: "白は上辺の根拠を確保(M17)し、見事なサバキを完了します。" }
+        ]
+      }
+    ];
+
+    const RPG_CHAPTERS = [
+      { ch: 1, tier: 1, ja: "第1章：始まりの道場（入門定石）", en: "Ch.1: Hall of Origins (Intro)" },
+      { ch: 2, tier: 2, ja: "第2章：群雄割拠（中級定石）", en: "Ch.2: Rising Generals (Intermediate)" },
+      { ch: 3, tier: 3, ja: "第3章：赤壁の智謀（上級定石）", en: "Ch.3: Red Cliff Stratagem (Advanced)" },
+      { ch: 4, tier: 4, ja: "第4章：龍虎相搏つ（有段定石）", en: "Ch.4: Dragon & Tiger (Dan-Level)" },
+      { ch: 5, tier: 5, ja: "第5章：神算・棋聖殿（KataGo AI流）", en: "Ch.5: Sanctum of the Go Sage (KataGo AI)" }
+    ];
+
+    const RPG_STAGES = [
+      { id: "rpg_1_1", chapter: 1, stageNo: 1, warriorLv: 1, maxHp: 55, atk: 12, expReward: 25, goldReward: 35, josekiIds: ["t1_star_33_old", "t1_star_knight_peace"], title: { ja: "門下の初陣", en: "First Trial at the Gate" }, introQuote: "まずは星の基本と三々から見極めてみよ！", defeatQuote: "みごと……！基本の呼吸を掴んだか。" },
+      { id: "rpg_1_2", chapter: 1, stageNo: 2, warriorLv: 2, maxHp: 70, atk: 14, expReward: 32, goldReward: 42, josekiIds: ["t1_star_one_space_jump", "t1_komoku_kosumi_tsuke"], title: { ja: "小目守護の陣", en: "Guardian of Komoku" }, introQuote: "小目と一間トビの構え、破れるものなら破ってみよ！", defeatQuote: "堅実な定石捌き、見事なり！" },
+      { id: "rpg_1_3", chapter: 1, stageNo: 3, warriorLv: 2, maxHp: 85, atk: 16, expReward: 42, goldReward: 55, josekiIds: ["t1_komoku_tsukehiki", "t1_33_shoulder"], title: { ja: "第1章ボス：ツケヒキの関門", en: "Ch.1 Boss: Gate of Tsukehiki" }, introQuote: "実利と厚みの調和を知らずして先へは行かせぬ！", defeatQuote: "見事な勝利！次なる章への門が開かれた。" },
+      { id: "rpg_2_1", chapter: 2, stageNo: 4, warriorLv: 3, maxHp: 100, atk: 18, expReward: 52, goldReward: 65, josekiIds: ["t2_star_1pincer_33", "t2_star_2high_double"], title: { ja: "一間バサミの試練", en: "Pincer Crossroads" }, introQuote: "ハサミを受けた時、隅と辺をどう変換するか見せてみよ！", defeatQuote: "柔軟な変換……戦局の眼が冴えておるな。" },
+      { id: "rpg_2_2", chapter: 2, stageNo: 5, warriorLv: 4, maxHp: 118, atk: 20, expReward: 64, goldReward: 78, josekiIds: ["t2_star_high_tsukenobi", "t2_komoku_high_nobi"], title: { ja: "実利と厚みの峡谷", en: "Ravine of Profit & Thickness" }, introQuote: "一間高ガカリの急所、迷えばたちまち劣勢となるぞ！", defeatQuote: "鮮やかなツケノビ、一本取られたわ！" },
+      { id: "rpg_2_3", chapter: 2, stageNo: 6, warriorLv: 5, maxHp: 135, atk: 22, expReward: 80, goldReward: 95, josekiIds: ["t2_komoku_large_knight_slide", "t2_mokuhazushi_basic"], title: { ja: "第2章ボス：目外しの奇将", en: "Ch.2 Boss: Master of Mokuhazushi" }, introQuote: "目外しとスベリの変幻に惑わされず打ち切れるか！", defeatQuote: "奇策を見破るとは……天晴れなる棋才よ。" },
+      { id: "rpg_3_1", chapter: 3, stageNo: 7, warriorLv: 6, maxHp: 155, atk: 25, expReward: 96, goldReward: 110, josekiIds: ["t3_star_ai_nidanbane", "t3_star_2low_33_jump"], title: { ja: "二段バネの烈風", en: "Gale of the Double Hane" }, introQuote: "現代戦の象徴・二段バネ！鋭き切り返しを受け止めよ！", defeatQuote: "凄まじき読み……！三々の極意を体得せり。" },
+      { id: "rpg_3_2", chapter: 3, stageNo: 8, warriorLv: 7, maxHp: 175, atk: 28, expReward: 115, goldReward: 130, josekiIds: ["t3_komoku_1low_pincer", "t3_komoku_high_keima_press"], title: { ja: "赤壁の挟撃戦", en: "Red Cliff Pincer Ambush" }, introQuote: "重なるハサミと急所の応酬！一歩も引かぬ覚悟を見せよ。", defeatQuote: "火を噴くような攻めを凌ぎ切るとは……！" },
+      { id: "rpg_3_3", chapter: 3, stageNo: 9, warriorLv: 7, maxHp: 195, atk: 30, expReward: 140, goldReward: 155, josekiIds: ["t3_takamoku_push", "t3_33_press_battle"], title: { ja: "第3章ボス：高目天空の砦", en: "Ch.3 Boss: Fortress of Takamoku" }, introQuote: "天地を呑む高目の厚みか、隅の確定か——決戦の時ぞ！", defeatQuote: "お前の定石眼はすでに万夫不当の域に達した！" },
+      { id: "rpg_4_1", chapter: 4, stageNo: 10, warriorLv: 8, maxHp: 220, atk: 33, expReward: 165, goldReward: 180, josekiIds: ["t4_star_33_hiki_cut", "t4_star_33_sente_keima"], title: { ja: "高バサミの迷宮", en: "Labyrinth of High Pincers" }, introQuote: "有段の関門へようこそ。大局を見失えば即敗着となる！", defeatQuote: "揺るぎなき一着……！お前になら先を任せられる。" },
+      { id: "rpg_4_2", chapter: 4, stageNo: 11, warriorLv: 8, maxHp: 245, atk: 36, expReward: 190, goldReward: 210, josekiIds: ["t4_komoku_small_nadare", "t4_komoku_nadare_inner"], title: { ja: "雪崩の龍谷", en: "Avalanche Dragon Valley" }, introQuote: "小ナダレの奔流が襲いかかる！急所を一手でも外すな！", defeatQuote: "雪崩を制する者が盤上を制す……見事なり！" },
+      { id: "rpg_4_3", chapter: 4, stageNo: 12, warriorLv: 9, maxHp: 270, atk: 39, expReward: 225, goldReward: 245, josekiIds: ["t4_mokuhazushi_shoulder", "t4_komoku_small_nadare"], title: { ja: "第4章ボス：龍虎相搏つ", en: "Ch.4 Boss: Clash of Dragon & Tiger" }, introQuote: "目外しの反発と雪崩の連続撃——最高峰の難解戦を受けよ！", defeatQuote: "龍虎並び立つ強敵よ、いざ最後の神域へ進め！" },
+      { id: "rpg_5_1", chapter: 5, stageNo: 13, warriorLv: 9, maxHp: 300, atk: 42, expReward: 260, goldReward: 280, josekiIds: ["t5_katago_direct_tsuke_44", "t5_katago_double_approach"], title: { ja: "AI神域・星直ツケ", en: "AI Sanctum: Direct 4-4 Tsuke" }, introQuote: "人の常識を超えた星へのダイレクトツケ……理解できるか？", defeatQuote: "人智を超えし新法までも我が物とするか！" },
+      { id: "rpg_5_2", chapter: 5, stageNo: 14, warriorLv: 10, maxHp: 335, atk: 45, expReward: 310, goldReward: 330, josekiIds: ["t5_katago_komoku_tsuke", "t5_katago_shimari_probe"], title: { ja: "KataGo四天王・挟撃の極み", en: "KataGo Guardian: Enclosure Probe" }, introQuote: "堅固なるシマリすら肩ツキで揺さぶる——現代AIの刃を受けよ！", defeatQuote: "まさかAIの最善を完璧に辿るとは……！" },
+      { id: "rpg_5_3", chapter: 5, stageNo: 15, warriorLv: 10, maxHp: 380, atk: 48, expReward: 500, goldReward: 500, josekiIds: ["t5_katago_direct_33_nidan", "t5_katago_direct_tsuke_44", "t5_katago_komoku_tsuke"], title: { ja: "最終決戦：棋聖・深算無双", en: "Final Boss: Sage of Infinite Search" }, introQuote: "定石大典の頂にして全分岐の主。汝の棋魂、すべてこの盤上で示せ！", defeatQuote: "万象の定石、ここに極まれり——汝こそ真の「棋聖」なり！！" }
+    ];
+
+    /* =========================================================================
      * 4. Web Audio API サウンド ＆ 多言語音声秒読みアナウンサー
      * ========================================================================= */
     class SoundEngine {
@@ -3788,6 +4824,66 @@
           }, idx * 75);
         });
       }
+      playRpgAttack() {
+        if (!this.sfxEnabled) return;
+        this.ensure(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+        o.type = 'sawtooth'; o.frequency.setValueAtTime(440, now); o.frequency.exponentialRampToValueAtTime(980, now + 0.12);
+        g.gain.setValueAtTime(0.16, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+        o.connect(g).connect(this.ctx.destination); o.start(now); o.stop(now + 0.15);
+      }
+      playRpgCritical() {
+        if (!this.sfxEnabled) return;
+        this.ensure(); if (!this.ctx) return;
+        [587.33, 880, 1174.66].forEach((freq, idx) => {
+          setTimeout(() => {
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+            o.type = 'square'; o.frequency.setValueAtTime(freq, now);
+            g.gain.setValueAtTime(0.12, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+            o.connect(g).connect(this.ctx.destination); o.start(now); o.stop(now + 0.19);
+          }, idx * 55);
+        });
+      }
+      playRpgDamage() {
+        if (!this.sfxEnabled) return;
+        this.ensure(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+        o.type = 'sawtooth'; o.frequency.setValueAtTime(160, now); o.frequency.exponentialRampToValueAtTime(55, now + 0.22);
+        g.gain.setValueAtTime(0.22, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+        o.connect(g).connect(this.ctx.destination); o.start(now); o.stop(now + 0.25);
+      }
+      playRpgHeal() {
+        if (!this.sfxEnabled) return;
+        this.ensure(); if (!this.ctx) return;
+        [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((freq, idx) => {
+          setTimeout(() => {
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+            o.type = 'sine'; o.frequency.setValueAtTime(freq, now);
+            g.gain.setValueAtTime(0.13, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+            o.connect(g).connect(this.ctx.destination); o.start(now); o.stop(now + 0.21);
+          }, idx * 55);
+        });
+      }
+      playRpgLevelUp() {
+        if (!this.sfxEnabled) return;
+        this.ensure(); if (!this.ctx) return;
+        [523.25, 587.33, 659.25, 783.99, 1046.5, 1318.5].forEach((freq, idx) => {
+          setTimeout(() => {
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+            o.type = 'triangle'; o.frequency.setValueAtTime(freq, now);
+            g.gain.setValueAtTime(0.17, now); g.gain.exponentialRampToValueAtTime(0.001, now + (idx === 5 ? 0.5 : 0.16));
+            o.connect(g).connect(this.ctx.destination); o.start(now); o.stop(now + (idx === 5 ? 0.52 : 0.18));
+          }, idx * 90);
+        });
+      }
       toggleBGM() {
         this.bgmEnabled = !this.bgmEnabled;
         if (this.bgmEnabled) {
@@ -3809,7 +4905,7 @@
     const sound = new SoundEngine();
 
     /* =========================================================================
-     * 5. 厳密な囲碁ルールエンジン（長方形5〜19路・置碁・自由置石・日本/中国/AGA・SGF・KataGo JSON）
+     * 5. 厳密な囲碁ルールエンジン（長方形3〜19路・置碁・自由置石・日本/中国/AGA・SGF・KataGo JSON）
      * ========================================================================= */
     const EMPTY = 0, BLACK = 1, WHITE = 2;
     const COL_LETTERS = "ABCDEFGHJKLMNOPQRST";
@@ -3837,8 +4933,8 @@
       }
 
       reset(width = this.width, height = this.height, options = {}) {
-        this.width = Math.max(5, Math.min(19, width));
-        this.height = Math.max(5, Math.min(19, height));
+        this.width = Math.max(3, Math.min(19, width));
+        this.height = Math.max(3, Math.min(19, height));
         this.rules = options.rules || 'japanese';
         this.handicap = options.handicap || 0;
         this.komi = typeof options.komi === 'number'
@@ -3864,6 +4960,8 @@
             this.board[this.idx(hx, hy)] = BLACK;
           }
           this.turn = options.startTurn || WHITE;
+        } else if (options.startTurn) {
+          this.turn = options.startTurn;
         }
         this.commitInitialBoard();
       }
@@ -3884,7 +4982,8 @@
 
       getHandicapPoints(count) {
         const w = this.width, h = this.height;
-        const dX = w >= 13 ? 3 : 2, dY = h >= 13 ? 3 : 2;
+        const dX = w >= 13 ? 3 : (w >= 7 ? 2 : (w >= 5 ? 1 : 0));
+        const dY = h >= 13 ? 3 : (h >= 7 ? 2 : (h >= 5 ? 1 : 0));
         const mX = Math.floor(w / 2), mY = Math.floor(h / 2);
         const corners = [[w - 1 - dX, dY], [dX, h - 1 - dY], [w - 1 - dX, h - 1 - dY], [dX, dY]];
         const center = [mX, mY];
@@ -3898,7 +4997,14 @@
         else if (count === 7) seq.push(...corners, sides[0], sides[1], center);
         else if (count === 8) seq.push(...corners, ...sides);
         else if (count >= 9) seq.push(...corners, ...sides, center);
-        return seq.filter(([x, y]) => this.inBounds(x, y));
+        const seen = new Set();
+        return seq.filter(([x, y]) => {
+          if (!this.inBounds(x, y)) return false;
+          const k = `${x},${y}`;
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
       }
 
       initZobrist() {
@@ -4188,7 +5294,7 @@
         const szMatch = sgfText.match(/SZ\[(\d+)(?::(\d+))?\]/i);
         let w = 19, h = 19;
         if (szMatch) { w = parseInt(szMatch[1], 10); h = szMatch[2] ? parseInt(szMatch[2], 10) : w; }
-        if (w < 5 || w > 19 || h < 5 || h > 19) return { ok: false, reason: `Unsupported board size: ${w}×${h}` };
+        if (w < 3 || w > 19 || h < 3 || h > 19) return { ok: false, reason: `Unsupported board size: ${w}×${h}` };
         const kmMatch = sgfText.match(/KM\[(-?\d+(?:\.\d+)?)\]/i);
         const haMatch = sgfText.match(/HA\[(\d+)\]/i);
         const ruMatch = sgfText.match(/RU\[([a-zA-Z]+)\]/i);
@@ -4363,7 +5469,7 @@
 
         const dX = Math.min(x, w - 1 - x), dY = Math.min(y, h - 1 - y), minE = Math.min(dX, dY), minDim = Math.min(w, h);
         if (moveCount < minDim * 1.45) {
-          const star = minDim >= 13 ? 3 : 2;
+          const star = minDim >= 13 ? 3 : (minDim >= 7 ? 2 : 1);
           let nearby = 0;
           for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
             const xx = x + dx, yy = y + dy;
@@ -4834,6 +5940,10 @@
         return new THREE.LatheGeometry(pts, 28);
       }
 
+      getPadFrac(dim) {
+        return dim <= 6 ? Math.max(0.095, 0.78 / (dim + 0.24)) : 0.095;
+      }
+
       createBoardTexture(bw, bh) {
         const maxDim = Math.max(bw, bh);
         const canvas = document.createElement('canvas');
@@ -4864,7 +5974,7 @@
         ctx.lineWidth = 6;
         ctx.strokeRect(3, 3, CW - 6, CH - 6);
 
-        const padX = CW * 0.095, padY = CH * 0.095;
+        const padX = CW * this.getPadFrac(bw), padY = CH * this.getPadFrac(bh);
         const spanX = CW - padX * 2, spanY = CH - padY * 2;
         const stepX = spanX / (bw - 1), stepY = spanY / (bh - 1);
 
@@ -4879,11 +5989,14 @@
         ctx.lineWidth *= 1.55;
         ctx.strokeRect(padX, padY, spanX, spanY);
 
-        // 星（長方形盤面でも正規位置に自動配置）
+        // 星（3×3・6×6・長方形盤面でも正規位置に自動配置）
         const starR = (maxDim >= 15 ? 7.8 : 9.8) * (this.seniorMode ? 1.15 : 1);
         ctx.fillStyle = '#110a04';
-        const dX = bw >= 13 ? 3 : 2, dY = bh >= 13 ? 3 : 2;
-        const stars = [[dX, dY], [bw - 1 - dX, dY], [dX, bh - 1 - dY], [bw - 1 - dX, bh - 1 - dY]];
+        const stars = [];
+        if (bw >= 5 && bh >= 5) {
+          const dX = bw >= 13 ? 3 : (bw >= 7 ? 2 : 1), dY = bh >= 13 ? 3 : (bh >= 7 ? 2 : 1);
+          stars.push([dX, dY], [bw - 1 - dX, dY], [dX, bh - 1 - dY], [bw - 1 - dX, bh - 1 - dY]);
+        }
         if (bw % 2 === 1 && bh % 2 === 1) stars.push([Math.floor(bw / 2), Math.floor(bh / 2)]);
         if (bw === 19 && bh === 19) stars.push([3, 9], [15, 9], [9, 3], [9, 15]);
         for (const [sx, sy] of stars) {
@@ -4896,15 +6009,17 @@
         const fontPx = Math.round((maxDim >= 15 ? 30 : 38) * fontMult);
         ctx.font = `900 ${fontPx}px Inter, sans-serif`;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        const coordOffX = Math.max(fontPx * 0.65, Math.min(padX * 0.44, (padX - stepX * 0.47) * 0.52));
+        const coordOffY = Math.max(fontPx * 0.65, Math.min(padY * 0.44, (padY - stepY * 0.47) * 0.52));
         for (let i = 0; i < bw; i++) {
           const px = padX + i * stepX;
-          ctx.fillText(COL_LETTERS[i], px, padY * 0.44);
-          ctx.fillText(COL_LETTERS[i], px, CH - padY * 0.44);
+          ctx.fillText(COL_LETTERS[i], px, coordOffY);
+          ctx.fillText(COL_LETTERS[i], px, CH - coordOffY);
         }
         for (let j = 0; j < bh; j++) {
           const py = padY + j * stepY; const num = String(bh - j);
-          ctx.fillText(num, padX * 0.44, py);
-          ctx.fillText(num, CW - padX * 0.44, py);
+          ctx.fillText(num, coordOffX, py);
+          ctx.fillText(num, CW - coordOffX, py);
         }
 
         const tex = new THREE.CanvasTexture(canvas);
@@ -5000,7 +6115,7 @@
         this.worldD = this.worldMaxSpan * (bh / maxDim);
         const H = this.boardThickness;
 
-        this.padX = this.worldW * 0.095; this.padZ = this.worldD * 0.095;
+        this.padX = this.worldW * this.getPadFrac(bw); this.padZ = this.worldD * this.getPadFrac(bh);
         this.stepX = (this.worldW - this.padX * 2) / (bw - 1);
         this.stepZ = (this.worldD - this.padZ * 2) / (bh - 1);
         this.cellStep = Math.min(this.stepX, this.stepZ);
@@ -5507,7 +6622,7 @@
         this.renderUI();
       }
       tick() {
-        if (state.screen !== 'game' || engine.gameOver || state.scoringMode || state.replayMode || state.tutorialActive || state.freeHandicapMode) return;
+        if (state.screen !== 'game' || engine.gameOver || state.scoringMode || state.replayMode || state.tutorialActive || state.josekiActive || state.rpgActive || state.freeHandicapMode) return;
         const c = engine.turn, s = this.state[c];
         const sideLabel = c === BLACK ? t('black_turn') : t('white_turn');
         if (this.cfg.type === 'fischer') {
@@ -5764,7 +6879,7 @@
     }
 
     async function saveAutoState() {
-      if (state.onlineRoom || state.replayMode || state.tutorialActive || state.freeHandicapMode) return;
+      if (state.onlineRoom || state.replayMode || state.tutorialActive || state.josekiActive || state.rpgActive || state.freeHandicapMode) return;
       const parts = getCurrentMatchParticipants();
       const payload = {
         width: engine.width, height: engine.height, rules: engine.rules, handicap: engine.handicap, komi: engine.komi,
@@ -5939,7 +7054,7 @@
     }
 
     function archiveCurrentMatchIfNeeded(reasonOverride = null) {
-      if (state.replayMode || state.tutorialActive || state.freeHandicapMode) return null;
+      if (state.replayMode || state.tutorialActive || state.josekiActive || state.rpgActive || state.freeHandicapMode) return null;
       if (engine.moves.length === 0) return null;
       if (engine.gameOver && state.currentHistoryId) return null;
       const resLabel = reasonOverride || t('match_stopped_lbl', { n: engine.moves.length });
@@ -5978,6 +7093,11 @@
       voiceByo: savedPrefs.voiceByo !== undefined ? !!savedPrefs.voiceByo : true,
       particles: savedPrefs.particles !== undefined ? !!savedPrefs.particles : true,
       kanshiFx: savedPrefs.kanshiFx !== undefined ? !!savedPrefs.kanshiFx : true,
+      aiResignAssist: savedPrefs.aiResignAssist !== undefined ? !!savedPrefs.aiResignAssist : true,
+      hopelessSide: null,
+      hopelessStreak: 0,
+      resignOfferCooldownUntilMove: 0,
+      resignOfferOpen: false,
       gameMode: 'ai-black',
       aiLevel: 10,
       cpuBlackLevel: 9,
@@ -6015,6 +7135,26 @@
       tutorialIdx: 0,
       tutorialHintOn: true,
       tutorialLocked: false,
+      josekiActive: false,
+      josekiTier: 1,
+      josekiMode: 'guide',
+      josekiColor: BLACK,
+      josekiId: JOSEKI_LIBRARY[0].id,
+      josekiStep: 0,
+      josekiMistakes: 0,
+      josekiStreak: 0,
+      josekiLocked: false,
+      rpgActive: false,
+      rpgStageIdx: 0,
+      rpgEnemyHp: 55,
+      rpgEnemyMaxHp: 55,
+      rpgPhase: 'menu',
+      rpgCurJoseki: null,
+      rpgMoveIdx: 0,
+      rpgCombo: 0,
+      rpgGuideOn: false,
+      rpgQueueIdx: 0,
+      rpgEnemyWarrior: pickRandomWarrior(1),
       studioDrawerOpen: false
     };
     const clock = new GameClock();
@@ -6032,6 +7172,7 @@
         voiceByo: state.voiceByo,
         particles: state.particles,
         kanshiFx: state.kanshiFx,
+        aiResignAssist: state.aiResignAssist,
         apiUrl: aiController.apiUrl,
         apiToken: aiController.apiToken,
         modelName: aiController.modelName,
@@ -6087,7 +7228,7 @@
     function setStudioDrawerOpen(open) {
       state.studioDrawerOpen = !!open;
       const sb = document.getElementById('game-sidebar');
-      const showInGame = state.screen === 'game' && state.studioDrawerOpen;
+      const showInGame = state.screen === 'game' && state.studioDrawerOpen && !state.rpgActive;
       if (sb) sb.classList.toggle('hidden', !showInGame);
       const lblTop = document.getElementById('lbl-drawer-toggle');
       const lblBot = document.getElementById('lbl-drawer-bottom');
@@ -6104,8 +7245,22 @@
     function updateDrawerDot() {
       const dot = document.getElementById('drawer-active-dot');
       if (!dot) return;
-      const hasActiveTool = state.tutorialActive || state.replayMode || !document.getElementById('analysis-panel').classList.contains('hidden');
+      const hasActiveTool = state.tutorialActive || state.josekiActive || state.replayMode || !document.getElementById('analysis-panel').classList.contains('hidden');
       dot.classList.toggle('hidden', state.studioDrawerOpen || !hasActiveTool);
+    }
+
+    function exitSpecialModes() {
+      state.tutorialActive = false;
+      state.josekiActive = false;
+      state.rpgActive = false;
+      state.freeHandicapMode = false;
+      document.getElementById('tutorial-panel')?.classList.add('hidden');
+      document.getElementById('joseki-panel')?.classList.add('hidden');
+      document.getElementById('joseki-hud-banner')?.classList.add('hidden');
+      document.getElementById('rpg-enemy-bar')?.classList.add('hidden');
+      document.getElementById('rpg-battle-dock')?.classList.add('hidden');
+      document.getElementById('free-handicap-banner')?.classList.add('hidden');
+      renderer3D.showTutorialGuide(-1, -1);
     }
 
     function showScreen(name) {
@@ -6115,13 +7270,20 @@
         state.isAIThinking = false;
         document.getElementById('thinking-badge')?.classList.add('hidden');
       }
+      if (name === 'menu') {
+        updateJosekiMenuProgress();
+        updateRpgMenuProgress();
+      }
       document.getElementById('screen-title').classList.toggle('hidden', name !== 'title');
       document.getElementById('screen-menu').classList.toggle('hidden', name !== 'menu');
       const isGame = name === 'game';
       document.getElementById('game-header').classList.toggle('hidden', !isGame);
-      document.getElementById('play-action-bar').classList.toggle('hidden', !isGame);
+      document.getElementById('play-action-bar').classList.toggle('hidden', !isGame || state.rpgActive);
+      document.getElementById('rpg-battle-dock').classList.toggle('hidden', !isGame || !state.rpgActive);
+      document.getElementById('rpg-enemy-bar').classList.toggle('hidden', !isGame || !state.rpgActive);
+      document.getElementById('joseki-hud-banner').classList.toggle('hidden', !isGame || !state.josekiActive);
       document.getElementById('game-hud-left').classList.toggle('hidden', !isGame);
-      document.getElementById('game-sidebar').classList.toggle('hidden', !isGame || !state.studioDrawerOpen);
+      document.getElementById('game-sidebar').classList.toggle('hidden', !isGame || state.rpgActive || !state.studioDrawerOpen);
       renderer3D.titleAutoRotate = (name === 'title');
       renderer3D.resize();
       if (isGame) {
@@ -6206,6 +7368,8 @@
       });
 
       document.getElementById('menu-tut-progress').textContent = t('tut_progress_menu', { c: clearedTutorials.size, n: TUTORIAL_THEMES.length });
+      updateJosekiMenuProgress();
+      updateRpgMenuProgress();
       document.querySelectorAll('.senior-toggle-btn .senior-label').forEach(el => {
         el.textContent = state.seniorMode ? t('vis_label_senior') : t('vis_label_std');
       });
@@ -6222,6 +7386,8 @@
       updateSetupAIPreview();
       updateTitleResumeButton();
       if (state.tutorialActive) renderTutorialPanel();
+      if (state.josekiActive) renderJosekiPanel();
+      if (state.rpgActive) renderRpgHud();
       if (state.lastCoaching) renderAICoaching(state.lastCoaching);
       updateAllUI(false, false);
       savePrefs();
@@ -6464,6 +7630,8 @@
       const shortName = (n) => String(n || '').split('（')[0].split(' (')[0];
       let turnLabel = isB ? t('black_turn') : t('white_turn');
       if (state.freeHandicapMode) turnLabel = t('turn_free_hcp');
+      else if (state.josekiActive) turnLabel = t('turn_joseki');
+      else if (state.rpgActive) turnLabel = t('turn_rpg');
       else if (state.tutorialActive) turnLabel = t('turn_tutorial');
       else if (state.scoringMode) turnLabel = t('turn_scoring');
       else if (state.replayMode) turnLabel = t('turn_replay', { i: state.replayIndex, n: state.replayMoves.length });
@@ -6480,7 +7648,7 @@
 
       const cpuBan = document.getElementById('cpu-match-banner');
       if (cpuBan) {
-        const showCpuBan = state.gameMode === 'cpu-vs-cpu' && !state.replayMode && !state.tutorialActive && !state.scoringMode && !engine.gameOver;
+        const showCpuBan = state.gameMode === 'cpu-vs-cpu' && !state.replayMode && !state.tutorialActive && !state.josekiActive && !state.rpgActive && !state.scoringMode && !engine.gameOver;
         cpuBan.classList.toggle('hidden', !showCpuBan);
         if (showCpuBan) {
           document.getElementById('cpu-match-label').textContent = `● ${shortName(parts.blackName)} Lv.${parts.blackLevel} vs ○ ${shortName(parts.whiteName)} Lv.${parts.whiteLevel}`;
@@ -6490,12 +7658,12 @@
       }
       clock.renderUI();
 
-      const lockActions = state.isAIThinking || state.replayMode || state.tutorialActive || state.freeHandicapMode;
+      const lockActions = state.isAIThinking || state.replayMode || state.tutorialActive || state.josekiActive || state.rpgActive || state.freeHandicapMode;
       const lockCpu = lockActions || state.gameMode === 'cpu-vs-cpu';
       document.getElementById('btn-undo').disabled = engine.moves.length === 0 || lockCpu;
       document.getElementById('btn-redo').disabled = engine.redoStack.length === 0 || lockCpu || !!state.onlineRoom;
       document.getElementById('btn-pass').disabled = engine.gameOver || state.scoringMode || lockCpu;
-      document.getElementById('btn-resign').disabled = engine.gameOver || state.replayMode || state.tutorialActive || state.freeHandicapMode || (state.isAIThinking && state.gameMode !== 'cpu-vs-cpu');
+      document.getElementById('btn-resign').disabled = engine.gameOver || state.replayMode || state.tutorialActive || state.josekiActive || state.rpgActive || state.freeHandicapMode || (state.isAIThinking && state.gameMode !== 'cpu-vs-cpu');
 
       if (state.scoringMode) {
         const sc = engine.calculateScore();
@@ -6516,12 +7684,128 @@
     }
 
     function isHumanTurn() {
-      if (state.freeHandicapMode || state.tutorialActive) return true;
+      if (state.freeHandicapMode || state.tutorialActive || state.josekiActive || state.rpgActive) return true;
       if (engine.gameOver || state.isAIThinking || state.replayMode || state.gameMode === 'cpu-vs-cpu') return false;
       if (state.onlineRoom) return engine.turn === state.onlineMyColor;
       if (state.gameMode === 'ai-black') return engine.turn === BLACK;
       if (state.gameMode === 'ai-white') return engine.turn === WHITE;
       return true;
+    }
+
+    // Pure testable resignation evaluator across all board sizes & modes
+    function evaluateResignCondition({ width, height, moveCount, blackWinRate, scoreLead, hopelessStreak = 0 }) {
+      const area = Math.max(9, width * height);
+      const minMoves = width <= 4 ? 5 : (width <= 6 ? 12 : (width <= 9 ? 22 : Math.round(area * 0.22)));
+      const leadThreshold = Math.max(4.5, Math.min(24.0, Math.round(area * 0.065 * 2) / 2));
+      let losingColor = null;
+      let loserWr = 50.0;
+      if (blackWinRate <= 11.0 && scoreLead <= -leadThreshold) {
+        losingColor = BLACK;
+        loserWr = blackWinRate;
+      } else if (blackWinRate >= 89.0 && scoreLead >= leadThreshold) {
+        losingColor = WHITE;
+        loserWr = 100 - blackWinRate;
+      }
+      const nextStreak = losingColor ? (hopelessStreak + 1) : 0;
+      const shouldOffer = Boolean(
+        moveCount >= minMoves &&
+        losingColor !== null &&
+        (nextStreak >= 3 || loserWr <= 4.5)
+      );
+      return {
+        shouldOffer,
+        losingColor,
+        loserWinRate: Number(loserWr.toFixed(1)),
+        winnerWinRate: Number((100 - loserWr).toFixed(1)),
+        absLead: Number(Math.abs(scoreLead).toFixed(1)),
+        nextStreak,
+        minMoves,
+        leadThreshold
+      };
+    }
+
+    function showAIResignOffer(losingColor, resEv) {
+      if (state.resignOfferOpen || engine.gameOver) return;
+      state.resignOfferOpen = true;
+      const wasCpuRunning = state.gameMode === 'cpu-vs-cpu' && !state.cpuPaused;
+      if (state.gameMode === 'cpu-vs-cpu') {
+        state.cpuPaused = true;
+        state.cpuRunToken++;
+      }
+      const winColor = losingColor === BLACK ? WHITE : BLACK;
+      const loserLbl = losingColor === BLACK ? t('black_turn') : t('white_turn');
+      const winLbl = winColor === BLACK ? t('black_turn') : t('white_turn');
+      const isCpuMode = state.gameMode === 'cpu-vs-cpu';
+      const bodyKey = isCpuMode ? 'ai_resign_body_cpu' : 'ai_resign_body_human';
+      const bodyHtml = `<div class="space-y-2.5 text-sm">${t(bodyKey, {
+        loser: loserLbl,
+        winner: winLbl,
+        wr: resEv.winnerWinRate.toFixed(1),
+        lead: resEv.absLead.toFixed(1)
+      })}</div>`;
+      const acceptLabel = isCpuMode ? t('ai_resign_accept_cpu_btn') : t('ai_resign_accept_btn');
+      showModal(t('ai_resign_title'), bodyHtml, [
+        {
+          label: acceptLabel,
+          cls: "wa-btn-shu px-4 py-2 rounded-xl text-xs sm:text-sm",
+          onClick: () => {
+            state.resignOfferOpen = false;
+            closeModal();
+            state.cpuRunToken++;
+            clock.stop();
+            engine.gameOver = true;
+            const resStr = t('resign_win_str', { winner: winLbl });
+            if (state.onlineRoom) {
+              pushOnlineState(losingColor);
+              updateAllUI(false, false);
+              showToast(resStr);
+            } else {
+              const rec = persistHistoryRecord(resStr, { status: 'finished', winnerSide: winColor });
+              updateAllUI(false, false);
+              showMatchResultModal(resStr, `<div class="text-2xl font-mincho font-bold text-gold-bright">${resStr}</div>`, winColor, rec);
+            }
+          }
+        },
+        {
+          label: t('ai_resign_continue_btn'),
+          cls: "wa-btn-gold px-4 py-2 rounded-xl text-xs sm:text-sm",
+          onClick: () => {
+            state.resignOfferOpen = false;
+            state.hopelessStreak = 0;
+            state.hopelessSide = null;
+            state.resignOfferCooldownUntilMove = engine.moves.length + Math.max(4, Math.round(engine.width * 0.7));
+            closeModal();
+            if (wasCpuRunning) {
+              state.cpuPaused = false;
+              updateAllUI(false, false);
+            }
+            maybeTriggerAI();
+          }
+        }
+      ]);
+    }
+
+    function checkAIResignJudgment() {
+      if (!state.aiResignAssist || state.resignOfferOpen) return false;
+      if (state.screen !== 'game' || engine.gameOver || state.scoringMode || state.replayMode || state.tutorialActive || state.josekiActive || state.rpgActive || state.freeHandicapMode) return false;
+      if (engine.moves.length < state.resignOfferCooldownUntilMove) return false;
+      const ev = engine.evaluatePosition();
+      const prevStreak = state.hopelessStreak || 0;
+      const resEv = evaluateResignCondition({
+        width: engine.width,
+        height: engine.height,
+        moveCount: engine.moves.length,
+        blackWinRate: ev.blackWinRate,
+        scoreLead: ev.scoreLead,
+        hopelessStreak: state.hopelessSide === (ev.scoreLead < 0 ? BLACK : WHITE) ? prevStreak : 0
+      });
+      state.hopelessSide = resEv.losingColor;
+      state.hopelessStreak = resEv.nextStreak;
+      if (resEv.shouldOffer && resEv.losingColor) {
+        showAIResignOffer(resEv.losingColor, resEv);
+        return true;
+      }
+      return false;
     }
 
     function cancelPendingConfirm() {
@@ -6550,8 +7834,9 @@
       }
       clock.onMoveFinished(prevTurn);
       updateAllUI(true, true);
+      const offered = checkAIResignJudgment();
       if (state.onlineRoom && !fromRemote) await pushOnlineState();
-      else if (!state.onlineRoom) { saveAutoState(); maybeTriggerAI(); }
+      else if (!state.onlineRoom) { saveAutoState(); if (!offered) maybeTriggerAI(); }
       return true;
     }
 
@@ -6573,7 +7858,7 @@
     }
 
     async function maybeTriggerAI() {
-      if (state.screen !== 'game' || engine.gameOver || state.scoringMode || state.onlineRoom || state.replayMode || state.tutorialActive || state.freeHandicapMode) return;
+      if (state.screen !== 'game' || engine.gameOver || state.scoringMode || state.onlineRoom || state.replayMode || state.tutorialActive || state.josekiActive || state.rpgActive || state.freeHandicapMode || state.resignOfferOpen) return;
       let aiColor = null, aiLv = state.aiLevel;
       if (state.gameMode === 'cpu-vs-cpu') {
         if (state.cpuPaused) return;
@@ -7105,8 +8390,8 @@
     }
 
     function startTutorial(idx = 0) {
+      exitSpecialModes();
       leaveOnlineRoom(true); stopReplay(); clock.stop(); clearHints(); cancelPendingConfirm();
-      state.freeHandicapMode = false; document.getElementById('free-handicap-banner').classList.add('hidden');
       state.tutorialActive = true; state.tutorialLocked = false;
       state.tutorialIdx = Math.max(0, Math.min(TUTORIAL_THEMES.length - 1, idx));
       document.getElementById('review-panel').classList.add('hidden');
@@ -7164,6 +8449,546 @@
       }
     }
 
+    /* =========================================================================
+     * 10B. レベル別・完全定石マスター道場 コントローラ（全5階層・28定石・★熟練度保存）
+     * ========================================================================= */
+    let josekiMastery = lsGet('joseki_mastery', {}) || {};
+    function getJosekiById(id) {
+      return JOSEKI_LIBRARY.find(j => j.id === id) || JOSEKI_LIBRARY[0];
+    }
+    function getJosekiProgressStats() {
+      let masteredCount = 0, totalStars = 0;
+      for (const j of JOSEKI_LIBRARY) {
+        const s = Number(josekiMastery[j.id] || 0);
+        if (s > 0) masteredCount++;
+        totalStars += s;
+      }
+      const rankKey = masteredCount >= 25 ? 'jos_rank_5' : (masteredCount >= 18 ? 'jos_rank_4' : (masteredCount >= 11 ? 'jos_rank_3' : (masteredCount >= 5 ? 'jos_rank_2' : 'jos_rank_1')));
+      return { masteredCount, total: JOSEKI_LIBRARY.length, totalStars, rankKey };
+    }
+    function updateJosekiMenuProgress() {
+      const el = document.getElementById('menu-joseki-progress');
+      if (!el) return;
+      const st = getJosekiProgressStats();
+      el.textContent = t('menu_joseki_prog', { c: st.masteredCount, n: st.total, s: st.totalStars });
+    }
+    function showJosekiHintForCurrentStep(forceShow = false) {
+      const seq = getJosekiById(state.josekiId);
+      const mv = seq.moves[state.josekiStep];
+      if (!mv) { renderer3D.showTutorialGuide(-1, -1); return; }
+      const pt = strToCoord(mv.gtp, 19, 19);
+      if (!pt || pt.pass) { renderer3D.showTutorialGuide(-1, -1); return; }
+      const shouldShow = forceShow || state.josekiMode === 'study' || state.josekiMode === 'guide' || (state.josekiMode === 'blind' && state.josekiMistakes >= 2);
+      renderer3D.showTutorialGuide(shouldShow ? pt.x : -1, shouldShow ? pt.y : -1);
+    }
+    function renderJosekiPanel() {
+      const stats = getJosekiProgressStats();
+      const seq = getJosekiById(state.josekiId);
+      const stars = Number(josekiMastery[seq.id] || 0);
+      const pct = Math.round((stats.masteredCount / stats.total) * 100);
+      document.getElementById('joseki-rank-badge').textContent = t(stats.rankKey);
+      document.getElementById('joseki-mastery-pct').textContent = `${stats.masteredCount} / ${stats.total} (${pct}%)`;
+      document.getElementById('joseki-mastery-bar').style.width = `${pct}%`;
+
+      document.querySelectorAll('.joseki-tier-btn').forEach(b => b.classList.toggle('wa-pill-active', Number(b.dataset.jtier) === state.josekiTier));
+      document.getElementById('btn-jmode-study').classList.toggle('wa-pill-active', state.josekiMode === 'study');
+      document.getElementById('btn-jmode-guide').classList.toggle('wa-pill-active', state.josekiMode === 'guide');
+      document.getElementById('btn-jmode-blind').classList.toggle('wa-pill-active', state.josekiMode === 'blind');
+      document.getElementById('btn-jcolor-black').classList.toggle('wa-pill-active', state.josekiColor === BLACK);
+      document.getElementById('btn-jcolor-white').classList.toggle('wa-pill-active', state.josekiColor === WHITE);
+
+      const titleStr = seq.name[currentLang] || seq.name.ja;
+      document.getElementById('joseki-active-title').textContent = titleStr;
+      document.getElementById('joseki-active-stars').innerHTML = [1, 2, 3].map(n => `<span class="${n <= stars ? 'joseki-star-on' : 'joseki-star-off'}">★</span>`).join('');
+      document.getElementById('joseki-active-theme').textContent = `${seq.category} ｜ ${seq.theme[currentLang] || seq.theme.ja}`;
+      document.getElementById('joseki-active-poem').textContent = seq.poem;
+
+      const curNote = state.josekiStep > 0
+        ? (seq.moves[state.josekiStep - 1]?.note || '')
+        : (seq.moves[0]?.note || '');
+      document.getElementById('joseki-step-explain').textContent = curNote;
+
+      document.getElementById('joseki-hud-step').textContent = `${Math.min(state.josekiStep, seq.moves.length)} / ${seq.moves.length}`;
+      document.getElementById('joseki-hud-title').textContent = titleStr;
+      document.getElementById('joseki-hud-streak').textContent = t('jos_streak_lbl', { n: state.josekiStreak });
+
+      const listEl = document.getElementById('joseki-list');
+      listEl.innerHTML = '';
+      const tierItems = JOSEKI_LIBRARY.filter(j => j.tier === state.josekiTier);
+      for (const j of tierItems) {
+        const js = Number(josekiMastery[j.id] || 0);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSel = j.id === seq.id;
+        btn.className = `w-full text-left wa-inset rounded-xl px-2.5 py-2 flex items-center justify-between gap-2 text-xs border ${isSel ? 'border-amber-400 bg-amber-500/15 text-gold-bright' : 'border-transparent hover:border-amber-500/40 text-sub'}`;
+        btn.innerHTML = `
+          <span class="truncate font-bold">${escapeHtml(j.name[currentLang] || j.name.ja)}</span>
+          <span class="shrink-0 font-mono-num text-[11px]">${[1,2,3].map(n => `<span class="${n <= js ? 'joseki-star-on' : 'joseki-star-off'}">★</span>`).join('')} <span class="text-muted">(${j.moves.length})</span></span>`;
+        btn.onclick = () => loadJosekiSequence(j.id);
+        listEl.appendChild(btn);
+      }
+      updateJosekiMenuProgress();
+    }
+    function advanceJosekiOpponentIfNeeded() {
+      const seq = getJosekiById(state.josekiId);
+      if (!state.josekiActive || state.josekiMode === 'study') return;
+      if (state.josekiStep < seq.moves.length && seq.moves[state.josekiStep].c !== state.josekiColor) {
+        state.josekiLocked = true;
+        setTimeout(() => {
+          if (!state.josekiActive || state.josekiId !== seq.id) return;
+          while (state.josekiStep < seq.moves.length && seq.moves[state.josekiStep].c !== state.josekiColor) {
+            const mv = seq.moves[state.josekiStep];
+            const pt = strToCoord(mv.gtp, 19, 19);
+            if (!pt || pt.pass) break;
+            if (engine.turn !== mv.c) engine.turn = mv.c;
+            engine.playMove(pt.x, pt.y, true);
+            sound.playStone(0.6);
+            state.josekiStep++;
+          }
+          state.josekiLocked = false;
+          if (state.josekiStep >= seq.moves.length) {
+            completeJosekiSequence();
+          } else {
+            showJosekiHintForCurrentStep(false);
+            renderJosekiPanel();
+            updateAllUI(true, false);
+          }
+        }, 300);
+      }
+    }
+    function completeJosekiSequence() {
+      const seq = getJosekiById(state.josekiId);
+      renderer3D.showTutorialGuide(-1, -1);
+      state.josekiLocked = true;
+      const earned = state.josekiMode === 'study' ? 1 : (state.josekiMode === 'guide' ? 2 : (state.josekiMistakes === 0 ? 3 : 2));
+      josekiMastery[seq.id] = Math.max(Number(josekiMastery[seq.id] || 0), earned);
+      lsSet('joseki_mastery', josekiMastery);
+      state.josekiStreak++;
+      sound.playSuccess();
+      const fb = document.getElementById('joseki-feedback');
+      fb.className = "text-xs font-bold rounded-lg p-2 bg-emerald-500/20 border border-emerald-400 text-emerald-200";
+      fb.textContent = t('jos_completed_toast', { name: seq.name[currentLang] || seq.name.ja, stars: earned });
+      fb.classList.remove('hidden');
+      renderJosekiPanel();
+      updateAllUI(true, false);
+      showToast(fb.textContent);
+    }
+    function loadJosekiSequence(id) {
+      const seq = getJosekiById(id);
+      state.josekiId = seq.id;
+      state.josekiTier = seq.tier;
+      state.josekiStep = 0;
+      state.josekiMistakes = 0;
+      state.josekiLocked = false;
+      const initStones = (seq.initial || []).map(s => {
+        const pt = strToCoord(s.gtp, 19, 19);
+        return pt ? { x: pt.x, y: pt.y, c: s.c } : null;
+      }).filter(Boolean);
+      engine.reset(19, 19, {
+        rules: 'japanese', komi: 6.5, handicap: 0,
+        initialStones: initStones,
+        startTurn: seq.moves[0]?.c || BLACK
+      });
+      renderer3D.rebuildBoard(19, 19);
+      document.getElementById('joseki-feedback').classList.add('hidden');
+      showJosekiHintForCurrentStep(false);
+      renderJosekiPanel();
+      updateAllUI(false, false);
+      if (state.josekiMode !== 'study') advanceJosekiOpponentIfNeeded();
+    }
+    function studyStepJoseki(delta) {
+      const seq = getJosekiById(state.josekiId);
+      const nextStep = Math.max(0, Math.min(seq.moves.length, state.josekiStep + delta));
+      const initStones = (seq.initial || []).map(s => {
+        const pt = strToCoord(s.gtp, 19, 19);
+        return pt ? { x: pt.x, y: pt.y, c: s.c } : null;
+      }).filter(Boolean);
+      engine.reset(19, 19, {
+        rules: 'japanese', komi: 6.5, handicap: 0,
+        initialStones: initStones,
+        startTurn: seq.moves[0]?.c || BLACK
+      });
+      for (let i = 0; i < nextStep; i++) {
+        const mv = seq.moves[i];
+        const pt = strToCoord(mv.gtp, 19, 19);
+        if (pt && !pt.pass) {
+          if (engine.turn !== mv.c) engine.turn = mv.c;
+          engine.playMove(pt.x, pt.y, true);
+        }
+      }
+      state.josekiStep = nextStep;
+      sound.playStone(0.5);
+      showJosekiHintForCurrentStep(false);
+      renderJosekiPanel();
+      updateAllUI(true, false);
+    }
+    function startJosekiDojo(idOrNull = null) {
+      archiveCurrentMatchIfNeeded();
+      exitSpecialModes();
+      leaveOnlineRoom(true); stopReplay(); clock.stop(); clearHints(); cancelPendingConfirm();
+      state.josekiActive = true;
+      document.getElementById('review-panel').classList.add('hidden');
+      document.getElementById('joseki-panel').classList.remove('hidden');
+      const targetSeq = idOrNull ? getJosekiById(idOrNull) : (JOSEKI_LIBRARY.find(j => j.tier === state.josekiTier) || JOSEKI_LIBRARY[0]);
+      setStudioDrawerOpen(true);
+      showScreen('game');
+      loadJosekiSequence(targetSeq.id);
+      reciteKanshi('opening');
+    }
+    function handleJosekiClick(grid) {
+      if (state.josekiLocked) return;
+      if (state.josekiMode === 'study') { studyStepJoseki(1); return; }
+      const seq = getJosekiById(state.josekiId);
+      const expected = seq.moves[state.josekiStep];
+      if (!expected) return;
+      const pt = strToCoord(expected.gtp, 19, 19);
+      const fb = document.getElementById('joseki-feedback');
+      cancelPendingConfirm();
+      if (pt && grid.x === pt.x && grid.y === pt.y) {
+        if (engine.turn !== expected.c) engine.turn = expected.c;
+        const r = engine.playMove(grid.x, grid.y, true);
+        if (!r.ok) return;
+        sound.playStone(0.6);
+        fb.classList.add('hidden');
+        state.josekiStep++;
+        if (state.josekiStep >= seq.moves.length) {
+          completeJosekiSequence();
+        } else {
+          renderJosekiPanel();
+          updateAllUI(true, false);
+          advanceJosekiOpponentIfNeeded();
+        }
+      } else {
+        state.josekiMistakes++;
+        state.josekiStreak = 0;
+        sound.playPass();
+        fb.className = "text-xs font-bold rounded-lg p-2 bg-rose-500/20 border border-rose-400 text-rose-200";
+        fb.textContent = t('jos_wrong_hint', { c: coordToStr(grid.x, grid.y, 19) });
+        fb.classList.remove('hidden');
+        if (state.josekiMistakes >= 2) showJosekiHintForCurrentStep(true);
+        renderJosekiPanel();
+      }
+    }
+
+    /* =========================================================================
+     * 10C. 叙事漢詩 棋聖伝 — ドラクエ風 3D定石RPG コントローラ（全5章・15関門・茶屋）
+     * ========================================================================= */
+    const defaultRpgSave = () => ({
+      lv: 1, exp: 0, hp: 100, maxHp: 100, mp: 30, maxMp: 30, atk: 18, gold: 80,
+      cleared: [], items: { tea: 2, elixir: 1, scroll: 1 }
+    });
+    let rpgSave = lsGet('rpg_save', null);
+    if (!rpgSave || typeof rpgSave.lv !== 'number') {
+      rpgSave = defaultRpgSave();
+      lsSet('rpg_save', rpgSave);
+    }
+    function saveRpg() {
+      lsSet('rpg_save', rpgSave);
+      updateRpgMenuProgress();
+    }
+    function rpgExpNeed(lv) {
+      return Math.round(35 * Math.pow(1.42, Math.max(0, lv - 1)));
+    }
+    function updateRpgMenuProgress() {
+      const el = document.getElementById('menu-rpg-progress');
+      if (!el) return;
+      el.textContent = t('menu_rpg_prog', { lv: rpgSave.lv, c: rpgSave.cleared.length, n: RPG_STAGES.length });
+    }
+    function setRpgLog(msg) {
+      const el = document.getElementById('rpg-msg-log');
+      if (el) el.textContent = msg;
+    }
+    function setRpgSubCommands(items) {
+      const main = document.getElementById('rpg-cmd-main');
+      const sub = document.getElementById('rpg-cmd-sub');
+      if (!items || items.length === 0) {
+        sub.classList.add('hidden');
+        main.classList.remove('hidden');
+        sub.innerHTML = '';
+        return;
+      }
+      main.classList.add('hidden');
+      sub.classList.remove('hidden');
+      sub.innerHTML = '';
+      for (const it of items) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'dq-cmd-btn text-xs';
+        b.textContent = it.label;
+        b.disabled = !!it.disabled;
+        b.onclick = it.onClick;
+        sub.appendChild(b);
+      }
+    }
+    function renderRpgHud() {
+      const st = RPG_STAGES[state.rpgStageIdx] || RPG_STAGES[0];
+      const w = state.rpgEnemyWarrior || pickRandomWarrior(st.warriorLv);
+      const enemyName = `${w.name[currentLang] || w.name.ja}`;
+      document.getElementById('rpg-enemy-portrait').innerHTML = w.svg;
+      document.getElementById('rpg-enemy-stage').textContent = `Stage ${st.stageNo}/${RPG_STAGES.length}`;
+      document.getElementById('rpg-enemy-name').textContent = `${enemyName} · ${st.title[currentLang] || st.title.ja}`;
+      document.getElementById('rpg-enemy-hp-text').textContent = `HP ${state.rpgEnemyHp}/${state.rpgEnemyMaxHp}`;
+      document.getElementById('rpg-enemy-hp-fill').style.width = `${Math.max(0, Math.round((state.rpgEnemyHp / Math.max(1, state.rpgEnemyMaxHp)) * 100))}%`;
+      const seq = state.rpgCurJoseki || getJosekiById(st.josekiIds[0]);
+      document.getElementById('rpg-enemy-joseki-lbl').textContent = `陣法: ${seq.name[currentLang] || seq.name.ja} (${state.rpgMoveIdx}/${seq.moves.length})`;
+
+      document.getElementById('rpg-hero-name').textContent = getActiveUserName();
+      document.getElementById('rpg-hero-lv').textContent = `LV.${rpgSave.lv}`;
+      document.getElementById('rpg-hero-hp-text').textContent = `${rpgSave.hp}/${rpgSave.maxHp}`;
+      document.getElementById('rpg-hero-hp-fill').style.width = `${Math.max(0, Math.round((rpgSave.hp / rpgSave.maxHp) * 100))}%`;
+      document.getElementById('rpg-hero-mp-text').textContent = `${rpgSave.mp}/${rpgSave.maxMp}`;
+      document.getElementById('rpg-hero-mp-fill').style.width = `${Math.max(0, Math.round((rpgSave.mp / rpgSave.maxMp) * 100))}%`;
+      document.getElementById('rpg-hero-gold').textContent = `${rpgSave.gold} G`;
+      document.getElementById('rpg-hero-exp').textContent = `EXP ${rpgSave.exp}/${rpgExpNeed(rpgSave.lv)}`;
+
+      const hintChip = document.getElementById('rpg-board-hint-chip');
+      if (state.rpgPhase === 'board') {
+        hintChip.textContent = `⚔ 盤上の3D碁盤で次の一手を打て！（連撃 ${state.rpgCombo}）`;
+      } else if (state.rpgPhase === 'end') {
+        hintChip.textContent = '★ 決着！次の関門またはマップへ進もう';
+      } else {
+        hintChip.textContent = '▶ コマンドを選択（「たたかう」で盤面攻撃）';
+      }
+      updateRpgMenuProgress();
+    }
+    function flashRpgDamage(txt, isCrit = false) {
+      const pop = document.getElementById('rpg-damage-pop');
+      const port = document.getElementById('rpg-enemy-portrait');
+      port?.classList.remove('dq-shake', 'dq-flash');
+      void port?.offsetWidth;
+      port?.classList.add(isCrit ? 'dq-flash' : 'dq-shake');
+      if (!pop) return;
+      pop.textContent = txt;
+      pop.classList.remove('hidden');
+      setTimeout(() => pop.classList.add('hidden'), 950);
+    }
+    function loadRpgJosekiWave(qIdx) {
+      const st = RPG_STAGES[state.rpgStageIdx] || RPG_STAGES[0];
+      state.rpgQueueIdx = qIdx % st.josekiIds.length;
+      const seq = getJosekiById(st.josekiIds[state.rpgQueueIdx]);
+      state.rpgCurJoseki = seq;
+      state.rpgMoveIdx = 0;
+      const initStones = (seq.initial || []).map(s => {
+        const pt = strToCoord(s.gtp, 19, 19);
+        return pt ? { x: pt.x, y: pt.y, c: s.c } : null;
+      }).filter(Boolean);
+      engine.reset(19, 19, {
+        rules: 'japanese', komi: 6.5, handicap: 0,
+        initialStones: initStones,
+        startTurn: seq.moves[0]?.c || BLACK
+      });
+      // Advance opponent WHITE moves up to player's BLACK move
+      while (state.rpgMoveIdx < seq.moves.length && seq.moves[state.rpgMoveIdx].c !== BLACK) {
+        const mv = seq.moves[state.rpgMoveIdx];
+        const pt = strToCoord(mv.gtp, 19, 19);
+        if (pt && !pt.pass) {
+          if (engine.turn !== mv.c) engine.turn = mv.c;
+          engine.playMove(pt.x, pt.y, true);
+        }
+        state.rpgMoveIdx++;
+      }
+      renderer3D.rebuildBoard(19, 19);
+      if (state.rpgGuideOn) showRpgGuideMarker();
+      else renderer3D.showTutorialGuide(-1, -1);
+    }
+    function showRpgGuideMarker() {
+      const seq = state.rpgCurJoseki;
+      const mv = seq?.moves?.[state.rpgMoveIdx];
+      if (!mv) { renderer3D.showTutorialGuide(-1, -1); return; }
+      const pt = strToCoord(mv.gtp, 19, 19);
+      renderer3D.showTutorialGuide(pt ? pt.x : -1, pt ? pt.y : -1);
+    }
+    function handleRpgVictory() {
+      state.rpgPhase = 'end';
+      const st = RPG_STAGES[state.rpgStageIdx];
+      const enemyName = state.rpgEnemyWarrior?.name?.[currentLang] || state.rpgEnemyWarrior?.name?.ja || '猛将';
+      rpgSave.exp += st.expReward;
+      rpgSave.gold += st.goldReward;
+      if (!rpgSave.cleared.includes(st.id)) rpgSave.cleared.push(st.id);
+      let lvUpCount = 0;
+      while (rpgSave.exp >= rpgExpNeed(rpgSave.lv)) {
+        rpgSave.exp -= rpgExpNeed(rpgSave.lv);
+        rpgSave.lv++;
+        rpgSave.maxHp += 22;
+        rpgSave.maxMp += 5;
+        rpgSave.atk += 5;
+        rpgSave.hp = rpgSave.maxHp;
+        rpgSave.mp = rpgSave.maxMp;
+        lvUpCount++;
+      }
+      saveRpg();
+      if (lvUpCount > 0) sound.playRpgLevelUp(); else sound.playSuccess();
+      renderRpgHud();
+      setRpgLog(`★ ${enemyName}を撃破！「${st.defeatQuote}」 (+${st.expReward} EXP, +${st.goldReward} G${lvUpCount > 0 ? ` / LEVEL UP → LV.${rpgSave.lv}!` : ''})`);
+      const nextIdx = state.rpgStageIdx + 1;
+      const actions = [];
+      if (nextIdx < RPG_STAGES.length) {
+        actions.push({ label: `▶ 次の関門 (${nextIdx + 1}/${RPG_STAGES.length})`, onClick: () => startRpgBattle(nextIdx) });
+      }
+      actions.push({ label: '冒険マップ・茶屋へ', onClick: () => openRpgWorldMap('stages') });
+      actions.push({ label: 'もう一度戦う', onClick: () => startRpgBattle(state.rpgStageIdx) });
+      actions.push({ label: 'メニューへ戻る', onClick: () => { exitSpecialModes(); showScreen('menu'); } });
+      setRpgSubCommands(actions);
+    }
+    function handleRpgDefeat() {
+      state.rpgPhase = 'end';
+      sound.playRpgDamage();
+      rpgSave.hp = rpgSave.maxHp;
+      rpgSave.mp = rpgSave.maxMp;
+      saveRpg();
+      renderRpgHud();
+      setRpgLog(`おおっと！力尽きた……！ 旅の茶屋「望月亭」に運ばれ体力を全回復した。（経験値・突破記録は保持）`);
+      setRpgSubCommands([
+        { label: '▶ 再挑戦する', onClick: () => startRpgBattle(state.rpgStageIdx) },
+        { label: '旅の茶屋で準備', onClick: () => openRpgWorldMap('shop') },
+        { label: '冒険マップへ', onClick: () => openRpgWorldMap('stages') }
+      ]);
+    }
+    function resolveRpgCorrectMove(fromScroll = false) {
+      const seq = state.rpgCurJoseki;
+      const st = RPG_STAGES[state.rpgStageIdx];
+      const expected = seq.moves[state.rpgMoveIdx];
+      if (!expected) return;
+      const pt = strToCoord(expected.gtp, 19, 19);
+      if (pt && !pt.pass) {
+        if (engine.turn !== expected.c) engine.turn = expected.c;
+        engine.playMove(pt.x, pt.y, true);
+      }
+      state.rpgCombo++;
+      state.rpgMoveIdx++;
+      while (state.rpgMoveIdx < seq.moves.length && seq.moves[state.rpgMoveIdx].c !== BLACK) {
+        const oppMv = seq.moves[state.rpgMoveIdx];
+        const opt = strToCoord(oppMv.gtp, 19, 19);
+        if (opt && !opt.pass) {
+          if (engine.turn !== oppMv.c) engine.turn = oppMv.c;
+          engine.playMove(opt.x, opt.y, true);
+        }
+        state.rpgMoveIdx++;
+      }
+      const seqCompleted = state.rpgMoveIdx >= seq.moves.length;
+      const dmgBase = fromScroll ? Math.round(rpgSave.atk * 1.9 + 14) : Math.round((rpgSave.atk + state.rpgCombo * 3) * (0.95 + Math.random() * 0.25));
+      const dmg = seqCompleted ? Math.round(dmgBase * 1.7) : dmgBase;
+      state.rpgEnemyHp = Math.max(0, state.rpgEnemyHp - dmg);
+      if (seqCompleted || fromScroll) sound.playRpgCritical(); else sound.playRpgAttack();
+      flashRpgDamage(`${seqCompleted ? '会心の一撃! ' : ''}-${dmg}`, seqCompleted);
+      if (state.rpgGuideOn) showRpgGuideMarker(); else renderer3D.showTutorialGuide(-1, -1);
+      renderRpgHud();
+      updateAllUI(true, false);
+
+      if (state.rpgEnemyHp <= 0) {
+        handleRpgVictory();
+        return;
+      }
+      if (seqCompleted) {
+        setRpgLog(`▶ 会心の一撃！${dmg}のダメージ！敵は新たな定石陣を敷いた！`);
+        state.rpgPhase = 'anim';
+        setTimeout(() => {
+          if (!state.rpgActive) return;
+          loadRpgJosekiWave(state.rpgQueueIdx + 1);
+          state.rpgPhase = 'board';
+          renderRpgHud();
+          updateAllUI(false, false);
+        }, 520);
+      } else {
+        setRpgLog(`▶ 正解(${expected.gtp})！${dmg}ダメージ（${expected.note}）`);
+      }
+    }
+    function handleRpgBoardClick(grid) {
+      if (!state.rpgActive || state.rpgPhase !== 'board') return;
+      const seq = state.rpgCurJoseki;
+      const expected = seq?.moves?.[state.rpgMoveIdx];
+      if (!expected) return;
+      const pt = strToCoord(expected.gtp, 19, 19);
+      cancelPendingConfirm();
+      if (pt && grid.x === pt.x && grid.y === pt.y) {
+        resolveRpgCorrectMove(false);
+      } else {
+        const st = RPG_STAGES[state.rpgStageIdx];
+        state.rpgCombo = 0;
+        const eDmg = Math.max(5, Math.round(st.atk * (0.85 + Math.random() * 0.28)));
+        rpgSave.hp = Math.max(0, rpgSave.hp - eDmg);
+        saveRpg();
+        sound.playRpgDamage();
+        showRpgGuideMarker();
+        setTimeout(() => { if (!state.rpgGuideOn && state.rpgActive) renderer3D.showTutorialGuide(-1, -1); }, 1100);
+        renderRpgHud();
+        if (rpgSave.hp <= 0) {
+          handleRpgDefeat();
+        } else {
+          setRpgLog(`▶ ${coordToStr(grid.x, grid.y, 19)}は不正解！敵の反撃で${eDmg}ダメージ！（緑リングが急所）`);
+        }
+      }
+    }
+    function startRpgBattle(stageIdx = 0) {
+      archiveCurrentMatchIfNeeded();
+      exitSpecialModes();
+      leaveOnlineRoom(true); stopReplay(); clock.stop(); clearHints(); cancelPendingConfirm();
+      if (rpgSave.hp <= 0) { rpgSave.hp = rpgSave.maxHp; rpgSave.mp = rpgSave.maxMp; saveRpg(); }
+      state.rpgStageIdx = Math.max(0, Math.min(RPG_STAGES.length - 1, stageIdx));
+      const st = RPG_STAGES[state.rpgStageIdx];
+      state.rpgActive = true;
+      state.rpgEnemyMaxHp = st.maxHp;
+      state.rpgEnemyHp = st.maxHp;
+      state.rpgPhase = 'board';
+      state.rpgCombo = 0;
+      state.rpgGuideOn = false;
+      state.rpgEnemyWarrior = pickRandomWarrior(st.warriorLv);
+      document.getElementById('rpg-map-modal').classList.add('hidden');
+      setRpgSubCommands([]);
+      loadRpgJosekiWave(0);
+      setStudioDrawerOpen(false);
+      showScreen('game');
+      renderRpgHud();
+      updateAllUI(false, false);
+      const eName = state.rpgEnemyWarrior.name[currentLang] || state.rpgEnemyWarrior.name.ja;
+      setRpgLog(`▶ ${eName}が現れた！「${st.introQuote}」`);
+      reciteKanshi('cpu_clash');
+    }
+    function renderRpgWorldMap(tab = 'stages') {
+      document.getElementById('rpg-map-hero-stats').textContent =
+        `${getActiveUserName()} ｜ LV.${rpgSave.lv} ｜ HP ${rpgSave.hp}/${rpgSave.maxHp} ｜ MP ${rpgSave.mp}/${rpgSave.maxMp} ｜ ${rpgSave.gold} G ｜ 踏破 ${rpgSave.cleared.length}/${RPG_STAGES.length}`;
+      document.getElementById('rpg-tab-stages').classList.toggle('dq-active', tab === 'stages');
+      document.getElementById('rpg-tab-shop').classList.toggle('dq-active', tab === 'shop');
+      document.getElementById('rpg-map-list').classList.toggle('hidden', tab !== 'stages');
+      document.getElementById('rpg-shop-list').classList.toggle('hidden', tab !== 'shop');
+
+      const mapEl = document.getElementById('rpg-map-list');
+      mapEl.innerHTML = '';
+      for (const ch of RPG_CHAPTERS) {
+        const chBox = document.createElement('div');
+        chBox.className = 'rounded-xl bg-white/[0.03] border border-amber-200/20 p-3 space-y-2';
+        chBox.innerHTML = `<div class="text-xs sm:text-sm font-bold text-gold-bright font-mincho">${escapeHtml(ch[currentLang] || ch.ja)}</div>`;
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-1 sm:grid-cols-3 gap-2';
+        RPG_STAGES.filter(s => s.chapter === ch.ch).forEach((st) => {
+          const globalIdx = RPG_STAGES.indexOf(st);
+          const unlocked = globalIdx === 0 || rpgSave.cleared.includes(RPG_STAGES[globalIdx - 1].id) || rpgSave.cleared.includes(st.id);
+          const isCleared = rpgSave.cleared.includes(st.id);
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.disabled = !unlocked;
+          card.className = `dq-cmd-btn flex-col items-start text-xs p-2.5 ${isCleared ? 'border-emerald-400/55 bg-emerald-950/25' : ''}`;
+          card.innerHTML = `
+            <div class="flex items-center justify-between w-full gap-1">
+              <span class="font-bold text-amber-200">#${st.stageNo} ${escapeHtml(st.title[currentLang] || st.title.ja)}</span>
+              <span class="text-[10px] font-mono-num">${isCleared ? '★制覇' : (unlocked ? `HP${st.maxHp}` : '🔒')}</span>
+            </div>
+            <div class="text-[11px] text-sub font-normal">${st.expReward}EXP / ${st.goldReward}G</div>`;
+          card.onclick = () => startRpgBattle(globalIdx);
+          grid.appendChild(card);
+        });
+        chBox.appendChild(grid);
+        mapEl.appendChild(chBox);
+      }
+      document.getElementById('btn-buy-tea').textContent = `25 G · 購入 (所持:${rpgSave.items.tea})`;
+      document.getElementById('btn-buy-elixir').textContent = `40 G · 購入 (所持:${rpgSave.items.elixir})`;
+      document.getElementById('btn-buy-scroll').textContent = `70 G · 購入 (所持:${rpgSave.items.scroll})`;
+    }
+    function openRpgWorldMap(tab = 'stages') {
+      renderRpgWorldMap(tab);
+      document.getElementById('rpg-map-modal').classList.remove('hidden');
+    }
+
     // 整地モード
     function enterScoringMode() {
       state.scoringMode = true; clock.stop();
@@ -7195,7 +9020,7 @@
       updateAllUI(false, false);
     }
 
-    // 3D盤面ホバー＆クリック（安全入力モード対応）
+    // 3D盤面ホバー＆クリック（安全入力モード・定石道場・3D RPG対応）
     renderer3D.onHover = (grid) => {
       if (state.screen !== 'game' || state.scoringMode || !isHumanTurn() || state.pendingCoord) return;
       if (!grid) { renderer3D.setHoverPreview(null); return; }
@@ -7210,6 +9035,8 @@
         engine.board[idx] = engine.board[idx] === BLACK ? EMPTY : BLACK;
         sound.playStone(0.5); updateAllUI(false, false); return;
       }
+      if (state.josekiActive) { handleJosekiClick(grid); return; }
+      if (state.rpgActive) { handleRpgBoardClick(grid); return; }
       if (state.tutorialActive) { handleTutorialClick(grid); return; }
       if (state.scoringMode) { if (engine.toggleDeadGroup(grid.x, grid.y)) { sound.playPass(); updateAllUI(false, false); } return; }
       if (!isHumanTurn()) return;
@@ -7376,10 +9203,9 @@
 
     function startReplay(rec, openReview = false) {
       archiveCurrentMatchIfNeeded();
-      leaveOnlineRoom(true); state.tutorialActive = false; state.freeHandicapMode = false;
+      exitSpecialModes();
+      leaveOnlineRoom(true);
       state.cpuRunToken++;
-      document.getElementById('tutorial-panel').classList.add('hidden');
-      document.getElementById('free-handicap-banner').classList.add('hidden');
       clock.stop(); clearHints(); cancelPendingConfirm();
       const w = rec.width || 19, h = rec.height || 19, moves = JSON.parse(rec.movesJson || "[]");
       state.replayMode = true; state.replayMoves = moves;
@@ -7443,6 +9269,7 @@
         for (const m of remote) { if (m.p) engine.pass(true); else engine.playMove(m.x, m.y, true); }
         if (isNew) sound.playStone(0.5);
         updateAllUI(isNew, true);
+        if (isNew) checkAIResignJudgment();
       }
       if (d.resignedBy && !engine.gameOver) {
         engine.gameOver = true;
@@ -7499,9 +9326,8 @@
     }
 
     function connectOnlineRoom(code, myColor) {
-      leaveOnlineRoom(true); stopReplay(); state.tutorialActive = false; state.freeHandicapMode = false;
-      document.getElementById('tutorial-panel').classList.add('hidden');
-      document.getElementById('free-handicap-banner').classList.add('hidden');
+      exitSpecialModes();
+      leaveOnlineRoom(true); stopReplay();
       state.onlineRoom = code; state.onlineMyColor = myColor;
       document.getElementById('online-status-banner').classList.remove('hidden');
       document.getElementById('online-room-label').textContent = `${code} (${myColor === BLACK ? t('black_short') : t('white_short')})`;
@@ -7663,6 +9489,8 @@
 
       document.getElementById('btn-title-resume').onclick = () => {
         if (!autoSavedData) return;
+        exitSpecialModes();
+        state.hopelessSide = null; state.hopelessStreak = 0; state.resignOfferCooldownUntilMove = 0; state.resignOfferOpen = false;
         const mv = JSON.parse(autoSavedData.movesJson || "[]");
         state.gameMode = autoSavedData.gameMode || 'ai-black';
         state.aiLevel = autoSavedData.aiLevel || 10;
@@ -7698,6 +9526,7 @@
         archiveCurrentMatchIfNeeded();
         state.cpuRunToken++;
         clock.stop();
+        exitSpecialModes();
         showScreen('menu');
       };
 
@@ -7705,10 +9534,12 @@
       document.getElementById('card-handicap-match').onclick = () => openSetupModal(true, 'ai-black');
       document.getElementById('card-cpu-vs-cpu').onclick = () => openSetupModal(false, 'cpu-vs-cpu');
       document.getElementById('card-tutorial').onclick = () => startTutorial(0);
+      document.getElementById('card-joseki-dojo').onclick = () => startJosekiDojo(null);
+      document.getElementById('card-go-rpg').onclick = () => openRpgWorldMap('stages');
       document.getElementById('btn-open-history-from-menu').onclick = (e) => { e.stopPropagation(); openHistoryModal(); };
       document.getElementById('btn-open-review-direct').onclick = (e) => {
-        e.stopPropagation(); archiveCurrentMatchIfNeeded(); state.cpuRunToken++; state.tutorialActive = false;
-        document.getElementById('tutorial-panel').classList.add('hidden');
+        e.stopPropagation(); archiveCurrentMatchIfNeeded(); state.cpuRunToken++;
+        exitSpecialModes();
         document.getElementById('review-panel').classList.remove('hidden');
         setStudioDrawerOpen(true);
         showScreen('game'); updateAllUI(false, false);
@@ -7717,9 +9548,10 @@
       document.getElementById('btn-menu-online').onclick = (e) => { e.stopPropagation(); document.getElementById('online-modal').classList.remove('hidden'); };
       document.getElementById('btn-menu-local-pvp').onclick = (e) => {
         e.stopPropagation(); archiveCurrentMatchIfNeeded(); state.cpuRunToken++;
+        exitSpecialModes();
         leaveOnlineRoom(true); stopReplay(); clearHints();
-        state.tutorialActive = false; state.freeHandicapMode = false; state.gameMode = 'pvp'; state.currentHistoryId = null;
-        document.getElementById('tutorial-panel').classList.add('hidden');
+        state.gameMode = 'pvp'; state.currentHistoryId = null;
+        state.hopelessSide = null; state.hopelessStreak = 0; state.resignOfferCooldownUntilMove = 0; state.resignOfferOpen = false;
         document.getElementById('review-panel').classList.add('hidden');
         engine.reset(19, 19, { rules: 'japanese', komi: 6.5, handicap: 0 });
         renderer3D.rebuildBoard(19, 19);
@@ -7829,21 +9661,22 @@
 
       // 対局アクション
       document.getElementById('btn-undo').onclick = () => {
-        if (state.isAIThinking || state.tutorialActive) return;
+        if (state.isAIThinking || state.tutorialActive || state.josekiActive || state.rpgActive) return;
         cancelPendingConfirm(); clearHints();
+        state.hopelessSide = null; state.hopelessStreak = 0; state.resignOfferCooldownUntilMove = 0;
         if (state.scoringMode) exitScoringMode(false);
         let ok = engine.undo();
         if (ok && state.gameMode.startsWith('ai') && !state.onlineRoom && engine.moves.length > 0) ok = engine.undo();
         if (ok) { sound.playPass(); updateAllUI(false, false); if (state.onlineRoom) pushOnlineState(); else saveAutoState(); }
       };
       document.getElementById('btn-redo').onclick = () => {
-        if (state.isAIThinking || state.onlineRoom || state.tutorialActive) return;
+        if (state.isAIThinking || state.onlineRoom || state.tutorialActive || state.josekiActive || state.rpgActive) return;
         clearHints();
         if (engine.redo()) { sound.playStone(0.5); updateAllUI(false, true); saveAutoState(); }
       };
-      document.getElementById('btn-pass').onclick = () => { if (isHumanTurn() && !state.tutorialActive) executePass(false); };
+      document.getElementById('btn-pass').onclick = () => { if (isHumanTurn() && !state.tutorialActive && !state.josekiActive && !state.rpgActive) executePass(false); };
       document.getElementById('btn-resign').onclick = () => {
-        if (engine.gameOver || state.tutorialActive) return;
+        if (engine.gameOver || state.tutorialActive || state.josekiActive || state.rpgActive) return;
         showModal(t('resign_confirm_title'), t('resign_confirm_body'), [
           { label: t('btn_cancel'), cls: "wa-btn px-4 py-2 rounded-xl text-sm", onClick: closeModal },
           {
@@ -7962,6 +9795,177 @@
         renderer3D.showTutorialGuide(-1, -1); showScreen('menu');
       };
 
+      // 定石マスター道場操作
+      document.querySelectorAll('.joseki-tier-btn').forEach(btn => btn.onclick = () => {
+        state.josekiTier = parseInt(btn.dataset.jtier, 10) || 1;
+        const first = JOSEKI_LIBRARY.find(j => j.tier === state.josekiTier) || JOSEKI_LIBRARY[0];
+        loadJosekiSequence(first.id);
+      });
+      document.getElementById('btn-jmode-study').onclick = () => { state.josekiMode = 'study'; loadJosekiSequence(state.josekiId); };
+      document.getElementById('btn-jmode-guide').onclick = () => { state.josekiMode = 'guide'; loadJosekiSequence(state.josekiId); };
+      document.getElementById('btn-jmode-blind').onclick = () => { state.josekiMode = 'blind'; loadJosekiSequence(state.josekiId); };
+      document.getElementById('btn-jcolor-black').onclick = () => { state.josekiColor = BLACK; loadJosekiSequence(state.josekiId); };
+      document.getElementById('btn-jcolor-white').onclick = () => { state.josekiColor = WHITE; loadJosekiSequence(state.josekiId); };
+      document.getElementById('btn-j-prev-step').onclick = () => { state.josekiMode = 'study'; studyStepJoseki(-1); };
+      document.getElementById('btn-j-next-step').onclick = () => { state.josekiMode = 'study'; studyStepJoseki(1); };
+      document.getElementById('btn-j-retry').onclick = () => loadJosekiSequence(state.josekiId);
+      const nextJosekiFn = () => {
+        const tierList = JOSEKI_LIBRARY.filter(j => j.tier === state.josekiTier);
+        const curIdx = tierList.findIndex(j => j.id === state.josekiId);
+        const nextSeq = (curIdx >= 0 && curIdx + 1 < tierList.length)
+          ? tierList[curIdx + 1]
+          : JOSEKI_LIBRARY[(JOSEKI_LIBRARY.findIndex(j => j.id === state.josekiId) + 1) % JOSEKI_LIBRARY.length];
+        loadJosekiSequence(nextSeq.id);
+      };
+      document.getElementById('btn-j-next-item').onclick = nextJosekiFn;
+      document.getElementById('btn-joseki-hud-next').onclick = nextJosekiFn;
+      document.getElementById('btn-j-unmastered').onclick = () => {
+        const unm = JOSEKI_LIBRARY.find(j => !josekiMastery[j.id]);
+        if (unm) loadJosekiSequence(unm.id);
+        else showToast('全28定石を習得済みです！');
+      };
+      document.getElementById('btn-joseki-hud-hint').onclick = () => showJosekiHintForCurrentStep(true);
+      document.getElementById('btn-joseki-exit').onclick = () => { exitSpecialModes(); showScreen('menu'); };
+
+      // ドラクエ風 3D定石RPG操作
+      document.getElementById('btn-rpg-fight').onclick = () => {
+        if (!state.rpgActive || state.rpgPhase === 'end') return;
+        setRpgSubCommands([]);
+        state.rpgPhase = 'board';
+        renderRpgHud();
+        setRpgLog('▶ 剣を構えた！3D碁盤で定石の正解手を打て！');
+      };
+      document.getElementById('btn-rpg-spell').onclick = () => {
+        if (!state.rpgActive || state.rpgPhase === 'end') return;
+        setRpgSubCommands([
+          {
+            label: t('rpg_spell_eye'),
+            disabled: rpgSave.mp < 8,
+            onClick: () => {
+              if (rpgSave.mp < 8) return;
+              rpgSave.mp -= 8; saveRpg();
+              state.rpgGuideOn = true; state.rpgPhase = 'board';
+              showRpgGuideMarker();
+              setRpgSubCommands([]); renderRpgHud();
+              setRpgLog('▶ 天眼通を唱えた！定石の急所が緑の光で浮かび上がった！');
+            }
+          },
+          {
+            label: t('rpg_spell_heal'),
+            disabled: rpgSave.mp < 10,
+            onClick: () => {
+              if (rpgSave.mp < 10) return;
+              rpgSave.mp -= 10;
+              const heal = Math.round(rpgSave.maxHp * 0.55);
+              rpgSave.hp = Math.min(rpgSave.maxHp, rpgSave.hp + heal);
+              saveRpg(); sound.playRpgHeal();
+              setRpgSubCommands([]); renderRpgHud();
+              setRpgLog(`▶ 回春詩を詠唱！HPが ${heal} 回復した！`);
+            }
+          },
+          {
+            label: t('rpg_spell_fire'),
+            disabled: rpgSave.mp < 14,
+            onClick: () => {
+              if (rpgSave.mp < 14) return;
+              rpgSave.mp -= 14; saveRpg();
+              const dmg = Math.round(rpgSave.atk * 1.45 + 16);
+              state.rpgEnemyHp = Math.max(0, state.rpgEnemyHp - dmg);
+              sound.playRpgCritical();
+              flashRpgDamage(`炎 -${dmg}`, true);
+              setRpgSubCommands([]); renderRpgHud();
+              if (state.rpgEnemyHp <= 0) handleRpgVictory();
+              else {
+                state.rpgGuideOn = true; state.rpgPhase = 'board'; showRpgGuideMarker(); renderRpgHud();
+                setRpgLog(`▶ 赤壁の業火！敵に ${dmg} ダメージ＆急所を照らし出した！`);
+              }
+            }
+          },
+          { label: t('rpg_back_cmd'), onClick: () => setRpgSubCommands([]) }
+        ]);
+      };
+      document.getElementById('btn-rpg-item').onclick = () => {
+        if (!state.rpgActive || state.rpgPhase === 'end') return;
+        setRpgSubCommands([
+          {
+            label: `銘茶・龍井 (${rpgSave.items.tea})`,
+            disabled: rpgSave.items.tea <= 0,
+            onClick: () => {
+              if (rpgSave.items.tea <= 0) return;
+              rpgSave.items.tea--;
+              rpgSave.hp = Math.min(rpgSave.maxHp, rpgSave.hp + 45);
+              saveRpg(); sound.playRpgHeal();
+              setRpgSubCommands([]); renderRpgHud();
+              setRpgLog('▶ 銘茶・龍井を飲み干し HPが 45 回復した！');
+            }
+          },
+          {
+            label: `霊薬・仙丹 (${rpgSave.items.elixir})`,
+            disabled: rpgSave.items.elixir <= 0,
+            onClick: () => {
+              if (rpgSave.items.elixir <= 0) return;
+              rpgSave.items.elixir--;
+              rpgSave.mp = Math.min(rpgSave.maxMp, rpgSave.mp + 20);
+              saveRpg(); sound.playRpgHeal();
+              setRpgSubCommands([]); renderRpgHud();
+              setRpgLog('▶ 霊薬・仙丹で MPが 20 回復した！');
+            }
+          },
+          {
+            label: `定石の巻物 (${rpgSave.items.scroll})`,
+            disabled: rpgSave.items.scroll <= 0,
+            onClick: () => {
+              if (rpgSave.items.scroll <= 0) return;
+              rpgSave.items.scroll--;
+              saveRpg();
+              setRpgSubCommands([]);
+              state.rpgPhase = 'board';
+              resolveRpgCorrectMove(true);
+            }
+          },
+          { label: t('rpg_back_cmd'), onClick: () => setRpgSubCommands([]) }
+        ]);
+      };
+      document.getElementById('btn-rpg-flee').onclick = () => {
+        setRpgSubCommands([]);
+        exitSpecialModes();
+        showScreen('menu');
+        openRpgWorldMap('stages');
+      };
+      document.getElementById('btn-rpg-open-map').onclick = () => openRpgWorldMap('stages');
+      document.getElementById('close-rpg-map').onclick = () => document.getElementById('rpg-map-modal').classList.add('hidden');
+      document.getElementById('rpg-tab-stages').onclick = () => renderRpgWorldMap('stages');
+      document.getElementById('rpg-tab-shop').onclick = () => renderRpgWorldMap('shop');
+      document.getElementById('btn-rpg-inn').onclick = () => {
+        if (rpgSave.gold < 30) { showToast('所持金が足りません (30G必要)', 'error'); return; }
+        rpgSave.gold -= 30; rpgSave.hp = rpgSave.maxHp; rpgSave.mp = rpgSave.maxMp;
+        saveRpg(); sound.playRpgHeal();
+        renderRpgWorldMap('shop');
+        if (state.rpgActive) renderRpgHud();
+        showToast('「望月亭」でゆっくり休み、HP/MPが全回復しました！');
+      };
+      document.getElementById('btn-buy-tea').onclick = () => {
+        if (rpgSave.gold < 25) { showToast('所持金が足りません', 'error'); return; }
+        rpgSave.gold -= 25; rpgSave.items.tea++; saveRpg(); sound.playStone(0.8);
+        renderRpgWorldMap('shop');
+      };
+      document.getElementById('btn-buy-elixir').onclick = () => {
+        if (rpgSave.gold < 40) { showToast('所持金が足りません', 'error'); return; }
+        rpgSave.gold -= 40; rpgSave.items.elixir++; saveRpg(); sound.playStone(0.8);
+        renderRpgWorldMap('shop');
+      };
+      document.getElementById('btn-buy-scroll').onclick = () => {
+        if (rpgSave.gold < 70) { showToast('所持金が足りません', 'error'); return; }
+        rpgSave.gold -= 70; rpgSave.items.scroll++; saveRpg(); sound.playSuccess();
+        renderRpgWorldMap('shop');
+      };
+      document.getElementById('btn-rpg-reset-save').onclick = () => {
+        rpgSave = defaultRpgSave();
+        saveRpg();
+        renderRpgWorldMap('stages');
+        showToast('RPGセーブデータを初期化しました');
+      };
+
       // セットアップモーダル
       document.querySelectorAll('.setup-board-btn').forEach(btn => btn.onclick = () => {
         const [w, h] = btn.dataset.board.split('x').map(Number);
@@ -7970,8 +9974,8 @@
         document.querySelectorAll('.setup-board-btn').forEach(b => b.classList.toggle('wa-pill-active', b === btn));
       });
       document.getElementById('btn-apply-custom-size').onclick = () => {
-        const w = Math.max(5, Math.min(19, parseInt(document.getElementById('custom-w').value, 10) || 19));
-        const h = Math.max(5, Math.min(19, parseInt(document.getElementById('custom-h').value, 10) || 19));
+        const w = Math.max(3, Math.min(19, parseInt(document.getElementById('custom-w').value, 10) || 19));
+        const h = Math.max(3, Math.min(19, parseInt(document.getElementById('custom-h').value, 10) || 19));
         pendingSetup.width = w; pendingSetup.height = h;
         document.querySelectorAll('.setup-board-btn').forEach(b => b.classList.remove('wa-pill-active'));
         showToast(`${w}×${h}`);
@@ -8029,9 +10033,9 @@
         document.getElementById('setup-modal').classList.add('hidden');
         archiveCurrentMatchIfNeeded();
         state.cpuRunToken++;
+        exitSpecialModes();
         leaveOnlineRoom(true); stopReplay(); clearHints(); cancelPendingConfirm();
-        state.tutorialActive = false;
-        document.getElementById('tutorial-panel').classList.add('hidden');
+        state.hopelessSide = null; state.hopelessStreak = 0; state.resignOfferCooldownUntilMove = 0; state.resignOfferOpen = false;
         document.getElementById('review-panel').classList.add('hidden');
 
         const hcpVal = document.getElementById('setup-handicap').value;
@@ -8123,6 +10127,7 @@
       document.getElementById('opt-voice-byo').onchange = (e) => { state.voiceByo = e.target.checked; sound.voiceEnabled = state.voiceByo; savePrefs(); };
       document.getElementById('opt-particles').onchange = (e) => { state.particles = e.target.checked; renderer3D.particlesEnabled = state.particles; savePrefs(); };
       document.getElementById('opt-kanshi-fx').onchange = (e) => { state.kanshiFx = e.target.checked; savePrefs(); };
+      document.getElementById('opt-ai-resign').onchange = (e) => { state.aiResignAssist = e.target.checked; savePrefs(); };
 
       document.getElementById('api-model-select').onchange = updateApiJsonPreview;
       document.getElementById('api-visits-input').onchange = updateApiJsonPreview;
@@ -8293,6 +10298,7 @@
       document.getElementById('opt-voice-byo').checked = state.voiceByo;
       document.getElementById('opt-particles').checked = state.particles;
       document.getElementById('opt-kanshi-fx').checked = state.kanshiFx;
+      document.getElementById('opt-ai-resign').checked = state.aiResignAssist;
       document.getElementById('btn-toggle-2step').classList.toggle('wa-pill-active', state.twoStepConfirm);
 
       if (savedPrefs.apiUrl) { aiController.apiUrl = savedPrefs.apiUrl; document.getElementById('api-url-input').value = savedPrefs.apiUrl; }
@@ -8303,6 +10309,8 @@
 
       bindEvents();
       syncUserUI();
+      updateJosekiMenuProgress();
+      updateRpgMenuProgress();
       renderPoemStele(KANSHI_POEMS[state.poemIdx % KANSHI_POEMS.length]);
       setVisualTheme(state.visualTheme);
       applyLanguage(savedPrefs.lang || 'ja');
