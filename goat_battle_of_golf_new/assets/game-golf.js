@@ -21,7 +21,7 @@ window.__goatDiagLoopOk = function(slot){ try{ var D = window.__GOAT_DIAG__; if(
   var TL = new THREE.TextureLoader();
   /* v4.9: アセット版数（boot 層の __GOAT_AV__ と連動）。テクスチャ/GLB の URL に付与し、
      30日キャッシュ下でも版上げで確実に差し替わるようにする */
-  var AVQ = '?v=' + (window.__GOAT_AV__ || 'N6');
+  var AVQ = '?v=' + (window.__GOAT_AV__ || 'N7');
   var __WARM = /[?&]warmup=1/.test(location.search); /* v4.5: 先読み時はテクスチャを読み込まない */
   function loadTex(name, srgb, rx, ry){
     if(__WARM) return null;
@@ -8453,6 +8453,8 @@ N6: ボス戦にも実体表示を拡張した。固定ボス5人は専用モデ
 ダーク版（主人公重複時の Junbo／DarkNiklaus）と神ノクス・器暴走（鏡像戦）は
 対応主人公 GLB のダークリスキン、創世神 Watu は watu.glb で表示する。
 モデル未制作のボス（パリのランダム枠17人）は従来どおりゴースト表示のまま。
+N7: パリ・ランダム枠のうち9人（Hagen／Hogan／Watson／Vardon／BJones／Snead／
+Sarazen／Faldo／Trevino）を専用モデルで実体表示に拡張した。残り8人はゴーストのまま。
 ========================================================================= */
 (function initGoatCharStageN2(){
 "use strict";
@@ -8478,7 +8480,18 @@ Player 1.769m→1.94、Palmer 1.890m→2.07、Niklaus 1.917m→2.10、DarkTIiger
 "boss-player": { off:[0.044,0.038,0.525], dir:[0.981, 0.197], s:1.096},
 "boss-palmer": { off:[0.056,0.038,0.530], dir:[0.936, 0.351], s:1.096},
 "boss-niklaus": { off:[0.060,0.038,0.532], dir:[0.939, 0.344], s:1.096},
-"boss-tiigerdark": { off:[0.045,0.038,0.524], dir:[0.951, 0.307], s:1.096}
+"boss-tiigerdark": { off:[0.045,0.038,0.524], dir:[0.951, 0.307], s:1.096},
+/* N7: パリ・ランダム枠9人（deliver-N7/work/measure-boss-*.json で実測、導出式は N6 と同一。
+s は TIiger 基準の均一 1.096） */
+"boss-hagen": { off:[0.049,0.038,0.525], dir:[0.961, 0.276], s:1.096},
+"boss-hogan": { off:[0.048,0.038,0.525], dir:[0.965, 0.264], s:1.096},
+"boss-watson": { off:[0.052,0.038,0.527], dir:[0.944, 0.330], s:1.096},
+"boss-vardon": { off:[0.052,0.038,0.526], dir:[0.949, 0.314], s:1.096},
+"boss-bjones": { off:[0.038,0.038,0.532], dir:[0.988, 0.158], s:1.096},
+"boss-snead": { off:[0.053,0.038,0.528], dir:[0.941, 0.339], s:1.096},
+"boss-sarazen": { off:[0.048,0.038,0.525], dir:[0.965, 0.261], s:1.096},
+"boss-faldo": { off:[0.054,0.038,0.531], dir:[0.935, 0.355], s:1.096},
+"boss-trevino": { off:[0.047,0.038,0.525], dir:[0.965, 0.263], s:1.096}
 };
 var IMPACT_T = 0.9667; /* swing クリップのインパクト時刻（f30 @30fps、全キャラ共通の作画キー） */
 
@@ -8513,7 +8526,7 @@ this.yaw = 0;
 }
 Actor.prototype.load = function(loader){
 var self = this;
-loader.loadAsync("assets/chars/" + this.file + "?v=N6").then(function(gltf){
+loader.loadAsync("assets/chars/" + this.file + "?v=N7").then(function(gltf){
 var model = gltf.scene;
 /* MPFB 由来マテリアルは BLEND 指定だと同一メッシュ内の描画順が崩れて透けるため、
 テストページで実証した対処（不透明化＋alphaTest）を適用する。
@@ -8634,7 +8647,9 @@ return "watu";
 }
 /* N6: 相手の実体表示スペック解決。{key: CALキー, file: GLBファイル名, dark: リスキン} を返す。
 ボス戦は B.oppId で判別する（index.html の FIXED_BOSSES と対応）。モデル未制作のボス
-（パリのランダム枠17人など）は null を返し、従来どおりゴースト表示になる */
+（パリのランダム枠の残り8人など）は null を返し、従来どおりゴースト表示になる。
+N7: パリ・ランダム枠9人（Hagen／Hogan／Watson／Vardon／BJones／Snead／Sarazen／
+Faldo／Trevino）を専用モデルで解決する（B.oppId は PARIS_POOL の id と対応）。 */
 function resolveOppSpec(){
 var B = window.GOAT_BATTLE;
 if(!B || B.freeRound || B.inPlayoff) return null;
@@ -8651,6 +8666,17 @@ case "Palmer": return { key:"boss-palmer", file:"boss-palmer.glb", dark:false };
 case "Niklaus": return { key:"boss-niklaus", file:"boss-niklaus.glb", dark:false };
 case "DarkNiklaus": return { key:"boss-niklaus", file:"boss-niklaus.glb", dark:true };
 case "DarkTIiger": return { key:"boss-tiigerdark", file:"boss-tiigerdark.glb", dark:false };
+/* N7: パリ・ランダム枠のうちモデル完成済み9人。残り8人（Seve／Lefty／Nelson／
+Braid／Taylor／Thomson／Massi／Roca）は default の null（ゴースト表示）のまま */
+case "Hagen": return { key:"boss-hagen", file:"boss-hagen.glb", dark:false };
+case "Hogan": return { key:"boss-hogan", file:"boss-hogan.glb", dark:false };
+case "Watson": return { key:"boss-watson", file:"boss-watson.glb", dark:false };
+case "Vardon": return { key:"boss-vardon", file:"boss-vardon.glb", dark:false };
+case "BJones": return { key:"boss-bjones", file:"boss-bjones.glb", dark:false };
+case "Snead": return { key:"boss-snead", file:"boss-snead.glb", dark:false };
+case "Sarazen": return { key:"boss-sarazen", file:"boss-sarazen.glb", dark:false };
+case "Faldo": return { key:"boss-faldo", file:"boss-faldo.glb", dark:false };
+case "Trevino": return { key:"boss-trevino", file:"boss-trevino.glb", dark:false };
 case "VesselBerserk": return { key:heroKey, file:heroKey + ".glb", dark:true }; /* 器＝主人公の鏡像 */
 case "Nox": return { key:heroKey, file:heroKey + ".glb", dark:true };           /* 神ノクス＝主人公の鏡像 */
 case "TrueWatu": return { key:"watu", file:"watu.glb", dark:false };
