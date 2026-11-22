@@ -1170,6 +1170,32 @@ html, body {
   width: 110px;
 }
 
+/* Hint Panel (AI best move + rationale) */
+.hint-panel {
+  background: rgba(212,175,55,0.08);
+  border: 1px solid var(--border-gold-strong);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.hint-panel-title {
+  font-size: 0.72rem;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.hint-panel-move {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--gold-light);
+  margin-bottom: 4px;
+}
+.hint-panel-reason {
+  font-size: 0.78rem;
+  color: var(--text-main);
+  line-height: 1.55;
+}
+
 /* ==========================================================================
    MODALS & TOASTS
    ========================================================================== */
@@ -1396,6 +1422,12 @@ html, body {
       </select>
     </div>
 
+    <div class="hint-panel" id="hintPanel" hidden>
+      <div class="hint-panel-title">AIの最適手（根拠付き）</div>
+      <div class="hint-panel-move" id="hintMove"></div>
+      <div class="hint-panel-reason" id="hintReason"></div>
+    </div>
+
     <div class="log-box">
       <div class="log-header">
         <span id="logTitle">棋譜・対局ログ</span>
@@ -1550,6 +1582,9 @@ const App = (() => {
     botTimer: document.getElementById('botTimer'),
     selOpponent: document.getElementById('selOpponent'),
     modeOptions: document.getElementById('modeOptions'),
+    hintPanel: document.getElementById('hintPanel'),
+    hintMove: document.getElementById('hintMove'),
+    hintReason: document.getElementById('hintReason'),
     logTitle: document.getElementById('logTitle'),
     logCount: document.getElementById('logCount'),
     logList: document.getElementById('logList'),
@@ -1591,6 +1626,18 @@ const App = (() => {
 
   function closeModal() {
     el.modalBackdrop.classList.remove('open');
+  }
+
+  function showHint(moveText, reasonText) {
+    el.hintMove.textContent = moveText;
+    el.hintReason.textContent = reasonText || '';
+    el.hintPanel.hidden = false;
+  }
+
+  function clearHint() {
+    el.hintPanel.hidden = true;
+    el.hintMove.textContent = '';
+    el.hintReason.textContent = '';
   }
 
   function setStatus(text, type = 'normal') {
@@ -1693,7 +1740,8 @@ const App = (() => {
     // Show/hide opponent selector (Shogi & Chess support PvP/AI; Mahjong & Poker are 4-player table vs 3 AI)
     const isBoard = (mode === 'shogi' || mode === 'chess');
     el.modeOptions.style.display = isBoard ? 'flex' : 'none';
-    el.btnUndo.disabled = !isBoard;
+    el.btnUndo.disabled = false;
+    clearHint();
     el.btnResign.textContent = (mode === 'mahjong' || mode === 'poker') ? '次局/次ハンド' : '投了';
     getActiveGame().init();
   }
@@ -1730,7 +1778,7 @@ const App = (() => {
           <li>左のAI形勢評価バーは現在のハンド強度・推定勝率を示します。「AIヒント」で推奨アクションを確認できます。</li>
         </ul>`
     };
-    openModal('ルール・操作ガイド', rulesMap[currentMode]);
+    openModal('ルール・操作ガイド', rulesMap[currentMode] + '<p style="margin-top:10px;"><strong>【全ゲーム共通】</strong>「待った」で直前の自分の判断まで巻き戻せます。「AIヒント」は最適な一手とその根拠を右パネルに表示し、自分の手番なら何度でも使えます。</p>');
   }
 
   function initEvents() {
@@ -1768,11 +1816,13 @@ const App = (() => {
     });
 
     el.btnUndo.addEventListener('click', () => {
+      clearHint();
       const g = getActiveGame();
       if (g.undo) g.undo();
     });
 
     el.btnNewGame.addEventListener('click', () => {
+      clearHint();
       SoundEngine.chime();
       getActiveGame().init();
     });
@@ -1790,7 +1840,8 @@ const App = (() => {
 
   return {
     el, initEvents, switchMode, showToast, openModal, closeModal,
-    setStatus, updateEval, setPlayersUI, setLogs, resetTimers, setGameEnded, getOpponentMode
+    setStatus, updateEval, setPlayersUI, setLogs, resetTimers, setGameEnded, getOpponentMode,
+    showHint, clearHint
   };
 })();
 
@@ -2346,7 +2397,21 @@ const ShogiGame = (() => {
     hintMove = best;
     render();
     const pType = best.drop ? best.drop : board[best.fromR][best.fromC].type;
-    App.showToast(`AI推奨手: ${formatKifu(best, turn, pType)}`);
+    const moveText = formatKifu(best, turn, pType);
+    const reasons = [];
+    const before = evaluateBoard(board, hands);
+    const sim = applyMoveSim(board, hands, best, turn);
+    const after = evaluateBoard(sim.board, sim.hands);
+    const delta = Math.round((after - before) * (turn === 0 ? 1 : -1));
+    if (best.drop) reasons.push(`持ち駒の${NAMES[best.drop][turn]}を打つ手です`);
+    const cap = !best.drop ? board[best.toR][best.toC] : null;
+    if (cap) reasons.push(`相手の${NAMES[cap.type][cap.owner]}（価値${VALS[cap.type]}）を取れます`);
+    if (best.promote) reasons.push('成り込んで駒の価値が上がります');
+    if (isKingInCheck(sim.board, 1 - turn)) reasons.push('相手の玉に王手をかけます');
+    reasons.push(`評価値が ${delta >= 0 ? '+' : ''}${delta} と自陣営に有利に動きます`);
+    reasons.push('相手の応手まで読む2手先読みで選んだ最善手です');
+    App.showHint(`最適手： ${moveText}`, `根拠： ${reasons.join(' ／ ')}`);
+    App.showToast(`AI推奨手: ${moveText}`);
     SoundEngine.chime();
   }
 
@@ -2886,7 +2951,21 @@ const ChessGame = (() => {
     render();
     const p = board[best.fromR][best.fromC];
     const cap = board[best.toR][best.toC];
-    App.showToast(`AI推奨手: ${formatNotation(best, p, cap)}`);
+    const moveText = formatNotation(best, p, cap);
+    const reasons = [];
+    const before = evaluateBoard(board);
+    const sim = applySim(board, castling, best);
+    const after = evaluateBoard(sim.board);
+    const delta = Math.round((after - before) * (turn === 'w' ? 1 : -1));
+    const PNAMES = { P: 'ポーン', N: 'ナイト', B: 'ビショップ', R: 'ルーク', Q: 'クイーン', K: 'キング' };
+    if (cap) reasons.push(`相手の${PNAMES[cap.type] || cap.type}（価値${VALS[cap.type]}）を取れます`);
+    if (best.promo) reasons.push(`${PNAMES[best.promo] || best.promo}へ昇格します`);
+    if (best.castle) reasons.push('キャスリングでキングを安全な位置へ囲います');
+    if (isInCheck(sim.board, turn === 'w' ? 'b' : 'w')) reasons.push('相手のキングにチェックをかけます');
+    reasons.push(`評価値が ${delta >= 0 ? '+' : ''}${delta} と自陣営に有利に動きます`);
+    reasons.push('先読み探索（ミニマックス）で選んだ最善手です');
+    App.showHint(`最適手： ${moveText}`, `根拠： ${reasons.join(' ／ ')}`);
+    App.showToast(`AI推奨手: ${moveText}`);
     SoundEngine.chime();
   }
 
@@ -2922,6 +3001,31 @@ const MahjongGame = (() => {
   let phase = 'idle'; // 'player_discard', 'player_call', 'ai_turn', 'round_over'
   let pendingCall = null; // { from, tile, canRon, canPon, canKan }
   let hintTileIdx = -1;
+  let undoSnap = null;
+
+  function saveUndoSnapshot() {
+    undoSnap = JSON.stringify({ wall, doraInd, roundNum, players, turn, phase, pendingCall, logs });
+  }
+
+  function undo() {
+    if (!undoSnap) { App.showToast('これ以上待ったはできません'); return; }
+    clearTimeout(aiTimer);
+    const s = JSON.parse(undoSnap);
+    wall = s.wall; doraInd = s.doraInd; roundNum = s.roundNum;
+    players = s.players; turn = s.turn; phase = s.phase; pendingCall = s.pendingCall; logs = s.logs;
+    hintTileIdx = -1;
+    undoSnap = null;
+    App.setLogs(logs, '対局ログ（麻雀）', '件');
+    App.setPlayersUI(
+      { avatar: '🀄', name: 'AI 3家（下・対・上）', meta: `東${roundNum + 1}局` },
+      { avatar: WINDS[players[0].seatWind], name: `あなた（${WINDS[players[0].seatWind]}家）`, meta: `${players[0].score}点` },
+      'bot'
+    );
+    App.setStatus(phase === 'player_call' ? '待った — 鳴きの判断からやり直せます' : '待った — 打牌からやり直せます', 'normal');
+    updateEvalBar();
+    render();
+    SoundEngine.card();
+  }
   let logs = [];
   let aiTimer = null;
 
@@ -3212,6 +3316,7 @@ const MahjongGame = (() => {
     turn = players.findIndex(p => p.seatWind === 0);
     pendingCall = null;
     hintTileIdx = -1;
+    undoSnap = null;
     drawTile(turn);
   }
 
@@ -3239,6 +3344,7 @@ const MahjongGame = (() => {
 
     if (seat === 0) {
       phase = 'player_discard';
+      saveUndoSnapshot();
       App.setStatus('あなたの番 — 打牌を選択してください', 'normal');
       render();
       // If riichi and cannot tsumo, auto-discard drawn tile after short delay
@@ -3296,6 +3402,7 @@ const MahjongGame = (() => {
       if (canRon || canPon || canKan) {
         pendingCall = { from: seat, tile, canRon, canPon, canKan };
         phase = 'player_call';
+        saveUndoSnapshot();
         App.setStatus(`${tileInfo(tile).label} に対してアクション可能です`, 'warning');
         SoundEngine.chime();
         render();
@@ -3550,18 +3657,53 @@ const MahjongGame = (() => {
 
   function init() { startRound(false); }
   function resign() { startRound(true); }
-  function showHint() {
-    if (phase !== 'player_discard') {
-      App.showToast('あなたの手番（打牌時）にヒントを利用できます');
-      return;
+  function countUkeire(hand13, meldCount) {
+    const curSh = estimateShanten(hand13, meldCount);
+    let kinds = 0, total = 0;
+    for (let t = 0; t < 34; t++) {
+      const cnt = hand13.filter(x => x === t).length;
+      if (cnt >= 4) continue;
+      if (estimateShanten([...hand13, t], meldCount) < curSh) { kinds++; total += (4 - cnt); }
     }
-    hintTileIdx = chooseBestDiscard(players[0].hand, players[0].melds.length);
-    render();
-    App.showToast(`AI推奨打牌: ${tileInfo(players[0].hand[hintTileIdx]).label}`);
-    SoundEngine.chime();
+    return { kinds, total };
   }
 
-  return { init, showHint, resign };
+  function showHint() {
+    if (phase === 'player_discard') {
+      hintTileIdx = chooseBestDiscard(players[0].hand, players[0].melds.length);
+      render();
+      const tile = players[0].hand[hintTileIdx];
+      const rem = players[0].hand.filter((_, i) => i !== hintTileIdx);
+      const sh = estimateShanten(rem, players[0].melds.length);
+      const reasons = [];
+      if (sh <= -1) reasons.push('この切り方で和了形が完成します');
+      else if (sh === 0) reasons.push('聴牌になる（または聴牌を維持できる）切り方です');
+      else reasons.push(`向聴数が最小（${sh}向聴）になる切り方です`);
+      if (sh >= 0) {
+        const uk = countUkeire(rem, players[0].melds.length);
+        if (uk.kinds > 0) reasons.push(`有効牌は${uk.kinds}種・最大${uk.total}枚と最多クラスです`);
+      }
+      if (tile >= 27) reasons.push('孤立した字牌は面子になりにくく、残す価値が低めです');
+      else if (tile % 9 === 0 || tile % 9 === 8) reasons.push('端牌は順子を作りにくく、残す価値が低めです');
+      App.showHint(`最適な打牌： ${tileInfo(tile).label}`, `根拠： ${reasons.join(' ／ ')}`);
+      App.showToast(`AI推奨打牌: ${tileInfo(tile).label}`);
+      SoundEngine.chime();
+      return;
+    }
+    if (phase === 'player_call' && pendingCall) {
+      let rec, why;
+      if (pendingCall.canRon) { rec = 'ロン'; why = '和了が確定します。逃す理由はありません'; }
+      else if (pendingCall.canKan) { rec = 'カン'; why = '刻子を確定させつつ、もう1枚引けます。ドラが増える可能性もあります'; }
+      else if (pendingCall.canPon) { rec = 'ポン'; why = '面子が1つ確定して和了に近づきます。ただし門前が崩れてリーチはできなくなります'; }
+      else { rec = '見送り（スキップ）'; why = '鳴ける条件を満たしていません'; }
+      App.showHint(`最適な判断： ${rec}`, `根拠： ${why}`);
+      SoundEngine.chime();
+      return;
+    }
+    App.showToast('あなたの手番（打牌・鳴き判断時）にヒントを利用できます');
+  }
+
+  return { init, undo, showHint, resign };
 })();
 
 /* ==========================================================================
@@ -3585,6 +3727,8 @@ const PokerGame = (() => {
   let stage = 'preflop'; // preflop, flop, turn, river, showdown
   let logs = [];
   let aiTimer = null;
+  let undoSnap = null;
+  let undoRestoring = false;
 
   function makeDeck() {
     const d = [];
@@ -3716,6 +3860,7 @@ const PokerGame = (() => {
     players[bbIdx].acted = false;
 
     turn = (dealerIdx + 3) % 4;
+    undoSnap = null;
     logs = ['新規ハンド開始（SB:10 / BB:20）'];
     App.setLogs(logs, 'アクションログ（ポーカー）', '件');
     App.resetTimers(600);
@@ -3889,7 +4034,27 @@ const PokerGame = (() => {
     }
   }
 
+  function saveUndoSnapshot() {
+    undoSnap = JSON.stringify({ players, deck, community, pot, dealerIdx, turn, currentBet, stage, logs });
+  }
+
+  function undo() {
+    if (!undoSnap) { App.showToast('これ以上待ったはできません'); return; }
+    clearTimeout(aiTimer);
+    const s = JSON.parse(undoSnap);
+    players = s.players; deck = s.deck; community = s.community; pot = s.pot;
+    dealerIdx = s.dealerIdx; turn = s.turn; currentBet = s.currentBet; stage = s.stage; logs = s.logs;
+    undoSnap = null;
+    App.setLogs(logs, 'アクションログ（ポーカー）', '件');
+    undoRestoring = true;
+    processTurn();
+    undoRestoring = false;
+    App.setStatus('待った — アクションからやり直せます', 'normal');
+    SoundEngine.card();
+  }
+
   function processTurn() {
+    if (turn === 0 && stage !== 'showdown' && !undoRestoring) saveUndoSnapshot();
     App.setPlayersUI(
       { avatar: '♠', name: 'AI 3名（テーブル対戦）', meta: `POT: ${pot}` },
       { avatar: '♦', name: 'あなた', meta: `チップ: ${players[0].chips}` },
@@ -4026,16 +4191,34 @@ const PokerGame = (() => {
       App.showToast('「次のハンドへ進む」を押してください');
       return;
     }
+    if (turn !== 0 || players[0].folded || players[0].allIn) {
+      App.showToast('あなたの手番でヒントを利用できます');
+      return;
+    }
     const pct = estimateWinPct(0);
     const toCall = Math.max(0, currentBet - players[0].bet);
-    let rec = 'チェック / コール';
-    if (pct >= 72) rec = 'レイズ（強気）';
-    else if (pct < 38 && toCall > 20) rec = 'フォールド推奨';
+    const ev = evaluateBestHand([...players[0].cards, ...community]);
+    const potOdds = toCall > 0 ? Math.round(toCall / (pot + toCall) * 100) : 0;
+    let rec, why;
+    if (pct >= 72) {
+      rec = 'レイズ';
+      why = `推定勝率${pct}%と高く、現在の役は「${ev.name}」。強気に賭けてポットを膨らませる局面です`;
+    } else if (toCall === 0) {
+      rec = 'チェック';
+      why = `推定勝率${pct}%（現在の役：${ev.name}）。無料で次のカードを見られます`;
+    } else if (pct >= potOdds) {
+      rec = `コール (${toCall})`;
+      why = `推定勝率${pct}%が、コールに必要な勝率（ポットオッズ${potOdds}%）を上回ります。現在の役は「${ev.name}」`;
+    } else {
+      rec = 'フォールド';
+      why = `推定勝率${pct}%が、コールに必要な勝率（ポットオッズ${potOdds}%）を下回ります。現在の役は「${ev.name}」で、降りてチップを守る局面です`;
+    }
+    App.showHint(`最適なアクション： ${rec}`, `根拠： ${why}`);
     App.showToast(`AIヒント: 推定勝率 ${pct}% — ${rec}`);
     SoundEngine.chime();
   }
 
-  return { init, showHint, resign };
+  return { init, undo, showHint, resign };
 })();
 
 /* ==========================================================================
