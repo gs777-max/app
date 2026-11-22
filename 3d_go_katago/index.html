@@ -2003,7 +2003,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label for="api-url-input" class="block font-bold text-gold-bright mb-1" data-i18n="eng_url_lbl">接続先 KataGo API URL（任意）</label>
-              <input id="api-url-input" type="url" placeholder="https://your-katago-api.example.com/analyze" class="wa-input w-full rounded-xl px-3 py-2 text-xs sm:text-sm" />
+              <input id="api-url-input" type="url" placeholder="http://localhost:8080/analyze（自宅KataGo解析サーバ等）" class="wa-input w-full rounded-xl px-3 py-2 text-xs sm:text-sm" />
             </div>
             <div>
               <label for="api-token-input" class="block font-bold text-gold-bright mb-1" data-i18n="eng_tok_lbl">認証トークン / Bearer Key（任意）</label>
@@ -2014,7 +2014,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div class="sm:col-span-1">
               <label for="api-visits-input" class="block font-bold text-gold-bright mb-1" data-i18n="eng_visits_lbl">探索回数 (maxVisits)</label>
-              <input id="api-visits-input" type="number" min="20" max="5000" value="250" class="wa-input w-full rounded-xl px-3 py-2 text-xs sm:text-sm font-mono-num" />
+              <input id="api-visits-input" type="number" min="20" max="50000" value="1000" class="wa-input w-full rounded-xl px-3 py-2 text-xs sm:text-sm font-mono-num" />
             </div>
             <div class="sm:col-span-1">
               <label for="api-model-select" class="block font-bold text-gold-bright mb-1" data-i18n="eng_model_lbl">モデルアーキテクチャ</label>
@@ -3937,7 +3937,7 @@
           wHero("machao", "錦", "#1b283b", "#09101a", "#60a5fa", "plume", false, "馬超（錦馬超）", "Ma Chao", "马超", "마초", "西涼の獅子", "Splendid Horse", "西涼鐵騎 潼關を圧す", "「西涼鉄騎のごとき怒涛の連撃を見よ！」", "\"Behold the relentless thunder of western cavalry!\"", "「西凉铁骑，长驱万里如破竹！」", "「서량 철기군처럼 거침없는 연타를 보시오!」"),
           wHero("lvmeng", "刮", "#1f2438", "#0b0d17", "#a5b4fc", "crown", false, "呂蒙（士別三日）", "Lv Meng", "吕蒙", "여몽", "刮目相待の智将", "Self-Taught Strategist", "士別三日 刮目相待", "「昨日の我にあらず。隅から中央まで読み切るぞ。」", "\"Look anew—every corner and center is mapped.\"", "「士别三日，自当刮目相看！」", "「사흘 만에 괄목상대할 수읽기를 보여드리리다.」")
         ] },
-      { level: 7, rollouts: 185, noise: 0.08, style: "cosmic",
+      { level: 7, rollouts: 700, thinkMs: 1500, noise: 0.08, style: "cosmic",
         rank: { ja: "プロ九段・赤壁の智将群", en: "9-dan Legends · Grand Tacticians", zh: "职业九段 · 大都督智将", ko: "프로 9단 · 대도독 지장" },
         warriors: [
           wHero("zhouyu", "周", "#311218", "#150609", "#fca5a5", "crown", true, "周瑜（美周郎・大都督）", "Zhou Yu (Great Commander)", "周瑜", "주유", "赤壁を焼きし雅将", "Architect of Red Cliff", "遙想公瑾當年 羽扇綸巾", "「赤壁の炎ごとく盤面全体を模様に包み込もう。」", "\"Like flames across Red Cliff, my influence spans all!\"", "「谈笑间赤壁火起，全盘风云尽在掌中！」", "「적벽의 불길처럼 반상 전체를 세력으로 물들이겠소.」"),
@@ -3945,7 +3945,7 @@
           wHero("luxun", "火", "#2f1b18", "#130908", "#fb923c", "plume", false, "陸遜（伯言）", "Lu Xun", "陆逊", "육손", "夷陵の火計", "Fire Strategist of Yiling", "火燒連營 七百里を照らす", "「連なる敵陣に静かに火種を置かせていただこう。」", "\"A single spark patiently turns connected camps to ash.\"", "「静待时机，一举火烧连营！」", "「기다림 끝에 적의 대진을 불태울 불씨를 놓겠소.」"),
           wHero("weiqing", "漢", "#1e2a24", "#0a110e", "#6ee7b7", "star", false, "衛青（大将軍・長平侯）", "Wei Qing", "卫青", "위청", "漢室を守る常勝将", "Ever-Victorious General", "七征匈奴 未だ嘗て敗れず", "「奇を衒わぬ王道の大陣形、押し返せますかな。」", "\"Orthodox formation sweeps across the frontier.\"", "「正大堂皇之阵，步步推进！」", "「정대하고 흐트러짐 없는 대진으로 압박하겠소.」")
         ] },
-      { level: 8, rollouts: 235, noise: 0.05, style: "endgame",
+      { level: 8, rollouts: 1800, thinkMs: 3000, noise: 0.05, style: "endgame",
         rank: { ja: "世界王者級・無双の覇者", en: "World Champion · Unrivaled Lords", zh: "世界冠军 · 盖世枭雄", ko: "세계 챔피언급 · 무쌍 패자" },
         warriors: [
           wHero("lvbu", "無", "#351018", "#160508", "#fbbf24", "horns", true, "呂布（飛将軍・天下無双）", "Lv Bu (Flying General)", "吕布", "여포", "人中の呂布・一騎当千", "Matchless Warrior", "人中呂布 馬中赤兔", "「天下無双の方天画戟！何人たりとも遮れぬ！」", "\"None under heaven withstand the Halberd!\"", "「方天画戟所指，谁敢挡我锋芒！」", "「방천화극 앞을 가로막을 자는 천하에 없다!」"),
@@ -3953,7 +3953,7 @@
           wHero("huoqubing", "冠", "#162d2c", "#061111", "#2dd4bf", "star", true, "霍去病（冠軍侯）", "Huo Qubing", "霍去病", "곽거병", "封狼居胥の疾風", "Lightning Marshal", "匈奴未滅 何以家爲", "「疾風のごとく敵の根幹を貫く！一瞬も見逃すな。」", "\"Swift as a hurricane across the northern steppe!\"", "「封狼居胥，一往无前！」", "「질풍처럼 적의 심장부를 꿰뚫겠다!」"),
           wHero("baiqi", "殺", "#2b161b", "#120709", "#f43f5e", "halberd", false, "白起（戦国人屠・武安君）", "Bai Qi", "白起", "백기", "無敗の戦神", "Undefeated Butcher of Qin", "伊闕長平 百戦百勝", "「死活の退路は既にすべて封じた。逃れられんぞ。」", "\"Every escape route is sealed with mathematical rigor.\"", "「十面埋伏，退路已绝！」", "「사활의 퇴로는 이미 전부 봉쇄했노라.」")
         ] },
-      { level: 9, rollouts: 300, noise: 0.03, style: "creative",
+      { level: 9, rollouts: 4000, thinkMs: 6000, noise: 0.03, style: "creative",
         rank: { ja: "棋聖級・神算の軍師", en: "Grandmaster · Divine Strategists", zh: "棋圣级 · 千古谋圣", ko: "기성급 · 신산 군사" },
         warriors: [
           wHero("zhugeliang", "臥", "#1a2834", "#080e14", "#facc15", "plume", true, "諸葛亮（臥龍・孔明）", "Zhuge Liang (Sleeping Dragon)", "诸葛亮", "제갈량", "八陣図を描く稀代の丞相", "Sleeping Dragon", "鞠躬盡瘁 死而後已", "「八陣図すでに成れり。静かに次の一手をお待ちを。」", "\"The Eight-Trigram formation is set. Choose wisely.\"", "「八阵图已成，全局尽在羽扇之中。」", "「팔진도가 이미 반상 위에 완성되었소.」"),
@@ -3961,7 +3961,7 @@
           wHero("sunwu", "孫", "#22241c", "#0c0e09", "#fde047", "crown", true, "孫武（兵聖・孫子）", "Sun Tzu (Master Sun)", "孙武", "손무", "兵法十三篇の祖", "Sage of War", "不戰而屈人之兵 善之善者也", "「戦わずして大局を制す。形勢の理に従え。」", "\"Subdue the opponent effortlessly through superior shape.\"", "「兵者诡道也，善战者致人而不致于人。」", "「싸우지 않고도 대세를 제압함이 병법의 극치요.」"),
           wHero("zhangliang", "謀", "#1c2238", "#080b15", "#93c5fd", "plume", false, "張良（留侯・謀聖）", "Zhang Liang", "张良", "장량", "帷幄の中に勝を決する智聖", "Sage of Counsel", "運籌帷幄 決勝千里", "「帷幄の一手こそ、盤上千里の勝敗を決します。」", "\"One quiet plan in the tent settles a thousand li.\"", "「运筹帷幄之中，决胜千里之外。」", "「조용한 한 수가 천 리 밖의 승부를 가릅니다.」")
         ] },
-      { level: 10, rollouts: 380, noise: 0.01, style: "katago",
+      { level: 10, rollouts: 10000, thinkMs: 12000, noise: 0, style: "katago",
         rank: { ja: "プロ九段超・千古の覇王", en: "Superhuman 9d+ · Eternal Sovereigns", zh: "超九段・千古一帝与棋圣", ko: "프로 9단 초월 · 천고 패왕" },
         warriors: [
           wHero("xiangyu", "覇", "#2d0b12", "#0c0204", "#fbbf24", "horns", true, "項羽（西楚の覇王）", "Xiang Yu (Overlord of Chu)", "项羽", "항우", "力山を抜く背水の英雄", "Hegemon-King of Chu", "力拔山兮氣蓋世", "「背水の陣を敷き、全力をもって一石一石を打ち下ろす！」", "\"Burning the boats—every move carries sovereign force!\"", "「破釜沉舟，力拔山兮气盖世！」", "「파부침주의 각오로 반상을 압도하리라!」"),
@@ -3991,9 +3991,9 @@
       { key: '1d',  rollouts: 82, noise: 0.17, style: 'solid',      label: { ja: 'アマ初段', en: '1-dan',  zh: '业余初段', ko: '아마 초단' } },
       { key: '2d',  rollouts: 100, noise: 0.14, style: 'fighting',  label: { ja: 'アマ二段', en: '2-dan',  zh: '业余二段', ko: '아마 2단' } },
       { key: '3d',  rollouts: 120, noise: 0.12, style: 'fighting',  label: { ja: 'アマ三段', en: '3-dan',  zh: '业余三段', ko: '아마 3단' } },
-      { key: '5d',  rollouts: 155, noise: 0.09, style: 'precise',   label: { ja: 'アマ五段', en: '5-dan',  zh: '业余五段', ko: '아마 5단' } },
-      { key: '7d',  rollouts: 210, noise: 0.06, style: 'creative',  label: { ja: 'アマ七段', en: '7-dan',  zh: '业余七段', ko: '아마 7단' } },
-      { key: '9d',  rollouts: 290, noise: 0.03, style: 'katago',    label: { ja: 'プロ九段', en: 'Pro 9d', zh: '职业九段', ko: '프로 9단' } }
+      { key: '5d',  rollouts: 1200, thinkMs: 2000, noise: 0.09, style: 'precise',   label: { ja: 'アマ五段', en: '5-dan',  zh: '业余五段', ko: '아마 5단' } },
+      { key: '7d',  rollouts: 3000, thinkMs: 4000, noise: 0.06, style: 'creative',  label: { ja: 'アマ七段', en: '7-dan',  zh: '业余七段', ko: '아마 7단' } },
+      { key: '9d',  rollouts: 8000, thinkMs: 10000, noise: 0.01, style: 'katago',    label: { ja: 'プロ九段', en: 'Pro 9d', zh: '职业九段', ko: '프로 9단' } }
     ];
     const HUMAN_SL_MAP = Object.fromEntries(HUMAN_SL_RANKS.map(r => [r.key, r]));
 
@@ -5377,21 +5377,24 @@
         if (y > 0) res.push([x, y - 1]); if (y < h - 1) res.push([x, y + 1]);
         return res;
       }
+      let _gStamp = new Int32Array(0), _gStampId = 0, _lStamp = new Int32Array(0), _lStampId = 0;
       function getGroup(board, w, h, sx, sy) {
         const c = board[sy * w + sx];
-        if (c === EMPTY) return { stones: [], libs: new Set() };
-        const visited = new Uint8Array(w * h), stones = [], libs = new Set(), stack = [[sx, sy]];
-        visited[sy * w + sx] = 1;
+        if (c === EMPTY) return { stones: [], libs: [], libsSize: 0 };
+        const total = w * h;
+        if (_gStamp.length < total) { _gStamp = new Int32Array(total); _lStamp = new Int32Array(total); }
+        _gStampId++; _lStampId++;
+        const stones = [], libs = [], stack = [sy * w + sx];
+        _gStamp[sy * w + sx] = _gStampId;
         while (stack.length) {
-          const [cx, cy] = stack.pop(); stones.push([cx, cy]);
-          const nbs = getNeighbors(cx, cy, w, h);
-          for (let i = 0; i < nbs.length; i++) {
-            const [nx, ny] = nbs[i], ni = ny * w + nx, nc = board[ni];
-            if (nc === EMPTY) libs.add(ni);
-            else if (nc === c && !visited[ni]) { visited[ni] = 1; stack.push([nx, ny]); }
-          }
+          const cur = stack.pop(); stones.push(cur);
+          const cx = cur % w, cy = (cur / w) | 0;
+          if (cx > 0) { const n = cur - 1, v = board[n]; if (v === EMPTY) { if (_lStamp[n] !== _lStampId) { _lStamp[n] = _lStampId; libs.push(n); } } else if (v === c && _gStamp[n] !== _gStampId) { _gStamp[n] = _gStampId; stack.push(n); } }
+          if (cx < w - 1) { const n = cur + 1, v = board[n]; if (v === EMPTY) { if (_lStamp[n] !== _lStampId) { _lStamp[n] = _lStampId; libs.push(n); } } else if (v === c && _gStamp[n] !== _gStampId) { _gStamp[n] = _gStampId; stack.push(n); } }
+          if (cy > 0) { const n = cur - w, v = board[n]; if (v === EMPTY) { if (_lStamp[n] !== _lStampId) { _lStamp[n] = _lStampId; libs.push(n); } } else if (v === c && _gStamp[n] !== _gStampId) { _gStamp[n] = _gStampId; stack.push(n); } }
+          if (cy < h - 1) { const n = cur + w, v = board[n]; if (v === EMPTY) { if (_lStamp[n] !== _lStampId) { _lStamp[n] = _lStampId; libs.push(n); } } else if (v === c && _gStamp[n] !== _gStampId) { _gStamp[n] = _gStampId; stack.push(n); } }
         }
-        return { stones, libs };
+        return { stones, libs, libsSize: libs.length };
       }
       function isOwnEye(board, w, h, x, y, color) {
         const nbs = getNeighbors(x, y, w, h);
@@ -5399,7 +5402,7 @@
         let diagEnemy = 0, diagCnt = 0;
         const diags = [[x-1,y-1],[x+1,y-1],[x-1,y+1],[x+1,y+1]];
         for (let i = 0; i < 4; i++) {
-          const [dx, dy] = diags[i];
+          const dx = diags[i][0], dy = diags[i][1];
           if (dx >= 0 && dx < w && dy >= 0 && dy < h) {
             diagCnt++;
             if (board[dy * w + dx] === (color === BLACK ? WHITE : BLACK)) diagEnemy++;
@@ -5415,36 +5418,18 @@
         let captured = 0;
         const nbs = getNeighbors(x, y, w, h);
         for (let i = 0; i < nbs.length; i++) {
-          const [nx, ny] = nbs[i];
+          const nx = nbs[i][0], ny = nbs[i][1];
           if (next[ny * w + nx] === opp) {
             const grp = getGroup(next, w, h, nx, ny);
-            if (grp.libs.size === 0) {
+            if (grp.libsSize === 0) {
               captured += grp.stones.length;
-              for (let j = 0; j < grp.stones.length; j++) next[grp.stones[j][1] * w + grp.stones[j][0]] = EMPTY;
+              for (let j = 0; j < grp.stones.length; j++) next[grp.stones[j]] = EMPTY;
             }
           }
         }
         const selfGrp = getGroup(next, w, h, x, y);
-        if (selfGrp.libs.size === 0) return null;
-        return { next, captured, selfLibs: selfGrp.libs.size };
-      }
-      function quickScore(board, w, h, komi) {
-        let b = 0, wh = komi;
-        for (let y = 0; y < h; y++) {
-          for (let x = 0; x < w; x++) {
-            const c = board[y * w + x];
-            if (c === BLACK) b++; else if (c === WHITE) wh++;
-            else {
-              let tb = 0, tw = 0;
-              if (x > 0) { const v = board[y*w+x-1]; if (v===BLACK) tb++; else if (v===WHITE) tw++; }
-              if (x < w-1) { const v = board[y*w+x+1]; if (v===BLACK) tb++; else if (v===WHITE) tw++; }
-              if (y > 0) { const v = board[(y-1)*w+x]; if (v===BLACK) tb++; else if (v===WHITE) tw++; }
-              if (y < h-1) { const v = board[(y+1)*w+x]; if (v===BLACK) tb++; else if (v===WHITE) tw++; }
-              if (tb > 0 && tw === 0) b += 0.9; else if (tw > 0 && tb === 0) wh += 0.9;
-            }
-          }
-        }
-        return b - wh;
+        if (selfGrp.libsSize === 0) return null;
+        return { next, captured, selfLibs: selfGrp.libsSize };
       }
       function evaluateCandidate(board, w, h, x, y, color, moveCount, lastMove, style) {
         if (isOwnEye(board, w, h, x, y, color)) return { score: -999, tags: [] };
@@ -5459,14 +5444,13 @@
         const nbs = getNeighbors(x, y, w, h);
         let savedAtari = 0, putOppAtari = 0, adjOwn = 0, adjOpp = 0;
         for (let i = 0; i < nbs.length; i++) {
-          const [nx, ny] = nbs[i], nc = board[ny * w + nx];
-          if (nc === color) { adjOwn++; const g = getGroup(board, w, h, nx, ny); if (g.libs.size === 1) savedAtari += g.stones.length; }
-          else if (nc === opp) { adjOpp++; const ga = getGroup(sim.next, w, h, nx, ny); if (ga.libs.size === 1) putOppAtari += ga.stones.length; }
+          const nx = nbs[i][0], ny = nbs[i][1], nc = board[ny * w + nx];
+          if (nc === color) { adjOwn++; const g = getGroup(board, w, h, nx, ny); if (g.libsSize === 1) savedAtari += g.stones.length; }
+          else if (nc === opp) { adjOpp++; const ga = getGroup(sim.next, w, h, nx, ny); if (ga.libsSize === 1) putOppAtari += ga.stones.length; }
         }
         if (savedAtari > 0 && sim.selfLibs >= 2) { score += 50 + savedAtari * 24; tags.push({ type: "save_atari", weight: 90, count: savedAtari }); }
         if (putOppAtari > 0 && sim.selfLibs >= 2) { score += 35 + putOppAtari * 14; tags.push({ type: "atari", weight: 76, count: putOppAtari }); }
         if (sim.selfLibs === 1 && sim.captured === 0) score -= 45;
-
         const dX = Math.min(x, w - 1 - x), dY = Math.min(y, h - 1 - y), minE = Math.min(dX, dY), minDim = Math.min(w, h);
         if (moveCount < minDim * 1.45) {
           const star = minDim >= 13 ? 3 : (minDim >= 7 ? 2 : 1);
@@ -5496,69 +5480,272 @@
         if (tags.length === 0) tags.push({ type: moveCount > w * h * 0.55 ? "endgame" : "moyo", weight: 30 });
         return { score, tags, sim };
       }
-      function runPlayout(startBoard, w, h, startColor, komi, maxSteps) {
-        const b = new Int8Array(startBoard); let color = startColor; const total = w * h; let passes = 0;
+      /* ===== 最強化エンジン (v3): 本格UCT-MCTS + 終局までプレイアウト + 洪水填充地計算 ===== */
+      function finalScore(board, w, h, komi) {
+        const total = w * h, seen = new Uint8Array(total);
+        let bScore = 0, wScore = komi;
+        for (let i = 0; i < total; i++) {
+          const c = board[i];
+          if (c === BLACK) { bScore++; continue; }
+          if (c === WHITE) { wScore++; continue; }
+          if (seen[i]) continue;
+          let region = 0, touchB = false, touchW = false;
+          const stack = [i]; seen[i] = 1;
+          while (stack.length) {
+            const cur = stack.pop(); region++;
+            const cx = cur % w, cy = (cur / w) | 0;
+            if (cx > 0) { const n = cur - 1, v = board[n]; if (v === BLACK) touchB = true; else if (v === WHITE) touchW = true; else if (!seen[n]) { seen[n] = 1; stack.push(n); } }
+            if (cx < w - 1) { const n = cur + 1, v = board[n]; if (v === BLACK) touchB = true; else if (v === WHITE) touchW = true; else if (!seen[n]) { seen[n] = 1; stack.push(n); } }
+            if (cy > 0) { const n = cur - w, v = board[n]; if (v === BLACK) touchB = true; else if (v === WHITE) touchW = true; else if (!seen[n]) { seen[n] = 1; stack.push(n); } }
+            if (cy < h - 1) { const n = cur + w, v = board[n]; if (v === BLACK) touchB = true; else if (v === WHITE) touchW = true; else if (!seen[n]) { seen[n] = 1; stack.push(n); } }
+          }
+          if (touchB && !touchW) bScore += region;
+          else if (touchW && !touchB) wScore += region;
+        }
+        return bScore - wScore;
+      }
+      function playout(boardIn, w, h, startColor, komi, lastIdx) {
+        const b = new Int8Array(boardIn), total = w * h;
+        let color = startColor, passes = 0, last = lastIdx;
+        const maxSteps = Math.floor(total * 1.7) + 20;
         for (let step = 0; step < maxSteps; step++) {
-          let moved = false; const startIdx = Math.floor(Math.random() * total);
-          for (let k = 0; k < Math.min(total, 26); k++) {
-            const idx = (startIdx + k * 7) % total;
+          let chosenIdx = -1;
+          if (last >= 0 && Math.random() < 0.75) {
+            const lx = last % w, ly = (last / w) | 0, oppC = color === BLACK ? WHITE : BLACK;
+            const seenG = new Set();
+            let bestVal = 0, bestUndo = null;
+            for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+              const x = lx + dx, y = ly + dy;
+              if (x < 0 || x >= w || y < 0 || y >= h) continue;
+              const idx = y * w + x, c = b[idx];
+              if (c === EMPTY || seenG.has(idx)) continue;
+              const g = getGroup(b, w, h, x, y);
+              for (let j = 0; j < g.stones.length; j++) seenG.add(g.stones[j]);
+              if (g.libsSize !== 1) continue;
+              const libIdx = g.libs[0], libX = libIdx % w, libY = (libIdx / w) | 0;
+              if (isOwnEye(b, w, h, libX, libY, color)) continue;
+              const undo = applyWithUndo(b, w, h, libIdx, color);
+              if (!undo) continue;
+              let val = 0;
+              if (c === oppC && undo.captured.length > 0) val = 100 + undo.captured.length * 30;
+              else if (c === color && (undo.selfLibs >= 2 || undo.captured.length > 0)) val = 80 + g.stones.length * 20;
+              if (val > bestVal) {
+                if (bestUndo) undoMove(b, bestUndo, color);
+                bestVal = val; bestUndo = undo; chosenIdx = libIdx;
+              } else undoMove(b, undo, color);
+            }
+            if (bestUndo) { passes = 0; last = chosenIdx; color = color === BLACK ? WHITE : BLACK; continue; }
+          }
+          let applied = false;
+          for (let tries = 0; tries < 28 && !applied; tries++) {
+            const idx = Math.floor(Math.random() * total);
             if (b[idx] !== EMPTY) continue;
             const x = idx % w, y = (idx / w) | 0;
             if (isOwnEye(b, w, h, x, y, color)) continue;
-            const sim = tryMove(b, w, h, x, y, color);
-            if (sim && (sim.selfLibs > 1 || sim.captured > 0)) { b.set(sim.next); moved = true; passes = 0; break; }
+            const undo = applyWithUndo(b, w, h, idx, color);
+            if (undo && (undo.selfLibs > 1 || undo.captured.length > 0)) { chosenIdx = idx; applied = true; break; }
+            if (undo) undoMove(b, undo, color);
           }
-          if (!moved) { passes++; if (passes >= 2) break; }
+          if (!applied) {
+            const startIdx = Math.floor(Math.random() * total);
+            for (let k = 0; k < total; k++) {
+              const idx = (startIdx + k) % total;
+              if (b[idx] !== EMPTY) continue;
+              const x = idx % w, y = (idx / w) | 0;
+              if (isOwnEye(b, w, h, x, y, color)) continue;
+              const undo = applyWithUndo(b, w, h, idx, color);
+              if (undo && (undo.selfLibs > 1 || undo.captured.length > 0)) { chosenIdx = idx; applied = true; break; }
+              if (undo) undoMove(b, undo, color);
+            }
+          }
+          if (!applied) { passes++; if (passes >= 2) break; last = -1; }
+          else { passes = 0; last = chosenIdx; }
           color = color === BLACK ? WHITE : BLACK;
         }
-        return quickScore(b, w, h, komi);
+        return finalScore(b, w, h, komi);
+      }
+      function makeNode(board, colorToMove) {
+        return { board, color: colorToMove, children: null, visits: 0, value: 0 };
+      }
+      // 高速着手 (in-place + undo記録)。合法なら undo オブジェクト、非合法なら null。
+      function applyWithUndo(board, w, h, idx, color) {
+        if (board[idx] !== EMPTY) return null;
+        const opp = color === BLACK ? WHITE : BLACK;
+        const x = idx % w, y = (idx / w) | 0;
+        board[idx] = color;
+        const captured = [];
+        const nbs = getNeighbors(x, y, w, h);
+        for (let i = 0; i < nbs.length; i++) {
+          const nx = nbs[i][0], ny = nbs[i][1];
+          if (board[ny * w + nx] === opp) {
+            const grp = getGroup(board, w, h, nx, ny);
+            if (grp.libsSize === 0) for (let j = 0; j < grp.stones.length; j++) { const si = grp.stones[j]; board[si] = EMPTY; captured.push(si); }
+          }
+        }
+        const selfGrp = getGroup(board, w, h, x, y);
+        if (selfGrp.libsSize === 0) {
+          board[idx] = EMPTY;
+          for (let j = 0; j < captured.length; j++) board[captured[j]] = opp;
+          return null;
+        }
+        return { idx, captured, selfLibs: selfGrp.libsSize };
+      }
+      function undoMove(board, undo, color) {
+        const opp = color === BLACK ? WHITE : BLACK;
+        board[undo.idx] = EMPTY;
+        for (let j = 0; j < undo.captured.length; j++) board[undo.captured[j]] = opp;
+      }
+      // 軽量 prior: 隣接連の情報だけで候補手を採点する (展開を高速化)
+      function lightPrior(board, w, h, idx, color, lastIdx, moveCount) {
+        const x = idx % w, y = (idx / w) | 0;
+        if (isOwnEye(board, w, h, x, y, color)) return -1;
+        const undo = applyWithUndo(board, w, h, idx, color);
+        if (!undo) return -1;
+        const opp = color === BLACK ? WHITE : BLACK;
+        let prior = 0.16 + Math.min(undo.selfLibs, 4) * 0.02;
+        if (undo.captured.length > 0) prior += 0.34 + undo.captured.length * 0.08;
+        const nbs = getNeighbors(x, y, w, h);
+        for (let i = 0; i < nbs.length; i++) {
+          const nx = nbs[i][0], ny = nbs[i][1], v = board[ny * w + nx];
+          if (v === opp) { const g = getGroup(board, w, h, nx, ny); if (g.libsSize === 1) prior += 0.18; }
+        }
+        undoMove(board, undo, color);
+        if (lastIdx >= 0) {
+          const md = Math.abs(x - (lastIdx % w)) + Math.abs(y - ((lastIdx / w) | 0));
+          if (md <= 2) prior += 0.10; else if (md <= 4) prior += 0.04;
+        }
+        const total = w * h;
+        if (moveCount < total * 0.12) {
+          const dX = Math.min(x, w - 1 - x), dY = Math.min(y, h - 1 - y), minDim = Math.min(w, h);
+          const star = minDim >= 13 ? 3 : (minDim >= 7 ? 2 : 1);
+          if (dX === star && dY === star) prior += 0.20;
+          else if (minDim >= 13 && ((dX === 2 && dY === 3) || (dX === 3 && dY === 2))) prior += 0.19;
+          else if (dX === 2 && dY === 2) prior += 0.15;
+          else if (Math.min(dX, dY) === 0) prior -= 0.10;
+        }
+        return Math.max(0.02, Math.min(1, prior));
+      }
+      function expandNode(node, w, h, moveCount, lastIdx) {
+        const total = w * h, cand = new Uint8Array(total);
+        let stones = 0;
+        for (let idx = 0; idx < total; idx++) {
+          if (node.board[idx] === EMPTY) continue;
+          stones++;
+          const x = idx % w, y = (idx / w) | 0;
+          for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+            const xx = x + dx, yy = y + dy;
+            if (xx >= 0 && xx < w && yy >= 0 && yy < h) cand[yy * w + xx] = 1;
+          }
+        }
+        if (stones < 6) {
+          const minDim = Math.min(w, h), star = minDim >= 13 ? 3 : (minDim >= 7 ? 2 : 1);
+          for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+            const dX = Math.min(x, w - 1 - x), dY = Math.min(y, h - 1 - y);
+            if ((dX === star && dY === star) || (dX === 2 && dY === 3) || (dX === 3 && dY === 2) || (dX === 2 && dY === 2) || (dX === star && dY === 2) || (dX === 2 && dY === star)) cand[y * w + x] = 1;
+          }
+          const cx = (w - 1) / 2 | 0, cy = (h - 1) / 2 | 0;
+          cand[cy * w + cx] = 1;
+        }
+        const list = [];
+        for (let idx = 0; idx < total; idx++) {
+          if (!cand[idx] || node.board[idx] !== EMPTY) continue;
+          const prior = lightPrior(node.board, w, h, idx, node.color, lastIdx, moveCount);
+          if (prior < 0) continue;
+          list.push({ idx, x: idx % w, y: (idx / w) | 0, prior, tags: null, node: null, visits: 0, value: 0 });
+        }
+        list.sort((a, b2) => b2.prior - a.prior);
+        node.children = list.slice(0, moveCount < 2 ? 44 : 26);
+        return node.children;
       }
       self.onmessage = function(e) {
-        const { id, mode, board, width, height, color, komi, moveCount, lastMove, rollouts, noise, style, colLetters } = e.data;
-        const w = width, h = height, candidates = [];
-        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-          if (board[y * w + x] !== EMPTY) continue;
-          const ev = evaluateCandidate(board, w, h, x, y, color, moveCount, lastMove, style);
-          if (ev.score > -500) candidates.push({ x, y, heuristic: ev.score, tags: ev.tags, sim: ev.sim });
-        }
-        if (candidates.length === 0) { self.postMessage({ id, mode, pass: true, topMoves: [] }); return; }
-        candidates.sort((a, b) => b.heuristic - a.heuristic);
-        if (mode === 'play' && moveCount > w * h * 0.78 && lastMove && lastMove.pass && candidates[0].heuristic < 8) {
-          self.postMessage({ id, mode, pass: true, topMoves: [] });
-          return;
-        }
-        const pool = candidates.slice(0, Math.min(candidates.length, 14));
-        const totalRollouts = Math.max(pool.length * 2, rollouts);
-        const depth = Math.min(36, Math.max(20, Math.floor((w + h) * 1.4)));
-        const opp = color === BLACK ? WHITE : BLACK;
-        for (let i = 0; i < pool.length; i++) { pool[i].visits = 0; pool[i].wins = 0; }
-        for (let r = 0; r < totalRollouts; r++) {
-          let bestIdx = 0, bestUct = -Infinity;
-          for (let i = 0; i < pool.length; i++) {
-            const c = pool[i];
-            if (c.visits === 0) { bestIdx = i; break; }
-            const uct = (c.wins / c.visits) + 1.15 * Math.max(0.05, (c.heuristic + 40) / 140) * Math.sqrt(Math.log(r + 1) / c.visits);
-            if (uct > bestUct) { bestUct = uct; bestIdx = i; }
+        const d = e.data;
+        const id = d.id, mode = d.mode, w = d.width, h = d.height, color = d.color, komi = d.komi || 0;
+        const moveCount = d.moveCount || 0, lastMove = d.lastMove || null, style = d.style || "katago", noise = d.noise || 0, colLetters = d.colLetters;
+        const board = Int8Array.from(d.board);
+        const total = w * h;
+        const visitsTarget = Math.max(16, d.rollouts || 200);
+        const areaFactor = Math.max(0.12, Math.min(1, total / 361));
+        const timeMs = d.thinkMs && d.thinkMs > 0 ? Math.max(60, Math.round(d.thinkMs * (0.35 + 0.65 * areaFactor))) : Math.min(9000, visitsTarget * 3);
+        const deadline = Date.now() + timeMs;
+        const lastIdx = lastMove && !lastMove.pass && lastMove.x >= 0 ? lastMove.y * w + lastMove.x : -1;
+        const root = makeNode(board, color); root.lastIdx = lastIdx;
+        const rootChildren = expandNode(root, w, h, moveCount, lastIdx);
+        if (rootChildren.length === 0) { self.postMessage({ id, mode, pass: true, topMoves: [] }); return; }
+        let iterations = 0;
+        const cpuct = 1.35;
+        while (iterations < visitsTarget) {
+          let node = root; const path = [root];
+          while (node.children && node.children.length > 0) {
+            let bestChild = null, bestScore = -Infinity;
+            const sqrtN = Math.sqrt(Math.max(1, node.visits));
+            for (let i = 0; i < node.children.length; i++) {
+              const ch = node.children[i];
+              if (!ch.node) { bestChild = ch; break; }
+              const q = ch.node.value / Math.max(1, ch.node.visits);
+              const u = cpuct * ch.prior * sqrtN / (1 + ch.node.visits);
+              const s = q + u;
+              if (s > bestScore) { bestScore = s; bestChild = ch; }
+            }
+            if (!bestChild) break;
+            if (!bestChild.node) {
+              const sim = tryMove(node.board, w, h, bestChild.x, bestChild.y, node.color);
+              if (!sim) { bestChild.prior = -1; node.children.splice(node.children.indexOf(bestChild), 1); break; }
+              bestChild.node = makeNode(sim.next, node.color === BLACK ? WHITE : BLACK);
+              bestChild.node.lastIdx = bestChild.idx;
+              node = bestChild.node; path.push(node);
+              break;
+            }
+            node = bestChild.node; path.push(node);
           }
-          const ch = pool[bestIdx];
-          const sc = runPlayout(ch.sim.next, w, h, opp, komi, depth);
-          ch.visits++;
-          if (color === BLACK ? (sc > 0) : (sc < 0)) ch.wins += 1; else if (sc === 0) ch.wins += 0.5;
+          if (!node.children) expandNode(node, w, h, moveCount + path.length, node.lastIdx != null ? node.lastIdx : -1);
+          const sc = playout(node.board, w, h, node.color, komi, node.lastIdx != null ? node.lastIdx : -1);
+          const blackVal = 1 / (1 + Math.exp(-sc / 7));
+          let mover = node.color === BLACK ? WHITE : BLACK;
+          for (let i = path.length - 1; i >= 1; i--) {
+            const nd = path[i];
+            nd.visits++;
+            nd.value += mover === BLACK ? blackVal : (1 - blackVal);
+            mover = mover === BLACK ? WHITE : BLACK;
+          }
+          root.visits++;
+          iterations++;
+          if ((iterations & 31) === 0 && Date.now() > deadline) break;
         }
-        for (let i = 0; i < pool.length; i++) {
-          const c = pool[i], wr = c.visits > 0 ? (c.wins / c.visits) : 0.5, hNorm = Math.max(0, Math.min(1, (c.heuristic + 20) / 110));
-          c.finalScore = wr * 0.52 + hNorm * 0.48 + (mode === 'analyze' ? 0 : (Math.random() - 0.5) * noise);
-          c.winRatePct = Math.max(4, Math.min(96, (wr * 0.65 + hNorm * 0.35) * 100));
+        for (let i = 0; i < rootChildren.length; i++) {
+          const ch = rootChildren[i];
+          ch.visits = ch.node ? ch.node.visits : 0;
+          ch.value = ch.node ? ch.node.value : 0;
         }
-        pool.sort((a, b) => b.finalScore - a.finalScore);
-        const top3 = pool.slice(0, 3).map((c) => {
-          c.tags.sort((a, b) => b.weight - a.weight);
-          const topTag = c.tags[0] || { type: "moyo", count: 0 };
-          return { x: c.x, y: c.y, coord: colLetters[c.x] + (h - c.y), winRate: Number(c.winRatePct.toFixed(1)), tagType: topTag.type, count: topTag.count || 0 };
+        const ranked = rootChildren.filter(c => c.visits > 0).sort((a, b) => (b.visits - a.visits) || ((b.value / Math.max(1, b.visits)) - (a.value / Math.max(1, a.visits))));
+        if (ranked.length === 0) { self.postMessage({ id, mode, pass: true, topMoves: [] }); return; }
+        const toMove = ranked.slice(0, 3).map(c => {
+          const wr = Math.max(1, Math.min(99, (c.value / Math.max(1, c.visits)) * 100));
+          const ev = evaluateCandidate(board, w, h, c.x, c.y, color, moveCount, lastMove, style);
+          const tags = (ev.tags || []).slice().sort((a, b) => b.weight - a.weight);
+          const topTag = tags[0] || { type: "moyo", count: 0 };
+          return { x: c.x, y: c.y, coord: colLetters[c.x] + (h - c.y), winRate: Number(wr.toFixed(1)), tagType: topTag.type, count: topTag.count || 0, visits: c.visits };
         });
-        self.postMessage({ id, mode, pass: false, best: top3[0], topMoves: top3 });
+        const allRanked = ranked.map(c => {
+          const wr = Math.max(1, Math.min(99, (c.value / Math.max(1, c.visits)) * 100));
+          return { x: c.x, y: c.y, coord: colLetters[c.x] + (h - c.y), winRate: Number(wr.toFixed(1)), visits: c.visits };
+        });
+        let best = toMove[0];
+        if (mode === 'play') {
+          if (moveCount > total * 0.35 && best.winRate < 3) { self.postMessage({ id, mode, pass: true, topMoves: [] }); return; }
+          if (noise > 0.02 && allRanked.length > 1 && Math.random() < noise) {
+            const poolN = allRanked.slice(0, Math.min(5, allRanked.length));
+            const pick = poolN[Math.floor(Math.random() * poolN.length)];
+            const ev = evaluateCandidate(board, w, h, pick.x, pick.y, color, moveCount, lastMove, style);
+            const tags = (ev.tags || []).slice().sort((a, b) => b.weight - a.weight);
+            const topTag = tags[0] || { type: "moyo", count: 0 };
+            best = { x: pick.x, y: pick.y, coord: pick.coord, winRate: pick.winRate, tagType: topTag.type, count: topTag.count || 0, visits: pick.visits };
+            self.postMessage({ id, mode, pass: false, best, topMoves: [best].concat(toMove.filter(m => m.x !== best.x || m.y !== best.y)).slice(0, 3) });
+            return;
+          }
+        }
+        self.postMessage({ id, mode, pass: false, best, topMoves: toMove });
       };
-    `;
+`;
 
     class HybridKataGoController {
       constructor() {
@@ -5566,7 +5753,7 @@
         this.apiToken = "";
         this.modelName = "transformer-v1.17";
         this.backend = "local-worker";
-        this.maxVisits = 250;
+        this.maxVisits = 1000;
         this.reqId = 0;
         this.pending = new Map();
         try {
@@ -7885,6 +8072,7 @@
         mode: 'play', board: engine.board, width: engine.width, height: engine.height,
         color: aiColor, komi: engine.komi, moveCount: engine.moves.length, lastMove: last,
         rollouts: useHslNow ? hsl.rollouts : p.rollouts,
+        thinkMs: state.gameMode === 'cpu-vs-cpu' ? Math.min((useHslNow ? hsl.thinkMs : p.thinkMs) || 600, 1500) : ((useHslNow ? hsl.thinkMs : p.thinkMs) || 0),
         noise: useHslNow ? hsl.noise : p.noise,
         style: useHslNow ? hsl.style : p.style
       });
@@ -7919,7 +8107,7 @@
       const res = await aiController.request({
         mode: 'analyze', board: engine.board, width: engine.width, height: engine.height,
         color: engine.turn, komi: engine.komi, moveCount: engine.moves.length, lastMove: last,
-        rollouts: 240, noise: 0, style: 'katago'
+        rollouts: 6000, thinkMs: 8000, noise: 0, style: 'katago'
       });
       btn.disabled = false; btn.querySelector('span').textContent = t('btn_best_move');
       const legalTop = (res.topMoves || []).filter(m => engine.checkMove(m.x, m.y, engine.turn).legal);
@@ -7960,7 +8148,7 @@
       btn.disabled = true; btn.querySelector('span').textContent = t('comparing');
       const last = engine.moves[engine.moves.length - 1] || null;
       const [proRes, humRes] = await Promise.all([
-        aiController.request({ mode: 'analyze', board: engine.board, width: engine.width, height: engine.height, color: engine.turn, komi: engine.komi, moveCount: engine.moves.length, lastMove: last, rollouts: 240, noise: 0, style: 'katago' }),
+        aiController.request({ mode: 'analyze', board: engine.board, width: engine.width, height: engine.height, color: engine.turn, komi: engine.komi, moveCount: engine.moves.length, lastMove: last, rollouts: 3000, thinkMs: 4000, noise: 0, style: 'katago' }),
         aiController.request({ mode: 'play', board: engine.board, width: engine.width, height: engine.height, color: engine.turn, komi: engine.komi, moveCount: engine.moves.length, lastMove: last, rollouts: hsl.rollouts, noise: hsl.noise + 0.14, style: hsl.style, useExternalApi: false })
       ]);
       btn.disabled = false; btn.querySelector('span').textContent = t('btn_human_compare');
