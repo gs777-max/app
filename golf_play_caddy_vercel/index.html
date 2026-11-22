@@ -2744,9 +2744,16 @@
     function resolveTeeCoordinate(hole, teeType) {
       // ★ Gold を選べないコース（戸田パブリック）では Gold 要求を White に落とす
       if (teeType === 'gold' && !courseHasGold(currentCourse)) teeType = 'white';
-      const calib = getCalibratedTeePinCoord(currentCourse.id, hole.h, teeType, currentGreenSide);
-      if (calib && Array.isArray(calib.tee) && isValidCoord(calib.tee)) {
-        return [...calib.tee];
+      // ★ v20: キーは正準ホール（デフォルトの h）と同一の物理ホールにのみ適用する
+      if (holeKeyApplies(currentCourse.id, hole)) {
+        const calib = getCalibratedTeePinCoord(currentCourse.id, hole.h, teeType, currentGreenSide);
+        if (calib && Array.isArray(calib.tee) && isValidCoord(calib.tee)) {
+          return [...calib.tee];
+        }
+      }
+      // ★ v20: コンボの埋込ティー座標（calibTees）があればそれを使う（非デフォルトローテーション用）
+      if (hole.calibTees && Array.isArray(hole.calibTees[teeType]) && isValidCoord(hole.calibTees[teeType])) {
+        return [...hole.calibTees[teeType]];
       }
 
       const baseTee = [...hole.tee];
@@ -2772,15 +2779,21 @@
       }
 
       // 2. キャリブレーション登録位置 (手動ドラッグ微調整 - localStorage独立キー)
-      const calib = getCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, greenSide);
-      if (calib && Array.isArray(calib.pin) && isValidCoord(calib.pin)) {
-        return [...calib.pin];
+      // ★ v20: キーは正準ホールと同一の物理ホールにのみ適用する
+      const keyApplies = holeKeyApplies(currentCourse.id, hole);
+      if (keyApplies) {
+        const calib = getCalibratedTeePinCoord(currentCourse.id, hole.h, currentTeeType, greenSide);
+        if (calib && Array.isArray(calib.pin) && isValidCoord(calib.pin)) {
+          return [...calib.pin];
+        }
       }
 
       // 3. 2タップ手動登録位置 (グリーン別)
-      const manual = loadManualHole(currentCourse.id, hole.h, greenSide);
-      if (manual && Array.isArray(manual.pin) && isValidCoord(manual.pin)) {
-        return [...manual.pin];
+      if (keyApplies) {
+        const manual = loadManualHole(currentCourse.id, hole.h, greenSide);
+        if (manual && Array.isArray(manual.pin) && isValidCoord(manual.pin)) {
+          return [...manual.pin];
+        }
       }
 
       // 4. ホールデータ基準座標 (pinL / pinR 独立解決)
@@ -6608,6 +6621,35 @@
     // ★ 組合せ別ホールデータ (例: 27ホールコースの 中→東 / 東→西 / 西→中)
     //    クラウドレコードの combos[組合せ名].holes を、現在のサブコースに一致する節だけ適用する。
     let lastCloudCombosByCourse = {};
+    let lastCloudTopHolesByCourse = {};
+
+    // ★ 正準ホール照合 (v20): 校正キー・手動キーはデフォルト（トップ holes[]／主組合せ）のホール h に対して作られたもの。
+    //   ローテーション（combos）では同じ h が別の物理ホールを指す（例：霞台 h=12 はトップでは霞IN H3、霞⇔筑波では筑波IN H3）。
+    //   キーは「現在のホールが、その h の正準ホールと同じ物理ホールである場合にのみ」適用する。
+    //   不一致ならキーを適用せず、コンボの埋込座標（pinL/pinR・calibPins・calibTees）を残す。
+    //   正準が不明（プリセット無し・クラウド未取得・sub/no欠け）の場合は従来動作（キーを適用）にフォールバックする。
+    function canonicalHoleFor(courseId, h) {
+      try {
+        const preset = getPresetHoles(courseId);
+        if (Array.isArray(preset)) {
+          const f = preset.find(x => x && x.h === h);
+          if (f) return f;
+        }
+      } catch (e) {}
+      const top = lastCloudTopHolesByCourse[courseId];
+      if (Array.isArray(top)) {
+        const f = top.find(x => x && x.h === h);
+        if (f) return f;
+      }
+      return null;
+    }
+    function holeKeyApplies(courseId, hole) {
+      if (!hole || typeof hole.h === 'undefined') return true;
+      const canon = canonicalHoleFor(courseId, hole.h);
+      if (!canon) return true;
+      if (canon.sub == null || canon.no == null || hole.sub == null || hole.no == null) return true;
+      return canon.sub === hole.sub && canon.no === hole.no;
+    }
     function currentComboKey() {
       return ((currentSubCourse && currentSubCourse.name) || '').replace(/コース/g, '').replace(/➔/g, '→').replace(/\s/g, '');
     }
@@ -6615,6 +6657,8 @@
     // ★ Vercel KV のデータを端末へ確実に適用 (スマートマージ & 個別キー生成)
     function applyCloudDataToDevice(courseId, cloudData) {
       if (!cloudData) return;
+      // ★ v20: 正準ホール照合のため、トップ holes[] を保持する
+      if (Array.isArray(cloudData.holes)) lastCloudTopHolesByCourse[courseId] = cloudData.holes;
       isApplyingCloudData = true;
       try {
         // 0. ★ 削除マークを先に適用する: 他端末での削除をこの端末にも反映し、
@@ -6818,6 +6862,7 @@
         const cloudData = await vkvGetCloudData(courseId);
         cloudPulledCourses.add(courseId);
         if (cloudData && cloudData.combos && typeof cloudData.combos === 'object') lastCloudCombosByCourse[courseId] = cloudData.combos;
+        if (cloudData && Array.isArray(cloudData.holes)) lastCloudTopHolesByCourse[courseId] = cloudData.holes;
         decision = decideVercelKvSync(courseId, cloudData, !!opts.force);
 
         // ★ 組合せ別コースで、選択中ローテーションの節がまだ端末に無く
@@ -7550,8 +7595,10 @@
 
     function mergeManualHoles(course, list) {
       list.forEach(hole => {
-        const mL = loadManualHole(course.id, hole.h, 'L');
-        const mR = loadManualHole(course.id, hole.h, 'R');
+        // ★ v20: キーは正準ホールと同一の物理ホールにのみ適用する（ローテーション汚染防止）
+        const keyApplies = holeKeyApplies(course.id, hole);
+        const mL = keyApplies ? loadManualHole(course.id, hole.h, 'L') : null;
+        const mR = keyApplies ? loadManualHole(course.id, hole.h, 'R') : null;
         if (mL) {
           hole.tee = [...mL.tee];
           hole.pinL = [...mL.pin];
@@ -7570,13 +7617,13 @@
           }
         }
         // ★ キャリブレーションピン(ドラッグ微調整)も復元反映し、2グリーンの座標を完全独立保持
-        const calibL = getCalibratedTeePinCoord(course.id, hole.h, 'white', 'L');
+        const calibL = keyApplies ? getCalibratedTeePinCoord(course.id, hole.h, 'white', 'L') : null;
         if (calibL && isValidCoord(calibL.pin)) {
           hole.pinL = [...calibL.pin];
           hole.calibPins = hole.calibPins || {};
           hole.calibPins['L'] = [...calibL.pin];
         }
-        const calibR = getCalibratedTeePinCoord(course.id, hole.h, 'white', 'R');
+        const calibR = keyApplies ? getCalibratedTeePinCoord(course.id, hole.h, 'white', 'R') : null;
         if (calibR && isValidCoord(calibR.pin)) {
           hole.pinR = [...calibR.pin];
           hole.calibPins = hole.calibPins || {};
