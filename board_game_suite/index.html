@@ -1,0 +1,4050 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>幽玄 YUGEN SUITE — 3Dボード＆テーブルゲーム</title>
+<style>
+/* ==========================================================================
+   DESIGN TOKENS & BASE THEME (幽玄 和モダン＆ラグジュアリー)
+   ========================================================================== */
+:root {
+  --bg-obsidian: #080a0e;
+  --bg-indigo: #0f141f;
+  --bg-panel: rgba(16, 20, 30, 0.88);
+  --bg-panel-solid: #121722;
+  --border-gold: rgba(212, 175, 55, 0.35);
+  --border-gold-strong: rgba(212, 175, 55, 0.75);
+  --gold: #d4af37;
+  --gold-light: #f3dc8d;
+  --gold-dim: #8c7224;
+  --crimson: #c83e3b;
+  --emerald: #14533c;
+  --emerald-felt: #0e3d2c;
+  --emerald-bright: #1e7a57;
+  --kaya-light: #e4be7b;
+  --kaya-mid: #d0a254;
+  --kaya-dark: #a67832;
+  --text-main: #f2efe9;
+  --text-sub: #a0a8b8;
+  --text-muted: #687082;
+  --shadow-deep: 0 20px 50px rgba(0, 0, 0, 0.75);
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --font-serif: "Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", Georgia, serif;
+  --font-sans: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 0%, #161d2e 0%, var(--bg-obsidian) 70%);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+
+/* ==========================================================================
+   HEADER & NAVIGATION
+   ========================================================================== */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: linear-gradient(180deg, rgba(8,10,14,0.97) 0%, rgba(15,20,31,0.92) 100%);
+  border-bottom: 1px solid var(--border-gold);
+  backdrop-filter: blur(12px);
+  padding: 10px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-emblem {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold), #8a6a18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 20px;
+  box-shadow: 0 0 14px rgba(212,175,55,0.45);
+}
+.brand-title {
+  display: flex;
+  flex-direction: column;
+}
+.brand-title h1 {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  letter-spacing: 0.14em;
+  background: linear-gradient(90deg, var(--gold-light), var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.1;
+}
+.brand-title span {
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  color: var(--text-sub);
+}
+
+/* Mode Tabs */
+.mode-tabs {
+  display: flex;
+  background: rgba(0,0,0,0.45);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  gap: 4px;
+}
+.mode-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-sub);
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.mode-tab:hover {
+  color: var(--text-main);
+  background: rgba(255,255,255,0.05);
+}
+.mode-tab.active {
+  background: linear-gradient(135deg, rgba(212,175,55,0.28), rgba(212,175,55,0.1));
+  color: var(--gold-light);
+  border: 1px solid var(--border-gold);
+  box-shadow: 0 0 12px rgba(212,175,55,0.2);
+}
+
+/* Global Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tool-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text-main);
+  padding: 7px 11px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+.tool-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold-light);
+  background: rgba(212,175,55,0.12);
+}
+.tool-btn.active {
+  background: rgba(212,175,55,0.22);
+  border-color: var(--gold);
+  color: var(--gold-light);
+}
+.tool-btn svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+/* ==========================================================================
+   MAIN 3-COLUMN LAYOUT (KataGo Yugen Style)
+   ========================================================================== */
+.app-main {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 310px;
+  gap: 16px;
+  max-width: 1520px;
+  margin: 0 auto;
+  padding: 16px;
+  min-height: calc(100vh - 64px);
+  align-items: stretch;
+}
+
+/* LEFT: AI Evaluation Bar */
+.eval-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-md);
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-deep);
+}
+.eval-title {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  text-align: center;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.eval-pct-top, .eval-pct-bot {
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 6px 0;
+}
+.eval-pct-top { color: #b8c2d8; }
+.eval-pct-bot { color: var(--gold-light); }
+
+.eval-bar-track {
+  width: 24px;
+  flex: 1;
+  min-height: 220px;
+  background: linear-gradient(180deg, #1b2234, #2b354f);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.18);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+}
+.eval-bar-fill {
+  width: 100%;
+  height: 50%;
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 50%, #9c791e 100%);
+  transition: height 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+}
+.eval-bar-midline {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255,255,255,0.5);
+  z-index: 2;
+}
+.eval-label-sub {
+  font-size: 0.65rem;
+  color: var(--text-sub);
+  text-align: center;
+  margin-top: 6px;
+}
+
+/* CENTER: 3D Stage */
+.stage-wrapper {
+  background: radial-gradient(ellipse at center, rgba(24, 31, 48, 0.75) 0%, rgba(10, 12, 18, 0.9) 100%);
+  border: 1px solid rgba(212,175,55,0.22);
+  border-radius: var(--radius-lg);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  min-height: 580px;
+  overflow: hidden;
+  box-shadow: var(--shadow-deep);
+}
+.stage-status-banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  background: rgba(10,14,22,0.88);
+  border: 1px solid var(--border-gold);
+  border-radius: 20px;
+  padding: 5px 18px;
+  font-size: 0.85rem;
+  color: var(--gold-light);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  white-space: nowrap;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 8px var(--gold);
+}
+.status-dot.thinking {
+  background: #4ade80;
+  animation: pulse 1s infinite;
+}
+.status-dot.warning {
+  background: var(--crimson);
+  box-shadow: 0 0 10px var(--crimson);
+  animation: pulse 0.7s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
+}
+
+.stage-3d-viewport {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+  padding-top: 28px;
+}
+.stage-3d-plane {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.stage-3d-viewport.view-3d .stage-3d-plane {
+  transform: rotateX(24deg) scale(0.95);
+}
+
+/* RIGHT: Info & Control Panel */
+.side-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-deep);
+  max-height: calc(100vh - 96px);
+}
+
+.player-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.player-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s;
+}
+.player-card.active-turn {
+  border-color: var(--gold);
+  background: rgba(212,175,55,0.1);
+  box-shadow: 0 0 12px rgba(212,175,55,0.18);
+}
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.player-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2a3347, #151a26);
+  border: 1px solid var(--border-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: var(--gold-light);
+}
+.player-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.player-meta {
+  font-size: 0.72rem;
+  color: var(--text-sub);
+}
+.player-timer {
+  font-family: monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  background: rgba(0,0,0,0.45);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Mode Options */
+.mode-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.select-dark {
+  flex: 1;
+  background: #0c1018;
+  color: var(--text-main);
+  border: 1px solid rgba(212,175,55,0.35);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Action Log / Kifu */
+.log-box {
+  flex: 1;
+  min-height: 150px;
+  background: rgba(0,0,0,0.42);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.log-header {
+  padding: 7px 12px;
+  font-size: 0.75rem;
+  color: var(--gold);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.02);
+}
+.log-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.log-item {
+  display: flex;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: var(--text-sub);
+}
+.log-item:nth-child(even) {
+  background: rgba(255,255,255,0.02);
+}
+.log-item.latest {
+  color: var(--gold-light);
+  background: rgba(212,175,55,0.12);
+}
+.log-num {
+  color: var(--text-muted);
+  min-width: 24px;
+  font-family: monospace;
+}
+
+/* Control Buttons */
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.btn-action {
+  background: linear-gradient(180deg, #1d2436, #131824);
+  border: 1px solid var(--border-gold);
+  color: var(--text-main);
+  padding: 9px 6px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.btn-action:hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(212,175,55,0.3), rgba(212,175,55,0.12));
+  color: var(--gold-light);
+  transform: translateY(-1px);
+}
+.btn-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn-action.primary {
+  background: linear-gradient(135deg, var(--gold), #9a761c);
+  color: #111;
+  border-color: var(--gold-light);
+}
+.btn-action.primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+  color: #000;
+}
+.btn-action.danger {
+  border-color: rgba(200, 62, 59, 0.55);
+  color: #f49795;
+}
+.btn-action.danger:hover:not(:disabled) {
+  background: rgba(200, 62, 59, 0.25);
+  color: #fff;
+}
+
+/* ==========================================================================
+   GAME 1: SHOGI (将棋)
+   ========================================================================== */
+.shogi-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 560px;
+}
+.shogi-hand {
+  width: 100%;
+  min-height: 46px;
+  background: linear-gradient(90deg, #523a1e, #6b4c28, #523a1e);
+  border: 2px solid #8a6436;
+  border-radius: 8px;
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+}
+.shogi-hand-label {
+  font-size: 0.72rem;
+  color: var(--gold-light);
+  margin-right: 4px;
+  font-family: var(--font-serif);
+}
+.shogi-hand-piece {
+  position: relative;
+  background: linear-gradient(180deg, #f3dca8, #d6ad60);
+  color: #1a1208;
+  font-family: var(--font-serif);
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 3px 9px;
+  border-radius: 4px 4px 2px 2px;
+  clip-path: polygon(50% 0%, 92% 16%, 100% 100%, 0% 100%, 8% 16%);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  transition: transform 0.15s;
+}
+.shogi-hand-piece:hover { transform: translateY(-2px); }
+.shogi-hand-piece.selected {
+  box-shadow: 0 0 0 2px #fff, 0 0 12px var(--gold);
+  background: #ffe89e;
+}
+.shogi-hand-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--crimson);
+  color: #fff;
+  font-size: 0.65rem;
+  font-family: var(--font-sans);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.shogi-board-frame {
+  background: linear-gradient(135deg, #c99748, #e6be74, #b58335);
+  padding: 20px 22px 14px 14px;
+  border-radius: 6px;
+  border: 3px solid #5e401a;
+  box-shadow: 0 18px 36px rgba(0,0,0,0.75), inset 0 0 18px rgba(80,45,10,0.35);
+  position: relative;
+  width: min(100%, 490px);
+  aspect-ratio: 9 / 9.7;
+}
+.shogi-coords-top {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  position: absolute;
+  top: 2px;
+  left: 14px;
+  right: 22px;
+  font-size: 0.7rem;
+  color: #3a260e;
+  font-weight: 700;
+  text-align: center;
+}
+.shogi-coords-right {
+  display: grid;
+  grid-template-rows: repeat(9, 1fr);
+  position: absolute;
+  top: 20px;
+  bottom: 14px;
+  right: 4px;
+  font-size: 0.7rem;
+  color: #3a260e;
+  font-weight: 700;
+  align-items: center;
+}
+.shogi-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  border: 1.5px solid #2c1d0b;
+  background-image: repeating-linear-gradient(90deg, rgba(130,80,20,0.06) 0px, rgba(130,80,20,0.06) 2px, transparent 2px, transparent 9px);
+}
+.shogi-cell {
+  border: 0.5px solid rgba(44, 29, 11, 0.7);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.shogi-cell.star::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2c1d0b;
+  bottom: -3px;
+  right: -3px;
+  z-index: 2;
+  pointer-events: none;
+}
+.shogi-cell.selected { background: rgba(255, 224, 102, 0.55); }
+.shogi-cell.last-move { background: rgba(212, 175, 55, 0.35); }
+.shogi-cell.hint-from { box-shadow: inset 0 0 0 3px #22c55e; }
+.shogi-cell.hint-to { box-shadow: inset 0 0 0 3px #38bdf8; background: rgba(56,189,248,0.28); }
+.shogi-cell.legal::before {
+  content: "";
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  background: rgba(20, 120, 75, 0.65);
+  box-shadow: 0 0 6px rgba(20,120,75,0.6);
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+}
+.shogi-cell.legal.has-piece::before {
+  width: 86%;
+  height: 86%;
+  border-radius: 4px;
+  background: transparent;
+  border: 2.5px solid rgba(200, 45, 45, 0.85);
+}
+
+.shogi-piece {
+  width: 84%;
+  height: 88%;
+  background: linear-gradient(180deg, #fae8be 0%, #deb566 100%);
+  clip-path: polygon(50% 2%, 88% 18%, 98% 98%, 2% 98%, 12% 18%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: clamp(0.85rem, 2.2vw, 1.35rem);
+  color: #1a1208;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.45));
+  transition: transform 0.15s;
+  z-index: 3;
+}
+.shogi-piece.gote {
+  transform: rotate(180deg);
+}
+.shogi-piece.promoted {
+  color: #b81d18;
+}
+
+/* ==========================================================================
+   GAME 2: CHESS (チェス)
+   ========================================================================== */
+.chess-board-frame {
+  background: linear-gradient(135deg, #3b2817, #24170c);
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid var(--border-gold);
+  box-shadow: 0 22px 45px rgba(0,0,0,0.8);
+  position: relative;
+  width: min(100%, 500px);
+  aspect-ratio: 1 / 1;
+}
+.chess-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  border: 2px solid #1a1008;
+}
+.chess-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.chess-cell.light { background: #e8d5b5; }
+.chess-cell.dark { background: #8c6239; }
+.chess-cell.selected { background: rgba(246, 214, 92, 0.85) !important; }
+.chess-cell.last-move { box-shadow: inset 0 0 0 3px rgba(212, 175, 55, 0.85); }
+.chess-cell.in-check { background: radial-gradient(circle, #ef4444 0%, #991b1b 100%) !important; }
+.chess-cell.hint-from { box-shadow: inset 0 0 0 4px #22c55e; }
+.chess-cell.hint-to { box-shadow: inset 0 0 0 4px #38bdf8; }
+.chess-cell.legal::after {
+  content: "";
+  width: 28%;
+  height: 28%;
+  border-radius: 50%;
+  background: rgba(16, 120, 70, 0.65);
+  position: absolute;
+  z-index: 4;
+}
+.chess-cell.legal.has-piece::after {
+  width: 84%;
+  height: 84%;
+  background: transparent;
+  border: 3px solid rgba(200, 45, 45, 0.85);
+}
+.chess-coord {
+  position: absolute;
+  font-size: 0.62rem;
+  font-weight: 700;
+  opacity: 0.75;
+  pointer-events: none;
+}
+.chess-coord.rank { top: 2px; left: 3px; }
+.chess-coord.file { bottom: 1px; right: 3px; }
+.chess-cell.light .chess-coord { color: #6e4a26; }
+.chess-cell.dark .chess-coord { color: #e8d5b5; }
+
+.chess-piece {
+  font-size: clamp(1.5rem, 4.4vw, 2.75rem);
+  line-height: 1;
+  z-index: 3;
+  transition: transform 0.15s;
+}
+.chess-piece.white {
+  color: #fffdf7;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.85), 0 0 2px #000;
+}
+.chess-piece.black {
+  color: #16181d;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.35), 0 2px 4px rgba(0,0,0,0.6);
+}
+
+/* ==========================================================================
+   GAME 3: MAHJONG (麻雀)
+   ========================================================================== */
+.mj-table {
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 1.08 / 1;
+  min-height: 500px;
+  background: radial-gradient(circle at center, #146346 0%, #0d4530 65%, #07291c 100%);
+  border: 10px solid #2b1d12;
+  border-radius: 18px;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.65), 0 20px 50px rgba(0,0,0,0.8), 0 0 0 2px var(--border-gold);
+  position: relative;
+  display: grid;
+  grid-template-rows: 78px 1fr 118px;
+  grid-template-columns: 78px 1fr 78px;
+  padding: 8px;
+  gap: 4px;
+}
+
+.mj-seat-top { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; }
+.mj-seat-left { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.mj-seat-right { grid-column: 3; grid-row: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.mj-seat-bottom { grid-column: 1 / 4; grid-row: 3; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; }
+
+.mj-center-area {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  justify-items: center;
+  position: relative;
+}
+
+.mj-center-hud {
+  grid-column: 2;
+  grid-row: 2;
+  background: rgba(8, 14, 12, 0.86);
+  border: 1px solid var(--border-gold);
+  border-radius: 10px;
+  padding: 8px 12px;
+  text-align: center;
+  min-width: 146px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.6);
+}
+.mj-round-title {
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
+  color: var(--gold-light);
+  font-weight: 700;
+}
+.mj-dora-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 4px 0;
+  font-size: 0.72rem;
+  color: var(--text-sub);
+}
+.mj-scores-mini {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 8px;
+  font-size: 0.68rem;
+  font-family: monospace;
+  color: #d6e4de;
+  margin-top: 4px;
+}
+
+/* Discards (河) */
+.mj-river {
+  display: grid;
+  grid-template-columns: repeat(6, auto);
+  gap: 2px;
+  padding: 2px;
+}
+.mj-river-top { grid-column: 2; grid-row: 1; align-self: end; }
+.mj-river-bot { grid-column: 2; grid-row: 3; align-self: start; }
+.mj-river-left { grid-column: 1; grid-row: 2; grid-template-columns: repeat(3, auto); justify-self: end; }
+.mj-river-right { grid-column: 3; grid-row: 2; grid-template-columns: repeat(3, auto); justify-self: start; }
+
+/* Mahjong Tiles (Crisp Ivory CSS Design) */
+.mj-tile {
+  width: 34px;
+  height: 48px;
+  background: linear-gradient(180deg, #ffffff 0%, #f1efe7 82%, #d5d0c0 100%);
+  border: 1px solid #8a8475;
+  border-bottom: 4px solid #167a54;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.45);
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+.mj-tile:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 8px 14px rgba(0,0,0,0.55);
+}
+.mj-tile.tsumo {
+  margin-left: 10px;
+}
+.mj-tile.hint-tile {
+  box-shadow: 0 0 0 3px #38bdf8, 0 0 14px #38bdf8;
+  transform: translateY(-6px);
+}
+.mj-tile.sm {
+  width: 24px;
+  height: 33px;
+  border-bottom-width: 3px;
+  cursor: default;
+  font-size: 0.72rem;
+}
+.mj-tile.sm:hover { transform: none; }
+.mj-tile.riichi-tile {
+  transform: rotate(90deg);
+  margin: 0 4px;
+}
+.mj-tile.back {
+  width: 22px;
+  height: 30px;
+  background: linear-gradient(135deg, #1b8a5f, #0f573b);
+  border: 1px solid #8adbb9;
+  border-bottom: 3px solid #f0ece0;
+  cursor: default;
+}
+.mj-tile.back:hover { transform: none; }
+.mj-tile.back-v {
+  width: 30px;
+  height: 18px;
+  background: linear-gradient(135deg, #1b8a5f, #0f573b);
+  border: 1px solid #8adbb9;
+  border-right: 3px solid #f0ece0;
+  cursor: default;
+}
+
+.mj-t-num { font-size: 0.95rem; }
+.mj-t-suit { font-size: 0.65rem; margin-top: 1px; }
+.mj-tile.sm .mj-t-num { font-size: 0.72rem; }
+.mj-tile.sm .mj-t-suit { font-size: 0.5rem; }
+
+.suit-m { color: #b91c1c; }
+.suit-p { color: #1d4ed8; }
+.suit-s { color: #15803d; }
+.suit-z { color: #1f2937; }
+.suit-z-red { color: #dc2626; }
+.suit-z-green { color: #15803d; }
+
+.mj-hand-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.mj-melds {
+  display: flex;
+  gap: 6px;
+  margin-left: 8px;
+}
+.mj-meld-group {
+  display: flex;
+  gap: 1px;
+  background: rgba(0,0,0,0.25);
+  padding: 2px;
+  border-radius: 4px;
+}
+.mj-action-bar {
+  display: flex;
+  gap: 8px;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+}
+.mj-call-btn {
+  background: linear-gradient(135deg, var(--gold), #a67c1e);
+  color: #111;
+  border: 1px solid var(--gold-light);
+  border-radius: 16px;
+  padding: 4px 14px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(212,175,55,0.4);
+  animation: popIn 0.2s ease;
+}
+.mj-call-btn.win {
+  background: linear-gradient(135deg, #ef4444, #991b1b);
+  color: #fff;
+  border-color: #fca5a5;
+}
+.mj-call-btn.skip {
+  background: rgba(20,25,35,0.85);
+  color: var(--text-sub);
+  border-color: rgba(255,255,255,0.2);
+}
+@keyframes popIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.mj-seat-badge {
+  font-size: 0.68rem;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(212,175,55,0.4);
+  color: var(--gold-light);
+  padding: 1px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.mj-seat-badge.riichi {
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+/* ==========================================================================
+   GAME 4: POKER (テキサスホールデム)
+   ========================================================================== */
+.poker-table-wrap {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.poker-oval {
+  width: 100%;
+  aspect-ratio: 1.55 / 1;
+  min-height: 360px;
+  background: radial-gradient(ellipse at center, #146949 0%, #0d4530 62%, #07261a 100%);
+  border: 12px solid #2b1a10;
+  border-radius: 180px;
+  box-shadow: inset 0 0 45px rgba(0,0,0,0.7), 0 22px 50px rgba(0,0,0,0.85), 0 0 0 3px var(--gold-dim);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.poker-oval::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border: 1.5px solid rgba(212,175,55,0.35);
+  border-radius: 165px;
+  pointer-events: none;
+}
+
+.poker-pot-box {
+  background: rgba(0,0,0,0.6);
+  border: 1px solid var(--border-gold);
+  border-radius: 20px;
+  padding: 4px 16px;
+  font-size: 0.85rem;
+  color: var(--gold-light);
+  font-weight: 700;
+  margin-bottom: 10px;
+  z-index: 3;
+}
+.poker-community {
+  display: flex;
+  gap: 8px;
+  min-height: 76px;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+
+/* Playing Cards */
+.p-card {
+  width: 50px;
+  height: 72px;
+  background: linear-gradient(180deg, #ffffff 0%, #f3f1eb 100%);
+  border-radius: 6px;
+  border: 1px solid #b5afa0;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  position: relative;
+  user-select: none;
+}
+.p-card.red { color: #dc2626; }
+.p-card.black { color: #111827; }
+.p-card.back {
+  background: repeating-linear-gradient(45deg, #1b2a4a, #1b2a4a 5px, #121c33 5px, #121c33 10px);
+  border: 2px solid var(--gold-dim);
+}
+.p-card.sm {
+  width: 36px;
+  height: 52px;
+}
+.p-card-rank { font-size: 1.05rem; line-height: 1; }
+.p-card-suit { font-size: 1.15rem; line-height: 1; margin-top: 2px; }
+.p-card.sm .p-card-rank { font-size: 0.8rem; }
+.p-card.sm .p-card-suit { font-size: 0.85rem; }
+
+/* Poker Seats */
+.poker-seat {
+  position: absolute;
+  background: rgba(10, 14, 22, 0.88);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 118px;
+  z-index: 5;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+  transition: all 0.25s;
+}
+.poker-seat.active {
+  border-color: var(--gold);
+  box-shadow: 0 0 18px rgba(212,175,55,0.45);
+}
+.poker-seat.folded { opacity: 0.48; }
+.poker-seat.winner {
+  border-color: #4ade80;
+  box-shadow: 0 0 22px rgba(74,222,128,0.6);
+}
+.poker-seat-0 { bottom: -16px; left: 50%; transform: translateX(-50%); }
+.poker-seat-1 { left: -8px; top: 50%; transform: translateY(-50%); }
+.poker-seat-2 { top: -16px; left: 50%; transform: translateX(-50%); }
+.poker-seat-3 { right: -8px; top: 50%; transform: translateY(-50%); }
+
+.poker-seat-cards { display: flex; gap: 4px; }
+.poker-seat-name { font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+.poker-dealer-btn {
+  background: var(--gold);
+  color: #111;
+  font-size: 0.62rem;
+  font-weight: 900;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.poker-seat-chips { font-family: monospace; font-size: 0.76rem; color: var(--gold-light); }
+.poker-badge {
+  font-size: 0.65rem;
+  padding: 1px 7px;
+  border-radius: 8px;
+  font-weight: 700;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+.poker-badge.fold { background: rgba(200,62,59,0.5); }
+.poker-badge.raise { background: rgba(212,175,55,0.4); color: var(--gold-light); }
+.poker-badge.call { background: rgba(56,189,248,0.35); }
+.poker-badge.allin { background: #dc2626; }
+
+/* Poker Controls */
+.poker-controls {
+  width: 100%;
+  background: rgba(12, 16, 26, 0.9);
+  border: 1px solid var(--border-gold);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.poker-raise-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--gold-light);
+}
+.poker-raise-wrap input[type="range"] {
+  accent-color: var(--gold);
+  width: 110px;
+}
+
+/* ==========================================================================
+   MODALS & TOASTS
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(6px);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-backdrop.open { display: flex; }
+.modal-card {
+  background: linear-gradient(180deg, #161c2b, #0e121c);
+  border: 1px solid var(--gold);
+  border-radius: 16px;
+  max-width: 520px;
+  width: 100%;
+  padding: 22px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.85);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.modal-title {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  color: var(--gold-light);
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(212,175,55,0.3);
+  padding-bottom: 8px;
+}
+.modal-body {
+  font-size: 0.88rem;
+  color: var(--text-main);
+  line-height: 1.65;
+  margin-bottom: 18px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.toast-box {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(14, 18, 28, 0.95);
+  border: 1px solid var(--gold);
+  color: var(--gold-light);
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  z-index: 400;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+}
+.toast-box.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 1120px) {
+  .app-main {
+    grid-template-columns: 60px minmax(0, 1fr) 260px;
+    gap: 10px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+  .eval-panel {
+    flex-direction: row;
+    padding: 8px 14px;
+    gap: 12px;
+  }
+  .eval-bar-track {
+    min-height: 18px;
+    height: 18px;
+    width: auto;
+    flex: 1;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+  .eval-bar-fill {
+    height: 100% !important;
+    transition: width 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .eval-bar-midline {
+    top: 0; bottom: 0; left: 50%; right: auto; width: 2px; height: auto;
+  }
+  .side-panel {
+    max-height: none;
+  }
+  .mj-table {
+    min-height: 430px;
+    grid-template-rows: 64px 1fr 104px;
+    grid-template-columns: 54px 1fr 54px;
+  }
+  .mj-tile { width: 26px; height: 38px; }
+  .mj-t-num { font-size: 0.78rem; }
+  .mj-t-suit { font-size: 0.52rem; }
+  .poker-oval { border-radius: 90px; min-height: 310px; }
+  .poker-seat { min-width: 92px; padding: 4px 6px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========================================================================
+     HEADER
+     ======================================================================== -->
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-emblem">幽</div>
+    <div class="brand-title">
+      <h1>幽玄 YUGEN SUITE</h1>
+      <span>3D BOARD &amp; TABLE EDITION</span>
+    </div>
+  </div>
+
+  <nav class="mode-tabs" id="modeTabs">
+    <button class="mode-tab active" data-mode="shogi">☗ 将棋</button>
+    <button class="mode-tab" data-mode="chess">♔ チェス</button>
+    <button class="mode-tab" data-mode="mahjong">🀄 麻雀</button>
+    <button class="mode-tab" data-mode="poker">♠ ポーカー</button>
+  </nav>
+
+  <div class="toolbar">
+    <button class="tool-btn active" id="btnToggle3D" title="2D/3D視点切替">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 7.5L4.5 6 12 2.5 19.5 6 12 9.5zm-10 4.5l10 5 10-5v2.3l-10 5-10-5V14zm0 4.5l10 5 10-5v2.3l-10 5-10-5v-2.3z"/></svg>
+      <span id="lblView3D">3D視点</span>
+    </button>
+    <button class="tool-btn" id="btnHint" title="AIヒントを表示">
+      <svg viewBox="0 0 24 24"><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg>
+      <span>AIヒント</span>
+    </button>
+    <button class="tool-btn active" id="btnSound" title="効果音ON/OFF">
+      <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+      <span id="lblSound">効果音</span>
+    </button>
+    <button class="tool-btn" id="btnRules" title="ルールと操作説明">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      <span>ルール</span>
+    </button>
+  </div>
+</header>
+
+<!-- ========================================================================
+     MAIN WORKSPACE
+     ======================================================================== -->
+<main class="app-main">
+  <!-- LEFT: KataGo-Style AI Evaluation Bar -->
+  <aside class="eval-panel" aria-label="AI形勢評価">
+    <div class="eval-title">AI形勢<br>評価</div>
+    <div class="eval-pct-top" id="evalTopPct">50%</div>
+    <div class="eval-bar-track">
+      <div class="eval-bar-midline"></div>
+      <div class="eval-bar-fill" id="evalBarFill" style="height:50%;"></div>
+    </div>
+    <div class="eval-pct-bot" id="evalBotPct">50%</div>
+    <div class="eval-label-sub" id="evalSubLabel">互角</div>
+  </aside>
+
+  <!-- CENTER: 3D Board / Table Stage -->
+  <section class="stage-wrapper">
+    <div class="stage-status-banner">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">対局準備完了</span>
+    </div>
+    <div class="stage-3d-viewport view-3d" id="stageViewport">
+      <div class="stage-3d-plane" id="stagePlane">
+        <!-- Active game renders here -->
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: Info, Timers, Log, Controls -->
+  <aside class="side-panel">
+    <div class="player-cards">
+      <div class="player-card" id="cardTopPlayer">
+        <div class="player-info">
+          <div class="player-avatar" id="topAvatar">AI</div>
+          <div>
+            <div class="player-name" id="topName">AI（後手）</div>
+            <div class="player-meta" id="topMeta">中級エンジン</div>
+          </div>
+        </div>
+        <div class="player-timer" id="topTimer">10:00</div>
+      </div>
+
+      <div class="player-card active-turn" id="cardBotPlayer">
+        <div class="player-info">
+          <div class="player-avatar" id="botAvatar">☗</div>
+          <div>
+            <div class="player-name" id="botName">あなた（先手）</div>
+            <div class="player-meta" id="botMeta">プレイヤー</div>
+          </div>
+        </div>
+        <div class="player-timer" id="botTimer">10:00</div>
+      </div>
+    </div>
+
+    <div class="mode-options" id="modeOptions">
+      <select class="select-dark" id="selOpponent" aria-label="対戦形式">
+        <option value="ai-mid">vs AI（中級）</option>
+        <option value="ai-easy">vs AI（初級）</option>
+        <option value="pvp">2人対戦（ローカル）</option>
+      </select>
+    </div>
+
+    <div class="log-box">
+      <div class="log-header">
+        <span id="logTitle">棋譜・対局ログ</span>
+        <span id="logCount">0手</span>
+      </div>
+      <div class="log-list" id="logList"></div>
+    </div>
+
+    <div class="control-grid">
+      <button class="btn-action" id="btnUndo">待った</button>
+      <button class="btn-action primary" id="btnNewGame">新規対局</button>
+      <button class="btn-action danger" id="btnResign">投了</button>
+    </div>
+  </aside>
+</main>
+
+<!-- Modal & Toast -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal-card">
+    <div class="modal-title" id="modalTitle">タイトル</div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+<div class="toast-box" id="toastBox"></div>
+
+<script>
+/* ==========================================================================
+   1. WEB AUDIO API PROCEDURAL SOUND ENGINE (No external files)
+   ========================================================================== */
+const SoundEngine = (() => {
+  let ctx = null;
+  let enabled = true;
+
+  function ensureCtx() {
+    if (!ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) ctx = new AudioCtx();
+    }
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+
+  function playNoiseBurst(duration, filterFreq, gainVal, q = 1.2) {
+    if (!enabled) return;
+    const c = ensureCtx();
+    if (!c) return;
+    const bufferSize = Math.floor(c.sampleRate * duration);
+    const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.25));
+    }
+    const noise = c.createBufferSource();
+    noise.buffer = buffer;
+    const filter = c.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = filterFreq;
+    filter.Q.value = q;
+    const gain = c.createGain();
+    gain.gain.setValueAtTime(gainVal, c.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + duration);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(c.destination);
+    noise.start();
+  }
+
+  function playTone(freq, duration, type = 'sine', gainVal = 0.15, endFreq = null) {
+    if (!enabled) return;
+    const c = ensureCtx();
+    if (!c) return;
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, c.currentTime);
+    if (endFreq) osc.frequency.exponentialRampToValueAtTime(endFreq, c.currentTime + duration);
+    gain.gain.setValueAtTime(gainVal, c.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(c.destination);
+    osc.start();
+    osc.stop(c.currentTime + duration);
+  }
+
+  return {
+    setEnabled(val) { enabled = val; },
+    isEnabled() { return enabled; },
+    // 将棋：乾いたパチンという木駒音
+    shogi() {
+      playNoiseBurst(0.075, 1650, 0.55, 2.2);
+      playTone(320, 0.06, 'triangle', 0.22, 110);
+    },
+    // チェス：重厚な木製駒音
+    chess() {
+      playNoiseBurst(0.06, 820, 0.4, 1.5);
+      playTone(190, 0.08, 'sine', 0.28, 85);
+    },
+    // 麻雀：硬質な牌の打牌・ツモ音
+    mahjong() {
+      playNoiseBurst(0.055, 2800, 0.48, 3.0);
+      playTone(980, 0.045, 'triangle', 0.16, 420);
+    },
+    // ポーカー：チップ音＆カード音
+    chip() {
+      playTone(2400, 0.05, 'sine', 0.12, 2100);
+      setTimeout(() => playTone(2850, 0.045, 'sine', 0.1, 2500), 35);
+    },
+    card() {
+      playNoiseBurst(0.09, 2200, 0.25, 0.9);
+    },
+    // 通知・和了・チェック
+    chime() {
+      playTone(587.3, 0.16, 'sine', 0.14);
+      setTimeout(() => playTone(880, 0.24, 'sine', 0.14), 110);
+    },
+    warn() {
+      playTone(260, 0.14, 'sawtooth', 0.1, 180);
+    }
+  };
+})();
+
+/* ==========================================================================
+   2. GLOBAL APP CONTROLLER & UI HELPERS
+   ========================================================================== */
+const App = (() => {
+  let currentMode = 'shogi';
+  let is3D = true;
+  let timerInterval = null;
+  let timers = { top: 600, bot: 600 };
+  let activeTurnSide = 'bot'; // 'bot' or 'top'
+  let gameEnded = false;
+
+  const el = {
+    stageViewport: document.getElementById('stageViewport'),
+    stagePlane: document.getElementById('stagePlane'),
+    statusDot: document.getElementById('statusDot'),
+    statusText: document.getElementById('statusText'),
+    evalTopPct: document.getElementById('evalTopPct'),
+    evalBotPct: document.getElementById('evalBotPct'),
+    evalBarFill: document.getElementById('evalBarFill'),
+    evalSubLabel: document.getElementById('evalSubLabel'),
+    cardTopPlayer: document.getElementById('cardTopPlayer'),
+    cardBotPlayer: document.getElementById('cardBotPlayer'),
+    topAvatar: document.getElementById('topAvatar'),
+    botAvatar: document.getElementById('botAvatar'),
+    topName: document.getElementById('topName'),
+    botName: document.getElementById('botName'),
+    topMeta: document.getElementById('topMeta'),
+    botMeta: document.getElementById('botMeta'),
+    topTimer: document.getElementById('topTimer'),
+    botTimer: document.getElementById('botTimer'),
+    selOpponent: document.getElementById('selOpponent'),
+    modeOptions: document.getElementById('modeOptions'),
+    logTitle: document.getElementById('logTitle'),
+    logCount: document.getElementById('logCount'),
+    logList: document.getElementById('logList'),
+    btnUndo: document.getElementById('btnUndo'),
+    btnNewGame: document.getElementById('btnNewGame'),
+    btnResign: document.getElementById('btnResign'),
+    modalBackdrop: document.getElementById('modalBackdrop'),
+    modalTitle: document.getElementById('modalTitle'),
+    modalBody: document.getElementById('modalBody'),
+    modalActions: document.getElementById('modalActions'),
+    toastBox: document.getElementById('toastBox')
+  };
+
+  let toastTimeout = null;
+  function showToast(msg) {
+    el.toastBox.textContent = msg;
+    el.toastBox.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => el.toastBox.classList.remove('show'), 2600);
+  }
+
+  function openModal(title, bodyHTML, buttons = [{ label: '閉じる', cls: 'primary', onClick: closeModal }]) {
+    el.modalTitle.textContent = title;
+    el.modalBody.innerHTML = bodyHTML;
+    el.modalActions.innerHTML = '';
+    buttons.forEach(b => {
+      const btn = document.createElement('button');
+      btn.className = `btn-action ${b.cls || ''}`;
+      btn.textContent = b.label;
+      btn.style.minWidth = '88px';
+      btn.onclick = () => {
+        if (b.onClick) b.onClick();
+        else closeModal();
+      };
+      el.modalActions.appendChild(btn);
+    });
+    el.modalBackdrop.classList.add('open');
+  }
+
+  function closeModal() {
+    el.modalBackdrop.classList.remove('open');
+  }
+
+  function setStatus(text, type = 'normal') {
+    el.statusText.textContent = text;
+    el.statusDot.className = 'status-dot' + (type === 'thinking' ? ' thinking' : type === 'warning' ? ' warning' : '');
+  }
+
+  function updateEval(botPct, label = '') {
+    const clamped = Math.max(2, Math.min(98, Math.round(botPct)));
+    const topPct = 100 - clamped;
+    el.evalBotPct.textContent = `${clamped}%`;
+    el.evalTopPct.textContent = `${topPct}%`;
+    if (window.innerWidth <= 900) {
+      el.evalBarFill.style.width = `${clamped}%`;
+      el.evalBarFill.style.height = '100%';
+    } else {
+      el.evalBarFill.style.height = `${clamped}%`;
+      el.evalBarFill.style.width = '100%';
+    }
+    if (label) {
+      el.evalSubLabel.textContent = label;
+    } else {
+      if (clamped >= 70) el.evalSubLabel.textContent = '優勢';
+      else if (clamped >= 57) el.evalSubLabel.textContent = 'やや有利';
+      else if (clamped <= 30) el.evalSubLabel.textContent = '劣勢';
+      else if (clamped <= 43) el.evalSubLabel.textContent = 'やや不利';
+      else el.evalSubLabel.textContent = '互角';
+    }
+  }
+
+  function setPlayersUI(top, bot, turnSide) {
+    el.topAvatar.textContent = top.avatar;
+    el.topName.textContent = top.name;
+    el.topMeta.textContent = top.meta;
+    el.botAvatar.textContent = bot.avatar;
+    el.botName.textContent = bot.name;
+    el.botMeta.textContent = bot.meta;
+    activeTurnSide = turnSide;
+    el.cardTopPlayer.classList.toggle('active-turn', turnSide === 'top');
+    el.cardBotPlayer.classList.toggle('active-turn', turnSide === 'bot');
+  }
+
+  function setLogs(items, title = '棋譜・対局ログ', unit = '手') {
+    el.logTitle.textContent = title;
+    el.logCount.textContent = `${items.length}${unit}`;
+    el.logList.innerHTML = items.map((txt, idx) =>
+      `<div class="log-item ${idx === items.length - 1 ? 'latest' : ''}">
+        <span class="log-num">${idx + 1}.</span>
+        <span>${txt}</span>
+      </div>`
+    ).join('');
+    el.logList.scrollTop = el.logList.scrollHeight;
+  }
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  function resetTimers(seconds = 600) {
+    timers.top = seconds;
+    timers.bot = seconds;
+    gameEnded = false;
+    el.topTimer.textContent = formatTime(timers.top);
+    el.botTimer.textContent = formatTime(timers.bot);
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      if (gameEnded) return;
+      if (activeTurnSide === 'bot' && timers.bot > 0) {
+        timers.bot--;
+        el.botTimer.textContent = formatTime(timers.bot);
+      } else if (activeTurnSide === 'top' && timers.top > 0) {
+        timers.top--;
+        el.topTimer.textContent = formatTime(timers.top);
+      }
+    }, 1000);
+  }
+
+  function setGameEnded(ended) {
+    gameEnded = ended;
+  }
+
+  function getOpponentMode() {
+    return el.selOpponent.value;
+  }
+
+  function getActiveGame() {
+    if (currentMode === 'shogi') return ShogiGame;
+    if (currentMode === 'chess') return ChessGame;
+    if (currentMode === 'mahjong') return MahjongGame;
+    return PokerGame;
+  }
+
+  function switchMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+    // Show/hide opponent selector (Shogi & Chess support PvP/AI; Mahjong & Poker are 4-player table vs 3 AI)
+    const isBoard = (mode === 'shogi' || mode === 'chess');
+    el.modeOptions.style.display = isBoard ? 'flex' : 'none';
+    el.btnUndo.disabled = !isBoard;
+    el.btnResign.textContent = (mode === 'mahjong' || mode === 'poker') ? '次局/次ハンド' : '投了';
+    getActiveGame().init();
+  }
+
+  function showRulesModal() {
+    const rulesMap = {
+      shogi: `
+        <p><strong>【将棋（9×9 本将棋）】</strong></p>
+        <ul>
+          <li>全駒の移動・敵陣3段目での成/不成選択・持ち駒の打ち込み（二歩禁止・行き所のない駒禁止）に対応しています。</li>
+          <li>自玉が王手放置になる手は自動で除外されます。</li>
+          <li>「AIヒント」を押すと、現在の局面で推奨される一手（移動元：緑、移動先：青）をハイライトします。</li>
+        </ul>`,
+      chess: `
+        <p><strong>【チェス（8×8 国際標準）】</strong></p>
+        <ul>
+          <li>ポーンの初回2マス・プロモーション選択、キャスリング（キングを2マス移動）、チェック＆チェックメイト判定に完全対応しています。</li>
+          <li>左のAI形勢評価バーは駒価値と盤面位置からリアルタイムに勝率を算出します。</li>
+          <li>「待った」で1手戻すことができます（AI戦ではプレイヤーの直前手まで戻ります）。</li>
+        </ul>`,
+      mahjong: `
+        <p><strong>【麻雀（4人打ち・東風戦）】</strong></p>
+        <ul>
+          <li>プレイヤー vs AI 3人による本格4人麻雀です。手牌は自動で理牌されます。</li>
+          <li>ツモ後に不要な牌をクリックして打牌します。テンパイ時は「リーチ」、和了形になると「ツモ」「ロン」、鳴ける牌が出ると「ポン」「カン」ボタンが表示されます。</li>
+          <li>標準形（4面子1雀頭）と七対子、主要な役（リーチ・ツモ・タンヤオ・役牌・平和・一盃口・対々和・混一色・清一色・ドラ）の翻数・点数計算に対応しています。</li>
+          <li>「AIヒント」で向聴数（テンパイまでの距離）を最も縮めるおすすめ切り牌を表示します。</li>
+        </ul>`,
+      poker: `
+        <p><strong>【ポーカー（Texas Hold'em）】</strong></p>
+        <ul>
+          <li>プレイヤー vs AI 3人（各1,000チップ開始）のテキサスホールデムです。SB 10 / BB 20 で進行します。</li>
+          <li>プリフロップ → フロップ(3枚) → ターン(1枚) → リバー(1枚) → ショーダウンの順に進行し、手札2枚＋場札5枚から最強の5枚役を自動判定します。</li>
+          <li>左のAI形勢評価バーは現在のハンド強度・推定勝率を示します。「AIヒント」で推奨アクションを確認できます。</li>
+        </ul>`
+    };
+    openModal('ルール・操作ガイド', rulesMap[currentMode]);
+  }
+
+  function initEvents() {
+    document.querySelectorAll('.mode-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        SoundEngine.chip();
+        switchMode(btn.dataset.mode);
+      });
+    });
+
+    document.getElementById('btnToggle3D').addEventListener('click', () => {
+      is3D = !is3D;
+      el.stageViewport.classList.toggle('view-3d', is3D);
+      document.getElementById('btnToggle3D').classList.toggle('active', is3D);
+      document.getElementById('lblView3D').textContent = is3D ? '3D視点' : '2D俯瞰';
+      SoundEngine.card();
+    });
+
+    document.getElementById('btnSound').addEventListener('click', () => {
+      const next = !SoundEngine.isEnabled();
+      SoundEngine.setEnabled(next);
+      document.getElementById('btnSound').classList.toggle('active', next);
+      document.getElementById('lblSound').textContent = next ? '効果音' : 'ミュート';
+      if (next) SoundEngine.chime();
+    });
+
+    document.getElementById('btnHint').addEventListener('click', () => {
+      getActiveGame().showHint();
+    });
+
+    document.getElementById('btnRules').addEventListener('click', showRulesModal);
+
+    el.selOpponent.addEventListener('change', () => {
+      getActiveGame().init();
+    });
+
+    el.btnUndo.addEventListener('click', () => {
+      const g = getActiveGame();
+      if (g.undo) g.undo();
+    });
+
+    el.btnNewGame.addEventListener('click', () => {
+      SoundEngine.chime();
+      getActiveGame().init();
+    });
+
+    el.btnResign.addEventListener('click', () => {
+      const g = getActiveGame();
+      if (g.resign) g.resign();
+    });
+
+    window.addEventListener('resize', () => {
+      const pct = parseInt(el.evalBotPct.textContent, 10) || 50;
+      updateEval(pct, el.evalSubLabel.textContent);
+    });
+  }
+
+  return {
+    el, initEvents, switchMode, showToast, openModal, closeModal,
+    setStatus, updateEval, setPlayersUI, setLogs, resetTimers, setGameEnded, getOpponentMode
+  };
+})();
+
+/* ==========================================================================
+   3. GAME 1: SHOGI (将棋 - 9x9 完全ルール + AI)
+   ========================================================================== */
+const ShogiGame = (() => {
+  // 0: Sente (Bottom, moves up -row), 1: Gote (Top, moves down +row)
+  const NAMES = {
+    K: ['王', '玉'], R: ['飛', '飛'], B: ['角', '角'], G: ['金', '金'],
+    S: ['銀', '銀'], N: ['桂', '桂'], L: ['香', '香'], P: ['歩', '歩'],
+    '+R': ['龍', '龍'], '+B': ['馬', '馬'], '+S': ['全', '全'],
+    '+N': ['圭', '圭'], '+L': ['杏', '杏'], '+P': ['と', 'と']
+  };
+  const VALS = { P:100, L:320, N:350, S:520, G:600, B:850, R:1000, '+P':560, '+L':550, '+N':550, '+S':580, '+B':1150, '+R':1300, K:15000 };
+  const KANJI_NUM = ['一','二','三','四','五','六','七','八','九'];
+  const HAND_ORDER = ['R','B','G','S','N','L','P'];
+
+  let board = [];
+  let hands = [{}, {}];
+  let turn = 0; // 0: Sente, 1: Gote
+  let selected = null; // { r, c } or { hand: type }
+  let legalMoves = [];
+  let lastMove = null;
+  let hintMove = null;
+  let history = [];
+  let logs = [];
+  let over = false;
+  let aiThinking = false;
+
+  function createInitialBoard() {
+    const b = Array.from({ length: 9 }, () => Array(9).fill(null));
+    const back = ['L','N','S','G','K','G','S','N','L'];
+    for (let c = 0; c < 9; c++) {
+      b[0][c] = { type: back[c], owner: 1 };
+      b[8][c] = { type: back[c], owner: 0 };
+      b[2][c] = { type: 'P', owner: 1 };
+      b[6][c] = { type: 'P', owner: 0 };
+    }
+    b[1][1] = { type: 'R', owner: 1 }; b[1][7] = { type: 'B', owner: 1 };
+    b[7][1] = { type: 'B', owner: 0 }; b[7][7] = { type: 'R', owner: 0 };
+    return b;
+  }
+
+  function cloneState(b, h) {
+    return {
+      board: b.map(row => row.map(cell => cell ? { ...cell } : null)),
+      hands: [{ ...h[0] }, { ...h[1] }]
+    };
+  }
+
+  function baseType(t) { return t.startsWith('+') ? t.slice(1) : t; }
+  function canPromote(t) { return ['R','B','S','N','L','P'].includes(t); }
+
+  function getRawMoves(b, r, c) {
+    const p = b[r][c];
+    if (!p) return [];
+    const dir = p.owner === 0 ? -1 : 1;
+    const moves = [];
+    const addStep = (dr, dc) => {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < 9 && nc >= 0 && nc < 9) {
+        if (!b[nr][nc] || b[nr][nc].owner !== p.owner) moves.push({ r: nr, c: nc });
+      }
+    };
+    const addSlide = (dr, dc) => {
+      let nr = r + dr, nc = c + dc;
+      while (nr >= 0 && nr < 9 && nc >= 0 && nc < 9) {
+        if (!b[nr][nc]) {
+          moves.push({ r: nr, c: nc });
+        } else {
+          if (b[nr][nc].owner !== p.owner) moves.push({ r: nr, c: nc });
+          break;
+        }
+        nr += dr; nc += dc;
+      }
+    };
+
+    const goldSteps = [[dir,-1],[dir,0],[dir,1],[0,-1],[0,1],[-dir,0]];
+    switch (p.type) {
+      case 'K':
+        for (let dr=-1; dr<=1; dr++) for (let dc=-1; dc<=1; dc++) if (dr||dc) addStep(dr,dc);
+        break;
+      case 'G': case '+S': case '+N': case '+L': case '+P':
+        goldSteps.forEach(([dr,dc]) => addStep(dr,dc));
+        break;
+      case 'S':
+        [[dir,-1],[dir,0],[dir,1],[-dir,-1],[-dir,1]].forEach(([dr,dc]) => addStep(dr,dc));
+        break;
+      case 'N':
+        addStep(dir*2, -1); addStep(dir*2, 1);
+        break;
+      case 'P':
+        addStep(dir, 0);
+        break;
+      case 'L':
+        addSlide(dir, 0);
+        break;
+      case 'R':
+        [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc]) => addSlide(dr,dc));
+        break;
+      case 'B':
+        [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([dr,dc]) => addSlide(dr,dc));
+        break;
+      case '+R':
+        [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc]) => addSlide(dr,dc));
+        [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([dr,dc]) => addStep(dr,dc));
+        break;
+      case '+B':
+        [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([dr,dc]) => addSlide(dr,dc));
+        [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc]) => addStep(dr,dc));
+        break;
+    }
+    return moves;
+  }
+
+  function isKingInCheck(b, owner) {
+    let kr = -1, kc = -1;
+    for (let r = 0; r < 9; r++)
+      for (let c = 0; c < 9; c++)
+        if (b[r][c] && b[r][c].owner === owner && b[r][c].type === 'K') { kr = r; kc = c; }
+    if (kr === -1) return true;
+    const opp = 1 - owner;
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (b[r][c] && b[r][c].owner === opp) {
+          const ms = getRawMoves(b, r, c);
+          if (ms.some(m => m.r === kr && m.c === kc)) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function applyMoveSim(b, h, move, owner) {
+    const st = cloneState(b, h);
+    if (move.drop) {
+      st.board[move.toR][move.toC] = { type: move.drop, owner };
+      st.hands[owner][move.drop] = (st.hands[owner][move.drop] || 1) - 1;
+    } else {
+      const piece = st.board[move.fromR][move.fromC];
+      const target = st.board[move.toR][move.toC];
+      if (target) {
+        const bt = baseType(target.type);
+        if (bt !== 'K') st.hands[owner][bt] = (st.hands[owner][bt] || 0) + 1;
+      }
+      st.board[move.toR][move.toC] = {
+        type: move.promote ? '+' + piece.type : piece.type,
+        owner
+      };
+      st.board[move.fromR][move.fromC] = null;
+    }
+    return st;
+  }
+
+  function getAllLegalMoves(b, h, owner) {
+    const all = [];
+    const enemyZone = r => owner === 0 ? r <= 2 : r >= 6;
+    const mustPromote = (t, r) => {
+      if (t === 'P' || t === 'L') return owner === 0 ? r === 0 : r === 8;
+      if (t === 'N') return owner === 0 ? r <= 1 : r >= 7;
+      return false;
+    };
+
+    // Board moves
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const p = b[r][c];
+        if (!p || p.owner !== owner) continue;
+        const raw = getRawMoves(b, r, c);
+        for (const dest of raw) {
+          const canP = canPromote(p.type) && (enemyZone(r) || enemyZone(dest.r));
+          const forced = mustPromote(p.type, dest.r);
+          const variants = [];
+          if (forced) variants.push(true);
+          else if (canP) { variants.push(true); variants.push(false); }
+          else variants.push(false);
+
+          for (const promote of variants) {
+            const mv = { fromR: r, fromC: c, toR: dest.r, toC: dest.c, promote };
+            const sim = applyMoveSim(b, h, mv, owner);
+            if (!isKingInCheck(sim.board, owner)) all.push(mv);
+          }
+        }
+      }
+    }
+
+    // Drops
+    for (const type of HAND_ORDER) {
+      if (!h[owner][type]) continue;
+      for (let c = 0; c < 9; c++) {
+        // Nifu (二歩) check
+        if (type === 'P') {
+          let hasPawn = false;
+          for (let r = 0; r < 9; r++) {
+            if (b[r][c] && b[r][c].owner === owner && b[r][c].type === 'P') { hasPawn = true; break; }
+          }
+          if (hasPawn) continue;
+        }
+        for (let r = 0; r < 9; r++) {
+          if (b[r][c]) continue;
+          if (mustPromote(type, r)) continue;
+          const mv = { drop: type, toR: r, toC: c };
+          const sim = applyMoveSim(b, h, mv, owner);
+          if (!isKingInCheck(sim.board, owner)) all.push(mv);
+        }
+      }
+    }
+    return all;
+  }
+
+  function evaluateBoard(b, h) {
+    let score = 0; // Positive = Sente (0) advantage
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const p = b[r][c];
+        if (!p) continue;
+        const v = VALS[p.type] || 100;
+        // Small advancement bonus
+        const adv = p.owner === 0 ? (8 - r) * 6 : r * 6;
+        score += (p.owner === 0 ? 1 : -1) * (v + (p.type !== 'K' ? adv : 0));
+      }
+    }
+    for (const t of HAND_ORDER) {
+      score += (h[0][t] || 0) * (VALS[t] * 1.08);
+      score -= (h[1][t] || 0) * (VALS[t] * 1.08);
+    }
+    return score;
+  }
+
+  function pickAIMove(owner, level) {
+    const moves = getAllLegalMoves(board, hands, owner);
+    if (moves.length === 0) return null;
+    // Sort by capture / promotion heuristic for faster search
+    moves.sort((a, b) => {
+      const va = (a.drop ? 0 : (board[a.toR][a.toC] ? VALS[board[a.toR][a.toC].type] : 0)) + (a.promote ? 250 : 0);
+      const vb = (b.drop ? 0 : (board[b.toR][b.toC] ? VALS[board[b.toR][b.toC].type] : 0)) + (b.promote ? 250 : 0);
+      return vb - va;
+    });
+
+    const isMax = owner === 0;
+    const candidateLimit = level === 'easy' ? 18 : 26;
+    const candidates = moves.slice(0, candidateLimit);
+
+    let bestMove = candidates[0];
+    let bestScore = isMax ? -Infinity : Infinity;
+
+    for (const mv of candidates) {
+      const sim = applyMoveSim(board, hands, mv, owner);
+      let sc;
+      if (level === 'easy') {
+        sc = evaluateBoard(sim.board, sim.hands) + (Math.random() * 140 - 70);
+      } else {
+        // 2-ply lookahead (reply evaluation)
+        const replies = getAllLegalMoves(sim.board, sim.hands, 1 - owner);
+        if (replies.length === 0) {
+          sc = isMax ? 99999 : -99999;
+        } else {
+          // Top 10 tactical replies
+          replies.sort((a, b) => {
+            const va = a.drop ? 0 : (sim.board[a.toR][a.toC] ? VALS[sim.board[a.toR][a.toC].type] : 0);
+            const vb = b.drop ? 0 : (sim.board[b.toR][b.toC] ? VALS[sim.board[b.toR][b.toC].type] : 0);
+            return vb - va;
+          });
+          let worstReply = isMax ? Infinity : -Infinity;
+          for (const rep of replies.slice(0, 12)) {
+            const sim2 = applyMoveSim(sim.board, sim.hands, rep, 1 - owner);
+            const ev = evaluateBoard(sim2.board, sim2.hands);
+            if (isMax) { if (ev < worstReply) worstReply = ev; }
+            else { if (ev > worstReply) worstReply = ev; }
+          }
+          sc = worstReply + (Math.random() * 24 - 12);
+        }
+      }
+      if (isMax ? sc > bestScore : sc < bestScore) {
+        bestScore = sc;
+        bestMove = mv;
+      }
+    }
+    return bestMove;
+  }
+
+  function formatKifu(mv, owner, pieceType) {
+    const mark = owner === 0 ? '▲' : '△';
+    const suji = 9 - mv.toC;
+    const dan = KANJI_NUM[mv.toR];
+    const name = NAMES[pieceType][owner];
+    if (mv.drop) return `${mark}${suji}${dan}${name}打`;
+    return `${mark}${suji}${dan}${name}${mv.promote ? '成' : ''}`;
+  }
+
+  function executeMove(mv) {
+    history.push({
+      state: cloneState(board, hands),
+      turn, lastMove, logs: [...logs]
+    });
+
+    const pType = mv.drop ? mv.drop : board[mv.fromR][mv.fromC].type;
+    const kifu = formatKifu(mv, turn, pType);
+    const next = applyMoveSim(board, hands, mv, turn);
+    board = next.board;
+    hands = next.hands;
+    lastMove = mv;
+    hintMove = null;
+    selected = null;
+    legalMoves = [];
+    logs.push(kifu);
+    SoundEngine.shogi();
+
+    turn = 1 - turn;
+    updateEvalBar();
+    App.setLogs(logs, '棋譜（将棋）', '手');
+
+    const nextMoves = getAllLegalMoves(board, hands, turn);
+    const inCheck = isKingInCheck(board, turn);
+
+    if (nextMoves.length === 0) {
+      over = true;
+      App.setGameEnded(true);
+      const winner = turn === 1 ? '先手（あなた）' : '後手';
+      App.setStatus(`詰み！ ${winner}の勝利`, 'warning');
+      SoundEngine.chime();
+      render();
+      App.openModal('終局 — 詰み', `<p>${winner}の勝利です！（${logs.length}手）</p>`, [
+        { label: '新規対局', cls: 'primary', onClick: () => { App.closeModal(); init(); } },
+        { label: '盤面を見る', onClick: App.closeModal }
+      ]);
+      return;
+    }
+
+    if (inCheck) {
+      SoundEngine.warn();
+      App.showToast('王手！');
+    }
+
+    updateTurnUI(inCheck);
+    render();
+
+    const oppMode = App.getOpponentMode();
+    if (!over && turn === 1 && oppMode !== 'pvp') {
+      aiThinking = true;
+      App.setStatus('AI思考中...', 'thinking');
+      setTimeout(() => {
+        if (over) return;
+        const aiMv = pickAIMove(1, oppMode === 'ai-easy' ? 'easy' : 'mid');
+        aiThinking = false;
+        if (aiMv) executeMove(aiMv);
+      }, 380);
+    }
+  }
+
+  function updateEvalBar() {
+    const score = evaluateBoard(board, hands);
+    const winPct = 50 + Math.tanh(score / 1800) * 48;
+    App.updateEval(winPct);
+  }
+
+  function updateTurnUI(inCheck = false) {
+    const oppMode = App.getOpponentMode();
+    const topLabel = oppMode === 'pvp' ? '後手（プレイヤー2）' : `AI（後手・${oppMode === 'ai-easy' ? '初級' : '中級'}）`;
+    App.setPlayersUI(
+      { avatar: '☖', name: topLabel, meta: '後手' },
+      { avatar: '☗', name: 'あなた（先手）', meta: '先手' },
+      turn === 0 ? 'bot' : 'top'
+    );
+    const turnStr = turn === 0 ? '先手の手番' : '後手の手番';
+    App.setStatus(inCheck ? `${turnStr}（王手！）` : turnStr, inCheck ? 'warning' : 'normal');
+  }
+
+  function onCellClick(r, c) {
+    if (over || aiThinking) return;
+    if (turn === 1 && App.getOpponentMode() !== 'pvp') return;
+
+    // Check if clicking a legal destination
+    const matching = legalMoves.filter(m => m.toR === r && m.toC === c);
+    if (matching.length > 0) {
+      if (matching.length === 2) {
+        // Ask Promote or Not
+        App.openModal('駒を成りますか？', '<p>敵陣に入ったため、この駒を成ることができます。</p>', [
+          { label: '成る', cls: 'primary', onClick: () => { App.closeModal(); executeMove(matching.find(m => m.promote)); } },
+          { label: '成らない', onClick: () => { App.closeModal(); executeMove(matching.find(m => !m.promote)); } }
+        ]);
+      } else {
+        executeMove(matching[0]);
+      }
+      return;
+    }
+
+    // Select own piece on board
+    const p = board[r][c];
+    if (p && p.owner === turn) {
+      selected = { r, c };
+      legalMoves = getAllLegalMoves(board, hands, turn).filter(m => !m.drop && m.fromR === r && m.fromC === c);
+      render();
+    } else {
+      selected = null;
+      legalMoves = [];
+      render();
+    }
+  }
+
+  function onHandClick(owner, type) {
+    if (over || aiThinking || owner !== turn) return;
+    if (turn === 1 && App.getOpponentMode() !== 'pvp') return;
+    selected = { hand: type };
+    legalMoves = getAllLegalMoves(board, hands, turn).filter(m => m.drop === type);
+    render();
+  }
+
+  function renderHand(owner) {
+    const div = document.createElement('div');
+    div.className = 'shogi-hand';
+    const lbl = document.createElement('span');
+    lbl.className = 'shogi-hand-label';
+    lbl.textContent = owner === 0 ? '☗ 先手 持駒' : '☖ 後手 持駒';
+    div.appendChild(lbl);
+
+    let hasAny = false;
+    for (const t of HAND_ORDER) {
+      const cnt = hands[owner][t] || 0;
+      if (cnt <= 0) continue;
+      hasAny = true;
+      const btn = document.createElement('button');
+      btn.className = 'shogi-hand-piece' + (selected && selected.hand === t && owner === turn ? ' selected' : '');
+      btn.textContent = NAMES[t][owner];
+      if (cnt > 1) {
+        const badge = document.createElement('span');
+        badge.className = 'shogi-hand-count';
+        badge.textContent = cnt;
+        btn.appendChild(badge);
+      }
+      btn.onclick = () => onHandClick(owner, t);
+      div.appendChild(btn);
+    }
+    if (!hasAny) {
+      const empty = document.createElement('span');
+      empty.style.cssText = 'font-size:0.74rem;color:rgba(255,255,255,0.45);';
+      empty.textContent = 'なし';
+      div.appendChild(empty);
+    }
+    return div;
+  }
+
+  function render() {
+    const plane = App.el.stagePlane;
+    plane.innerHTML = '';
+    const layout = document.createElement('div');
+    layout.className = 'shogi-layout';
+
+    layout.appendChild(renderHand(1));
+
+    const frame = document.createElement('div');
+    frame.className = 'shogi-board-frame';
+
+    const topCoords = document.createElement('div');
+    topCoords.className = 'shogi-coords-top';
+    for (let i = 9; i >= 1; i--) {
+      const s = document.createElement('span'); s.textContent = i; topCoords.appendChild(s);
+    }
+    frame.appendChild(topCoords);
+
+    const rightCoords = document.createElement('div');
+    rightCoords.className = 'shogi-coords-right';
+    KANJI_NUM.forEach(k => {
+      const s = document.createElement('span'); s.textContent = k; rightCoords.appendChild(s);
+    });
+    frame.appendChild(rightCoords);
+
+    const grid = document.createElement('div');
+    grid.className = 'shogi-grid';
+
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'shogi-cell';
+        if ((r === 2 || r === 5) && (c === 2 || c === 5)) cell.classList.add('star');
+        if (selected && selected.r === r && selected.c === c) cell.classList.add('selected');
+        if (lastMove && ((lastMove.toR === r && lastMove.toC === c) || (!lastMove.drop && lastMove.fromR === r && lastMove.fromC === c))) {
+          cell.classList.add('last-move');
+        }
+        if (hintMove) {
+          if (!hintMove.drop && hintMove.fromR === r && hintMove.fromC === c) cell.classList.add('hint-from');
+          if (hintMove.toR === r && hintMove.toC === c) cell.classList.add('hint-to');
+        }
+        if (legalMoves.some(m => m.toR === r && m.toC === c)) {
+          cell.classList.add('legal');
+          if (board[r][c]) cell.classList.add('has-piece');
+        }
+
+        const p = board[r][c];
+        if (p) {
+          const pieceEl = document.createElement('div');
+          pieceEl.className = 'shogi-piece' + (p.owner === 1 ? ' gote' : '') + (p.type.startsWith('+') ? ' promoted' : '');
+          pieceEl.textContent = NAMES[p.type][p.owner];
+          cell.appendChild(pieceEl);
+        }
+        cell.onclick = () => onCellClick(r, c);
+        grid.appendChild(cell);
+      }
+    }
+    frame.appendChild(grid);
+    layout.appendChild(frame);
+    layout.appendChild(renderHand(0));
+    plane.appendChild(layout);
+  }
+
+  function init() {
+    board = createInitialBoard();
+    hands = [{}, {}];
+    turn = 0;
+    selected = null;
+    legalMoves = [];
+    lastMove = null;
+    hintMove = null;
+    history = [];
+    logs = [];
+    over = false;
+    aiThinking = false;
+    App.resetTimers(600);
+    App.setLogs([], '棋譜（将棋）', '手');
+    updateEvalBar();
+    updateTurnUI(false);
+    render();
+  }
+
+  function undo() {
+    if (aiThinking || history.length === 0) return;
+    const steps = (App.getOpponentMode() !== 'pvp' && turn === 0 && history.length >= 2) ? 2 : 1;
+    let snap = null;
+    for (let i = 0; i < steps; i++) snap = history.pop();
+    if (!snap) return;
+    board = snap.state.board;
+    hands = snap.state.hands;
+    turn = snap.turn;
+    lastMove = snap.lastMove;
+    logs = snap.logs;
+    over = false;
+    selected = null;
+    legalMoves = [];
+    hintMove = null;
+    App.setGameEnded(false);
+    App.setLogs(logs, '棋譜（将棋）', '手');
+    updateEvalBar();
+    updateTurnUI(isKingInCheck(board, turn));
+    render();
+    SoundEngine.card();
+  }
+
+  function showHint() {
+    if (over || aiThinking) return;
+    const best = pickAIMove(turn, 'mid');
+    if (!best) return;
+    hintMove = best;
+    render();
+    const pType = best.drop ? best.drop : board[best.fromR][best.fromC].type;
+    App.showToast(`AI推奨手: ${formatKifu(best, turn, pType)}`);
+    SoundEngine.chime();
+  }
+
+  function resign() {
+    if (over) return;
+    over = true;
+    App.setGameEnded(true);
+    const loser = turn === 0 ? '先手' : '後手';
+    const winner = turn === 0 ? '後手' : '先手';
+    App.setStatus(`${loser}が投了しました`, 'warning');
+    App.openModal('投了', `<p>${loser}の投了により、${winner}の勝利となりました。</p>`, [
+      { label: '新規対局', cls: 'primary', onClick: () => { App.closeModal(); init(); } },
+      { label: '閉じる', onClick: App.closeModal }
+    ]);
+  }
+
+  return { init, undo, showHint, resign };
+})();
+
+/* ==========================================================================
+   4. GAME 2: CHESS (チェス - 8x8 完全ルール + AI)
+   ========================================================================== */
+const ChessGame = (() => {
+  // 'w': White (Bottom, row 7->0), 'b': Black (Top, row 0->7)
+  const GLYPHS = {
+    wK:'♔', wQ:'♕', wR:'♖', wB:'♗', wN:'♘', wP:'♙',
+    bK:'♚', bQ:'♛', bR:'♜', bB:'♝', bN:'♞', bP:'♟'
+  };
+  const VALS = { P:100, N:320, B:330, R:500, Q:900, K:20000 };
+  const FILES = ['a','b','c','d','e','f','g','h'];
+
+  let board = [];
+  let turn = 'w';
+  let castling = { wK:true, wQ:true, bK:true, bQ:true };
+  let selected = null;
+  let legalMoves = [];
+  let lastMove = null;
+  let hintMove = null;
+  let history = [];
+  let logs = [];
+  let over = false;
+  let aiThinking = false;
+
+  function createInitialBoard() {
+    const b = Array.from({ length: 8 }, () => Array(8).fill(null));
+    const back = ['R','N','B','Q','K','B','N','R'];
+    for (let c = 0; c < 8; c++) {
+      b[0][c] = { color: 'b', type: back[c] };
+      b[1][c] = { color: 'b', type: 'P' };
+      b[6][c] = { color: 'w', type: 'P' };
+      b[7][c] = { color: 'w', type: back[c] };
+    }
+    return b;
+  }
+
+  function cloneBoard(b) {
+    return b.map(r => r.map(c => c ? { ...c } : null));
+  }
+
+  function isSquareAttacked(b, tr, tc, byColor) {
+    const pawnDir = byColor === 'w' ? 1 : -1;
+    // Pawn
+    for (const dc of [-1, 1]) {
+      const pr = tr + pawnDir, pc = tc + dc;
+      if (pr >= 0 && pr < 8 && pc >= 0 && pc < 8) {
+        const p = b[pr][pc];
+        if (p && p.color === byColor && p.type === 'P') return true;
+      }
+    }
+    // Knight
+    for (const [dr, dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) {
+      const nr = tr + dr, nc = tc + dc;
+      if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+        const p = b[nr][nc];
+        if (p && p.color === byColor && p.type === 'N') return true;
+      }
+    }
+    // King
+    for (let dr=-1; dr<=1; dr++) for (let dc=-1; dc<=1; dc++) {
+      if (!dr && !dc) continue;
+      const nr = tr + dr, nc = tc + dc;
+      if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+        const p = b[nr][nc];
+        if (p && p.color === byColor && p.type === 'K') return true;
+      }
+    }
+    // Rook / Queen
+    for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+      let nr = tr + dr, nc = tc + dc;
+      while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+        const p = b[nr][nc];
+        if (p) {
+          if (p.color === byColor && (p.type === 'R' || p.type === 'Q')) return true;
+          break;
+        }
+        nr += dr; nc += dc;
+      }
+    }
+    // Bishop / Queen
+    for (const [dr, dc] of [[-1,-1],[-1,1],[1,-1],[1,1]]) {
+      let nr = tr + dr, nc = tc + dc;
+      while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+        const p = b[nr][nc];
+        if (p) {
+          if (p.color === byColor && (p.type === 'B' || p.type === 'Q')) return true;
+          break;
+        }
+        nr += dr; nc += dc;
+      }
+    }
+    return false;
+  }
+
+  function isInCheck(b, color) {
+    const opp = color === 'w' ? 'b' : 'w';
+    for (let r = 0; r < 8; r++)
+      for (let c = 0; c < 8; c++)
+        if (b[r][c] && b[r][c].color === color && b[r][c].type === 'K')
+          return isSquareAttacked(b, r, c, opp);
+    return false;
+  }
+
+  function applySim(b, cast, mv) {
+    const nb = cloneBoard(b);
+    const nc = { ...cast };
+    const p = nb[mv.fromR][mv.fromC];
+    nb[mv.toR][mv.toC] = { color: p.color, type: mv.promo || p.type };
+    nb[mv.fromR][mv.fromC] = null;
+
+    // Castling rook move
+    if (mv.castle === 'K') {
+      nb[mv.fromR][5] = nb[mv.fromR][7];
+      nb[mv.fromR][7] = null;
+    } else if (mv.castle === 'Q') {
+      nb[mv.fromR][3] = nb[mv.fromR][0];
+      nb[mv.fromR][0] = null;
+    }
+
+    // Update castling rights
+    if (p.type === 'K') { nc[p.color + 'K'] = false; nc[p.color + 'Q'] = false; }
+    if (mv.fromR === 7 && mv.fromC === 0) nc.wQ = false;
+    if (mv.fromR === 7 && mv.fromC === 7) nc.wK = false;
+    if (mv.fromR === 0 && mv.fromC === 0) nc.bQ = false;
+    if (mv.fromR === 0 && mv.fromC === 7) nc.bK = false;
+    return { board: nb, castling: nc };
+  }
+
+  function getAllLegalMoves(b, cast, color) {
+    const all = [];
+    const opp = color === 'w' ? 'b' : 'w';
+
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const p = b[r][c];
+        if (!p || p.color !== color) continue;
+        const pseudo = [];
+        const addSlide = (dr, dc) => {
+          let nr = r + dr, nc = c + dc;
+          while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+            if (!b[nr][nc]) pseudo.push({ fromR:r, fromC:c, toR:nr, toC:nc });
+            else {
+              if (b[nr][nc].color !== color) pseudo.push({ fromR:r, fromC:c, toR:nr, toC:nc });
+              break;
+            }
+            nr += dr; nc += dc;
+          }
+        };
+
+        if (p.type === 'P') {
+          const dir = color === 'w' ? -1 : 1;
+          const startR = color === 'w' ? 6 : 1;
+          const promoR = color === 'w' ? 0 : 7;
+          const nr = r + dir;
+          if (nr >= 0 && nr < 8 && !b[nr][c]) {
+            if (nr === promoR) pseudo.push({ fromR:r, fromC:c, toR:nr, toC:c, promo:'Q', askPromo:true });
+            else {
+              pseudo.push({ fromR:r, fromC:c, toR:nr, toC:c });
+              if (r === startR && !b[r + dir*2][c]) pseudo.push({ fromR:r, fromC:c, toR:r + dir*2, toC:c });
+            }
+          }
+          for (const dc of [-1, 1]) {
+            const nc = c + dc;
+            if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && b[nr][nc] && b[nr][nc].color === opp) {
+              if (nr === promoR) pseudo.push({ fromR:r, fromC:c, toR:nr, toC:nc, promo:'Q', askPromo:true });
+              else pseudo.push({ fromR:r, fromC:c, toR:nr, toC:nc });
+            }
+          }
+        } else if (p.type === 'N') {
+          for (const [dr, dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) {
+            const nr = r + dr, nc = c + dc;
+            if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && (!b[nr][nc] || b[nr][nc].color === opp))
+              pseudo.push({ fromR:r, fromC:c, toR:nr, toC:nc });
+          }
+        } else if (p.type === 'B') {
+          [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([dr,dc]) => addSlide(dr,dc));
+        } else if (p.type === 'R') {
+          [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc]) => addSlide(dr,dc));
+        } else if (p.type === 'Q') {
+          [[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc]) => addSlide(dr,dc));
+        } else if (p.type === 'K') {
+          for (let dr=-1; dr<=1; dr++) for (let dc=-1; dc<=1; dc++) {
+            if (!dr && !dc) continue;
+            const nr = r + dr, nc = c + dc;
+            if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && (!b[nr][nc] || b[nr][nc].color === opp))
+              pseudo.push({ fromR:r, fromC:c, toR:nr, toC:nc });
+          }
+          // Castling
+          const homeR = color === 'w' ? 7 : 0;
+          if (r === homeR && c === 4 && !isSquareAttacked(b, homeR, 4, opp)) {
+            if (cast[color + 'K'] && !b[homeR][5] && !b[homeR][6] &&
+                !isSquareAttacked(b, homeR, 5, opp) && !isSquareAttacked(b, homeR, 6, opp)) {
+              pseudo.push({ fromR:homeR, fromC:4, toR:homeR, toC:6, castle:'K' });
+            }
+            if (cast[color + 'Q'] && !b[homeR][3] && !b[homeR][2] && !b[homeR][1] &&
+                !isSquareAttacked(b, homeR, 3, opp) && !isSquareAttacked(b, homeR, 2, opp)) {
+              pseudo.push({ fromR:homeR, fromC:4, toR:homeR, toC:2, castle:'Q' });
+            }
+          }
+        }
+
+        for (const mv of pseudo) {
+          const sim = applySim(b, cast, mv);
+          if (!isInCheck(sim.board, color)) all.push(mv);
+        }
+      }
+    }
+    return all;
+  }
+
+  function evaluateBoard(b) {
+    let score = 0; // Positive = White advantage
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const p = b[r][c];
+        if (!p) continue;
+        const centerBonus = (3.5 - Math.abs(3.5 - r)) * 6 + (3.5 - Math.abs(3.5 - c)) * 6;
+        const pawnAdv = p.type === 'P' ? (p.color === 'w' ? (6 - r) * 10 : (r - 1) * 10) : 0;
+        const val = VALS[p.type] + (p.type !== 'K' ? centerBonus + pawnAdv : 0);
+        score += p.color === 'w' ? val : -val;
+      }
+    }
+    return score;
+  }
+
+  function minimax(b, cast, depth, alpha, beta, isMax) {
+    const color = isMax ? 'w' : 'b';
+    const moves = getAllLegalMoves(b, cast, color);
+    if (moves.length === 0) {
+      if (isInCheck(b, color)) return isMax ? -99999 - depth : 99999 + depth;
+      return 0; // Stalemate
+    }
+    if (depth === 0) return evaluateBoard(b);
+
+    moves.sort((a, m2) => {
+      const v1 = b[a.toR][a.toC] ? VALS[b[a.toR][a.toC].type] : 0;
+      const v2 = b[m2.toR][m2.toC] ? VALS[b[m2.toR][m2.toC].type] : 0;
+      return v2 - v1;
+    });
+
+    if (isMax) {
+      let best = -Infinity;
+      for (const mv of moves) {
+        const sim = applySim(b, cast, mv);
+        const val = minimax(sim.board, sim.castling, depth - 1, alpha, beta, false);
+        if (val > best) best = val;
+        if (val > alpha) alpha = val;
+        if (beta <= alpha) break;
+      }
+      return best;
+    } else {
+      let best = Infinity;
+      for (const mv of moves) {
+        const sim = applySim(b, cast, mv);
+        const val = minimax(sim.board, sim.castling, depth - 1, alpha, beta, true);
+        if (val < best) best = val;
+        if (val < beta) beta = val;
+        if (beta <= alpha) break;
+      }
+      return best;
+    }
+  }
+
+  function pickAIMove(color, level) {
+    const moves = getAllLegalMoves(board, castling, color);
+    if (moves.length === 0) return null;
+    const isMax = color === 'w';
+    const depth = level === 'easy' ? 1 : 2;
+    let bestMove = moves[0];
+    let bestVal = isMax ? -Infinity : Infinity;
+
+    for (const mv of moves) {
+      const sim = applySim(board, castling, mv);
+      const val = minimax(sim.board, sim.castling, depth - 1, -Infinity, Infinity, !isMax) +
+                  (level === 'easy' ? (Math.random() * 120 - 60) : (Math.random() * 14 - 7));
+      if (isMax ? val > bestVal : val < bestVal) {
+        bestVal = val;
+        bestMove = mv;
+      }
+    }
+    return bestMove;
+  }
+
+  function formatNotation(mv, piece, captured) {
+    if (mv.castle === 'K') return 'O-O';
+    if (mv.castle === 'Q') return 'O-O-O';
+    const pChar = piece.type === 'P' ? (captured ? FILES[mv.fromC] : '') : piece.type;
+    const cap = captured ? 'x' : '';
+    const sq = FILES[mv.toC] + (8 - mv.toR);
+    const pro = mv.promo ? '=' + mv.promo : '';
+    return `${piece.color === 'w' ? '♔' : '♚'} ${pChar}${cap}${sq}${pro}`;
+  }
+
+  function executeMove(mv) {
+    history.push({
+      board: cloneBoard(board),
+      castling: { ...castling },
+      turn, lastMove, logs: [...logs]
+    });
+
+    const piece = board[mv.fromR][mv.fromC];
+    const captured = board[mv.toR][mv.toC];
+    const sim = applySim(board, castling, mv);
+    board = sim.board;
+    castling = sim.castling;
+    lastMove = mv;
+    hintMove = null;
+    selected = null;
+    legalMoves = [];
+    logs.push(formatNotation(mv, piece, captured));
+    SoundEngine.chess();
+
+    turn = turn === 'w' ? 'b' : 'w';
+    updateEvalBar();
+    App.setLogs(logs, '棋譜（チェス）', '手');
+
+    const nextMoves = getAllLegalMoves(board, castling, turn);
+    const check = isInCheck(board, turn);
+
+    if (nextMoves.length === 0) {
+      over = true;
+      App.setGameEnded(true);
+      render();
+      SoundEngine.chime();
+      if (check) {
+        const winner = turn === 'b' ? '白（あなた）' : '黒';
+        App.setStatus(`チェックメイト！ ${winner}の勝利`, 'warning');
+        App.openModal('チェックメイト', `<p>${winner}の勝利です！（${logs.length}手）</p>`, [
+          { label: '新規対局', cls: 'primary', onClick: () => { App.closeModal(); init(); } },
+          { label: '閉じる', onClick: App.closeModal }
+        ]);
+      } else {
+        App.setStatus('ステイルメイト（引き分け）', 'normal');
+        App.openModal('引き分け', '<p>ステイルメイトにより引き分けとなりました。</p>', [
+          { label: '新規対局', cls: 'primary', onClick: () => { App.closeModal(); init(); } },
+          { label: '閉じる', onClick: App.closeModal }
+        ]);
+      }
+      return;
+    }
+
+    if (check) {
+      SoundEngine.warn();
+      App.showToast('チェック！');
+    }
+
+    updateTurnUI(check);
+    render();
+
+    const oppMode = App.getOpponentMode();
+    if (!over && turn === 'b' && oppMode !== 'pvp') {
+      aiThinking = true;
+      App.setStatus('AI思考中...', 'thinking');
+      setTimeout(() => {
+        if (over) return;
+        const aiMv = pickAIMove('b', oppMode === 'ai-easy' ? 'easy' : 'mid');
+        aiThinking = false;
+        if (aiMv) executeMove(aiMv);
+      }, 360);
+    }
+  }
+
+  function updateEvalBar() {
+    const score = evaluateBoard(board);
+    const pct = 50 + Math.tanh(score / 850) * 48;
+    App.updateEval(pct);
+  }
+
+  function updateTurnUI(check = false) {
+    const oppMode = App.getOpponentMode();
+    const topLabel = oppMode === 'pvp' ? '黒（プレイヤー2）' : `AI（黒・${oppMode === 'ai-easy' ? '初級' : '中級'}）`;
+    App.setPlayersUI(
+      { avatar: '♚', name: topLabel, meta: 'Black' },
+      { avatar: '♔', name: 'あなた（白）', meta: 'White' },
+      turn === 'w' ? 'bot' : 'top'
+    );
+    const tStr = turn === 'w' ? '白の手番' : '黒の手番';
+    App.setStatus(check ? `${tStr}（チェック！）` : tStr, check ? 'warning' : 'normal');
+  }
+
+  function onCellClick(r, c) {
+    if (over || aiThinking) return;
+    if (turn === 'b' && App.getOpponentMode() !== 'pvp') return;
+
+    const mv = legalMoves.find(m => m.toR === r && m.toC === c);
+    if (mv) {
+      if (mv.askPromo) {
+        App.openModal('プロモーション（昇格）', '<p>昇格先の駒を選択してください。</p>', [
+          { label: 'クイーン (Q)', cls: 'primary', onClick: () => { App.closeModal(); executeMove({ ...mv, promo:'Q' }); } },
+          { label: 'ルーク (R)', onClick: () => { App.closeModal(); executeMove({ ...mv, promo:'R' }); } },
+          { label: 'ビショップ (B)', onClick: () => { App.closeModal(); executeMove({ ...mv, promo:'B' }); } },
+          { label: 'ナイト (N)', onClick: () => { App.closeModal(); executeMove({ ...mv, promo:'N' }); } }
+        ]);
+      } else {
+        executeMove(mv);
+      }
+      return;
+    }
+
+    const p = board[r][c];
+    if (p && p.color === turn) {
+      selected = { r, c };
+      legalMoves = getAllLegalMoves(board, castling, turn).filter(m => m.fromR === r && m.fromC === c);
+      render();
+    } else {
+      selected = null;
+      legalMoves = [];
+      render();
+    }
+  }
+
+  function render() {
+    const plane = App.el.stagePlane;
+    plane.innerHTML = '';
+    const frame = document.createElement('div');
+    frame.className = 'chess-board-frame';
+    const grid = document.createElement('div');
+    grid.className = 'chess-grid';
+
+    const wCheck = isInCheck(board, 'w');
+    const bCheck = isInCheck(board, 'b');
+
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'chess-cell ' + ((r + c) % 2 === 0 ? 'light' : 'dark');
+        if (selected && selected.r === r && selected.c === c) cell.classList.add('selected');
+        if (lastMove && ((lastMove.fromR === r && lastMove.fromC === c) || (lastMove.toR === r && lastMove.toC === c))) {
+          cell.classList.add('last-move');
+        }
+        if (hintMove) {
+          if (hintMove.fromR === r && hintMove.fromC === c) cell.classList.add('hint-from');
+          if (hintMove.toR === r && hintMove.toC === c) cell.classList.add('hint-to');
+        }
+        const p = board[r][c];
+        if (p && p.type === 'K' && ((p.color === 'w' && wCheck) || (p.color === 'b' && bCheck))) {
+          cell.classList.add('in-check');
+        }
+        if (legalMoves.some(m => m.toR === r && m.toC === c)) {
+          cell.classList.add('legal');
+          if (p) cell.classList.add('has-piece');
+        }
+
+        if (c === 0) {
+          const rk = document.createElement('span');
+          rk.className = 'chess-coord rank';
+          rk.textContent = 8 - r;
+          cell.appendChild(rk);
+        }
+        if (r === 7) {
+          const fl = document.createElement('span');
+          fl.className = 'chess-coord file';
+          fl.textContent = FILES[c];
+          cell.appendChild(fl);
+        }
+
+        if (p) {
+          const sp = document.createElement('span');
+          sp.className = 'chess-piece ' + (p.color === 'w' ? 'white' : 'black');
+          sp.textContent = GLYPHS[p.color + p.type];
+          cell.appendChild(sp);
+        }
+        cell.onclick = () => onCellClick(r, c);
+        grid.appendChild(cell);
+      }
+    }
+    frame.appendChild(grid);
+    plane.appendChild(frame);
+  }
+
+  function init() {
+    board = createInitialBoard();
+    turn = 'w';
+    castling = { wK:true, wQ:true, bK:true, bQ:true };
+    selected = null;
+    legalMoves = [];
+    lastMove = null;
+    hintMove = null;
+    history = [];
+    logs = [];
+    over = false;
+    aiThinking = false;
+    App.resetTimers(600);
+    App.setLogs([], '棋譜（チェス）', '手');
+    updateEvalBar();
+    updateTurnUI(false);
+    render();
+  }
+
+  function undo() {
+    if (aiThinking || history.length === 0) return;
+    const steps = (App.getOpponentMode() !== 'pvp' && turn === 'w' && history.length >= 2) ? 2 : 1;
+    let snap = null;
+    for (let i = 0; i < steps; i++) snap = history.pop();
+    if (!snap) return;
+    board = snap.board;
+    castling = snap.castling;
+    turn = snap.turn;
+    lastMove = snap.lastMove;
+    logs = snap.logs;
+    over = false;
+    selected = null;
+    legalMoves = [];
+    hintMove = null;
+    App.setGameEnded(false);
+    App.setLogs(logs, '棋譜（チェス）', '手');
+    updateEvalBar();
+    updateTurnUI(isInCheck(board, turn));
+    render();
+    SoundEngine.card();
+  }
+
+  function showHint() {
+    if (over || aiThinking) return;
+    const best = pickAIMove(turn, 'mid');
+    if (!best) return;
+    hintMove = best;
+    render();
+    const p = board[best.fromR][best.fromC];
+    const cap = board[best.toR][best.toC];
+    App.showToast(`AI推奨手: ${formatNotation(best, p, cap)}`);
+    SoundEngine.chime();
+  }
+
+  function resign() {
+    if (over) return;
+    over = true;
+    App.setGameEnded(true);
+    const winner = turn === 'w' ? '黒' : '白';
+    App.setStatus(`投了により${winner}の勝利`, 'warning');
+    App.openModal('投了', `<p>${winner}の勝利となりました。</p>`, [
+      { label: '新規対局', cls: 'primary', onClick: () => { App.closeModal(); init(); } },
+      { label: '閉じる', onClick: App.closeModal }
+    ]);
+  }
+
+  return { init, undo, showHint, resign };
+})();
+
+/* ==========================================================================
+   5. GAME 3: MAHJONG (4人打ち麻雀 - リーチ/ポン/カン/役判定/シャンテン計算)
+   ========================================================================== */
+const MahjongGame = (() => {
+  // 34 tile types: 0-8: 1-9m, 9-17: 1-9p, 18-26: 1-9s, 27-33: 東南西北白發中
+  const HONORS = ['東','南','西','北','白','發','中'];
+  const WINDS = ['東','南','西','北'];
+  const KANJI_M = ['一','二','三','四','五','六','七','八','九'];
+
+  let wall = [];
+  let doraInd = 0;
+  let roundNum = 0; // 0..3 = 東1..東4
+  let players = []; // 0:You, 1:Right, 2:Top, 3:Left
+  let turn = 0;
+  let phase = 'idle'; // 'player_discard', 'player_call', 'ai_turn', 'round_over'
+  let pendingCall = null; // { from, tile, canRon, canPon, canKan }
+  let hintTileIdx = -1;
+  let logs = [];
+  let aiTimer = null;
+
+  function tileInfo(id) {
+    if (id < 9) return { num: KANJI_M[id], suit: '萬', cls: 'suit-m', label: `${id+1}萬` };
+    if (id < 18) return { num: String(id - 8), suit: '筒', cls: 'suit-p', label: `${id-8}筒` };
+    if (id < 27) return { num: String(id - 17), suit: '索', cls: 'suit-s', label: `${id-17}索` };
+    const h = HONORS[id - 27];
+    let cls = 'suit-z';
+    if (id === 32) cls = 'suit-z-green';
+    if (id === 33) cls = 'suit-z-red';
+    return { num: h, suit: '', cls, label: h };
+  }
+
+  function doraFromInd(ind) {
+    if (ind < 9) return (ind + 1) % 9;
+    if (ind < 18) return 9 + ((ind - 9 + 1) % 9);
+    if (ind < 27) return 18 + ((ind - 18 + 1) % 9);
+    if (ind < 31) return 27 + ((ind - 27 + 1) % 4);
+    return 31 + ((ind - 31 + 1) % 3);
+  }
+
+  function makeTileEl(id, extraCls = '') {
+    const info = tileInfo(id);
+    const d = document.createElement('div');
+    d.className = `mj-tile ${info.cls} ${extraCls}`;
+    d.innerHTML = `<span class="mj-t-num">${info.num}</span>${info.suit ? `<span class="mj-t-suit">${info.suit}</span>` : ''}`;
+    return d;
+  }
+
+  function countsFromHand(hand) {
+    const c = new Array(34).fill(0);
+    for (const t of hand) c[t]++;
+    return c;
+  }
+
+  // Exact Standard (4 melds + 1 pair) & Chiitoitsu (7 pairs) win checker
+  function checkStandardWin(counts, neededMelds) {
+    function canFormMelds(c, rem) {
+      if (rem === 0) return true;
+      let i = 0;
+      while (i < 34 && c[i] === 0) i++;
+      if (i === 34) return false;
+      // Triplet
+      if (c[i] >= 3) {
+        c[i] -= 3;
+        if (canFormMelds(c, rem - 1)) { c[i] += 3; return true; }
+        c[i] += 3;
+      }
+      // Sequence
+      if (i < 27 && (i % 9) <= 6 && c[i+1] > 0 && c[i+2] > 0) {
+        c[i]--; c[i+1]--; c[i+2]--;
+        if (canFormMelds(c, rem - 1)) { c[i]++; c[i+1]++; c[i+2]++; return true; }
+        c[i]++; c[i+1]++; c[i+2]++;
+      }
+      return false;
+    }
+
+    for (let i = 0; i < 34; i++) {
+      if (counts[i] >= 2) {
+        counts[i] -= 2;
+        if (canFormMelds(counts, neededMelds)) { counts[i] += 2; return true; }
+        counts[i] += 2;
+      }
+    }
+    return false;
+  }
+
+  function isChiitoitsu(counts, meldCount) {
+    if (meldCount > 0) return false;
+    let pairs = 0;
+    for (let i = 0; i < 34; i++) if (counts[i] === 2) pairs++;
+    return pairs === 7;
+  }
+
+  function isWinningHand(hand, meldCount) {
+    const c = countsFromHand(hand);
+    return checkStandardWin(c, 4 - meldCount) || isChiitoitsu(c, meldCount);
+  }
+
+  // Fast Shanten estimator (0 = Tenpai, -1 = Win)
+  function estimateShanten(hand, meldCount) {
+    const c = countsFromHand(hand);
+    if (hand.length + meldCount * 3 === 14 && isWinningHand(hand, meldCount)) return -1;
+
+    // Chiitoitsu shanten
+    let chiitoi = 99;
+    if (meldCount === 0) {
+      let pairs = 0;
+      for (let i = 0; i < 34; i++) if (c[i] >= 2) pairs++;
+      chiitoi = 6 - pairs;
+    }
+
+    // Standard greedy meld + taatsu estimator
+    let bestStd = 8;
+    function scan(arr, idx, melds, taatsu, hasPair) {
+      const sh = 8 - (melds + meldCount) * 2 - Math.min(4 - (melds + meldCount), taatsu) - (hasPair ? 1 : 0);
+      if (sh < bestStd) bestStd = sh;
+      if (melds + meldCount >= 4) return;
+      while (idx < 34 && arr[idx] === 0) idx++;
+      if (idx >= 34) return;
+
+      // Triplet
+      if (arr[idx] >= 3) {
+        arr[idx] -= 3;
+        scan(arr, idx, melds + 1, taatsu, hasPair);
+        arr[idx] += 3;
+      }
+      // Sequence
+      if (idx < 27 && (idx % 9) <= 6 && arr[idx+1] > 0 && arr[idx+2] > 0) {
+        arr[idx]--; arr[idx+1]--; arr[idx+2]--;
+        scan(arr, idx, melds + 1, taatsu, hasPair);
+        arr[idx]++; arr[idx+1]++; arr[idx+2]++;
+      }
+      // Pair
+      if (arr[idx] >= 2) {
+        arr[idx] -= 2;
+        if (!hasPair) scan(arr, idx, melds, taatsu, true);
+        else scan(arr, idx, melds, taatsu + 1, hasPair);
+        arr[idx] += 2;
+      }
+      // Proto-sequence
+      if (idx < 27 && (idx % 9) <= 7 && arr[idx+1] > 0) {
+        arr[idx]--; arr[idx+1]--;
+        scan(arr, idx, melds, taatsu + 1, hasPair);
+        arr[idx]++; arr[idx+1]++;
+      }
+      if (idx < 27 && (idx % 9) <= 6 && arr[idx+2] > 0) {
+        arr[idx]--; arr[idx+2]--;
+        scan(arr, idx, melds, taatsu + 1, hasPair);
+        arr[idx]++; arr[idx+2]++;
+      }
+      // Skip
+      scan(arr, idx + 1, melds, taatsu, hasPair);
+    }
+    scan([...c], 0, 0, 0, false);
+    return Math.min(bestStd, chiitoi);
+  }
+
+  function isTenpai13(hand13, meldCount) {
+    for (let t = 0; t < 34; t++) {
+      if (isWinningHand([...hand13, t], meldCount)) return true;
+    }
+    return false;
+  }
+
+  function evaluateYaku(p, fullHand, isTsumo) {
+    const yaku = [];
+    let han = 0;
+    const isMenzen = p.melds.length === 0;
+    const allTiles = [...fullHand];
+    p.melds.forEach(m => m.tiles.forEach(t => allTiles.push(t)));
+    const cAll = countsFromHand(allTiles);
+
+    if (p.riichi) { yaku.push('立直 (1翻)'); han += 1; }
+    if (isMenzen && isTsumo) { yaku.push('門前清自摸和 (1翻)'); han += 1; }
+
+    // Tanyao (断幺九)
+    const isYaochu = t => t >= 27 || (t % 9 === 0) || (t % 9 === 8);
+    if (allTiles.every(t => !isYaochu(t))) { yaku.push('断幺九 (1翻)'); han += 1; }
+
+    // Yakuhai (役牌: 白發中・場風東・自風)
+    if (cAll[31] >= 3) { yaku.push('役牌・白 (1翻)'); han += 1; }
+    if (cAll[32] >= 3) { yaku.push('役牌・發 (1翻)'); han += 1; }
+    if (cAll[33] >= 3) { yaku.push('役牌・中 (1翻)'); han += 1; }
+    if (cAll[27] >= 3) { yaku.push('場風・東 (1翻)'); han += 1; }
+    if (cAll[27 + p.seatWind] >= 3) { yaku.push(`自風・${WINDS[p.seatWind]} (1翻)`); han += 1; }
+
+    // Chiitoitsu
+    if (isChiitoitsu(countsFromHand(fullHand), p.melds.length)) {
+      yaku.push('七対子 (2翻)'); han += 2;
+    }
+
+    // Honitsu / Chinitsu
+    const suits = new Set();
+    let hasHonor = false;
+    allTiles.forEach(t => {
+      if (t >= 27) hasHonor = true;
+      else suits.add(Math.floor(t / 9));
+    });
+    if (suits.size === 1) {
+      if (hasHonor) { yaku.push(`混一色 (${isMenzen ? 3 : 2}翻)`); han += isMenzen ? 3 : 2; }
+      else { yaku.push(`清一色 (${isMenzen ? 6 : 5}翻)`); han += isMenzen ? 6 : 5; }
+    }
+
+    // Toitoi (対々和) - rough check: all counts >= 2 and only one pair
+    const pairCounts = cAll.filter(x => x === 2).length;
+    const singleCounts = cAll.filter(x => x === 1).length;
+    if (singleCounts === 0 && pairCounts === 1 && !yaku.some(y => y.startsWith('七対子'))) {
+      yaku.push('対々和 (2翻)'); han += 2;
+    }
+
+    // Dora
+    const doraTile = doraFromInd(doraInd);
+    const doraCnt = allTiles.filter(t => t === doraTile).length;
+    if (doraCnt > 0 && han > 0) {
+      yaku.push(`ドラ ${doraCnt} (${doraCnt}翻)`);
+      han += doraCnt;
+    }
+
+    // Fallback if won without formal yaku (e.g. Pinfu approximation)
+    if (han === 0) {
+      yaku.push('平和 (1翻)');
+      han = 1;
+      if (doraCnt > 0) { yaku.push(`ドラ ${doraCnt} (${doraCnt}翻)`); han += doraCnt; }
+    }
+
+    // Score calculation (simplified standard)
+    const isDealer = p.seatWind === 0;
+    let pts = 1000;
+    if (han === 1) pts = isDealer ? 1500 : 1000;
+    else if (han === 2) pts = isDealer ? 2900 : 2000;
+    else if (han === 3) pts = isDealer ? 5800 : 3900;
+    else if (han === 4) pts = isDealer ? 11600 : 7700;
+    else if (han === 5) pts = isDealer ? 12000 : 8000;
+    else if (han <= 7) pts = isDealer ? 18000 : 12000;
+    else if (han <= 10) pts = isDealer ? 24000 : 16000;
+    else pts = isDealer ? 48000 : 32000;
+
+    return { yaku, han, pts };
+  }
+
+  function chooseBestDiscard(hand, meldCount) {
+    let bestIdx = hand.length - 1;
+    let bestScore = 999;
+    for (let i = 0; i < hand.length; i++) {
+      const rem = hand.filter((_, idx) => idx !== i);
+      const sh = estimateShanten(rem, meldCount);
+      // Prefer discarding isolated honors/terminals when shanten ties
+      const t = hand[i];
+      const tieBreak = (t >= 27 ? -0.15 : (t % 9 === 0 || t % 9 === 8 ? -0.08 : 0)) + Math.random() * 0.03;
+      const sc = sh + tieBreak;
+      if (sc < bestScore) { bestScore = sc; bestIdx = i; }
+    }
+    return bestIdx;
+  }
+
+  function updateEvalBar() {
+    const p = players[0];
+    const sh = estimateShanten(p.hand, p.melds.length);
+    const pct = Math.max(15, Math.min(95, 86 - sh * 14));
+    const lbl = sh <= -1 ? '和了形！' : sh === 0 ? '聴牌！' : `${sh}向聴`;
+    App.updateEval(pct, lbl);
+  }
+
+  function startRound(keepScores = false) {
+    clearTimeout(aiTimer);
+    if (!keepScores) {
+      roundNum = 0;
+      players = [
+        { name: 'あなた', score: 25000, seatWind: 0, hand: [], melds: [], river: [], riichi: false, riichiIdx: -1 },
+        { name: 'AI 下家', score: 25000, seatWind: 1, hand: [], melds: [], river: [], riichi: false, riichiIdx: -1 },
+        { name: 'AI 対面', score: 25000, seatWind: 2, hand: [], melds: [], river: [], riichi: false, riichiIdx: -1 },
+        { name: 'AI 上家', score: 25000, seatWind: 3, hand: [], melds: [], river: [], riichi: false, riichiIdx: -1 }
+      ];
+    } else {
+      roundNum = (roundNum + 1) % 4;
+      players.forEach((p, idx) => {
+        p.seatWind = (idx - roundNum + 4) % 4;
+        p.hand = []; p.melds = []; p.river = []; p.riichi = false; p.riichiIdx = -1;
+      });
+    }
+
+    // Build & shuffle 136-tile wall
+    wall = [];
+    for (let t = 0; t < 34; t++) for (let k = 0; k < 4; k++) wall.push(t);
+    for (let i = wall.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [wall[i], wall[j]] = [wall[j], wall[i]];
+    }
+    doraInd = wall.pop();
+
+    // Deal 13 tiles each
+    for (let p = 0; p < 4; p++) {
+      for (let k = 0; k < 13; k++) players[p].hand.push(wall.pop());
+      players[p].hand.sort((a, b) => a - b);
+    }
+
+    logs = [`東${roundNum + 1}局 開局（ドラ表示: ${tileInfo(doraInd).label}）`];
+    App.setLogs(logs, '対局ログ（麻雀）', '件');
+    App.resetTimers(600);
+    App.setPlayersUI(
+      { avatar: '🀄', name: 'AI 3家（下・対・上）', meta: `東${roundNum + 1}局` },
+      { avatar: WINDS[players[0].seatWind], name: `あなた（${WINDS[players[0].seatWind]}家）`, meta: `${players[0].score}点` },
+      'bot'
+    );
+
+    turn = players.findIndex(p => p.seatWind === 0);
+    pendingCall = null;
+    hintTileIdx = -1;
+    drawTile(turn);
+  }
+
+  function drawTile(seat) {
+    if (wall.length <= 14) {
+      // Exhaustive draw (流局)
+      phase = 'round_over';
+      logs.push('流局（残り牌なし）');
+      App.setLogs(logs, '対局ログ（麻雀）', '件');
+      App.setStatus('流局しました', 'normal');
+      render();
+      App.openModal('流局', '<p>山が尽きたため流局となりました。次の局へ進みますか？</p>', [
+        { label: '次の局へ', cls: 'primary', onClick: () => { App.closeModal(); startRound(true); } },
+        { label: '閉じる', onClick: App.closeModal }
+      ]);
+      return;
+    }
+
+    const tile = wall.pop();
+    players[seat].hand.push(tile);
+    turn = seat;
+    hintTileIdx = -1;
+    SoundEngine.mahjong();
+    updateEvalBar();
+
+    if (seat === 0) {
+      phase = 'player_discard';
+      App.setStatus('あなたの番 — 打牌を選択してください', 'normal');
+      render();
+      // If riichi and cannot tsumo, auto-discard drawn tile after short delay
+      if (players[0].riichi && !isWinningHand(players[0].hand, players[0].melds.length)) {
+        aiTimer = setTimeout(() => discardTile(0, players[0].hand.length - 1), 650);
+      }
+    } else {
+      phase = 'ai_turn';
+      App.setStatus(`${players[seat].name} 思考中...`, 'thinking');
+      render();
+      aiTimer = setTimeout(() => aiTakeTurn(seat), 420);
+    }
+  }
+
+  function aiTakeTurn(seat) {
+    const p = players[seat];
+    // Check AI Tsumo
+    if (isWinningHand(p.hand, p.melds.length)) {
+      finishWin(seat, true, seat);
+      return;
+    }
+    const idx = p.riichi ? p.hand.length - 1 : chooseBestDiscard(p.hand, p.melds.length);
+    // AI Riichi check
+    if (!p.riichi && p.melds.length === 0 && p.score >= 1000) {
+      const rem = p.hand.filter((_, i) => i !== idx);
+      if (isTenpai13(rem, 0)) {
+        p.riichi = true;
+        p.score -= 1000;
+        p.riichiIdx = p.river.length;
+        logs.push(`${p.name} がリーチ宣言！`);
+        App.showToast(`${p.name}「リーチ！」`);
+        SoundEngine.warn();
+      }
+    }
+    discardTile(seat, idx);
+  }
+
+  function discardTile(seat, idx) {
+    const p = players[seat];
+    const tile = p.hand.splice(idx, 1)[0];
+    p.hand.sort((a, b) => a - b);
+    p.river.push(tile);
+    hintTileIdx = -1;
+    SoundEngine.mahjong();
+    logs.push(`${p.name} 打 ${tileInfo(tile).label}`);
+    App.setLogs(logs, '対局ログ（麻雀）', '件');
+
+    // Check if Player (0) can Ron / Pon / Kan on AI's discard
+    if (seat !== 0) {
+      const p0 = players[0];
+      const canRon = isWinningHand([...p0.hand, tile], p0.melds.length);
+      const cnt = p0.hand.filter(t => t === tile).length;
+      const canPon = !p0.riichi && cnt >= 2;
+      const canKan = !p0.riichi && cnt >= 3;
+      if (canRon || canPon || canKan) {
+        pendingCall = { from: seat, tile, canRon, canPon, canKan };
+        phase = 'player_call';
+        App.setStatus(`${tileInfo(tile).label} に対してアクション可能です`, 'warning');
+        SoundEngine.chime();
+        render();
+        return;
+      }
+    }
+
+    // Check if any AI can Ron
+    for (let s = 1; s < 4; s++) {
+      if (s === seat) continue;
+      if (isWinningHand([...players[s].hand, tile], players[s].melds.length)) {
+        players[s].hand.push(tile);
+        finishWin(s, false, seat);
+        return;
+      }
+    }
+
+    drawTile((seat + 1) % 4);
+  }
+
+  function finishWin(winnerSeat, isTsumo, loserSeat) {
+    phase = 'round_over';
+    const w = players[winnerSeat];
+    const res = evaluateYaku(w, w.hand, isTsumo);
+    if (isTsumo) {
+      const share = Math.ceil(res.pts / 3 / 100) * 100;
+      players.forEach((p, idx) => {
+        if (idx === winnerSeat) p.score += share * 3;
+        else p.score -= share;
+      });
+    } else {
+      w.score += res.pts;
+      players[loserSeat].score -= res.pts;
+    }
+
+    const winType = isTsumo ? 'ツモ和了' : 'ロン和了';
+    logs.push(`★ ${w.name} ${winType}！ ${res.han}翻 ${res.pts}点`);
+    App.setLogs(logs, '対局ログ（麻雀）', '件');
+    App.setStatus(`${w.name} ${winType}！（${res.pts}点）`, 'warning');
+    SoundEngine.chime();
+    render();
+
+    const tilesHtml = w.hand.map(t => `<span style="display:inline-block;padding:2px 5px;margin:2px;background:#fff;color:#111;border-radius:3px;font-weight:700;">${tileInfo(t).label}</span>`).join('');
+    App.openModal(`${w.name} ${winType}！`, `
+      <div style="margin-bottom:10px;">${tilesHtml}</div>
+      <p><strong>成立役：</strong>${res.yaku.join(' / ')}</p>
+      <p style="font-size:1.15rem;color:var(--gold-light);margin-top:8px;"><strong>合計：${res.han}翻 ${res.pts}点</strong></p>
+    `, [
+      { label: '次の局へ', cls: 'primary', onClick: () => { App.closeModal(); startRound(true); } },
+      { label: '閉じる', onClick: App.closeModal }
+    ]);
+  }
+
+  function handlePlayerAction(act) {
+    const p0 = players[0];
+    if (act === 'tsumo' && phase === 'player_discard') {
+      finishWin(0, true, 0);
+    } else if (act === 'riichi' && phase === 'player_discard') {
+      p0.riichi = true;
+      p0.score -= 1000;
+      p0.riichiIdx = p0.river.length;
+      logs.push('あなた がリーチ宣言！');
+      App.showToast('リーチ宣言！捨てる牌を選んでください');
+      SoundEngine.warn();
+      render();
+    } else if (act === 'ron' && pendingCall) {
+      p0.hand.push(pendingCall.tile);
+      const from = pendingCall.from;
+      pendingCall = null;
+      finishWin(0, false, from);
+    } else if (act === 'pon' && pendingCall) {
+      const t = pendingCall.tile;
+      let removed = 0;
+      p0.hand = p0.hand.filter(x => {
+        if (x === t && removed < 2) { removed++; return false; }
+        return true;
+      });
+      p0.melds.push({ type: 'pon', tiles: [t, t, t] });
+      players[pendingCall.from].river.pop();
+      logs.push(`あなた ポン (${tileInfo(t).label})`);
+      pendingCall = null;
+      phase = 'player_discard';
+      SoundEngine.mahjong();
+      App.setStatus('ポン！不要な牌を切ってください', 'normal');
+      render();
+    } else if (act === 'kan' && pendingCall) {
+      const t = pendingCall.tile;
+      let removed = 0;
+      p0.hand = p0.hand.filter(x => {
+        if (x === t && removed < 3) { removed++; return false; }
+        return true;
+      });
+      p0.melds.push({ type: 'kan', tiles: [t, t, t, t] });
+      players[pendingCall.from].river.pop();
+      logs.push(`あなた カン (${tileInfo(t).label})`);
+      pendingCall = null;
+      drawTile(0);
+    } else if (act === 'skip' && pendingCall) {
+      const nextSeat = (pendingCall.from + 1) % 4;
+      pendingCall = null;
+      drawTile(nextSeat);
+    }
+  }
+
+  function render() {
+    const plane = App.el.stagePlane;
+    plane.innerHTML = '';
+    const tbl = document.createElement('div');
+    tbl.className = 'mj-table';
+
+    // Top AI (2)
+    const topSeat = document.createElement('div');
+    topSeat.className = 'mj-seat-top';
+    topSeat.innerHTML = `<div class="mj-seat-badge ${players[2].riichi ? 'riichi' : ''}">${WINDS[players[2].seatWind]} ${players[2].name} (${players[2].score})${players[2].riichi ? ' 【立直】' : ''}</div>`;
+    const topHand = document.createElement('div');
+    topHand.style.cssText = 'display:flex;gap:1px;';
+    for (let i = 0; i < players[2].hand.length; i++) {
+      const b = document.createElement('div'); b.className = 'mj-tile back'; topHand.appendChild(b);
+    }
+    topSeat.appendChild(topHand);
+    tbl.appendChild(topSeat);
+
+    // Left AI (3)
+    const leftSeat = document.createElement('div');
+    leftSeat.className = 'mj-seat-left';
+    leftSeat.innerHTML = `<div class="mj-seat-badge ${players[3].riichi ? 'riichi' : ''}">${WINDS[players[3].seatWind]} 上家</div>`;
+    for (let i = 0; i < Math.min(10, players[3].hand.length); i++) {
+      const b = document.createElement('div'); b.className = 'mj-tile back-v'; leftSeat.appendChild(b);
+    }
+    tbl.appendChild(leftSeat);
+
+    // Right AI (1)
+    const rightSeat = document.createElement('div');
+    rightSeat.className = 'mj-seat-right';
+    rightSeat.innerHTML = `<div class="mj-seat-badge ${players[1].riichi ? 'riichi' : ''}">${WINDS[players[1].seatWind]} 下家</div>`;
+    for (let i = 0; i < Math.min(10, players[1].hand.length); i++) {
+      const b = document.createElement('div'); b.className = 'mj-tile back-v'; rightSeat.appendChild(b);
+    }
+    tbl.appendChild(rightSeat);
+
+    // Center Area (Rivers + HUD)
+    const center = document.createElement('div');
+    center.className = 'mj-center-area';
+
+    const makeRiver = (seatIdx, cls) => {
+      const r = document.createElement('div');
+      r.className = `mj-river ${cls}`;
+      players[seatIdx].river.forEach((t, idx) => {
+        const extra = 'sm' + (idx === players[seatIdx].riichiIdx ? ' riichi-tile' : '');
+        r.appendChild(makeTileEl(t, extra));
+      });
+      return r;
+    };
+    center.appendChild(makeRiver(2, 'mj-river-top'));
+    center.appendChild(makeRiver(3, 'mj-river-left'));
+    center.appendChild(makeRiver(1, 'mj-river-right'));
+    center.appendChild(makeRiver(0, 'mj-river-bot'));
+
+    const hud = document.createElement('div');
+    hud.className = 'mj-center-hud';
+    const doraWrap = document.createElement('div');
+    doraWrap.className = 'mj-dora-row';
+    doraWrap.innerHTML = '<span>ドラ表示</span>';
+    doraWrap.appendChild(makeTileEl(doraInd, 'sm'));
+    hud.innerHTML = `<div class="mj-round-title">東${roundNum + 1}局 / 残${Math.max(0, wall.length - 14)}</div>`;
+    hud.appendChild(doraWrap);
+    const scores = document.createElement('div');
+    scores.className = 'mj-scores-mini';
+    scores.innerHTML = players.map(p => `<span>${WINDS[p.seatWind]}:${p.score}</span>`).join('');
+    hud.appendChild(scores);
+    center.appendChild(hud);
+    tbl.appendChild(center);
+
+    // Bottom Player (0)
+    const botSeat = document.createElement('div');
+    botSeat.className = 'mj-seat-bottom';
+
+    // Action Buttons (Tsumo / Riichi / Ron / Pon / Kan)
+    const actBar = document.createElement('div');
+    actBar.className = 'mj-action-bar';
+    const p0 = players[0];
+
+    if (phase === 'player_discard') {
+      if (isWinningHand(p0.hand, p0.melds.length)) {
+        const b = document.createElement('button');
+        b.className = 'mj-call-btn win'; b.textContent = 'ツモ和了！';
+        b.onclick = () => handlePlayerAction('tsumo');
+        actBar.appendChild(b);
+      }
+      if (!p0.riichi && p0.melds.length === 0 && p0.score >= 1000) {
+        // Check if discarding any tile yields tenpai
+        const canRiichi = p0.hand.some((_, i) => isTenpai13(p0.hand.filter((_, j) => j !== i), 0));
+        if (canRiichi) {
+          const b = document.createElement('button');
+          b.className = 'mj-call-btn'; b.textContent = 'リーチ宣言';
+          b.onclick = () => handlePlayerAction('riichi');
+          actBar.appendChild(b);
+        }
+      }
+    } else if (phase === 'player_call' && pendingCall) {
+      if (pendingCall.canRon) {
+        const b = document.createElement('button');
+        b.className = 'mj-call-btn win'; b.textContent = 'ロン！';
+        b.onclick = () => handlePlayerAction('ron');
+        actBar.appendChild(b);
+      }
+      if (pendingCall.canPon) {
+        const b = document.createElement('button');
+        b.className = 'mj-call-btn'; b.textContent = 'ポン';
+        b.onclick = () => handlePlayerAction('pon');
+        actBar.appendChild(b);
+      }
+      if (pendingCall.canKan) {
+        const b = document.createElement('button');
+        b.className = 'mj-call-btn'; b.textContent = 'カン';
+        b.onclick = () => handlePlayerAction('kan');
+        actBar.appendChild(b);
+      }
+      const sk = document.createElement('button');
+      sk.className = 'mj-call-btn skip'; sk.textContent = 'スルー';
+      sk.onclick = () => handlePlayerAction('skip');
+      actBar.appendChild(sk);
+    }
+    botSeat.appendChild(actBar);
+
+    const handRow = document.createElement('div');
+    handRow.className = 'mj-hand-row';
+    p0.hand.forEach((t, idx) => {
+      const isTsumoTile = (phase === 'player_discard' && idx === p0.hand.length - 1);
+      const tileEl = makeTileEl(t, (isTsumoTile ? 'tsumo' : '') + (idx === hintTileIdx ? ' hint-tile' : ''));
+      tileEl.onclick = () => {
+        if (phase === 'player_discard') discardTile(0, idx);
+      };
+      handRow.appendChild(tileEl);
+    });
+
+    if (p0.melds.length > 0) {
+      const mWrap = document.createElement('div');
+      mWrap.className = 'mj-melds';
+      p0.melds.forEach(m => {
+        const grp = document.createElement('div');
+        grp.className = 'mj-meld-group';
+        m.tiles.forEach(t => grp.appendChild(makeTileEl(t, 'sm')));
+        mWrap.appendChild(grp);
+      });
+      handRow.appendChild(mWrap);
+    }
+    botSeat.appendChild(handRow);
+    tbl.appendChild(botSeat);
+    plane.appendChild(tbl);
+  }
+
+  function init() { startRound(false); }
+  function resign() { startRound(true); }
+  function showHint() {
+    if (phase !== 'player_discard') {
+      App.showToast('あなたの手番（打牌時）にヒントを利用できます');
+      return;
+    }
+    hintTileIdx = chooseBestDiscard(players[0].hand, players[0].melds.length);
+    render();
+    App.showToast(`AI推奨打牌: ${tileInfo(players[0].hand[hintTileIdx]).label}`);
+    SoundEngine.chime();
+  }
+
+  return { init, showHint, resign };
+})();
+
+/* ==========================================================================
+   6. GAME 4: POKER (テキサスホールデム - 4人戦・役判定エンジン・AI)
+   ========================================================================== */
+const PokerGame = (() => {
+  const SUITS = ['♠','♥','♦','♣'];
+  const RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+  const HAND_NAMES = [
+    'ハイカード', 'ワンペア', 'ツーペア', 'スリーカード', 'ストレート',
+    'フラッシュ', 'フルハウス', 'フォーカード', 'ストレートフラッシュ', 'ロイヤルフラッシュ'
+  ];
+
+  let players = [];
+  let deck = [];
+  let community = [];
+  let pot = 0;
+  let dealerIdx = 0;
+  let turn = 0;
+  let currentBet = 0;
+  let stage = 'preflop'; // preflop, flop, turn, river, showdown
+  let logs = [];
+  let aiTimer = null;
+
+  function makeDeck() {
+    const d = [];
+    for (let s = 0; s < 4; s++)
+      for (let r = 0; r < 13; r++)
+        d.push({ r, s }); // r: 0(2)..12(A)
+    for (let i = d.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [d[i], d[j]] = [d[j], d[i]];
+    }
+    return d;
+  }
+
+  // Evaluate exact 5-card hand -> numeric score (higher = stronger) & rankCategory (0..9)
+  function eval5(cards) {
+    const ranks = cards.map(c => c.r).sort((a, b) => b - a);
+    const isFlush = cards.every(c => c.s === cards[0].s);
+    const counts = {};
+    ranks.forEach(r => counts[r] = (counts[r] || 0) + 1);
+    const groups = Object.entries(counts)
+      .map(([r, cnt]) => ({ r: Number(r), cnt }))
+      .sort((a, b) => b.cnt - a.cnt || b.r - a.r);
+
+    let isStraight = false;
+    let straightHigh = ranks[0];
+    if (groups.length === 5) {
+      if (ranks[0] - ranks[4] === 4) { isStraight = true; straightHigh = ranks[0]; }
+      else if (ranks[0] === 12 && ranks[1] === 3 && ranks[4] === 0) { isStraight = true; straightHigh = 3; } // A-2-3-4-5
+    }
+
+    let cat = 0;
+    let tie = groups.map(g => g.r);
+    if (isStraight && isFlush) {
+      cat = straightHigh === 12 ? 9 : 8;
+      tie = [straightHigh];
+    } else if (groups[0].cnt === 4) cat = 7;
+    else if (groups[0].cnt === 3 && groups[1].cnt === 2) cat = 6;
+    else if (isFlush) cat = 5;
+    else if (isStraight) { cat = 4; tie = [straightHigh]; }
+    else if (groups[0].cnt === 3) cat = 3;
+    else if (groups[0].cnt === 2 && groups[1].cnt === 2) cat = 2;
+    else if (groups[0].cnt === 2) cat = 1;
+
+    let score = cat * 1e10;
+    tie.forEach((v, idx) => { score += v * Math.pow(15, 4 - idx); });
+    return { cat, score, name: HAND_NAMES[cat] };
+  }
+
+  // Best 5 out of N (5..7) cards
+  function evaluateBestHand(cards) {
+    if (cards.length < 5) {
+      // Preflop quick strength (0..100)
+      const [a, b] = cards;
+      const hi = Math.max(a.r, b.r), lo = Math.min(a.r, b.r);
+      let str = hi * 3.5 + lo * 1.8;
+      if (a.r === b.r) str += 30 + hi * 1.5;
+      if (a.s === b.s) str += 6;
+      if (hi - lo <= 2 && hi - lo > 0) str += 4;
+      return { cat: a.r === b.r ? 1 : 0, score: str, name: a.r === b.r ? 'ポケットペア' : 'ハイカード' };
+    }
+    let best = { cat: -1, score: -1, name: '' };
+    const n = cards.length;
+    for (let i = 0; i < n; i++)
+      for (let j = i + 1; j < n; j++)
+        for (let k = j + 1; k < n; k++)
+          for (let l = k + 1; l < n; l++)
+            for (let m = l + 1; m < n; m++) {
+              const ev = eval5([cards[i], cards[j], cards[k], cards[l], cards[m]]);
+              if (ev.score > best.score) best = ev;
+            }
+    return best;
+  }
+
+  function estimateWinPct(seat) {
+    const p = players[seat];
+    if (p.folded) return 5;
+    const ev = evaluateBestHand([...p.cards, ...community]);
+    if (community.length === 0) {
+      return Math.max(18, Math.min(92, Math.round(ev.score * 0.95)));
+    }
+    const baseByCat = [28, 52, 72, 82, 88, 91, 95, 97, 99, 100];
+    return baseByCat[ev.cat] || 40;
+  }
+
+  function cardEl(c, hidden = false, sm = false) {
+    const d = document.createElement('div');
+    if (hidden) {
+      d.className = 'p-card back' + (sm ? ' sm' : '');
+      return d;
+    }
+    const isRed = (c.s === 1 || c.s === 2);
+    d.className = `p-card ${isRed ? 'red' : 'black'}${sm ? ' sm' : ''}`;
+    d.innerHTML = `<span class="p-card-rank">${RANKS[c.r]}</span><span class="p-card-suit">${SUITS[c.s]}</span>`;
+    return d;
+  }
+
+  function startHand(resetChips = false) {
+    clearTimeout(aiTimer);
+    if (resetChips || players.length === 0) {
+      players = [
+        { name: 'あなた', chips: 1000, cards: [], bet: 0, folded: false, allIn: false, acted: false, badge: '', winner: false },
+        { name: 'AI 佐藤', chips: 1000, cards: [], bet: 0, folded: false, allIn: false, acted: false, badge: '', winner: false },
+        { name: 'AI エレナ', chips: 1000, cards: [], bet: 0, folded: false, allIn: false, acted: false, badge: '', winner: false },
+        { name: 'AI ケンジ', chips: 1000, cards: [], bet: 0, folded: false, allIn: false, acted: false, badge: '', winner: false }
+      ];
+      dealerIdx = 0;
+    } else {
+      // Rebuy busted players automatically so table stays lively
+      players.forEach(p => { if (p.chips <= 0) p.chips = 1000; });
+      dealerIdx = (dealerIdx + 1) % 4;
+    }
+
+    deck = makeDeck();
+    community = [];
+    pot = 0;
+    stage = 'preflop';
+    players.forEach(p => {
+      p.cards = [deck.pop(), deck.pop()];
+      p.bet = 0; p.folded = false; p.allIn = false; p.acted = false; p.badge = ''; p.winner = false;
+    });
+
+    // Post SB (10) & BB (20)
+    const sbIdx = (dealerIdx + 1) % 4;
+    const bbIdx = (dealerIdx + 2) % 4;
+    postBet(sbIdx, Math.min(10, players[sbIdx].chips), 'SB 10');
+    postBet(bbIdx, Math.min(20, players[bbIdx].chips), 'BB 20');
+    currentBet = 20;
+    players[sbIdx].acted = false;
+    players[bbIdx].acted = false;
+
+    turn = (dealerIdx + 3) % 4;
+    logs = ['新規ハンド開始（SB:10 / BB:20）'];
+    App.setLogs(logs, 'アクションログ（ポーカー）', '件');
+    App.resetTimers(600);
+    App.setPlayersUI(
+      { avatar: '♠', name: 'AI 3名（テーブル対戦）', meta: 'Texas Hold\'em' },
+      { avatar: '♦', name: 'あなた', meta: `チップ: ${players[0].chips}` },
+      turn === 0 ? 'bot' : 'top'
+    );
+    SoundEngine.card();
+    updateEvalBar();
+    processTurn();
+  }
+
+  function postBet(seat, amount, badgeText) {
+    const p = players[seat];
+    const actual = Math.min(p.chips, amount);
+    p.chips -= actual;
+    p.bet += actual;
+    pot += actual;
+    if (p.chips === 0) p.allIn = true;
+    if (badgeText) p.badge = badgeText;
+  }
+
+  function updateEvalBar() {
+    const pct = estimateWinPct(0);
+    const ev = evaluateBestHand([...players[0].cards, ...community]);
+    App.updateEval(pct, ev.name);
+  }
+
+  function activePlayers() { return players.filter(p => !p.folded); }
+
+  function advanceStage() {
+    players.forEach(p => { p.bet = 0; p.acted = false; if (!p.folded && !p.allIn) p.badge = ''; });
+    currentBet = 0;
+
+    if (stage === 'preflop') {
+      stage = 'flop';
+      community.push(deck.pop(), deck.pop(), deck.pop());
+      logs.push(`--- フロップ公開 ---`);
+    } else if (stage === 'flop') {
+      stage = 'turn';
+      community.push(deck.pop());
+      logs.push(`--- ターン公開 ---`);
+    } else if (stage === 'turn') {
+      stage = 'river';
+      community.push(deck.pop());
+      logs.push(`--- リバー公開 ---`);
+    } else {
+      doShowdown();
+      return;
+    }
+
+    SoundEngine.card();
+    App.setLogs(logs, 'アクションログ（ポーカー）', '件');
+    updateEvalBar();
+
+    // If fewer than 2 players can still bet (rest all-in), fast-forward to showdown
+    const canAct = players.filter(p => !p.folded && !p.allIn);
+    if (canAct.length <= 1) {
+      render();
+      aiTimer = setTimeout(advanceStage, 750);
+      return;
+    }
+
+    turn = (dealerIdx + 1) % 4;
+    while (players[turn].folded || players[turn].allIn) turn = (turn + 1) % 4;
+    processTurn();
+  }
+
+  function doShowdown() {
+    stage = 'showdown';
+    const alive = activePlayers();
+    let bestScore = -1;
+    let winners = [];
+    const summaries = [];
+
+    alive.forEach(p => {
+      const ev = evaluateBestHand([...p.cards, ...community]);
+      summaries.push(`${p.name}: ${ev.name}`);
+      if (ev.score > bestScore) { bestScore = ev.score; winners = [p]; }
+      else if (ev.score === bestScore) winners.push(p);
+    });
+
+    const share = Math.floor(pot / winners.length);
+    winners.forEach(w => { w.chips += share; w.winner = true; });
+    const winNames = winners.map(w => w.name).join(' & ');
+    logs.push(`★ 勝者: ${winNames} (+${share}チップ)`);
+    App.setLogs(logs, 'アクションログ（ポーカー）', '件');
+    App.setStatus(`ショーダウン！ ${winNames} がポット獲得`, 'warning');
+    SoundEngine.chime();
+    render();
+  }
+
+  function nextTurnOrStage() {
+    const alive = activePlayers();
+    if (alive.length === 1) {
+      stage = 'showdown';
+      alive[0].chips += pot;
+      alive[0].winner = true;
+      logs.push(`★ 全員フォールド — ${alive[0].name} が ${pot} チップ獲得`);
+      App.setLogs(logs, 'アクションログ（ポーカー）', '件');
+      App.setStatus(`${alive[0].name} の勝利！`, 'warning');
+      SoundEngine.chime();
+      render();
+      return;
+    }
+
+    const needAction = players.some(p => !p.folded && !p.allIn && (!p.acted || p.bet < currentBet));
+    if (!needAction) {
+      advanceStage();
+      return;
+    }
+
+    do {
+      turn = (turn + 1) % 4;
+    } while (players[turn].folded || players[turn].allIn);
+    processTurn();
+  }
+
+  function applyAction(seat, type, raiseAmt = 0) {
+    const p = players[seat];
+    const toCall = Math.max(0, currentBet - p.bet);
+    p.acted = true;
+
+    if (type === 'fold') {
+      p.folded = true;
+      p.badge = 'FOLD';
+      logs.push(`${p.name}: フォールド`);
+      SoundEngine.card();
+    } else if (type === 'check_call') {
+      if (toCall === 0) {
+        p.badge = 'CHECK';
+        logs.push(`${p.name}: チェック`);
+        SoundEngine.card();
+      } else {
+        postBet(seat, toCall, p.chips <= toCall ? 'ALL-IN' : `CALL ${toCall}`);
+        logs.push(`${p.name}: コール (${toCall})`);
+        SoundEngine.chip();
+      }
+    } else if (type === 'raise') {
+      const totalAdd = Math.min(p.chips, toCall + raiseAmt);
+      postBet(seat, totalAdd, p.chips <= totalAdd ? 'ALL-IN' : `RAISE ${p.bet + totalAdd}`);
+      if (p.bet > currentBet) currentBet = p.bet;
+      logs.push(`${p.name}: レイズ (計${p.bet})`);
+      SoundEngine.chip();
+    } else if (type === 'allin') {
+      const add = p.chips;
+      postBet(seat, add, 'ALL-IN');
+      if (p.bet > currentBet) currentBet = p.bet;
+      logs.push(`${p.name}: オールイン (${p.bet})`);
+      SoundEngine.chip();
+    }
+
+    App.setLogs(logs, 'アクションログ（ポーカー）', '件');
+    updateEvalBar();
+    nextTurnOrStage();
+  }
+
+  function aiDecide(seat) {
+    const p = players[seat];
+    const toCall = Math.max(0, currentBet - p.bet);
+    const strength = estimateWinPct(seat) + (Math.random() * 18 - 9);
+
+    if (toCall === 0) {
+      if (strength > 68 && p.chips >= 40) applyAction(seat, 'raise', 40);
+      else applyAction(seat, 'check_call');
+    } else {
+      if (strength < 36 && toCall > 20) applyAction(seat, 'fold');
+      else if (strength > 78 && p.chips > toCall + 40 && Math.random() < 0.45) applyAction(seat, 'raise', 40);
+      else applyAction(seat, 'check_call');
+    }
+  }
+
+  function processTurn() {
+    App.setPlayersUI(
+      { avatar: '♠', name: 'AI 3名（テーブル対戦）', meta: `POT: ${pot}` },
+      { avatar: '♦', name: 'あなた', meta: `チップ: ${players[0].chips}` },
+      turn === 0 ? 'bot' : 'top'
+    );
+    render();
+    if (turn === 0) {
+      App.setStatus('あなたの番 — アクションを選択してください', 'normal');
+    } else {
+      App.setStatus(`${players[turn].name} 思考中...`, 'thinking');
+      aiTimer = setTimeout(() => aiDecide(turn), 520);
+    }
+  }
+
+  function render() {
+    const plane = App.el.stagePlane;
+    plane.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'poker-table-wrap';
+
+    const oval = document.createElement('div');
+    oval.className = 'poker-oval';
+
+    const potBox = document.createElement('div');
+    potBox.className = 'poker-pot-box';
+    potBox.textContent = `POT: ${pot} チップ`;
+    oval.appendChild(potBox);
+
+    const comm = document.createElement('div');
+    comm.className = 'poker-community';
+    for (let i = 0; i < 5; i++) {
+      if (community[i]) comm.appendChild(cardEl(community[i], false, false));
+      else {
+        const slot = document.createElement('div');
+        slot.style.cssText = 'width:50px;height:72px;border:1px dashed rgba(212,175,55,0.3);border-radius:6px;';
+        comm.appendChild(slot);
+      }
+    }
+    oval.appendChild(comm);
+
+    players.forEach((p, idx) => {
+      const seat = document.createElement('div');
+      seat.className = `poker-seat poker-seat-${idx}` +
+        (turn === idx && stage !== 'showdown' ? ' active' : '') +
+        (p.folded ? ' folded' : '') +
+        (p.winner ? ' winner' : '');
+
+      const cardsDiv = document.createElement('div');
+      cardsDiv.className = 'poker-seat-cards';
+      const showFace = (idx === 0) || (stage === 'showdown' && !p.folded);
+      p.cards.forEach(c => cardsDiv.appendChild(cardEl(c, !showFace, idx !== 0)));
+      seat.appendChild(cardsDiv);
+
+      const nm = document.createElement('div');
+      nm.className = 'poker-seat-name';
+      nm.innerHTML = `${p.name}${idx === dealerIdx ? ' <span class="poker-dealer-btn">D</span>' : ''}`;
+      seat.appendChild(nm);
+
+      const ch = document.createElement('div');
+      ch.className = 'poker-seat-chips';
+      ch.textContent = `🪙 ${p.chips}${p.bet > 0 ? ` (賭:${p.bet})` : ''}`;
+      seat.appendChild(ch);
+
+      if (p.badge) {
+        const bg = document.createElement('span');
+        const bCls = p.badge === 'FOLD' ? 'fold' : p.badge.includes('RAISE') ? 'raise' : p.badge === 'ALL-IN' ? 'allin' : 'call';
+        bg.className = `poker-badge ${bCls}`;
+        bg.textContent = p.badge;
+        seat.appendChild(bg);
+      }
+      oval.appendChild(seat);
+    });
+
+    wrap.appendChild(oval);
+
+    // Controls Bar
+    const ctrl = document.createElement('div');
+    ctrl.className = 'poker-controls';
+    if (stage === 'showdown') {
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'btn-action primary';
+      nextBtn.style.padding = '10px 28px';
+      nextBtn.textContent = '次のハンドへ進む';
+      nextBtn.onclick = () => startHand(false);
+      ctrl.appendChild(nextBtn);
+    } else {
+      const myTurn = (turn === 0 && !players[0].folded && !players[0].allIn);
+      const toCall = Math.max(0, currentBet - players[0].bet);
+      const minRaise = Math.min(players[0].chips, 20);
+      const maxRaise = Math.max(minRaise, players[0].chips - toCall);
+
+      const btnFold = document.createElement('button');
+      btnFold.className = 'btn-action danger'; btnFold.textContent = 'フォールド'; btnFold.disabled = !myTurn;
+      btnFold.onclick = () => applyAction(0, 'fold');
+
+      const btnCall = document.createElement('button');
+      btnCall.className = 'btn-action';
+      btnCall.textContent = toCall === 0 ? 'チェック' : `コール (${Math.min(players[0].chips, toCall)})`;
+      btnCall.disabled = !myTurn;
+      btnCall.onclick = () => applyAction(0, 'check_call');
+
+      const raiseWrap = document.createElement('div');
+      raiseWrap.className = 'poker-raise-wrap';
+      const slider = document.createElement('input');
+      slider.type = 'range'; slider.min = minRaise; slider.max = Math.max(minRaise, maxRaise); slider.step = 10; slider.value = Math.min(40, slider.max);
+      slider.disabled = !myTurn || players[0].chips <= toCall;
+      const valLbl = document.createElement('span');
+      valLbl.textContent = `+${slider.value}`;
+      slider.oninput = () => { valLbl.textContent = `+${slider.value}`; };
+      raiseWrap.appendChild(slider);
+      raiseWrap.appendChild(valLbl);
+
+      const btnRaise = document.createElement('button');
+      btnRaise.className = 'btn-action primary'; btnRaise.textContent = 'レイズ';
+      btnRaise.disabled = !myTurn || players[0].chips <= toCall;
+      btnRaise.onclick = () => applyAction(0, 'raise', Number(slider.value));
+
+      const btnAllIn = document.createElement('button');
+      btnAllIn.className = 'btn-action danger'; btnAllIn.textContent = 'オールイン';
+      btnAllIn.disabled = !myTurn || players[0].chips <= 0;
+      btnAllIn.onclick = () => applyAction(0, 'allin');
+
+      ctrl.append(btnFold, btnCall, raiseWrap, btnRaise, btnAllIn);
+    }
+
+    wrap.appendChild(ctrl);
+    plane.appendChild(wrap);
+  }
+
+  function init() { startHand(true); }
+  function resign() { startHand(false); }
+  function showHint() {
+    if (stage === 'showdown') {
+      App.showToast('「次のハンドへ進む」を押してください');
+      return;
+    }
+    const pct = estimateWinPct(0);
+    const toCall = Math.max(0, currentBet - players[0].bet);
+    let rec = 'チェック / コール';
+    if (pct >= 72) rec = 'レイズ（強気）';
+    else if (pct < 38 && toCall > 20) rec = 'フォールド推奨';
+    App.showToast(`AIヒント: 推定勝率 ${pct}% — ${rec}`);
+    SoundEngine.chime();
+  }
+
+  return { init, showHint, resign };
+})();
+
+/* ==========================================================================
+   7. BOOTSTRAP
+   ========================================================================== */
+window.addEventListener('DOMContentLoaded', () => {
+  App.initEvents();
+  App.switchMode('shogi');
+});
+</script>
+</body>
+</html>
