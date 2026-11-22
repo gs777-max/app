@@ -4062,6 +4062,7 @@ const PokerGame = (() => {
     lastDecisionSnap = null;
     App.setLogs(logs, 'アクションログ（ポーカー）', '件');
     processTurn();
+    updateEvalBar();
     App.setStatus('待った — アクションからやり直せます', 'normal');
     SoundEngine.card();
   }
