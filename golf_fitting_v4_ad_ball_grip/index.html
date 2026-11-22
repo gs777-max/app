@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FIT LAB v4.0.2 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ×ボール）</title>
+<title>FIT LAB v4.0.3 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ×ボール）</title>
 <meta name="description" content="絵を選ぶだけ。あなたの振りに合うドライバー（ヘッド14×シャフト115×グリップ19×ボール20）を物理アルゴリズムと2系統因果ロジックツリーで総合診断し、ベスト10でお渡しします。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -191,6 +191,43 @@ img,svg{max-width:100%}
 @media(min-width:640px){.sens-grid{grid-template-columns:repeat(3,1fr)}}
 #sensitivity-container>div{border-radius:16px!important;padding:18px!important;font-size:14.5px!important}
 #sensitivity-container .text-sm{font-size:15px}
+/* ---- Diagnosis v4.0.3: problems + improvement report ---- */
+#diag-section{margin:0 0 8px}
+.diag-dash{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.diag-dash .cell{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 6px;text-align:center}
+.diag-dash .num{font-size:26px;font-weight:900;line-height:1.15}
+.diag-dash .num.red{color:var(--red)}
+.diag-dash .num.green{color:var(--green)}
+.diag-dash .lab{font-size:11px;color:var(--ink2);margin-top:4px;line-height:1.4}
+#diag-section.locked .dash-pro{filter:blur(6px);user-select:none}
+.diag-prob{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:10px;display:flex;gap:12px}
+.diag-prob .no{flex:0 0 30px;height:30px;border-radius:10px;background:#F6E8E6;color:var(--red);font-weight:900;display:flex;align-items:center;justify-content:center;font-size:15px}
+.diag-prob .no.warn{background:#F3E9CF;color:#8A6D00}
+.diag-prob h3{font-size:16px;margin:0 0 4px}
+.diag-prob p{font-size:14px;color:var(--ink2);margin:0;line-height:1.7}
+.diag-prob .val{font-size:15px;font-weight:900;margin-top:6px}
+.diag-prob .val.red{color:var(--red)}
+.diag-prob .val.warn{color:#8A6D00}
+.chip{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
+.chip.red{background:#F6E8E6;color:var(--red)}
+.chip.amber{background:#F3E9CF;color:#8A6D00}
+.diag-panel{background:#0F1B16;color:#F6F1E7;border-radius:16px;padding:20px 18px;margin:14px 0 8px}
+.diag-panel h3{font-size:18px;margin:0 0 4px;color:#fff}
+.diag-panel .sub{font-size:13px;color:#B9C4BC;margin:0 0 8px;line-height:1.7}
+.diag-panel .imp{display:flex;gap:10px;padding:12px 0;border-top:1px solid #2A3831}
+.diag-panel .imp:first-of-type{border-top:0}
+.diag-panel .imp .no{flex:0 0 24px;height:24px;border-radius:50%;border:1.5px solid #7A8B80;color:#D8E0D5;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.diag-panel .imp h4{font-size:15px;margin:0 0 2px;color:#fff}
+.diag-panel .imp p{font-size:13px;color:#B9C4BC;margin:0;line-height:1.7}
+.diag-panel .res-value{display:block;margin-top:6px;font-size:14px;font-weight:800;color:#E9CE8E}
+.diag-panel .res-mask{display:none;background:#24322B;border-radius:6px;color:#8FA094;font-size:12px;font-weight:700;padding:6px 10px;margin-top:6px}
+#diag-section.locked .res-value{display:none}
+#diag-section.locked .res-value.teaser{display:block;filter:blur(3px);opacity:.55;color:#B9C4BC}
+#diag-section.locked .res-mask{display:block}
+#diag-section:not(.locked) .diag-note,#diag-section:not(.locked) #btn-diag-pro{display:none}
+.diag-panel .diag-note{font-size:13px;color:#B9C4BC;margin:14px 0 10px;line-height:1.7}
+.diag-panel .btn-brass{width:100%}
+#btn-diag-pro{font-size:15px}
 .sum-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
 #top10-container .rank-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px;position:relative}
 #top10-container .rank-card.top1{border:2px solid var(--brass);background:var(--green);color:#F6F1E7;box-shadow:0 16px 40px rgba(11,53,42,.28)}
@@ -352,7 +389,7 @@ footer b{color:var(--ink2)}
 <header class="masthead">
   <div class="wrap masthead-in">
     <div class="brand">FIT LAB <span>— Driver Fitting</span></div>
-    <div class="masthead-note">2026.11 最新版 v4.0.2 ・ <b>ヘッド14 / シャフト115 / グリップ19 / ボール20</b>を収録</div>
+    <div class="masthead-note">2026.11 最新版 v4.0.3 ・ <b>ヘッド14 / シャフト115 / グリップ19 / ボール20</b>を収録</div>
     <span class="masthead-pill">診断は無料</span>
   </div>
 </header>
@@ -361,7 +398,7 @@ footer b{color:var(--ink2)}
 
   <!-- ================= HERO ================= -->
   <section class="hero">
-    <div class="kicker">Driver Total Fitting v4.0.2 · Head × Shaft × Grip × Ball Physics Engine</div>
+    <div class="kicker">Driver Total Fitting v4.0.3 · Head × Shaft × Grip × Ball Physics Engine</div>
     <h1>絵を選ぶだけ。<br>あなたの振りに合う<em>ドライバー</em>を、物理で選ぶ。</h1>
     <p class="lede">計測器の数値がなくても大丈夫です。普段の球の高さと球筋を絵で選ぶだけで、<b>ヘッド×シャフト×グリップ×ボール（コンプレッション・スピン・弾道窓）</b>まで4ギア一気通貫で物理演算し、トータル最適セッティングをベスト10でお渡しします。</p>
     <div class="hero-stats">
@@ -889,6 +926,8 @@ footer b{color:var(--ink2)}
 </div>
 <div class="sum-grid" id="physics-summary-cards"></div>
 
+<div id="diag-section"></div>
+
 <div class="sec-head">
 <div class="kicker">Top 10 · November 2026 Database</div>
 <h2 id="ranking-title">あなたに最適なドライバーセッティング ベスト10</h2>
@@ -1003,7 +1042,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Total Fitting v4.0.2 (Head × Shaft × Grip × Ball)</b><br>
+<b>FIT LAB — Driver Total Fitting v4.0.3 (Head × Shaft × Grip × Ball)</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
@@ -2436,6 +2475,7 @@ footer b{color:var(--ink2)}
 
       renderTop10(top10, { dplane, spinDiagnosis, idealShaftWeight, effectiveHs });
       renderSensitivity(top10[0], { antiLeftLevel, need10kMoi, spinAction, effectiveHs });
+      renderDiagnosis({ effectiveHs, trueCarry, trueRoll, idealDriverTotalWeight, idealShaftWeight, targetCpm, maxTorque, dplane, optLaunch, optSpin, spinDiagnosis, need10kMoi }, top10[0], { antiLeftLevel, spinAction, need10kMoi });
     }
 
     // =========================================================================
@@ -2482,6 +2522,143 @@ footer b{color:var(--ink2)}
           ${data.topBall ? `<div class="text-[11px] text-cyan-300">ボール連動 [${data.topBall.firedRules.slice(0,4).join('/')}]: ${data.topBall.ball.brand} ${data.topBall.ball.model} (硬度${data.topBall.ball.comp}/DR:${data.topBall.ball.drSpinLabel})</div>` : ''}
         </div>
       `;
+    }
+
+    // v4.0.3: 問題点＋改善レポート（B案ベース＋A/Cの情報をMECEに追加）
+    // 改善の「結果」はすべてエンジンの実値（第1位の処方・目標値）。推定の改善幅は出さない。
+    function buildDiagnosis(data, top1, ctx) {
+      const impactNames = {
+        low_heel: 'ロー・ヒール (下・根元)',
+        high_heel: 'ハイ・ヒール (上・根元)',
+        center: 'センター (芯)',
+        high_toe: 'ハイ・トゥ (上・先)',
+        low_toe: 'ロー・トゥ (下・先)'
+      };
+      const fmt = v => (v > 0 ? '+' : '') + v;
+      const problems = [];
+      const f2p = data.dplane.f2p, face = data.dplane.face, path = data.dplane.path;
+      if (face === 0 && path === 0 && f2p > 0) {
+        problems.push({ title: '左右に散りやすい', sev: '注意',
+          desc: 'フェース・パスは真っ直ぐですが、Face to Path ' + f2p + '°で球によって右にも左にも散る傾向があります。',
+          value: 'Face to Path ' + f2p + '°で散る傾向あり' });
+      } else if (f2p < 0 || face < 0) {
+        const mag = Math.abs(f2p) || Math.abs(face);
+        problems.push({ title: '左ミスが出やすい', sev: mag >= 3 ? '重度' : '注意',
+          desc: 'フェース ' + fmt(face) + '°／パス ' + fmt(path) + '°、Face to Path ' + f2p + '°（' + (f2p < 0 ? 'フック傾斜軸' : '直進軸') + '）。' + data.dplane.launchDir + '。',
+          value: 'フェース角が ' + mag + '° 閉じている' });
+      } else if (f2p > 0 || face > 0) {
+        const mag = Math.abs(f2p) || Math.abs(face);
+        problems.push({ title: '右ミスが出やすい', sev: mag >= 3 ? '重度' : '注意',
+          desc: 'フェース ' + fmt(face) + '°／パス ' + fmt(path) + '°、Face to Path ' + f2p + '°（スライス傾斜軸）。' + data.dplane.launchDir + '。',
+          value: 'フェース角が ' + mag + '° 開いている' });
+      }
+      const imp = state.impactChoice;
+      if (imp === 'low_heel') {
+        problems.push({ title: '打点がロー・ヒール（下・根元）', sev: '重度',
+          desc: '縦ギア効果でスピンが増えやすく、トゥダウンも出やすい打点です。',
+          value: 'スピン増の傾向あり' });
+      } else if (imp === 'high_toe') {
+        problems.push({ title: '打点がハイ・トゥ（上・先）', sev: '重度',
+          desc: '縦ギア効果でスピンが減りやすく、ドロー回転が出やすい打点です。',
+          value: 'スピン減の傾向あり' });
+      } else if (imp !== 'center') {
+        problems.push({ title: '打点が' + impactNames[imp], sev: '注意',
+          desc: 'オフセンター打点で、弾道が安定しにくい傾向があります。',
+          value: 'ミート率が下がりやすい' });
+      }
+      const estSpin = ctx.spinAction === 'low_spin' ? data.optSpin + 450 : (ctx.spinAction === 'high_launch' ? data.optSpin - 350 : data.optSpin);
+      if (ctx.spinAction === 'low_spin') {
+        problems.push({ title: 'スピンが黄金目標から外れやすい', sev: '注意',
+          desc: '黄金目標はスピン ' + data.optSpin + 'rpm。今のスピンは約 ' + estSpin + 'rpmと推定されます。',
+          value: '目標 ' + data.optSpin + 'rpm に対し約 ' + (estSpin - data.optSpin) + 'rpm 多い' });
+      } else if (ctx.spinAction === 'high_launch') {
+        problems.push({ title: 'スピンが不足しやすい', sev: '注意',
+          desc: '黄金目標はスピン ' + data.optSpin + 'rpm。今のスピンは約 ' + estSpin + 'rpmと推定されます。',
+          value: '目標 ' + data.optSpin + 'rpm に対し約 ' + (data.optSpin - estSpin) + 'rpm 少ない' });
+      }
+      problems.push({ title: 'シャフト重量が目標とズレる', sev: '注意',
+        desc: '目標は総重量 ' + data.idealDriverTotalWeight + 'g・シャフト ' + data.idealShaftWeight + 'g前後。振動数 ' + data.targetCpm + 'cpm・トルク上限 ' + data.maxTorque + '°が適正です。',
+        value: '目標シャフト ' + data.idealShaftWeight + 'g前後' });
+      if (imp === 'low_heel') {
+        problems.push({ title: '打出角が黄金目標より低い', sev: '注意',
+          desc: '黄金目標は打出 ' + data.optLaunch + '°。ローヒール打点は低めの弾道になりやすい傾向です。',
+          value: '目標打出 ' + data.optLaunch + '°' });
+      } else if (imp === 'high_toe') {
+        problems.push({ title: '打出角が黄金目標より高い', sev: '注意',
+          desc: '黄金目標は打出 ' + data.optLaunch + '°。ハイトゥ打点は高めの弾道になりやすい傾向です。',
+          value: '目標打出 ' + data.optLaunch + '°' });
+      }
+      const improvements = [];
+      if (top1) {
+        const g = top1.gripBest;
+        const sleeveShort = (top1.sleeveText.match(/「([^」]+)」/) || [null, top1.sleeveText])[1];
+        const openFace = /オープン|フラット/.test(top1.sleeveText);
+        const sleeveFirst = !ctx.need10kMoi && ctx.spinAction !== 'high_launch';
+        improvements.push({ title: 'スリーブ「' + sleeveShort + '」でフェースを' + (openFace ? '開く' : '調整する'),
+          desc: sleeveFirst ? '最優先の改善パラメータです。' : 'フェース角・ライ角を整えます。',
+          result: top1.sleeveText });
+        improvements.push({ title: '先端剛性の高いシャフトにする',
+          desc: 'トルクを抑えてサイドスピンを減らします。',
+          result: top1.shaft.brand + ' ' + top1.shaft.model + '（' + top1.shaft.flex + '）・' + top1.shaft.weight + 'g・トルク ' + top1.shaft.torque + '°・' + top1.shaft.kick });
+        improvements.push({ title: '総重量 ' + data.idealDriverTotalWeight + 'g・シャフト ' + data.idealShaftWeight + 'gに合わせる',
+          desc: '振動数 ' + data.targetCpm + 'cpm に近づけます。',
+          result: '総重量 ' + data.idealDriverTotalWeight + 'g・シャフト ' + data.idealShaftWeight + 'g・振動数 ' + data.targetCpm + 'cpm' });
+        improvements.push({ title: 'ロフト ' + top1.chosenLoft + 'で黄金ウィンドウへ',
+          desc: '打出 ' + data.optLaunch + '°・スピン ' + data.optSpin + 'rpm を狙います。',
+          result: 'キャリー ' + data.trueCarry + 'y（打出 ' + data.optLaunch + '°・スピン ' + data.optSpin + 'rpm）',
+          teaser: true });
+        improvements.push({ title: 'グリップ ' + g.grip.model + '（右手' + g.totalRightEq + '巻相当）',
+          desc: (g.firedRules && g.firedRules.includes('R-BG01')) ? '左ミス抑制の相乗効果があります。' : '右手計' + g.totalRightEq + '巻相当・' + g.wrapMethodName + 'で握りを整えます。',
+          result: g.grip.brand + ' ' + g.grip.model + '・右手' + g.totalRightEq + '巻相当・' + g.wrapMethodName });
+      }
+      return { problems, improvements };
+    }
+
+    function renderDiagnosis(data, top1, ctx) {
+      const el = document.getElementById('diag-section');
+      if (!el) return;
+      if (!top1) { el.innerHTML = ''; return; }
+      const d = buildDiagnosis(data, top1, ctx);
+      const chip = sev => sev === '重度' ? '<span class="chip red">重度</span>' : '<span class="chip amber">注意</span>';
+      el.innerHTML = `
+    <div class="sec-head">
+      <div class="kicker">Your Problems · 無料</div>
+      <h2>今の問題点</h2>
+      <p>今のスイングとギアのズレ、すべてです。</p>
+    </div>
+    <div class="diag-dash">
+      <div class="cell"><div class="num red">${d.problems.length}件</div><div class="lab">今の問題点</div></div>
+      <div class="cell"><div class="num green">${d.improvements.length}件</div><div class="lab">改善点</div></div>
+      <div class="cell"><div class="num green dash-pro">${top1.score}点</div><div class="lab">改善後の<br>総合スコア（Pro）</div></div>
+    </div>
+    ${d.problems.map((p, i) => `
+    <div class="diag-prob">
+      <div class="no${p.sev === '注意' ? ' warn' : ''}">${i + 1}</div>
+      <div><h3>${p.title} ${chip(p.sev)}</h3><p>${p.desc}</p><p class="val ${p.sev === '注意' ? 'warn' : 'red'}">${p.value}</p></div>
+    </div>`).join('')}
+    <div class="diag-panel">
+      <h3>改善レポート <span style="font-size:13px;color:var(--brass)">Pro 限定</span></h3>
+      <p class="sub">改善点は ${d.improvements.length}件。何を変えるとどう良くなるか、その結果は Pro で公開します。</p>
+      ${d.improvements.map((im, i) => `
+      <div class="imp">
+        <div class="no">${i + 1}</div>
+        <div style="flex:1;min-width:0">
+          <h4>${im.title}</h4>
+          <p>${im.desc}</p>
+          ${im.teaser
+            ? `<span class="res-value teaser">${im.result}</span>`
+            : `<span class="res-value">${im.result}</span><span class="res-mask">結果は Pro で表示</span>`}
+        </div>
+      </div>`).join('')}
+      <p class="diag-note">④の結果だけ薄く見せています。①〜③・⑤の結果は Pro で公開中です。</p>
+      <button type="button" class="btn btn-brass" id="btn-diag-pro">改善レポートを Pro で見る（¥480/月）</button>
+    </div>`;
+      const btn = document.getElementById('btn-diag-pro');
+      if (btn) btn.addEventListener('click', function(){ openPwModal(); });
+      // Gate state at render time (localStorage read directly: applyProGate lives in script 2's IIFE)
+      let diagUnlocked = false;
+      try { diagUnlocked = localStorage.getItem('pro_unlocked') === '1'; } catch(e){}
+      el.classList.toggle('locked', !diagUnlocked);
     }
 
     function renderTop10(list, ctx) {
@@ -3124,6 +3301,8 @@ var sens = document.getElementById('sensitivity-container');
 var sensNote = document.getElementById('sens-lock-note');
 if (sens) sens.style.display = unlocked ? '' : 'none';
 if (sensNote) sensNote.hidden = unlocked;
+var diag = document.getElementById('diag-section');
+if (diag) diag.classList.toggle('locked', !unlocked);
 var panel = document.getElementById('pro-panel');
 if (panel) {
   panel.classList.toggle('unlocked', unlocked);
