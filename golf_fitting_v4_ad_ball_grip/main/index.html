@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FIT LAB v4.0.8 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ×ボール）</title>
+<title>FIT LAB v4.0.9 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ×ボール）</title>
 <meta name="description" content="絵を選ぶだけ。あなたの振りに合うドライバー（ヘッド14×シャフト115×グリップ19×ボール20）を物理アルゴリズムと2系統因果ロジックツリーで総合診断し、ベスト10でお渡しします。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -211,6 +211,11 @@ img,svg{max-width:100%}
 .chip{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
 .chip.red{background:#F6E8E6;color:var(--red)}
 .chip.amber{background:#F3E9CF;color:#8A6D00}
+.chip.ok{background:#DDEBD9;color:var(--green)}
+.diag-prob.ok{background:var(--green-soft);border-color:var(--green-line)}
+.diag-prob.ok .no{background:var(--green);color:#F6F1E7}
+.diag-prob.ok h3{color:var(--green)}
+.diag-prob.ok .val{color:var(--green)}
 .diag-panel{background:#0F1B16;color:#F6F1E7;border-radius:16px;padding:20px 18px;margin:14px 0 8px}
 .diag-panel h3{font-size:18px;margin:0 0 4px;color:#fff}
 .diag-panel .sub{font-size:13px;color:#B9C4BC;margin:0 0 8px;line-height:1.7}
@@ -389,7 +394,7 @@ footer b{color:var(--ink2)}
 <header class="masthead">
   <div class="wrap masthead-in">
     <div class="brand">FIT LAB <span>— Driver Fitting</span></div>
-    <div class="masthead-note">2026.11 最新版 v4.0.8 ・ <b>ヘッド14 / シャフト115 / グリップ19 / ボール20</b>を収録</div>
+    <div class="masthead-note">2026.11 最新版 v4.0.9 ・ <b>ヘッド14 / シャフト115 / グリップ19 / ボール20</b>を収録</div>
     <span class="masthead-pill">診断は無料</span>
   </div>
 </header>
@@ -398,7 +403,7 @@ footer b{color:var(--ink2)}
 
   <!-- ================= HERO ================= -->
   <section class="hero">
-    <div class="kicker">Driver Total Fitting v4.0.8 · Head × Shaft × Grip × Ball Physics Engine</div>
+    <div class="kicker">Driver Total Fitting v4.0.9 · Head × Shaft × Grip × Ball Physics Engine</div>
     <h1>絵を選ぶだけ。<br>あなたの振りに合う<em>ドライバー</em>を、物理で選ぶ。</h1>
     <p class="lede">計測器の数値がなくても大丈夫です。普段の球の高さと球筋を絵で選ぶだけで、<b>ヘッド×シャフト×グリップ×ボール（コンプレッション・スピン・弾道窓）</b>まで4ギア一気通貫で物理演算し、トータル最適セッティングをベスト10でお渡しします。</p>
     <div class="hero-stats">
@@ -1051,7 +1056,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Total Fitting v4.0.8 (Head × Shaft × Grip × Ball)</b><br>
+<b>FIT LAB — Driver Total Fitting v4.0.9 (Head × Shaft × Grip × Ball)</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
@@ -2546,16 +2551,23 @@ footer b{color:var(--ink2)}
       const fmt = v => (v > 0 ? '+' : '') + v;
       const problems = [];
       const f2p = data.dplane.f2p, face = data.dplane.face, path = data.dplane.path;
+      // v4.0.9: track whether a direction problem fired — if none did (straight
+      // flight ⑤: face/path/f2p all 0), render an explicit "方向性：問題なし" row
+      // so the user can tell direction was evaluated, not skipped.
+      let hasDirectionProblem = false;
       if (face === 0 && path === 0 && f2p > 0) {
+        hasDirectionProblem = true;
         problems.push({ title: '左右に散りやすい', sev: '注意',
           desc: 'フェース・パスは真っ直ぐですが、Face to Path ' + f2p + '°で球によって右にも左にも散る傾向があります。',
           value: 'Face to Path ' + f2p + '°で散る傾向あり' });
       } else if (f2p < 0 || face < 0) {
+        hasDirectionProblem = true;
         const mag = Math.abs(f2p) || Math.abs(face);
         problems.push({ title: '左ミスが出やすい', sev: mag >= 3 ? '重度' : '注意',
           desc: 'フェース ' + fmt(face) + '°／パス ' + fmt(path) + '°、Face to Path ' + f2p + '°（' + (f2p < 0 ? 'フック傾斜軸' : '直進軸') + '）。' + data.dplane.launchDir + '。',
           value: 'フェース角が ' + mag + '° 閉じている' });
       } else if (f2p > 0 || face > 0) {
+        hasDirectionProblem = true;
         const mag = Math.abs(f2p) || Math.abs(face);
         problems.push({ title: '右ミスが出やすい', sev: mag >= 3 ? '重度' : '注意',
           desc: 'フェース ' + fmt(face) + '°／パス ' + fmt(path) + '°、Face to Path ' + f2p + '°（スライス傾斜軸）。' + data.dplane.launchDir + '。',
@@ -2622,7 +2634,10 @@ footer b{color:var(--ink2)}
           desc: (g.firedRules && g.firedRules.includes('R-BG01')) ? '左ミス抑制の相乗効果があります。' : '右手計' + g.totalRightEq + '巻相当・' + g.wrapMethodName + 'で握りを整えます。',
           result: g.grip.brand + ' ' + g.grip.model + '・右手' + g.totalRightEq + '巻相当・' + g.wrapMethodName });
       }
-      return { problems, improvements };
+      // v4.0.9: engine-derived D-Plane values for the "方向性：問題なし" row.
+      const directionOkValue = hasDirectionProblem ? null
+        : ('フェース ' + fmt(face) + '° ／ パス ' + fmt(path) + '° ／ Face to Path ' + fmt(f2p) + '°');
+      return { problems, improvements, hasDirectionProblem, directionOkValue };
     }
 
     function renderDiagnosis(data, top1, ctx) {
@@ -2647,6 +2662,11 @@ footer b{color:var(--ink2)}
       <div class="no${p.sev === '注意' ? ' warn' : ''}">${i + 1}</div>
       <div><h3>${p.title} ${chip(p.sev)}</h3><p>${p.desc}</p><p class="val ${p.sev === '注意' ? 'warn' : 'red'}">${p.value}</p></div>
     </div>`).join('')}
+    ${!d.hasDirectionProblem ? `
+    <div class="diag-prob ok">
+      <div class="no">✓</div>
+      <div><h3>方向性：問題なし <span class="chip ok">OK</span></h3><p>フェース・パスともに真っ直ぐで、左右のミス傾向はありません。方向性は今のままで大丈夫です。</p><p class="val">${d.directionOkValue}</p></div>
+    </div>` : ''}
     <div class="diag-panel">
       <h3>改善レポート <span style="font-size:13px;color:var(--brass)">Pro 限定</span></h3>
       <p class="sub">改善点は ${d.improvements.length}件。何を変えるとどう良くなるか、その結果は Pro で公開します。</p>

@@ -1,135 +1,51 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ゴルフサイト目次 ― GOLF INDEX</title>
-<meta name="description" content="ゴルフ情報サイトの目次ポータル。フィッティング手順とAI改善プロンプト生成スタジオへここから移動できます。">
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ゴルフサイト目次 ― GOLF INDEX（案B 軌道）</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --paper:#F7F4EE; --card:#FFFDF8; --ink:#1C2522; --muted:#5A6863;
-    --forest:#0F3D2E; --forest2:#185642; --brass:#B08D57; --line:#E2DDD2;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--paper);color:var(--ink);
-    font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-serif;
-    -webkit-font-smoothing:antialiased}
-  .wrap{max-width:880px;margin:0 auto;padding:28px 16px 56px}
-  .kicker{font-size:12px;letter-spacing:.35em;color:var(--brass);font-weight:700;text-align:center}
-  h1{font-size:clamp(28px,6vw,40px);text-align:center;margin:8px 0 6px;color:var(--forest);letter-spacing:.04em}
-  .sub{text-align:center;color:var(--muted);font-size:14px;margin:0 0 24px}
-  .search{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);
-    border-radius:12px;padding:12px 14px;margin-bottom:8px}
-  .search span{color:var(--muted)}
-  .search input{border:0;outline:0;flex:1;font-size:16px;background:transparent;color:var(--ink)}
-  .contents-label{text-align:center;letter-spacing:.3em;font-size:12px;color:var(--muted);margin:26px 0 6px}
-  .row{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
-    border-radius:14px;padding:18px 16px;margin-top:12px;text-decoration:none;color:var(--ink);
-    transition:border-color .15s, box-shadow .15s}
-  a.row:hover{border-color:var(--brass);box-shadow:0 2px 10px rgba(15,61,46,.08)}
-  .num{font-size:15px;color:var(--muted);font-weight:700;min-width:26px;text-align:center}
-  .icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    font-size:24px;flex:none}
-  .icon-green{background:#DDEBD9}.icon-book{background:#EFE6D2}
-  .main{flex:1;min-width:0}
-  .title{font-size:clamp(16px,4.4vw,20px);font-weight:700;line-height:1.45}
-  .desc{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.55}
-  .tag{display:inline-block;margin-top:7px;font-size:11px;font-weight:700;color:var(--forest);
-    background:#E4EFE7;border:1px solid #BFD3C4;border-radius:999px;padding:2px 10px}
-  .arrow{font-size:20px;color:var(--muted);flex:none}
-  .row-soon{border-style:dashed;background:transparent;color:var(--muted)}
-  .row-soon .icon{border:1.5px dashed var(--line);background:transparent;color:var(--muted);font-size:18px}
-  .row-soon .title{color:var(--muted);font-size:16px}
-  .tag-soon{background:#ECE9E1;border-color:var(--line);color:var(--muted)}
-  .empty{display:none;text-align:center;color:var(--muted);font-size:14px;padding:22px 0 6px}
-  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:36px}
-  @media (max-width:480px){ .icon{width:44px;height:44px;font-size:20px} .row{padding:15px 12px;gap:10px} }
-</style>
-</head>
-<body>
-<style>.golf-nav{background:#0F3D2E;display:flex;gap:4px;align-items:center;padding:8px 12px;overflow-x:auto;white-space:nowrap;font-family:sans-serif;position:relative;z-index:60}.golf-nav .gn-brand{color:#B08D57;font-weight:800;font-size:13px;margin-right:8px;letter-spacing:.04em}.golf-nav a{color:#F7F4EE;text-decoration:none;font-size:13px;font-weight:700;padding:6px 12px;border-radius:999px}.golf-nav a:hover{background:#185642}.golf-nav a.gn-cur{background:#B08D57;color:#FFFFFF}</style><nav class="golf-nav" aria-label="ゴルフサイト共通ナビ"><span class="gn-brand">⛳ GOLF INDEX</span><a href="./index.html" class="gn-cur" aria-current="page">目次</a><a href="./cool_design/index.html">01 クールデザイン流</a><a href="./fit_lab_rd_hour/index.html">02 FIT LAB</a><a href="./fit_lab_rd_hour_main/index.html">03 FIT LAB (main)</a></nav>
-
+:root{--sky:#EAF2EC;--ink:#10231B;--muted:#5A6B60;--green:#0F3D2E;--brass:#B08D57;--line:#D8CFC0}
+*{box-sizing:border-box}body{margin:0;background:var(--sky);color:var(--ink);font-family:"Noto Sans JP",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:680px;margin:0 auto;padding:36px 20px 48px}
+.k{font-size:11px;letter-spacing:.34em;color:var(--brass);font-weight:700;text-align:center}
+h1{font-family:"Noto Serif JP",serif;font-size:clamp(30px,8vw,40px);text-align:center;margin:10px 0 2px;color:var(--green)}
+.sub{text-align:center;color:var(--muted);font-size:13.5px;margin:0 0 16px}
+.search{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:6px}
+.search input{border:0;outline:0;flex:1;font-size:16px;background:transparent;color:var(--ink)}
+.arc{width:100%;height:auto;display:block}
+.stops{display:flex;margin-top:2px}
+.stop{flex:1;text-align:center;text-decoration:none;color:var(--ink);padding:0 6px}
+.stop .dot{width:46px;height:46px;border-radius:50%;background:#fff;border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;margin:0 auto 8px;box-shadow:0 2px 8px rgba(15,61,46,.16)}
+.stop:last-child .dot{background:var(--green);color:#fff}
+.stop .t{font-size:13.5px;font-weight:900;margin-top:3px;line-height:1.4}
+.stop .d{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px}
+</style></head><body>
 <div class="wrap">
-  <div class="kicker">INDEX</div>
-  <h1>ゴルフサイト目次</h1>
-  <p class="sub">ゴルフ情報サイトへの入口です。見たいサイトを選んでください。</p>
-
-  <label class="search"><span aria-hidden="true">🔍</span>
-    <input id="q" type="search" placeholder="サイト内を検索..." aria-label="サイト内を検索">
-  </label>
-
-  <div class="contents-label">CONTENTS</div>
-  <div id="list"></div>
-  <p id="empty" class="empty">該当するサイトがありません。検索語を変えてみてください。</p>
-
-  <footer>© GOLF INDEX ・ ゴルフ情報ポータル</footer>
+<div class="k">GOLF INDEX — 3 SITES</div>
+<h1>ゴルフサイト目次</h1>
+<p class="sub">ゴルフ情報サイトへの入口です。見たいサイトを選んでください。</p>
+<label class="search"><span>🔍</span><input type="search" placeholder="サイト内を検索..." aria-label="サイト内を検索"></label>
+<svg class="arc" viewBox="0 0 360 190" fill="none" aria-hidden="true">
+<path d="M60 172 Q 180 8 300 172" stroke="#0F3D2E" stroke-width="2.5" stroke-dasharray="7 6" stroke-linecap="round"/>
+<circle cx="60" cy="172" r="4.5" fill="#0F3D2E"/>
+<circle cx="180" cy="92" r="4.5" fill="#0F3D2E"/>
+<circle cx="300" cy="172" r="8" fill="none" stroke="#0F3D2E" stroke-width="2"/>
+<circle cx="300" cy="172" r="3" fill="#0F3D2E"/>
+</svg>
+<div class="stops">
+<a class="stop" href="./cool_design/index.html">
+<span class="dot">01</span>
+<div class="t">クールデザイン流<br>フィッティング大全</div>
+<div class="d">全39本動画解析 × MECE 20手順</div></a>
+<a class="stop" href="./fit_lab_rd_hour/index.html">
+<span class="dot">02</span>
+<div class="t">R&amp;D HOUR FIT LAB<br>フィッティング研究室</div>
+<div class="d">全19本動画解析 × MECE 18手順</div></a>
+<a class="stop" href="../golf_fitting_v4_ad_ball_grip/index.html">
+<span class="dot">03</span>
+<div class="t">FIT LAB</div>
+<div class="d">ドライバー総合フィッティング</div></a>
 </div>
-
-<script>
-'use strict';
-/* サイトを追加するときは、この配列に1件足すだけです */
-const SITES = [
-  {
-    title: 'クールデザイン流 フィッティング大全',
-    desc: '全39本動画解析 × MECE 20手順 × AI改善プロンプト生成',
-    category: 'フィッティング',
-    url: './cool_design/index.html',
-    icon: '⛳',
-    iconClass: 'icon-green',
-    keywords: 'クールデザイン フィッティング MECE プロンプト ドライバー アイアン ウェッジ パター'
-  },
-  {
-    title: 'R&D HOUR FIT LAB フィッティング研究室',
-    desc: '全19本動画解析 × MECE 18手順 × AI改善プロンプト生成',
-    category: 'フィッティング',
-    url: './fit_lab_rd_hour/index.html',
-    icon: '📖',
-    iconClass: 'icon-book',
-    keywords: 'R&D HOUR FIT LAB フィッティング MECE プロンプト 波形 クラフト'
-  },
-  {
-    title: 'R&D HOUR FIT LAB フィッティング研究室 (main)',
-    desc: '全45本動画解析 × MECE 18手順 × AI改善プロンプト生成（完全版）',
-    category: 'フィッティング',
-    url: './fit_lab_rd_hour_main/index.html',
-    icon: '📘',
-    iconClass: 'icon-book',
-    keywords: 'R&D HOUR FIT LAB main フィッティング MECE プロンプト Shaft Wave 完全版'
-  }
-];
-
-const list = document.getElementById('list');
-const empty = document.getElementById('empty');
-const q = document.getElementById('q');
-
-function render(query) {
-  const needle = (query || '').trim().toLowerCase();
-  const hits = SITES.filter(s => !needle ||
-    (s.title + ' ' + s.desc + ' ' + s.category + ' ' + s.keywords).toLowerCase().includes(needle));
-  let html = hits.map((s) => {
-    const idx = SITES.indexOf(s);
-    return '<a class="row" href="' + s.url + '">' +
-      '<span class="num">' + String(idx + 1).padStart(2, '0') + '</span>' +
-      '<span class="icon ' + s.iconClass + '" aria-hidden="true">' + s.icon + '</span>' +
-      '<span class="main"><span class="title">' + s.title + '</span>' +
-      '<span class="desc" style="display:block">' + s.desc + '</span>' +
-      '<span class="tag">' + s.category + '</span></span>' +
-      '<span class="arrow" aria-hidden="true">›</span></a>';
-  }).join('');
-  if (!needle) {
-    const nextNo = String(SITES.length + 1).padStart(2, '0');
-    html += '<div class="row row-soon" aria-disabled="true">' +
-      '<span class="num">' + nextNo + '</span>' +
-      '<span class="icon" aria-hidden="true">+</span>' +
-      '<span class="main"><span class="title">追加予定のゴルフサイト</span>' +
-      '<span class="tag tag-soon">COMING SOON</span></span>' +
-      '<span class="arrow" aria-hidden="true">›</span></div>';
-  }
-  list.innerHTML = html;
-  empty.style.display = hits.length ? 'none' : 'block';
-}
-q.addEventListener('input', () => render(q.value));
-render('');
-</script>
-</body>
-</html>
+<footer>© GOLF INDEX ・ ゴルフ情報ポータル</footer>
+</div>
+</body></html>
