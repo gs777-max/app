@@ -725,6 +725,10 @@
             <span>ベスト <strong id="sum-best-carry" class="text-white font-num text-[13px]">—</strong> yds</span>
             <span>平均ブレ <strong id="sum-avg-offline" class="text-white font-num text-[13px]">—</strong> yds</span>
           </div>
+          <div class="flex items-center justify-between text-[11px] text-gray-300 mt-1">
+            <span>キャリーのバラつき <strong id="sum-carry-sd" class="text-white font-num text-[13px]">—</strong> yds</span>
+            <span>左右ブレのバラつき <strong id="sum-offline-sd" class="text-white font-num text-[13px]">—</strong> yds</span>
+          </div>
         </div>
 
         <div class="px-3 py-2 bg-[#18191c] border-b border-[#2e3138] flex items-center justify-between text-xs text-gray-200">
@@ -3071,6 +3075,16 @@
           document.getElementById('sum-avg-carry').textContent = avgCarry.toFixed(1);
           document.getElementById('sum-best-carry').textContent = bestCarry.toFixed(1);
           document.getElementById('sum-avg-offline').textContent = avgOff.toFixed(1);
+          // Dispersion (population SD): session consistency of carry & offline. 2球以上で表示
+          const calcSd = (arr) => {
+            if (arr.length < 2) return null;
+            const m = arr.reduce((a, b) => a + b, 0) / arr.length;
+            return Math.sqrt(arr.reduce((a, b) => a + (b - m) * (b - m), 0) / arr.length);
+          };
+          const carrySd = calcSd(carries);
+          const offSd = calcSd(state.shotHistory.map(h => h.shot.carrySideYards || 0));
+          document.getElementById('sum-carry-sd').textContent = carrySd === null ? '—' : carrySd.toFixed(1);
+          document.getElementById('sum-offline-sd').textContent = offSd === null ? '—' : offSd.toFixed(1);
           sumEl.classList.remove('hidden');
         }
       }
@@ -3092,7 +3106,7 @@
           <div class="flex items-center gap-2.5">
             <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${item.color}"></span>
             <div>
-              <div class="text-sm font-extrabold font-num text-white">${s.carryYards.toFixed(1)} <span class="text-xs font-normal text-gray-300">yds</span> <span class="text-[10px] text-gray-400 font-normal ml-1">${item.label || ''}</span>${isBest ? '<span class="text-[10px] font-bold text-amber-300 ml-1">★ ベスト</span>' : ''}</div>
+              <div class="text-sm font-extrabold font-num text-white"><span class="text-[10px] font-bold text-[#ff7a33] bg-[#ff621a]/15 border border-[#ff621a]/40 rounded px-1 py-px mr-1 align-middle">${(item.params && item.params.club) || '1W'}</span>${s.carryYards.toFixed(1)} <span class="text-xs font-normal text-gray-300">yds</span> <span class="text-[10px] text-gray-400 font-normal ml-1">${item.label || ''}</span>${isBest ? '<span class="text-[10px] font-bold text-amber-300 ml-1">★ ベスト</span>' : ''}</div>
               <div class="text-[10px] text-gray-300 font-num">HS ${s.chs.toFixed(1)} | ${s.spinRate}rpm | トータル ${s.totalYards.toFixed(1)}y | ${sideLabel}</div>
             </div>
           </div>
@@ -3106,6 +3120,12 @@
           if (e.target.classList.contains('shot-vis-toggle') || e.target.closest('.shot-delete-btn')) return;
           Object.assign(state, item.params);
           recalculateAndRefreshUI(true);
+          // Mobile: close the drawer so the restored shot's 3D trajectory is visible (same as FAB)
+          if (window.matchMedia('(max-width: 768px)').matches) {
+            document.getElementById('left-sidebar').classList.remove('mobile-open');
+            document.getElementById('sidebar-scrim')?.classList.add('hidden');
+            setTimeout(handleResize, 30);
+          }
         });
 
         row.querySelector('.shot-vis-toggle').addEventListener('change', (e) => {
