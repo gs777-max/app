@@ -13,7 +13,7 @@ h1{font-family:"Noto Serif JP",serif;font-size:clamp(30px,8vw,40px);text-align:c
 .search input{border:0;outline:0;flex:1;font-size:16px;background:transparent;color:var(--ink)}
 .arc{width:100%;height:auto;display:block}
 .stops{display:flex;margin-top:2px}
-.stop{flex:1;text-align:center;text-decoration:none;color:var(--ink);padding:0 6px}
+.stop{flex:1;text-align:center;text-decoration:none;color:var(--ink);padding:0 6px}.stop-main{display:block;text-decoration:none;color:var(--ink)}.stop-sub{display:inline-block;margin-top:10px;font-size:11px;font-weight:700;color:var(--green);background:#fff;border:1.5px solid var(--green);border-radius:999px;padding:6px 10px;text-decoration:none;line-height:1.5}.stop-sub span{display:block;font-size:10px;color:var(--muted);font-weight:500}
 .stop .dot{width:46px;height:46px;border-radius:50%;background:#fff;border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;margin:0 auto 8px;box-shadow:0 2px 8px rgba(15,61,46,.16)}
 .stop:last-child .dot{background:var(--green);color:#fff}
 .stop .t{font-size:13.5px;font-weight:900;margin-top:3px;line-height:1.4}
@@ -43,10 +43,13 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px}
 <span class="dot">02</span>
 <div class="t">R&amp;D HOUR FIT LAB<br>フィッティング研究室</div>
 <div class="d">全19本動画解析 × MECE 18手順</div></a>
-<a class="stop" href="../golf_fitting_v4_ad_ball_grip/index.html">
+<div class="stop">
+<a class="stop-main" href="../golf_fitting_v4_ad_ball_grip/index.html">
 <span class="dot">03</span>
 <div class="t">FIT LAB</div>
 <div class="d">ドライバー総合フィッティング</div></a>
+<a class="stop-sub" href="./fit_lab_rd_hour_main/index.html">R&amp;D HOUR FIT LAB (main)<span>全45本動画解析版</span></a>
+</div>
 </div>
 <footer>© GOLF INDEX ・ ゴルフ情報ポータル</footer>
 </div>
