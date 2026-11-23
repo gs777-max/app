@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="R&D HOUR FIT LAB フィッティング研究室 (main)。全45本動画解析に基づくMECE 18手順とAI改善プロンプト生成スタジオ。">
-  <meta name="theme-color" content="#0b1120">
+  <meta name="theme-color" content="#0F3D2E">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛳</text></svg>">
   <title>R&amp;D HOUR FIT LAB フィッティング研究室 (main)</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
@@ -12,17 +12,17 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
     body {
       font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #0b1120;
-      color: #e2e8f0;
+      background-color: #F7F4EE;
+      color: #1C2522;
     }
     .glass-card {
-      background: rgba(15, 23, 42, 0.88);
-      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: #FFFFFF;
+      border: 1px solid #E2DDD2;
     }
     .glass-card-active {
-      background: rgba(15, 31, 46, 0.94);
-      border: 1px solid rgba(16, 185, 129, 0.55);
-      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
+      background: #FAF6EC;
+      border: 1px solid rgba(176, 141, 87, 0.85);
+      box-shadow: 0 0 0 1px rgba(176, 141, 87, 0.25);
     }
     .prompt-pre {
       white-space: pre-wrap;
@@ -34,58 +34,23 @@
       height: 8px;
     }
     .custom-scroll::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.6);
+      background: #EDE8DC;
     }
     .custom-scroll::-webkit-scrollbar-thumb {
-      background: rgba(100, 116, 139, 0.5);
+      background: #C9C2B4;
       border-radius: 4px;
     }
   </style>
 </head>
-<body class="min-h-screen antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
+<body class="min-h-screen antialiased selection:bg-[#0F3D2E]/30 selection:text-[#185642]">
   <!-- Toast -->
-  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden items-center gap-2 rounded-xl border border-emerald-400/40 bg-slate-900/95 px-4 py-3 text-sm font-medium text-emerald-200 shadow-2xl transition-all">
-    <span class="inline-block h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden items-center gap-2 rounded-xl border border-[#B08D57] bg-[#0F3D2E] px-4 py-3 text-sm font-medium text-emerald-200 shadow-2xl transition-all">
+    <span class="inline-block h-2.5 w-2.5 rounded-full bg-[#E9CE8E]"></span>
     <span id="toastText">通知</span>
   </div>
 
   <!-- Header -->
-  <header class="sticky top-0 z-30 border-b border-slate-800 bg-slate-950/90 backdrop-blur">
-    <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-      <div>
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-300 border border-emerald-500/30">全45本動画解析</span>
-          <span class="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-300 border border-amber-500/30">MECE 18手順</span>
-        </div>
-        <h1 class="mt-1 text-lg font-bold tracking-tight text-white sm:text-xl">
-          R&amp;D HOUR FIT LAB フィッティング研究室 (main) ― MECEフィッティング手順＆AIプロンプトスタジオ
-        </h1>
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <span id="headerSelectedCount" class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-emerald-300">
-          選択中: 18 / 18 手順
-        </span>
-        <button id="quickGoBuilderBtn" type="button" class="rounded-lg bg-emerald-500 px-3.5 py-1.5 text-xs font-semibold text-slate-950 transition hover:bg-emerald-400">
-          AIプロンプトを生成 →
-        </button>
-      </div>
-    </div>
-
-    <!-- Navigation Tabs -->
-    <div class="mx-auto max-w-7xl px-4 sm:px-6">
-      <nav class="flex gap-1 overflow-x-auto pb-2" aria-label="メインナビゲーション">
-        <button type="button" data-tab="matrix" class="tab-btn whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition">
-          1. クラブ×パーツ別 MECE手順 (18)
-        </button>
-        <button type="button" data-tab="builder" class="tab-btn whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition">
-          2. AI改善プロンプトビルダー
-        </button>
-        <button type="button" data-tab="archive" class="tab-btn whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition">
-          3. 解析動画アーカイブ (45本)
-        </button>
-      </nav>
-    </div>
-  </header>
+  @@HEADER@@
 
   <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
     <!-- TAB 1: MECE MATRIX -->
@@ -96,7 +61,7 @@
           <div>
             <div class="flex items-center gap-2">
               <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Shaft Wave 600名実測データ</span>
-              <a href="https://www.youtube.com/watch?v=hsSigoQICME" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-400 underline hover:text-sky-300">出典動画を見る ↗</a>
+              <a href="https://www.youtube.com/watch?v=hsSigoQICME" target="_blank" rel="noopener noreferrer" class="text-xs text-[#A9C2D2] underline hover:text-white">出典動画を見る ↗</a>
             </div>
             <h2 class="mt-0.5 text-base font-bold text-white">動的しなり2軸分類 × 実名推奨シャフト早見表</h2>
           </div>
@@ -113,29 +78,29 @@
       <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div class="relative flex-1 max-w-md">
-            <input id="matrixSearch" type="text" placeholder="キーワード検索（例：短尺、バウンス、イップス、400cpm、1球目）" class="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white placeholder-slate-400 focus:border-emerald-400 focus:outline-none" />
+            <input id="matrixSearch" type="text" placeholder="キーワード検索（例：短尺、バウンス、イップス、400cpm、1球目）" class="w-full rounded-xl border border-[#E2DDD2] bg-white px-4 py-2 text-sm text-[#14201B] placeholder-[#8A968F] focus:border-[#B08D57] focus:outline-none" />
           </div>
           <div class="flex flex-wrap items-center gap-2">
-            <button id="selectFilteredBtn" type="button" class="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20">表示中を全選択</button>
-            <button id="selectAllBtn" type="button" class="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700">全18手順を選択</button>
-            <button id="clearAllBtn" type="button" class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-400 hover:bg-slate-800 hover:text-slate-200">選択解除</button>
+            <button id="selectFilteredBtn" type="button" class="rounded-lg border border-[#7FA98C] bg-[#E4EFE7] px-3 py-1.5 text-xs font-semibold text-[#0F3D2E] hover:bg-[#E4EFE7]">表示中を全選択</button>
+            <button id="selectAllBtn" type="button" class="rounded-lg border border-[#E2DDD2] bg-[#F0ECE3] px-3 py-1.5 text-xs font-semibold text-[#2E3B34] hover:bg-[#EDE8DC]">全18手順を選択</button>
+            <button id="clearAllBtn" type="button" class="rounded-lg border border-[#E2DDD2] bg-white px-3 py-1.5 text-xs font-semibold text-[#5A6863] hover:bg-[#F0ECE3] hover:text-[#2E3B34]">選択解除</button>
           </div>
         </div>
 
         <div class="space-y-2.5">
           <div class="flex flex-wrap items-center gap-1.5">
-            <span class="mr-1 text-xs font-semibold text-slate-400">クラブ軸:</span>
+            <span class="mr-1 text-xs font-semibold text-[#5A6863]">クラブ軸:</span>
             <div id="clubFilters" class="flex flex-wrap gap-1.5"></div>
           </div>
           <div class="flex flex-wrap items-center gap-1.5">
-            <span class="mr-1 text-xs font-semibold text-slate-400">パーツ軸:</span>
+            <span class="mr-1 text-xs font-semibold text-[#5A6863]">パーツ軸:</span>
             <div id="partFilters" class="flex flex-wrap gap-1.5"></div>
           </div>
         </div>
       </div>
 
       <!-- Procedure Cards Grid -->
-      <div id="matrixStats" class="flex items-center justify-between text-xs text-slate-400 px-1"></div>
+      <div id="matrixStats" class="flex items-center justify-between text-xs text-[#5A6863] px-1"></div>
       <div id="procedureGrid" class="grid grid-cols-1 gap-4 lg:grid-cols-2"></div>
     </section>
 
@@ -145,8 +110,8 @@
       <div class="glass-card rounded-2xl p-4 sm:p-5">
         <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 class="text-base font-bold text-white">ワンクリック改善プリセット</h2>
-            <p class="text-xs text-slate-400">目的に応じて最適なMECE手順セットと改善モードを自動構成します。</p>
+            <h2 class="text-base font-bold text-[#14201B]">ワンクリック改善プリセット</h2>
+            <p class="text-xs text-[#5A6863]">目的に応じて最適なMECE手順セットと改善モードを自動構成します。</p>
           </div>
         </div>
         <div id="presetList" class="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5"></div>
@@ -157,16 +122,16 @@
         <!-- Left Config -->
         <div class="space-y-4 lg:col-span-5">
           <div class="glass-card rounded-2xl p-5 space-y-4">
-            <h3 class="text-sm font-bold text-emerald-300 uppercase tracking-wider">依頼パラメータ設定</h3>
+            <h3 class="text-sm font-bold text-[#0F3D2E] uppercase tracking-wider">依頼パラメータ設定</h3>
 
             <div>
-              <label for="targetAppInput" class="block text-xs font-semibold text-slate-300 mb-1.5">対象アプリ・プロジェクト名</label>
-              <input id="targetAppInput" type="text" class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-sm text-white focus:border-emerald-400 focus:outline-none" />
+              <label for="targetAppInput" class="block text-xs font-semibold text-[#2E3B34] mb-1.5">対象アプリ・プロジェクト名</label>
+              <input id="targetAppInput" type="text" class="w-full rounded-xl border border-[#E2DDD2] bg-white px-3.5 py-2 text-sm text-[#14201B] focus:border-[#B08D57] focus:outline-none" />
             </div>
 
             <div>
-              <label for="modeSelect" class="block text-xs font-semibold text-slate-300 mb-1.5">AIへの依頼モード</label>
-              <select id="modeSelect" class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-sm text-white focus:border-emerald-400 focus:outline-none">
+              <label for="modeSelect" class="block text-xs font-semibold text-[#2E3B34] mb-1.5">AIへの依頼モード</label>
+              <select id="modeSelect" class="w-full rounded-xl border border-[#E2DDD2] bg-white px-3.5 py-2 text-sm text-[#14201B] focus:border-[#B08D57] focus:outline-none">
                 <option value="enhance">既存ゴルフフィッティングアプリへの機能追加・ロジック大改修</option>
                 <option value="scratch">新規フルスクラッチWebアプリ設計・単一HTML実装</option>
                 <option value="spec">アルゴリズム設計書・MECEロジックツリー（Markdown）作成</option>
@@ -175,36 +140,36 @@
             </div>
 
             <div>
-              <span class="block text-xs font-semibold text-slate-300 mb-2">AIに生成させる成果物オプション</span>
-              <div class="space-y-2 text-sm text-slate-200">
+              <span class="block text-xs font-semibold text-[#2E3B34] mb-2">AIに生成させる成果物オプション</span>
+              <div class="space-y-2 text-sm text-[#2E3B34]">
                 <label class="flex items-center gap-2.5 cursor-pointer">
-                  <input id="optCode" type="checkbox" class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400" />
+                  <input id="optCode" type="checkbox" class="h-4 w-4 rounded border-[#C9C2B4] bg-[#F0ECE3] text-[#0F3D2E] focus:ring-[#B08D57]" />
                   <span>単一HTML実装コード（動作検証済み・依存なし）</span>
                 </label>
                 <label class="flex items-center gap-2.5 cursor-pointer">
-                  <input id="optSpec" type="checkbox" class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400" />
+                  <input id="optSpec" type="checkbox" class="h-4 w-4 rounded border-[#C9C2B4] bg-[#F0ECE3] text-[#0F3D2E] focus:ring-[#B08D57]" />
                   <span>MECEアルゴリズム設計書＆判定ロジックツリー</span>
                 </label>
                 <label class="flex items-center gap-2.5 cursor-pointer">
-                  <input id="optJson" type="checkbox" class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400" />
+                  <input id="optJson" type="checkbox" class="h-4 w-4 rounded border-[#C9C2B4] bg-[#F0ECE3] text-[#0F3D2E] focus:ring-[#B08D57]" />
                   <span>Shaft Wave 600名実名シャフト＆重量フローJSONマスタ</span>
                 </label>
                 <label class="flex items-center gap-2.5 cursor-pointer">
-                  <input id="optTests" type="checkbox" class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400" />
+                  <input id="optTests" type="checkbox" class="h-4 w-4 rounded border-[#C9C2B4] bg-[#F0ECE3] text-[#0F3D2E] focus:ring-[#B08D57]" />
                   <span>境界値・エッジケース（イップス・加齢・軽量移行等）検証テスト</span>
                 </label>
               </div>
             </div>
 
             <div>
-              <label for="customNoteInput" class="block text-xs font-semibold text-slate-300 mb-1.5">追加要件・制約メモ（任意編集）</label>
-              <textarea id="customNoteInput" rows="4" class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs leading-relaxed text-white focus:border-emerald-400 focus:outline-none"></textarea>
+              <label for="customNoteInput" class="block text-xs font-semibold text-[#2E3B34] mb-1.5">追加要件・制約メモ（任意編集）</label>
+              <textarea id="customNoteInput" rows="4" class="w-full rounded-xl border border-[#E2DDD2] bg-white px-3.5 py-2 text-xs leading-relaxed text-[#14201B] focus:border-[#B08D57] focus:outline-none"></textarea>
             </div>
 
-            <div class="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
+            <div class="rounded-xl border border-[#E2DDD2] bg-white p-3">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-slate-300">組み込み中のMECE手順</span>
-                <button id="editSelectionBtn" type="button" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 underline">手順マトリクスで変更</button>
+                <span class="text-xs font-semibold text-[#2E3B34]">組み込み中のMECE手順</span>
+                <button id="editSelectionBtn" type="button" class="text-xs font-semibold text-[#185642] hover:text-[#0F3D2E] underline">手順マトリクスで変更</button>
               </div>
               <div id="selectedChips" class="mt-2 flex flex-wrap gap-1.5 max-h-36 overflow-y-auto custom-scroll"></div>
             </div>
@@ -214,21 +179,21 @@
         <!-- Right Live Prompt Preview -->
         <div class="lg:col-span-7 flex flex-col">
           <div class="glass-card rounded-2xl p-5 flex flex-col h-full">
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E2DDD2]">
               <div>
-                <h3 class="text-sm font-bold text-white">生成済み AI依頼プロンプト（リアルタイム同期）</h3>
-                <p id="promptCharCount" class="text-xs text-slate-400 mt-0.5"></p>
+                <h3 class="text-sm font-bold text-[#14201B]">生成済み AI依頼プロンプト（リアルタイム同期）</h3>
+                <p id="promptCharCount" class="text-xs text-[#5A6863] mt-0.5"></p>
               </div>
               <div class="flex flex-wrap gap-2">
-                <button id="copyPromptBtn" type="button" class="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:bg-emerald-400">
+                <button id="copyPromptBtn" type="button" class="rounded-lg bg-[#0F3D2E] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#B08D57]">
                   プロンプトをコピー
                 </button>
-                <button id="downloadPromptBtn" type="button" class="rounded-lg border border-slate-600 bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-200 transition hover:bg-slate-700">
+                <button id="downloadPromptBtn" type="button" class="rounded-lg border border-[#C9C2B4] bg-[#F0ECE3] px-3.5 py-2 text-xs font-semibold text-[#2E3B34] transition hover:bg-[#EDE8DC]">
                   .md ダウンロード
                 </button>
               </div>
             </div>
-            <pre id="promptPreview" class="prompt-pre custom-scroll mt-4 flex-1 max-h-[620px] overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 p-4 text-xs leading-relaxed text-slate-200"></pre>
+            <pre id="promptPreview" class="prompt-pre custom-scroll mt-4 flex-1 max-h-[620px] overflow-y-auto rounded-xl border border-[#E2DDD2] bg-[#14201B] p-4 text-xs leading-relaxed text-[#2E3B34]"></pre>
           </div>
         </div>
       </div>
@@ -238,19 +203,19 @@
     <section id="tab-archive" class="hidden space-y-5">
       <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 class="text-base font-bold text-white">解析済み動画アーカイブ（全45本）</h2>
-          <p class="text-xs text-slate-400 mt-0.5">すべての手順・数値の根拠となった動画のタイトル・公開日・抽出エッセンス・YouTube直リンク一覧です。</p>
+          <h2 class="text-base font-bold text-[#14201B]">解析済み動画アーカイブ（全45本）</h2>
+          <p class="text-xs text-[#5A6863] mt-0.5">すべての手順・数値の根拠となった動画のタイトル・公開日・抽出エッセンス・YouTube直リンク一覧です。</p>
         </div>
         <div class="flex flex-wrap gap-2">
-          <select id="archiveCatSelect" class="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white focus:border-emerald-400 focus:outline-none"></select>
-          <input id="archiveSearch" type="text" placeholder="動画タイトル・内容で検索..." class="rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs text-white placeholder-slate-400 focus:border-emerald-400 focus:outline-none" />
+          <select id="archiveCatSelect" class="rounded-xl border border-[#E2DDD2] bg-white px-3 py-2 text-xs text-[#14201B] focus:border-[#B08D57] focus:outline-none"></select>
+          <input id="archiveSearch" type="text" placeholder="動画タイトル・内容で検索..." class="rounded-xl border border-[#E2DDD2] bg-white px-3.5 py-2 text-xs text-[#14201B] placeholder-[#8A968F] focus:border-[#B08D57] focus:outline-none" />
         </div>
       </div>
 
       <div class="glass-card rounded-2xl overflow-hidden">
         <div class="overflow-x-auto custom-scroll">
-          <table class="min-w-full divide-y divide-slate-800 text-left text-xs">
-            <thead class="bg-slate-900/90 text-slate-300 uppercase tracking-wider">
+          <table class="min-w-full divide-y divide-[#E2DDD2] text-left text-xs">
+            <thead class="bg-white text-[#2E3B34] uppercase tracking-wider">
               <tr>
                 <th class="px-4 py-3 font-semibold w-12">No.</th>
                 <th class="px-4 py-3 font-semibold w-28">カテゴリ</th>
@@ -259,7 +224,7 @@
                 <th class="px-4 py-3 font-semibold">抽出フィッティングエッセンス</th>
               </tr>
             </thead>
-            <tbody id="archiveTableBody" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+            <tbody id="archiveTableBody" class="divide-y divide-[#E2DDD2] text-[#2E3B34]"></tbody>
           </table>
         </div>
       </div>
@@ -738,7 +703,7 @@
       document.querySelectorAll('.tab-btn').forEach(btn => {
         const isActive = btn.dataset.tab === state.activeTab;
         btn.className = 'tab-btn whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition ' +
-          (isActive ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200 border border-transparent');
+          (isActive ? 'bg-[#E4EFE7] text-[#0F3D2E] border border-[#7FA98C]' : 'text-[#5A6863] hover:bg-[#F0ECE3]/80 hover:text-[#2E3B34] border border-transparent');
       });
       ['matrix', 'builder', 'archive'].forEach(t => {
         const sec = document.getElementById('tab-' + t);
@@ -752,26 +717,26 @@
       document.querySelectorAll('.sw-btn').forEach(btn => {
         const active = btn.dataset.sw === state.shaftWaveTab;
         btn.className = 'sw-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition ' +
-          (active ? 'bg-amber-400 text-slate-950' : 'border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800');
+          (active ? 'bg-[#B08D57] text-white' : 'border border-[#E2DDD2] bg-white text-[#2E3B34] hover:bg-[#F0ECE3]');
       });
       const d = SHAFT_WAVE_DATA[state.shaftWaveTab];
       document.getElementById('swDetail').innerHTML = `
-        <div class="rounded-xl border border-slate-800 bg-slate-900/90 p-3">
-          <div class="text-[11px] font-semibold text-amber-300">構成比・剛性特性</div>
-          <div class="mt-1 text-sm font-bold text-white">${escapeHtml(d.label)}（${escapeHtml(d.ratio)}）</div>
-          <p class="mt-1 text-xs text-slate-300 leading-relaxed">${escapeHtml(d.profile)}</p>
+        <div class="rounded-xl border border-[#E2DDD2] bg-white p-3">
+          <div class="text-[11px] font-semibold text-[#7A5F22]">構成比・剛性特性</div>
+          <div class="mt-1 text-sm font-bold text-[#14201B]">${escapeHtml(d.label)}（${escapeHtml(d.ratio)}）</div>
+          <p class="mt-1 text-xs text-[#2E3B34] leading-relaxed">${escapeHtml(d.profile)}</p>
         </div>
-        <div class="rounded-xl border border-slate-800 bg-slate-900/90 p-3">
-          <div class="text-[11px] font-semibold text-emerald-400">推奨ドライバーシャフト</div>
-          <div class="mt-1 text-sm font-bold text-white">${escapeHtml(d.dr)}</div>
+        <div class="rounded-xl border border-[#E2DDD2] bg-white p-3">
+          <div class="text-[11px] font-semibold text-[#185642]">推奨ドライバーシャフト</div>
+          <div class="mt-1 text-sm font-bold text-[#14201B]">${escapeHtml(d.dr)}</div>
         </div>
-        <div class="rounded-xl border border-slate-800 bg-slate-900/90 p-3">
-          <div class="text-[11px] font-semibold text-sky-400">推奨FWシャフト</div>
-          <div class="mt-1 text-sm font-bold text-white">${escapeHtml(d.fw)}</div>
+        <div class="rounded-xl border border-[#E2DDD2] bg-white p-3">
+          <div class="text-[11px] font-semibold text-[#2F5D7A]">推奨FWシャフト</div>
+          <div class="mt-1 text-sm font-bold text-[#14201B]">${escapeHtml(d.fw)}</div>
         </div>
-        <div class="rounded-xl border border-slate-800 bg-slate-900/90 p-3">
+        <div class="rounded-xl border border-[#E2DDD2] bg-white p-3">
           <div class="text-[11px] font-semibold text-violet-400">推奨アイアンシャフト</div>
-          <div class="mt-1 text-sm font-bold text-white">${escapeHtml(d.ir)}</div>
+          <div class="mt-1 text-sm font-bold text-[#14201B]">${escapeHtml(d.ir)}</div>
         </div>
       `;
     }
@@ -779,25 +744,25 @@
     function renderFilterPills() {
       document.getElementById('clubFilters').innerHTML = CLUB_OPTIONS.map(o => {
         const active = state.clubFilter === o.id;
-        return `<button type="button" data-club="${o.id}" class="club-pill rounded-full px-3 py-1 text-xs font-semibold transition ${active ? 'bg-emerald-500 text-slate-950' : 'border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800'}">${escapeHtml(o.label)}</button>`;
+        return `<button type="button" data-club="${o.id}" class="club-pill rounded-full px-3 py-1 text-xs font-semibold transition ${active ? 'bg-[#0F3D2E] text-white' : 'border border-[#E2DDD2] bg-white text-[#2E3B34] hover:bg-[#F0ECE3]'}">${escapeHtml(o.label)}</button>`;
       }).join('');
 
       document.getElementById('partFilters').innerHTML = PART_OPTIONS.map(o => {
         const active = state.partFilter === o.id;
-        return `<button type="button" data-part="${o.id}" class="part-pill rounded-full px-3 py-1 text-xs font-semibold transition ${active ? 'bg-sky-400 text-slate-950' : 'border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800'}">${escapeHtml(o.label)}</button>`;
+        return `<button type="button" data-part="${o.id}" class="part-pill rounded-full px-3 py-1 text-xs font-semibold transition ${active ? 'bg-[#2F5D7A] text-white' : 'border border-[#E2DDD2] bg-white text-[#2E3B34] hover:bg-[#F0ECE3]'}">${escapeHtml(o.label)}</button>`;
       }).join('');
     }
 
     function renderProcedures() {
       const list = getFilteredProcedures();
       document.getElementById('matrixStats').innerHTML = `
-        <span>表示中: <strong class="text-white">${list.length}</strong> / ${PROCEDURES.length} 手順</span>
-        <span>プロンプト採用中: <strong class="text-emerald-300">${state.selectedIds.size}</strong> 手順</span>
+        <span>表示中: <strong class="text-[#14201B]">${list.length}</strong> / ${PROCEDURES.length} 手順</span>
+        <span>プロンプト採用中: <strong class="text-[#0F3D2E]">${state.selectedIds.size}</strong> 手順</span>
       `;
 
       const grid = document.getElementById('procedureGrid');
       if (list.length === 0) {
-        grid.innerHTML = `<div class="col-span-full rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm text-slate-400">条件に一致するフィッティング手順がありません。フィルタを変更してください。</div>`;
+        grid.innerHTML = `<div class="col-span-full rounded-2xl border border-[#E2DDD2] bg-white p-8 text-center text-sm text-[#5A6863]">条件に一致するフィッティング手順がありません。フィルタを変更してください。</div>`;
         return;
       }
 
@@ -808,26 +773,26 @@
             <div>
               <div class="flex items-start justify-between gap-3">
                 <div class="flex flex-wrap items-center gap-1.5">
-                  <span class="rounded-md bg-slate-800 px-2 py-0.5 text-[11px] font-bold text-slate-300">${escapeHtml(p.id)}</span>
-                  <span class="rounded-md bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">${escapeHtml(p.clubLabel)}</span>
-                  <span class="rounded-md bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 text-[11px] font-semibold text-sky-300">${escapeHtml(p.partLabel)}</span>
+                  <span class="rounded-md bg-[#F0ECE3] px-2 py-0.5 text-[11px] font-bold text-[#2E3B34]">${escapeHtml(p.id)}</span>
+                  <span class="rounded-md bg-[#E4EFE7] border border-[#7FA98C] px-2 py-0.5 text-[11px] font-semibold text-[#0F3D2E]">${escapeHtml(p.clubLabel)}</span>
+                  <span class="rounded-md bg-[#E7EEF3] border border-[#A9C2D2] px-2 py-0.5 text-[11px] font-semibold text-[#2F5D7A]">${escapeHtml(p.partLabel)}</span>
                 </div>
                 <label class="flex items-center gap-1.5 cursor-pointer shrink-0 select-none">
-                  <input type="checkbox" data-proc-id="${p.id}" class="proc-check h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400" ${checked ? 'checked' : ''} />
-                  <span class="text-xs font-semibold ${checked ? 'text-emerald-300' : 'text-slate-400'}">採用</span>
+                  <input type="checkbox" data-proc-id="${p.id}" class="proc-check h-4 w-4 rounded border-[#C9C2B4] bg-[#F0ECE3] text-[#0F3D2E] focus:ring-[#B08D57]" ${checked ? 'checked' : ''} />
+                  <span class="text-xs font-semibold ${checked ? 'text-[#0F3D2E]' : 'text-[#5A6863]'}">採用</span>
                 </label>
               </div>
-              <h3 class="mt-2.5 text-sm sm:text-base font-bold text-white leading-snug">${escapeHtml(p.title)}</h3>
-              <div class="mt-2 rounded-lg bg-slate-950/80 border border-slate-800 px-3 py-2 text-xs font-medium text-amber-300">
+              <h3 class="mt-2.5 text-sm sm:text-base font-bold text-[#14201B] leading-snug">${escapeHtml(p.title)}</h3>
+              <div class="mt-2 rounded-lg bg-[#F3E9CF] border border-[#E2DDD2] px-3 py-2 text-xs font-medium text-[#7A5F22]">
                 基準指標: ${escapeHtml(p.metrics)}
               </div>
-              <ul class="mt-3 space-y-1.5 text-xs leading-relaxed text-slate-300">
+              <ul class="mt-3 space-y-1.5 text-xs leading-relaxed text-[#2E3B34]">
                 ${p.steps.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
               </ul>
             </div>
-            <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
-              <span class="text-[11px] font-semibold text-slate-400">根拠動画:</span>
-              ${p.sources.map(src => `<a href="${src.url}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-sky-400 hover:text-sky-300 underline">${escapeHtml(src.title)} ↗</a>`).join('')}
+            <div class="mt-4 pt-3 border-t border-[#E2DDD2] flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-semibold text-[#5A6863]">根拠動画:</span>
+              ${p.sources.map(src => `<a href="${src.url}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-[#2F5D7A] hover:text-[#2F5D7A] underline">${escapeHtml(src.title)} ↗</a>`).join('')}
             </div>
           </article>
         `;
@@ -838,9 +803,9 @@
       document.getElementById('presetList').innerHTML = PRESETS.map(pr => {
         const active = state.activePreset === pr.id;
         return `
-          <button type="button" data-preset="${pr.id}" class="preset-btn text-left rounded-xl p-3 transition border ${active ? 'border-emerald-400 bg-emerald-500/15' : 'border-slate-800 bg-slate-900/80 hover:border-slate-600'}">
-            <div class="text-xs font-bold ${active ? 'text-emerald-300' : 'text-white'}">${escapeHtml(pr.title)}</div>
-            <div class="mt-1 text-[11px] leading-snug text-slate-400">${escapeHtml(pr.desc)}</div>
+          <button type="button" data-preset="${pr.id}" class="preset-btn text-left rounded-xl p-3 transition border ${active ? 'border-[#B08D57] bg-[#E4EFE7]' : 'border-[#E2DDD2] bg-white hover:border-[#C9C2B4]'}">
+            <div class="text-xs font-bold ${active ? 'text-[#0F3D2E]' : 'text-[#14201B]'}">${escapeHtml(pr.title)}</div>
+            <div class="mt-1 text-[11px] leading-snug text-[#5A6863]">${escapeHtml(pr.desc)}</div>
           </button>
         `;
       }).join('');
@@ -907,8 +872,8 @@ ${state.builder.customNote.trim() || '特記事項なし'}
       const chipsEl = document.getElementById('selectedChips');
       const selected = PROCEDURES.filter(p => state.selectedIds.has(p.id));
       chipsEl.innerHTML = selected.length === 0
-        ? '<span class="text-xs text-rose-400">未選択（1つ以上選択してください）</span>'
-        : selected.map(p => `<span class="inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-200">${escapeHtml(p.id)} ${escapeHtml(p.clubLabel)}</span>`).join('');
+        ? '<span class="text-xs text-[#9E3524]">未選択（1つ以上選択してください）</span>'
+        : selected.map(p => `<span class="inline-flex items-center gap-1 rounded-md border border-[#7FA98C] bg-[#E4EFE7] px-2 py-0.5 text-[11px] font-medium text-[#185642]">${escapeHtml(p.id)} ${escapeHtml(p.clubLabel)}</span>`).join('');
 
       const text = buildPromptText();
       document.getElementById('promptPreview').textContent = text;
@@ -932,16 +897,16 @@ ${state.builder.customNote.trim() || '特記事項なし'}
 
       const tbody = document.getElementById('archiveTableBody');
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">一致する動画がありません。</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-[#5A6863]">一致する動画がありません。</td></tr>`;
         return;
       }
       tbody.innerHTML = filtered.map(v => `
-        <tr class="hover:bg-slate-800/40 transition">
-          <td class="px-4 py-3 font-mono text-slate-400">${v.no}</td>
-          <td class="px-4 py-3"><span class="rounded-md bg-slate-800 px-2 py-0.5 text-[11px] font-semibold text-emerald-300 whitespace-nowrap">${escapeHtml(v.cat)}</span></td>
-          <td class="px-4 py-3 font-mono text-slate-400 whitespace-nowrap">${escapeHtml(v.date)}</td>
-          <td class="px-4 py-3 font-semibold"><a href="${v.url}" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300 underline">${escapeHtml(v.title)} ↗</a></td>
-          <td class="px-4 py-3 text-slate-300 leading-relaxed">${escapeHtml(v.summary)}</td>
+        <tr class="hover:bg-[#F0ECE3]/40 transition">
+          <td class="px-4 py-3 font-mono text-[#5A6863]">${v.no}</td>
+          <td class="px-4 py-3"><span class="rounded-md bg-[#F0ECE3] px-2 py-0.5 text-[11px] font-semibold text-[#0F3D2E] whitespace-nowrap">${escapeHtml(v.cat)}</span></td>
+          <td class="px-4 py-3 font-mono text-[#5A6863] whitespace-nowrap">${escapeHtml(v.date)}</td>
+          <td class="px-4 py-3 font-semibold"><a href="${v.url}" target="_blank" rel="noopener noreferrer" class="text-[#2F5D7A] hover:text-[#2F5D7A] underline">${escapeHtml(v.title)} ↗</a></td>
+          <td class="px-4 py-3 text-[#2E3B34] leading-relaxed">${escapeHtml(v.summary)}</td>
         </tr>
       `).join('');
     }
