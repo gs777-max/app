@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>クールデザイン流 MECEフィッティング手順＆AI改善プロンプト生成スタジオ</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+    :root {
+      --bg-cream: #F7F4EE;
+      --card-white: #FFFFFF;
+      --forest: #0F3D2E;
+      --forest-light: #185642;
+      --brass: #B08D57;
+      --ink: #1C2522;
+      --muted: #5A6863;
+      --border: #E2DDD2;
+    }
+    body {
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-cream);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+    .tab-active {
+      background-color: var(--forest);
+      color: #FFFFFF;
+      border-color: var(--forest);
+    }
+    .pill-active {
+      background-color: var(--forest);
+      color: #FFFFFF;
+      border-color: var(--forest);
+    }
+    .card-selected {
+      border-color: var(--brass);
+      box-shadow: 0 0 0 2px rgba(176, 141, 87, 0.25);
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #C9C2B4;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Header -->
+  <header class="bg-[#0F3D2E] text-white border-b border-[#185642] sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-[#B08D57] flex items-center justify-center text-white font-bold text-sm shrink-0">
+          CD
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight leading-snug">
+            クールデザイン流 MECEフィッティング＆AIプロンプトスタジオ
+          </h1>
+          <p class="text-xs text-emerald-100/80">
+            全39本動画解析に基づく20のMECE手順 × アプリ改善プロンプト自動生成
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <span id="selectedBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#185642] text-amber-200 border border-[#B08D57]/40">
+          選択中の手順: <strong id="selectedCount">4</strong>件
+        </span>
+        <button id="goToBuilderBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#B08D57] hover:bg-[#9c7a47] text-white transition cursor-pointer">
+          プロンプト生成へ →
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto pb-2.5">
+      <button type="button" data-tab="procedures" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border border-emerald-700/60 text-emerald-100 hover:bg-[#185642] transition whitespace-nowrap cursor-pointer">
+        1. MECEフィッティング手順 (20)
+      </button>
+      <button type="button" data-tab="builder" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border border-emerald-700/60 text-emerald-100 hover:bg-[#185642] transition whitespace-nowrap cursor-pointer">
+        2. AI改善プロンプトビルダー
+      </button>
+      <button type="button" data-tab="archive" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border border-emerald-700/60 text-emerald-100 hover:bg-[#185642] transition whitespace-nowrap cursor-pointer">
+        3. 解析動画アーカイブ (39本)
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+    <!-- TAB 1: MECE PROCEDURES -->
+    <section id="tab-procedures" class="space-y-5">
+      <!-- Filter Panel -->
+      <div class="bg-white rounded-xl border border-[#E2DDD2] p-4 sm:p-5 shadow-sm space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-[#0F3D2E]">
+              クラブ×パーツ別 MECEフィッティング手順マトリクス
+            </h2>
+            <p class="text-xs text-[#5A6863] mt-0.5">
+              必要な手順を選択して「プロンプトに追加」すると、Tab 2でAIへの実装指示書に自動組み込みされます。
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input id="procSearch" type="search" placeholder="キーワード検索（例: D5, 3/4, チップ径, 軟鉄...）"
+              class="w-full md:w-72 px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-[#E2DDD2] bg-[#FAF8F4] focus:outline-none focus:border-[#0F3D2E]" />
+            <button id="selectAllFilteredBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0F3D2E] text-white hover:bg-[#185642] whitespace-nowrap cursor-pointer">
+              表示中を全選択
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-2.5 pt-1 border-t border-[#F0ECE3]">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-xs font-semibold text-[#5A6863] mr-1">クラブ分類:</span>
+            <button type="button" data-club="ALL" class="club-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">すべて</button>
+            <button type="button" data-club="BASE" class="club-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">全体・診断基準</button>
+            <button type="button" data-club="DR" class="club-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">ドライバー (DR)</button>
+            <button type="button" data-club="FWUT" class="club-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">FW・UT</button>
+            <button type="button" data-club="IR" class="club-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">アイアン (IR)</button>
+            <button type="button" data-club="WG" class="club-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">ウェッジ (WG)</button>
+            <button type="button" data-club="PT" class="club-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">パター (PT)</button>
+            <button type="button" data-club="COMMON" class="club-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">共通パーツ・クラフト</button>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-xs font-semibold text-[#5A6863] mr-1">パーツ分類:</span>
+            <button type="button" data-part="ALL" class="part-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">すべて</button>
+            <button type="button" data-part="FLOW" class="part-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">FLOW (診断/構え)</button>
+            <button type="button" data-part="HEAD" class="part-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">HEAD (ヘッド)</button>
+            <button type="button" data-part="SHAFT" class="part-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">SHAFT (シャフト)</button>
+            <button type="button" data-part="GRIP" class="part-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">GRIP (グリップ)</button>
+            <button type="button" data-part="BALL" class="part-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">BALL (ボール)</button>
+            <button type="button" data-part="CRAFT" class="part-pill px-2.5 py-1 rounded-md text-xs font-medium border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">CRAFT (調整/公差)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Procedure Cards Grid -->
+      <div id="procCountBar" class="text-xs text-[#5A6863] font-medium px-1"></div>
+      <div id="procGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- TAB 2: AI PROMPT BUILDER -->
+    <section id="tab-builder" class="hidden space-y-5">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <!-- Left Controls -->
+        <div class="lg:col-span-5 space-y-4">
+          <!-- Mode Selection -->
+          <div class="bg-white rounded-xl border border-[#E2DDD2] p-4 shadow-sm space-y-3">
+            <h2 class="text-sm font-bold text-[#0F3D2E]">1. 依頼モードの選択</h2>
+            <div class="space-y-2">
+              <label class="flex items-start gap-2.5 p-2.5 rounded-lg border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">
+                <input type="radio" name="promptMode" value="addon" class="mt-0.5 accent-[#0F3D2E]" checked />
+                <div>
+                  <div class="text-xs font-bold text-[#1C2522]">既存アプリ（FIT LAB等）への機能追加・改善</div>
+                  <div class="text-[11px] text-[#5A6863]">現行のフィッティングロジックにクールデザイン流の理論の補正ルールを統合</div>
+                </div>
+              </label>
+              <label class="flex items-start gap-2.5 p-2.5 rounded-lg border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">
+                <input type="radio" name="promptMode" value="new" class="mt-0.5 accent-[#0F3D2E]" />
+                <div>
+                  <div class="text-xs font-bold text-[#1C2522]">14本フルセット＋ボール新規構築</div>
+                  <div class="text-[11px] text-[#5A6863]">DR〜PT・グリップ・ボールまで一貫した新規アプリをゼロから構築</div>
+                </div>
+              </label>
+              <label class="flex items-start gap-2.5 p-2.5 rounded-lg border border-[#E2DDD2] hover:bg-[#FAF8F4] cursor-pointer">
+                <input type="radio" name="promptMode" value="algorithm" class="mt-0.5 accent-[#0F3D2E]" />
+                <div>
+                  <div class="text-xs font-bold text-[#1C2522]">診断アルゴリズム・ロジックツリー設計単体</div>
+                  <div class="text-[11px] text-[#5A6863]">UI実装前に判定式・デシジョンツリー・公差チェック仕様を策定</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Presets -->
+          <div class="bg-white rounded-xl border border-[#E2DDD2] p-4 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-bold text-[#0F3D2E]">2. ワンクリック改善プリセット</h2>
+              <button id="clearSelectionBtn" type="button" class="text-[11px] text-rose-700 hover:underline font-medium cursor-pointer">選択をすべて解除</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button type="button" data-preset="overspec" class="preset-btn text-left p-2.5 rounded-lg border border-[#E2DDD2] hover:border-[#B08D57] hover:bg-[#FAF8F4] transition cursor-pointer">
+                <div class="text-xs font-bold text-[#0F3D2E]">18H(3/4)基準＆脱6S</div>
+                <div class="text-[11px] text-[#5A6863]">P01, P02, P04, P05, P19</div>
+              </button>
+              <button type="button" data-preset="woodflow" class="preset-btn text-left p-2.5 rounded-lg border border-[#E2DDD2] hover:border-[#B08D57] hover:bg-[#FAF8F4] transition cursor-pointer">
+                <div class="text-xs font-bold text-[#0F3D2E]">DR〜FW〜UT流れ最適化</div>
+                <div class="text-[11px] text-[#5A6863]">P03, P06, P07, P08</div>
+              </button>
+              <button type="button" data-preset="iron" class="preset-btn text-left p-2.5 rounded-lg border border-[#E2DDD2] hover:border-[#B08D57] hover:bg-[#FAF8F4] transition cursor-pointer">
+                <div class="text-xs font-bold text-[#0F3D2E]">IR軟鉄×MODUS/GH判定</div>
+                <div class="text-[11px] text-[#5A6863]">P09, P10, P11, P20</div>
+              </button>
+              <button type="button" data-preset="wedge" class="preset-btn text-left p-2.5 rounded-lg border border-[#E2DDD2] hover:border-[#B08D57] hover:bg-[#FAF8F4] transition cursor-pointer">
+                <div class="text-xs font-bold text-[#0F3D2E]">WG D5神話脱却＆ミス別</div>
+                <div class="text-[11px] text-[#5A6863]">P12, P13, P14</div>
+              </button>
+              <button type="button" data-preset="putter" class="preset-btn text-left p-2.5 rounded-lg border border-[#E2DDD2] hover:border-[#B08D57] hover:bg-[#FAF8F4] transition cursor-pointer">
+                <div class="text-xs font-bold text-[#0F3D2E]">PT重心×ネック反応速度</div>
+                <div class="text-[11px] text-[#5A6863]">P15, P16, P18</div>
+              </button>
+              <button type="button" data-preset="full" class="preset-btn text-left p-2.5 rounded-lg border border-[#E2DDD2] hover:border-[#B08D57] hover:bg-[#FAF8F4] transition cursor-pointer">
+                <div class="text-xs font-bold text-[#0F3D2E]">全20手順フル統合</div>
+                <div class="text-[11px] text-[#5A6863]">P01〜P20 すべて選択</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Output Options & Custom Notes -->
+          <div class="bg-white rounded-xl border border-[#E2DDD2] p-4 shadow-sm space-y-3">
+            <h2 class="text-sm font-bold text-[#0F3D2E]">3. 出力要件・追加指示</h2>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="optSingleHtml" class="accent-[#0F3D2E]" checked />
+                <span>単一HTML実装</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="optDesignDoc" class="accent-[#0F3D2E]" checked />
+                <span>設計書同時出力</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="optTestCases" class="accent-[#0F3D2E]" />
+                <span>検証テストケース作成</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="optDiffPatch" class="accent-[#0F3D2E]" />
+                <span>既存コード差分指示</span>
+              </label>
+            </div>
+            <div>
+              <label for="customNotes" class="block text-xs font-semibold text-[#5A6863] mb-1">
+                固有の前提条件・要望（任意）
+              </label>
+              <textarea id="customNotes" rows="3" placeholder="例: 既存のFIT LAB v4.0のヘッド・シャフト・グリップ・ボール総合ランキングに、D5警告と3/4試打チェックを追加したい。"
+                class="w-full px-3 py-2 text-xs rounded-lg border border-[#E2DDD2] bg-[#FAF8F4] focus:outline-none focus:border-[#0F3D2E]"></textarea>
+            </div>
+          </div>
+
+          <!-- Selected Procedures Summary -->
+          <div class="bg-white rounded-xl border border-[#E2DDD2] p-4 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-bold text-[#0F3D2E]">選択中の手順 (<span id="builderSelCount">0</span>)</h2>
+              <button id="backToProcBtn" type="button" class="text-xs text-[#0F3D2E] font-semibold hover:underline cursor-pointer">+ 手順を追加</button>
+            </div>
+            <div id="selectedChips" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto custom-scroll"></div>
+          </div>
+        </div>
+
+        <!-- Right Prompt Preview -->
+        <div class="lg:col-span-7 flex flex-col bg-white rounded-xl border border-[#E2DDD2] shadow-sm overflow-hidden">
+          <div class="px-4 py-3 bg-[#FAF8F4] border-b border-[#E2DDD2] flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-[#0F3D2E]">生成されたAI依頼プロンプト</h2>
+              <p id="promptStats" class="text-[11px] text-[#5A6863]">0文字</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="copyPromptBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0F3D2E] hover:bg-[#185642] text-white transition cursor-pointer">
+                プロンプトをコピー
+              </button>
+              <button id="downloadPromptBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#0F3D2E] text-[#0F3D2E] hover:bg-[#FAF8F4] transition cursor-pointer">
+                .md ダウンロード
+              </button>
+            </div>
+          </div>
+          <pre id="promptPreview" class="flex-1 p-4 text-xs leading-relaxed text-[#1C2522] whitespace-pre-wrap font-mono overflow-y-auto custom-scroll max-h-[680px] bg-white"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: VIDEO ARCHIVE -->
+    <section id="tab-archive" class="hidden space-y-4">
+      <div class="bg-white rounded-xl border border-[#E2DDD2] p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm sm:text-base font-bold text-[#0F3D2E]">解析動画アーカイブ（全39本）</h2>
+          <p class="text-xs text-[#5A6863]">「クールデザイン」チャンネル動画37本＋関連出演動画2本の出典一覧</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <select id="archiveCategory" class="px-3 py-1.5 text-xs rounded-lg border border-[#E2DDD2] bg-[#FAF8F4] focus:outline-none">
+            <option value="ALL">すべての分類</option>
+            <option value="DR">DR</option>
+            <option value="FW・UT">FW・UT</option>
+            <option value="IR">IR</option>
+            <option value="WG">WG</option>
+            <option value="PT">PT</option>
+            <option value="グリップ・ボール">グリップ・ボール</option>
+            <option value="総論・クラフト">総論・クラフト</option>
+          </select>
+          <input id="archiveSearch" type="search" placeholder="タイトル・キーワード検索..."
+            class="w-full sm:w-64 px-3 py-1.5 text-xs rounded-lg border border-[#E2DDD2] bg-[#FAF8F4] focus:outline-none focus:border-[#0F3D2E]" />
+        </div>
+      </div>
+      <div id="archiveGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden px-4 py-2.5 rounded-lg bg-[#0F3D2E] text-white text-xs font-semibold shadow-lg border border-[#B08D57]"></div>
+
+  <script>
+    const PROCEDURES = [
+      {
+        id: 'P01', club: 'BASE', clubLabel: '全体・診断基準', part: 'FLOW', partLabel: '診断/構え',
+        title: '18H(3/4スイング)基準＆オーバースペック是正',
+        goal: '鳥かごでのフルショット（マン振り）によるオーバースペック選定を防ぎ、18ホール同じ力感で振れる適正スペックを導く。',
+        steps: [
+          '試打・評価は「肩から肩（3/4スイング）」の力感で実施し、1Hティショットと18Hで同じリズムを保てるか判定する。',
+          'クロス・逆C・手打ちなどの癖がある場合、まず軽い・柔らかい（レディース相当）クラブやクロスハンド（20yd）試打でシャフトのしなり感を検証する。',
+          '「少しアンダーかな」と感じる重量・硬さを基準にし、年齢ではなく「スイングテンポの速さ」と「スイングアークの大きさ」で硬さを微調整する。'
+        ],
+        ng: '「マン振りで一番飛んだスペック」「年齢が高いから柔らかい/硬い」という短絡的な決めつけ。',
+        aiLogic: '入力項目に「現在の力感（10段階）」「18H後半のミス傾向」「テンポ（早/普/遅）」を追加し、6S等のオーバースペック警告＋0.5〜1段階スペックダウン提案を実装。',
+        sources: [
+          { title: 'ドライバーシャフトの選び方', url: 'https://www.youtube.com/watch?v=JdYT8VQegEo' },
+          { title: '使用クラブ判別法＆究極のドリル', url: 'https://www.youtube.com/watch?v=bQ3e_7AMDQg' },
+          { title: 'ドライバーとアイアンのスペック', url: 'https://www.youtube.com/watch?v=5sTFTSzFug4' }
+        ]
+      },
+      {
+        id: 'P02', club: 'BASE', clubLabel: '全体・診断基準', part: 'FLOW', partLabel: '診断/構え',
+        title: 'ポスチャー・効き目・フェース「真のスクエア」補正',
+        goal: '誤った構えや視覚錯覚（右目効き等）によるミスを、クラブ調整前に切り分ける。',
+        steps: [
+          'スタンダードな前傾・ボール位置・手の位置を整えた上で、全番手のフェースの座りを確認する。',
+          '「スコアライン平行」ではなく「フェース面をターゲットに直角」を基準にする（ロングはやや被り、ウェッジはやや開きに見えるのが正常）。',
+          '効き目（左目効き＝ビハインド・ザ・ボール有利 / 右目効き＝開き・被り錯覚が出やすい）を確認し、構えの視覚ギャップを補正する。'
+        ],
+        ng: '悪いポスチャーや癖のある構えに合わせてライ角・ロフトをその場で曲げる「対症療法フィッティング」。',
+        aiLogic: '問診に「効き目（右/左）」「構えた時の見え方（被り/開き違和感）」を追加し、構え由来のミスとクラブ由来のミスを分離出力する。',
+        sources: [
+          { title: 'そのドライバー、本当にスクエア？', url: 'https://www.youtube.com/watch?v=Ra4G29E57-Y' },
+          { title: 'クラブフィッティングの理想と現実', url: 'https://www.youtube.com/watch?v=_Xd_LvznyBI' },
+          { title: 'FWが打てる人・打てない人', url: 'https://www.youtube.com/watch?v=YvDIx-HA5JU' }
+        ]
+      },
+      {
+        id: 'P03', club: 'DR', clubLabel: 'ドライバー (DR)', part: 'HEAD', partLabel: 'ヘッド',
+        title: 'DRヘッド選定（重心率・バルジ・フェース素材）',
+        goal: '絶対値(mm)ではなく「重心高率・重心距離率(%)」とバルジ・素材の特性から安定した弾道を得る。',
+        steps: [
+          '重心高・重心距離のmm数値ではなく、フェース高・フェース長に対する「割合（黄金比：重心距離率37〜40%前後）」でヘッドの操作性を評価する。',
+          '持ち球別に構えの許容性を確認（ドロー＝やや開きめに見えてOK、フェード＝やや閉じめに見えてOK）。',
+          '雨天ラウンドが多い・右へのすっぽ抜けを嫌う場合は、カーボンフェースの雨天スリップリスク（対策：番手下げ or やや被せ）を考慮しチタン系も優先候補にする。'
+        ],
+        ng: '「低重心〇〇mmだから飛ぶ」「上から見て真っすぐ＝スクエア」と思い込み、ハンドファーストに手を入れて左へ引っ掛けること。',
+        aiLogic: 'ヘッドDBに重心高率/重心距離率・バルジ傾向・フェース素材（チタン/カーボン）を持たせ、雨天時リスク警告と構え方アドバイスを併記。',
+        sources: [
+          { title: '重心高さ・重心距離の数値は関係ない', url: 'https://www.youtube.com/watch?v=0r1-MSh8JFQ' },
+          { title: 'プロがカーボンフェースを避ける理由', url: 'https://www.youtube.com/watch?v=Xst7SXM81lA' },
+          { title: '2025年本当に評価すべきDR&IR', url: 'https://www.youtube.com/watch?v=NCoxk3-HItI' }
+        ]
+      },
+      {
+        id: 'P04', club: 'DR', clubLabel: 'ドライバー (DR)', part: 'SHAFT', partLabel: 'シャフト',
+        title: 'DRシャフト選定（振りやすさ・手元EI・長さ×重量）',
+        goal: 'ミート率向上とショットライン（右出しドロー/左出しフェード）の再現性を最大化する。',
+        steps: [
+          '弾道数値だけでなく「好みのブランド（過去の成功体験）」と「3/4スイングでの振りやすさ・芯の食いやすさ」を最優先にする。',
+          '持ち球×手元剛性（EI）：ドローヒッター＝手元柔らかめ（IZ/GC/中元系）、フェード・左消し＝手元〜先端しっかり系（DI/VENTUS Blue等）。※右ミスが出る人にVENTUS系は相乗効果で右へ行くため非推奨。',
+          '使いたい長さで重量を決める（45.5インチ＝40g台、45.0インチ以下＝50g〜60g台。一般的な男性アマは6Sを避け4S〜5R/SRを基準に検討）。'
+        ],
+        ng: '右にしか行かない人が「左を消すハード系（VENTUS Black/TR等）」や「見栄の6S」を選ぶこと。',
+        aiLogic: 'EI分布（手元剛性）と持ち球・ミス方向のクロス判定ルールを実装し、逆効果シャフト（右ミス×先端超硬等）を自動除外する。',
+        sources: [
+          { title: 'ドライバーシャフトの選び方', url: 'https://www.youtube.com/watch?v=JdYT8VQegEo' },
+          { title: 'アマチュアが手を出していい/ダメなシャフト', url: 'https://www.youtube.com/watch?v=6aFzmLht2Bk' }
+        ]
+      },
+      {
+        id: 'P05', club: 'DR', clubLabel: 'ドライバー (DR)', part: 'CRAFT', partLabel: '調整/公差',
+        title: '短尺化 vs「短く持つルーティン」＆ロフト補正',
+        goal: '安易なシャフト切断による飛距離低下・硬さ増加を防ぎ、コースマネジメントに長さを活かす。',
+        steps: [
+          '切る前に「小指1〜2本分（0.5〜1.0インチ）短く持つ」ルーティンで試す（切ると総重量はほぼ同じままバランス数字が約3pt/0.5in下がり、硬く感じて球が弱くなる場合がある）。',
+          'コースで「左OB＝目一杯長く持って振り遅れ（右）」「右OB＝短く持ってミート重視」と使い分ける。',
+          '実際に43.5〜44.5インチへ短尺化する場合は、軌道がアップライトになり球が上がらなくなるため、ロフトを増やす（11.5°〜13.5°）＆高いティアップをセットで提案する。'
+        ],
+        ng: '10.5°のまま44.0インチ以下にカットして、低ドロップ・キャリー不足に陥ること。',
+        aiLogic: '目標クラブ長が44.5インチ以下の場合、推奨ロフト角を自動で+1.5°〜+3.0°補正し、「まずは短く握るルーティン検証」を第1提案に出す。',
+        sources: [
+          { title: 'クラブを短くする vs 短く持ってプレー', url: 'https://www.youtube.com/watch?v=oCFXS2sxIJk' },
+          { title: 'アマチュアが手を出していい/ダメなシャフト', url: 'https://www.youtube.com/watch?v=6aFzmLht2Bk' }
+        ]
+      },
+      {
+        id: 'P06', club: 'FWUT', clubLabel: 'FW・UT', part: 'SHAFT', partLabel: 'シャフト',
+        title: 'FWシャフト選定（重量階段不要・同重量＋SR/R）',
+        goal: 'DRからFW（3W/5W/7W）への振り感の連続性を保ち、地面からのダフリ・左OBをなくす。',
+        steps: [
+          'ヘッド側で番手ごとの重量階段は設計されているため、3W/5W/7Wでシャフトを重くする必要はない（DRと同重量・同銘柄が基本）。',
+          'DR用が柔らかすぎる（例：ウテマックス等）場合、FWでしなり戻りが遅れるとダフリ・左OBが出るため、同じ重量帯（50g〜60g）でフレックスをSR/Rにし、必要に応じてチップカット（0.5〜1.0in）で戻りを合わせる。',
+          '7W単品の試打で「40g台の軽いシャフトで飛んだ」としても、5Wとの縦距離・重量の流れを壊すため採用しない。'
+        ],
+        ng: '「DRが6Sだから5Wは7S、7Wは8S」という根拠のない重量階段信仰、または7Wの飛びすぎセッティング。',
+        aiLogic: 'DRの選定シャフト重量をFWへ原則引き継ぎ、地面ショット適性として「しなり戻り速度（中元/PT系等）」とチップカット量を自動算出する。',
+        sources: [
+          { title: 'ドライバーとFW、シャフトは揃えるべき？', url: 'https://www.youtube.com/watch?v=f4v4KV1gpc0' },
+          { title: 'FWのスペックを落とす場合の考え方', url: 'https://www.youtube.com/watch?v=N32VssCoQJs' },
+          { title: 'クラブフィッティングの理想と現実', url: 'https://www.youtube.com/watch?v=_Xd_LvznyBI' }
+        ]
+      },
+      {
+        id: 'P07', club: 'FWUT', clubLabel: 'FW・UT', part: 'HEAD', partLabel: 'ヘッド',
+        title: 'UTヘッド2大系統（プル角/オフセット）＆スピン適正',
+        goal: '構え方（ハンドファースト vs 手が真っすぐ）とグリーンで止まる適正スピン量からUTを選ぶ。',
+        steps: [
+          'アイアン寄り系統（PING G410/425・国産系）：オフセット＆プル角あり。ハンドファーストに構える人に合い、セカンドOBが減る。',
+          'ウッド寄り系統（テーラー/キャロウェイ等）：プル角ゼロのFW延長型。左足寄りに置き手を真っすぐ構える人向け（ハンドファーストだと右に出やすい）。',
+          '低重心カーボンクラウンで飛びすぎるUTはグリーンで止まらないため、スピンが入るモデルを優先。19°〜22°で球が上がらない人は7W/9Wを推奨する。'
+        ],
+        ng: '「UTは左へ行くから」とプル角付きの構え方を誤って手元を垂直にし、右へ逃がし続けること。',
+        aiLogic: '問診の「UTの構え方（ハンドファースト / 中央垂直）」からアイアン型UT vs ウッド型UTを分岐し、ロフト20°前後の高さ不足時は7W/9Wへ自動切替提案。',
+        sources: [
+          { title: '自分に合うUTの選び方とおススメ', url: 'https://www.youtube.com/watch?v=srLsg0DwVi8' },
+          { title: 'ドライバーとアイアンのスペック', url: 'https://www.youtube.com/watch?v=5sTFTSzFug4' }
+        ]
+      },
+      {
+        id: 'P08', club: 'FWUT', clubLabel: 'FW・UT', part: 'SHAFT', partLabel: 'シャフト',
+        title: 'UTリシャフト（FW寄りvsIR寄り・チップ径9.0/9.4mm）',
+        goal: 'コスト圧縮されがちなUT純正シャフトを見直し、先端径と役割に応じた最適な1本を組む。',
+        steps: [
+          'UTの役割を「FW寄り（0.25〜0.5in長め・軽め）」か「ロングアイアン寄り（短め・重め80〜90g台）」か明確にする。',
+          'チップ径（9.0mm vs 9.4mm）の仕様差を必ず確認する（9.4mmは先端が硬く耐える特性があり、9.0mmはやや扱いやすい）。',
+          'UTはハイロフト＋アップライト＋短尺で左ミスが出やすいため、先調子は避けて中調子〜元調子（例：AD HY / RAUNE HY等）を選ぶ。'
+        ],
+        ng: '球を上げようとしてUTに先調子の軽いシャフトを入れ、左引っ掛けを連発すること。',
+        aiLogic: 'UTシャフトDBに「チップ径(9.0/9.4mm)」「役割（FW代替/IR代替）」を登録し、先調子シャフトの選択をブロックするガードを実装。',
+        sources: [
+          { title: 'UTのリシャフトで知っておくべきこと', url: 'https://www.youtube.com/watch?v=x8WaF7MdwJ8' }
+        ]
+      },
+      {
+        id: 'P09', club: 'IR', clubLabel: 'アイアン (IR)', part: 'HEAD', partLabel: 'ヘッド',
+        title: 'IRヘッド選定（軟鉄鍛造・全番手構え・コンボ非推奨）',
+        goal: '購入後に自分仕様へ精密調整できる軟鉄鍛造を選び、セット全体の連続性を保つ。',
+        steps: [
+          'ステンレスや硬質素材はライ・ロフト調整が効かない（戻る・折れる）ため、精密調整が可能な軟鉄鍛造（国内鍛造工房製等）を第一候補にする。',
+          '購入時は7番だけでなく「5I〜PWの全番手」を構え、特定番手だけ顔・ライ角が狂っていないか確認する。',
+          '7Iと8Iでヘッド・シャフトを大きく変えるコンボアイアンは飛距離ギャップと振り感の不連続を生むため原則避け、揃える（ロング番手単品のみ優しくするのは可）。'
+        ],
+        ng: '7番アイアン1本だけ試打してネット注文し、届いたセットの他番手が構えられない（公差ズレ）ケース。',
+        aiLogic: 'アイアン候補に「ライ・ロフト調整可否（軟鉄鍛造/非推奨素材）」フラグを付与し、コンボ構成希望時は飛距離階段ギャップ警告を表示。',
+        sources: [
+          { title: 'アイアン購入前の驚くべき真実', url: 'https://www.youtube.com/watch?v=umBOUYF03v4' },
+          { title: 'コンボアイアンはおススメしません', url: 'https://www.youtube.com/watch?v=X8lfXv-tt6g' },
+          { title: '国内工房と作ったアイアン', url: 'https://www.youtube.com/watch?v=jlAF0I_rKtk' }
+        ]
+      },
+      {
+        id: 'P10', club: 'IR', clubLabel: 'アイアン (IR)', part: 'SHAFT', partLabel: 'シャフト',
+        title: 'IRシャフト選定（DRとの分離・MODUS/GH・ピッチ系カーボン）',
+        goal: '芝や傾斜から正確にコンタクトでき、適正な打ち出し角・スピン量を生むIR専用シャフトを選ぶ。',
+        steps: [
+          'DRほど極端に柔らかくするとターフが厚くなりすぎるため、DRとIRは別軸で「しなり感＋シャープな戻り」を確保する。',
+          '日本シャフト選定指針：MODUS 110（低打ち出し・最推し）、MODUS 120（カット後約106gで振りやすい）、MODUS 105（硬く感じるためR推奨多数）、850/950GH（インパクトロフト増） vs NEO（ディロフト・上級者向け）。',
+          'カーボン希望時は、フライヤーが出やすい一般パン系を避け、スチールライクで誤差の少ないピッチ系（RAUNE等）を選定する。'
+        ],
+        ng: '「軽量スチール（80〜90g）だから硬いSやXにする」こと（軽量ほど硬く感じるため、軽量化時はフレックスも1段階落とす）。',
+        aiLogic: 'シャフト選定ツリーに「インパクトロフト傾向（立つ/寝る）」「ステップ（手元テーパー）」「カーボン繊維種別（ピッチ/パン）」を組み込む。',
+        sources: [
+          { title: 'スチールシャフトの特性と選び方', url: 'https://www.youtube.com/watch?v=MRy75HR3Pkw' },
+          { title: 'DRとIRのシャフトは合わせるべき？', url: 'https://www.youtube.com/watch?v=5sTFTSzFug4' },
+          { title: '自作アイアン診断の結末', url: 'https://www.youtube.com/watch?v=JVJPGWwX_KM' }
+        ]
+      },
+      {
+        id: 'P11', club: 'IR', clubLabel: 'アイアン (IR)', part: 'CRAFT', partLabel: '調整/公差',
+        title: 'ロングIR単品適正化＆ライロフト公差・限界調整（±2°）',
+        goal: '全番手を同じポスチャーで構えられるライ・ロフトの流れを作り、ロングアイアンを実用化する。',
+        steps: [
+          '購入後は必ず全番手のライ角・ロフト角・シャフト長を測定する（市販品は±2°公差やバランス調整用鉛の過剰充填が多い）。',
+          '軟鉄鍛造でもメッキ割れ・金属疲労を防ぐため曲げ調整は「±2°以内（行き来させない一発曲げ）」を限界とする。',
+          '4I/5Iは「高い球で止める」期待値を捨て「ライナーで前に行けばOK」と割り切り、やや優しい中空等を単品導入すると武器になる。'
+        ],
+        ng: '「弾道測定器で右に出たから6番だけアップライト、7番だけフラット」といった番手ごとの場当たり調整。',
+        aiLogic: '診断入力に「現状アイアンの番手別ミス」を入れ、特定番手のみ異常がある場合は「公差ズレ・ライ角フロー点検推奨」アラートを出す。',
+        sources: [
+          { title: 'アイアン購入前の驚くべき真実', url: 'https://www.youtube.com/watch?v=umBOUYF03v4' },
+          { title: '市販アイアンセットをバラした事実', url: 'https://www.youtube.com/watch?v=Z2kKPi8iS6E' },
+          { title: 'ライ角の数字で球は曲がるわけじゃない', url: 'https://www.youtube.com/watch?v=BDwGETzPqPk' }
+        ]
+      },
+      {
+        id: 'P12', club: 'WG', clubLabel: 'ウェッジ (WG)', part: 'CRAFT', partLabel: '調整/公差',
+        title: 'ウェッジ「D5神話」脱却＆手元重心バランス設計',
+        goal: '重すぎるヘッド（D3〜D5）によるチャックリ・トップを防ぎ、距離感とスピンをコントロールする。',
+        steps: [
+          '米PGAのD5は「35.5in（+0.5in長）」の結果。日本標準35.0inの適正バランスは**D0〜D1（最大D2、短く持てばC7〜C9）**に設定する。',
+          'アプローチが苦手な人ほど「ヘッドバランスを軽く（C8〜D0）、手元（シャフト重量＋グリップ48〜50g以上）を重く」してヘッドの垂れを防ぐ。',
+          '市販ヘッドが重すぎる場合はソール研磨で軽量化するか、カウンターバランス系シャフトで手元側を重くする。'
+        ],
+        ng: '「アイアンがD2だからウェッジはD4〜D5が常識」と思い込み、重い吊るしウェッジをそのまま使うこと。',
+        aiLogic: 'ウェッジ推奨スペック計算で、35.0インチ基準時は目標バランスをD0〜D1.5（アプローチ苦手時はC8〜D0）に自動設定し、D3以上への警告を出す。',
+        sources: [
+          { title: 'ウェッジの闇・D5神話をぶった斬る', url: 'https://www.youtube.com/watch?v=Fjt7ekYNpu0' },
+          { title: 'クラブ診断でウェッジの危うさが判明', url: 'https://www.youtube.com/watch?v=v-Ge9pfuif0' }
+        ]
+      },
+      {
+        id: 'P13', club: 'WG', clubLabel: 'ウェッジ (WG)', part: 'HEAD', partLabel: 'ヘッド',
+        title: 'ウェッジソール・バウンス・溝/ミーリング選定',
+        goal: '10〜20ydの実際の構えと芝・砂の条件にピタッと座り、ミスが最小化するソールを選ぶ。',
+        steps: [
+          '60ydフルショットではなく「10〜20yd（スタンス狭め）」の構えで、硬いマット上で少し開いた時に「コテンと寝ずに座るソール」を選ぶ。',
+          'ハンドファースト強い人＝ハイバンス可 / 手元が真っすぐ〜リリースする人・女性＝過度なハイバンス(14°〜)は跳ねてトップするため適正〜ローバンス(10°前後)を推奨。',
+          '溝・ミーリングは「雨・朝露・ラフの異物排出（低速時の滑り防止）」のためにあり、50yd以上ではコアが潰れるため溝よりソールR・顔・座りを最優先する。'
+        ],
+        ng: '「打ち込むタイプだから」と言われて14°以上の超ハイバンスを選び、アプローチで跳ねてイップスになること。',
+        aiLogic: 'アプローチ構え（ハンドファースト度合）×ミス（跳ねてトップ vs 刺さってザックリ）から推奨バウンス角（8〜10° / 12°〜）とロフト階段（PW42°なら46/50/56°）を出力。',
+        sources: [
+          { title: 'クラブ診断でウェッジの危うさが判明', url: 'https://www.youtube.com/watch?v=v-Ge9pfuif0' },
+          { title: 'プロがボーケイを使う/使わない理由', url: 'https://www.youtube.com/watch?v=-nAsj4FaCsU' },
+          { title: 'ウェッジの溝とミーリングの真実', url: 'https://www.youtube.com/watch?v=0jkwIRp4Ib0' }
+        ]
+      },
+      {
+        id: 'P14', club: 'WG', clubLabel: 'ウェッジ (WG)', part: 'SHAFT', partLabel: 'シャフト',
+        title: 'ミス傾向別ウェッジシャフト選定（20〜30yd基準）',
+        goal: 'スイングを大きく変えずに、シャフトの硬さ・重さでアプローチの入射角とインパクトロフトを安定させる。',
+        steps: [
+          '評価距離は「20〜30yd（5〜15yd含む）」で、チャックリ（ダフリ）が多いか、歯に当たるトップが多いかを診断する。',
+          'チャックリ・ダフリが多い人：シャフトを**硬め**にする（しなり戻りを速め、入射角を浅く安定させる）。',
+          'トップが多い人：シャフトを**柔らかめ＋軽め**にする（重い棒への恐怖心による起き上がりを防ぐ）。総重量を保つため手元重めの設計（1150GHや重めグリップ）も有効。'
+        ],
+        ng: '「アプローチはフルショットしないから無条件でアイアンより重く硬いS200/X100」と一律に決めること。',
+        aiLogic: 'ウェッジのミス種別（チャックリ/トップ/スピン不足）を入力させ、シャフト硬さ・重量の増減方向を逆転分岐させるロジックを実装。',
+        sources: [
+          { title: 'ウェッジのダフリとトップはシャフトで決まる', url: 'https://www.youtube.com/watch?v=kEhki_BukIs' },
+          { title: 'バンカー脱出法とウェッジ活用', url: 'https://www.youtube.com/watch?v=w6xMmjTqmlU' }
+        ]
+      },
+      {
+        id: 'P15', club: 'PT', clubLabel: 'パター (PT)', part: 'HEAD', partLabel: 'ヘッド',
+        title: 'パター重心深さ選定（ブレード vs マレット）',
+        goal: '距離感の出し方（ヒット型 vs ストローク型）とライン読み（膨らませる vs 直線的）を一致させる。',
+        steps: [
+          'ブレード（浅重心）：最下点で止まりやすいため「ヒットスピードの強弱」で距離を合わせ、ラインを厚めに読んで最後にコロンと入れたい人・オーバー傾向の人に最適。',
+          'マレット／ネオマレット（深重心）：最下点後も慣性で前へ動くため「ストローク幅」で撫でるように打つ人・ショート傾向の人・重いグリーン（8〜8.5ft）に最適。',
+          'インサートは樹脂の経年劣化・へこみリスクがあるため、単一金属＋ダブルミーリング等で打音と初速を抑えたモデルを高評価とする。'
+        ],
+        ng: '「マレット＝順回転が増えて転がる」という誤解（パターは順回転のみで、変わるのは慣性移動距離）。',
+        aiLogic: '問診「距離感の作り方（パチンとヒット / 撫でるストローク）」「ライン読み（大きく曲げる / 直線強め）」「ミス傾向（ショート / オーバー）」でヘッド形状を決定。',
+        sources: [
+          { title: 'それ、パターが合ってません', url: 'https://www.youtube.com/watch?v=5AHfAkP1ZM0' },
+          { title: 'ショートパットを決めやすいパター', url: 'https://www.youtube.com/watch?v=dD-Ws3y49bo' }
+        ]
+      },
+      {
+        id: 'P16', club: 'PT', clubLabel: 'パター (PT)', part: 'HEAD', partLabel: 'ヘッド',
+        title: 'パターネック形状（開閉反応速度）＆長さ/ヘッド重量',
+        goal: '「重心角」ではなくネック位置によるフェース開閉反応の遅速と適正長さで、ショートパットを安定させる。',
+        steps: [
+          'センターシャフト：ヘッド後方が見えず真っすぐ構えやすいためショートパット最強（不調時の基準器にも最適）。ただし開閉反応が最速で打点ズレにシビア。',
+          'クランクネック：センターに近い優しい動きと操作性の中間（最も標準的）。',
+          'L字／スラントネック：開閉反応が最も遅く、自分で積極的にフェースを閉じて捕まえたい人が左引っ掛けを防ぐために使う。',
+          '長さは34.5〜35インチ基準（35in=330g / 33in=350g）。短すぎると手先を使いやすいため、適正長さ＋肘を後ろに向ける構えで体幹ストロークを導く。'
+        ],
+        ng: '「フェースバランスだから真っすぐ引ける」「自分で捕まえたいのにセンターシャフトを使う」ミスマッチ。',
+        aiLogic: 'ストローク特性（ストレート型 / 自分で捕まえるアーク型）からネック形状（センター / クランク / L字・スラント）をマッピングし、長さと適正ヘッド重量を算出。',
+        sources: [
+          { title: 'パターは「重心角」で選ぶな！', url: 'https://www.youtube.com/watch?v=9fqoHavrEEQ' },
+          { title: 'ショートパットを決めやすいパター', url: 'https://www.youtube.com/watch?v=dD-Ws3y49bo' },
+          { title: '番手ずらしとパター長さ・重量', url: 'https://www.youtube.com/watch?v=nQXMkbs8iZA' }
+        ]
+      },
+      {
+        id: 'P17', club: 'COMMON', clubLabel: '共通パーツ・クラフト', part: 'GRIP', partLabel: 'グリップ',
+        title: 'グリップ太さ・BL有無・素材・重量チューニング',
+        goal: '体とクラブの唯一の接点であるグリップで、手首の過剰反応を抑えつつ全番手の振り感を統一する。',
+        steps: [
+          '太さ：リストアクションが多い人は太め（+4等）で握り込みを抑える。ただし太すぎると手打ちが封じられ飛ばなくなり、一度手首を使うと大きく曲がる諸刃の剣に注意。',
+          'バックライン（BL）：スクエア〜ウィークで横から指を引っ掛ける人は「BLあり」、ストロングで上から握る人は「BLなし」（装着ズレ防止）。',
+          '素材と重量活用：ツアーベルベット360（47〜53gの重量差を選別しロングIR=48g、WG=51gに活用、ゴムは伸ばし挿し可） vs イオミック（樹脂で寸法・重量精度抜群）。交換は最低2年に1回、コード入りはラウンド後洗浄必須。'
+        ],
+        ng: 'パーツクリーナーでの装着・再利用（劣化・緩み）、またはBLありの上から握るストロンググリップ。',
+        aiLogic: '握り方（ストロング/スクエア/ウィーク）×リスト使用度合×手サイズからBL有無・太さ・推奨モデル（360/イオミック）＋番手別重量配分を出力。',
+        sources: [
+          { title: 'グリップを太くしたい人への原則', url: 'https://www.youtube.com/watch?v=ap5U2z-ydp8' },
+          { title: 'ツアーベルベット360を選ぶ理由', url: 'https://www.youtube.com/watch?v=3Bhj1y6ksxg' },
+          { title: '国産メーカーグリップを奨めない理由', url: 'https://www.youtube.com/watch?v=u-Vmw96Tfo8' }
+        ]
+      },
+      {
+        id: 'P18', club: 'COMMON', clubLabel: '共通パーツ・クラフト', part: 'BALL', partLabel: 'ボール',
+        title: 'ショートゲーム基準（PT・WG）のボール選定手順',
+        goal: 'ドライバーの数値だけでなく、アマチュアでも差が明確に出るアプローチ・パターの感覚で最適ボールを特定する。',
+        steps: [
+          '安価なボールは真円度・重心精度が低く曲がりやロストの原因になるため、ツアー系ウレタンボール（例：スリクソン Z-STAR XV等）を候補にする。',
+          '1スリーブ単位で購入し、ショートコースや練習グリーンで「パターの初速（出すぎないか）・打音」と「ウェッジのトウ寄り打点での打感・乗り感・打ち出しの低さ」を比較テストする。',
+          '1発でも不自然な大曲がり（ボール由来のドロップ等）が出たらその個体は除外し、感性に合う1モデルに固定する。'
+        ],
+        ng: '「どうせ無くすから」と安価なディスタンス系を使い続け、パターとウェッジの距離感を崩壊させること。',
+        aiLogic: 'ボール選定の重み付けで「パター初速/打音」「ウェッジ乗り感/打ち出し」の評価項目を追加し、1スリーブ実地テスト手順を出力する。',
+        sources: [
+          { title: 'ショートパットとイチ押しボール', url: 'https://www.youtube.com/watch?v=dD-Ws3y49bo' }
+        ]
+      },
+      {
+        id: 'P19', club: 'COMMON', clubLabel: '共通パーツ・クラフト', part: 'CRAFT', partLabel: '調整/公差',
+        title: 'スイングバランス神話の是正（長さ×パーツ重量管理）',
+        goal: '「D2が正解」という数字合わせを脱却し、人間が同じ感覚で振れるクラブを設計・再現する。',
+        steps: [
+          'スイングバランス（14インチ計）は使う側の良し悪しではなく「作る側がバックアップを再現するための管理指標」と位置づける。',
+          'まず「クラブ長」を確定し、次に「ヘッド重量・シャフト重量・グリップ重量」を決めた結果として出たバランス（一般はD0基準、短尺時はC台も正常）を採用する。',
+          '同じD2でも低重心大型ヘッドは重く感じるため、ヘッド構造やスイングプレーン（ロング＝フラットで重く感じやすい、ショート＝アップライト）に応じて微調整する。'
+        ],
+        ng: '短尺化したのにバランスD2を維持しようとしてヘッドに過剰な鉛を貼り、総重量・振り感を壊すこと。',
+        aiLogic: 'バランスを「固定目標値」ではなく「長さ×各パーツ重量からの算出結果」として扱い、短尺時のCバランスを正常値として許容する。',
+        sources: [
+          { title: 'スイングバランス神話を疑え！', url: 'https://www.youtube.com/watch?v=KFmsdyczPaw' },
+          { title: 'コンボアイアンはおススメしません', url: 'https://www.youtube.com/watch?v=X8lfXv-tt6g' }
+        ]
+      },
+      {
+        id: 'P20', club: 'COMMON', clubLabel: '共通パーツ・クラフト', part: 'CRAFT', partLabel: '調整/公差',
+        title: '安全チップカット限界・番手ずらし・工房発注3箇条',
+        goal: 'リシャフト時の折損事故を防ぎ、工房・ショップへ発注する際の品質バラつきを完全に防ぐ。',
+        steps: [
+          'チップカット限界：先端ストレート長（現在60〜65mm程度）から挿入長（25〜30mm）＋余裕5mmを引いた範囲（最大1〜1.5in）まで。2inカットはテーパー部がボアに入り折損する。',
+          '番手ずらし：柔らかい方へ1番手ずらす（例：4I用→5I）とヘッドが6〜7g重くなり約3CPM柔らかくなる（2番手ずらしはステップズレで別シャフト化するため原則1番手まで、100g未満では不要）。硬くしたい時は0.25inチップカット。',
+          '工房発注マジックワード：①挿入長を指定mmで揃える、②バランス誤差±0.5pt以内、③グリップ全長を新品基準で全番手揃える（縮み戻り確認）。'
+        ],
+        ng: '先端ストレート長を確認せず2インチチップカットすること、またグリップ挿しっぱなしで長さがバラバラのまま使うこと。',
+        aiLogic: 'リシャフト提案出力に「安全チップカット上限（mm/inch）」「1番手ずらし可否」「工房発注チェックリスト3項目」を自動付記する。',
+        sources: [
+          { title: 'シャフト交換で絶対やってはいけないこと', url: 'https://www.youtube.com/watch?v=skKcnBxj6o4' },
+          { title: '番手ずらしの特性変化', url: 'https://www.youtube.com/watch?v=nQXMkbs8iZA' },
+          { title: 'ライ角の数字で球は曲がるわけじゃない', url: 'https://www.youtube.com/watch?v=BDwGETzPqPk' }
+        ]
+      }
+    ];
+
+    const VIDEOS = [
+      { no: 1, date: '2025-12-01', cat: 'FW・UT', title: 'ドライバーとFW、シャフトは揃えるべき？“本当の正解”を語ります！', url: 'https://www.youtube.com/watch?v=f4v4KV1gpc0' },
+      { no: 2, date: '2025-12-03', cat: 'DR', title: '【保存版】教える“ドライバーシャフトの選び方” 常識がひっくり返るプロの基準！', url: 'https://www.youtube.com/watch?v=JdYT8VQegEo' },
+      { no: 3, date: '2025-12-05', cat: 'IR', title: 'アイアン購入前に知らないと損する「驚くべき」真実【本音で解説】', url: 'https://www.youtube.com/watch?v=umBOUYF03v4' },
+      { no: 4, date: '2025-12-09', cat: 'WG', title: 'ウェッジのダフリとトップは“ヘッド”のせいじゃない。シャフトで決まる', url: 'https://www.youtube.com/watch?v=kEhki_BukIs' },
+      { no: 5, date: '2025-12-13', cat: 'PT', title: '【それ、パターが合ってません】クラブデザイナーが見抜く“本当に合う一本”', url: 'https://www.youtube.com/watch?v=5AHfAkP1ZM0' },
+      { no: 6, date: '2025-12-21', cat: '総論・クラフト', title: 'シャフトを交換するとき、これだけは絶対にやらないでください！危険です！', url: 'https://www.youtube.com/watch?v=skKcnBxj6o4' },
+      { no: 7, date: '2025-12-25', cat: 'FW・UT', title: 'シャフトのスペックを落とす場合の考え方【FWの場合】', url: 'https://www.youtube.com/watch?v=N32VssCoQJs' },
+      { no: 8, date: '2025-12-29', cat: 'DR', title: 'クラブデザイナーが選ぶ“本当に評価すべき”ドライバー＆アイアン【2025年を総括します】', url: 'https://www.youtube.com/watch?v=NCoxk3-HItI' },
+      { no: 9, date: '2026-01-04', cat: 'WG', title: 'プロがボーケイを「使う理由」と「使わない理由」そこを深掘りするとウェッジの本質が見えてくる', url: 'https://www.youtube.com/watch?v=-nAsj4FaCsU' },
+      { no: 10, date: '2026-01-07', cat: 'グリップ・ボール', title: 'ツアーベルベット３６０を選ぶ理由とグリップの素材とサイズがスイングに与える影響', url: 'https://www.youtube.com/watch?v=3Bhj1y6ksxg' },
+      { no: 11, date: '2026-01-23', cat: 'IR', title: '国内メーカーのエースか、マッスルバックか、この後の人生にかかわる運命の選択です', url: 'https://www.youtube.com/watch?v=h_8ZsOYf4BU' },
+      { no: 12, date: '2026-02-05', cat: '総論・クラフト', title: '「スイングバランス神話を疑え！｜振りやすいクラブはどうやって作る？', url: 'https://www.youtube.com/watch?v=KFmsdyczPaw' },
+      { no: 13, date: '2026-02-17', cat: 'IR', title: '一度整理しておきましょう！スチールシャフトの特性と選び方', url: 'https://www.youtube.com/watch?v=MRy75HR3Pkw' },
+      { no: 14, date: '2026-02-22', cat: 'FW・UT', title: '自分に合うユーティリティの選び方と中古で買う場合の【おススメモデル】を紹介します！', url: 'https://www.youtube.com/watch?v=srLsg0DwVi8' },
+      { no: 15, date: '2026-03-24', cat: 'DR', title: '人生を賭けたアイアンの選択とプロがカーボンフェースを避ける理由', url: 'https://www.youtube.com/watch?v=Xst7SXM81lA' },
+      { no: 16, date: '2026-04-12', cat: 'IR', title: 'クラブデザイナーが国内工房と作ったアイアンをピックアップ！製作秘話も明かします', url: 'https://www.youtube.com/watch?v=jlAF0I_rKtk' },
+      { no: 17, date: '2026-04-15', cat: '総論・クラフト', title: '市販のアイアンセットをバラしたら意外な事実がわかりました', url: 'https://www.youtube.com/watch?v=Z2kKPi8iS6E' },
+      { no: 18, date: '2026-04-19', cat: 'グリップ・ボール', title: '国産メーカーのグリップを奨めない理由を話します', url: 'https://www.youtube.com/watch?v=u-Vmw96Tfo8' },
+      { no: 19, date: '2026-04-30', cat: 'IR', title: 'コンボアイアンはおススメしません！その理由は…【みなさんからの質問に答えます/後編】', url: 'https://www.youtube.com/watch?v=X8lfXv-tt6g' },
+      { no: 20, date: '2026-05-13', cat: 'FW・UT', title: 'UTのリシャフトを考えているなら、これだけは知っておきましょう', url: 'https://www.youtube.com/watch?v=x8WaF7MdwJ8' },
+      { no: 21, date: '2026-05-29', cat: 'PT', title: '最もショートパットを決めやすいパターの形状といまイチ押しのボールについて', url: 'https://www.youtube.com/watch?v=dD-Ws3y49bo' },
+      { no: 22, date: '2026-06-16', cat: 'DR', title: 'アマチュアが手を出していいシャフトとダメなシャフト【ドライバーのカスタムシャフトの選び方】', url: 'https://www.youtube.com/watch?v=6aFzmLht2Bk' },
+      { no: 23, date: '2026-06-26', cat: '総論・クラフト', title: '使用クラブが合っているかどうかの判別法とシャフトのしならせ方がわかる究極のドリル', url: 'https://www.youtube.com/watch?v=bQ3e_7AMDQg' },
+      { no: 24, date: '2026-07-04', cat: 'IR', title: 'アイアンが合ってないときどうする？買い替える際、これだけは知っておきましょう', url: 'https://www.youtube.com/watch?v=EX2J_IcLjpo' },
+      { no: 25, date: '2026-07-23', cat: 'WG', title: 'クラブ診断でウェッジのスペックの危うさが判明「なぜハイバンスを選んだの？」', url: 'https://www.youtube.com/watch?v=v-Ge9pfuif0' },
+      { no: 26, date: '2026-08-02', cat: '総論・クラフト', title: 'クラブフィッティングの理想と現実をお話しします', url: 'https://www.youtube.com/watch?v=_Xd_LvznyBI' },
+      { no: 27, date: '2026-08-12', cat: 'WG', title: 'バンカーが苦手な人ほど見てほしい！教える「ウェッジを活かす」脱出法', url: 'https://www.youtube.com/watch?v=w6xMmjTqmlU' },
+      { no: 28, date: '2026-08-23', cat: 'WG', title: '【ウェッジの闇】なぜ市販品はこんなに重い？クラブデザイナーが「D5神話」をぶった斬る！', url: 'https://www.youtube.com/watch?v=Fjt7ekYNpu0' },
+      { no: 29, date: '2026-08-31', cat: '総論・クラフト', title: 'ライ角の数字で球は曲がるわけじゃない！ “クラブ調整の勘違い”をた一刀両断！', url: 'https://www.youtube.com/watch?v=BDwGETzPqPk' },
+      { no: 30, date: '2026-09-28', cat: 'DR', title: 'そのドライバー、本当にスクエアですか？基準となる構え方を解説', url: 'https://www.youtube.com/watch?v=Ra4G29E57-Y' },
+      { no: 31, date: '2026-10-02', cat: 'FW・UT', title: 'FWが打てる人、打てない人は、スイングを見ればすぐわかります', url: 'https://www.youtube.com/watch?v=YvDIx-HA5JU' },
+      { no: 32, date: '2026-10-06', cat: 'PT', title: 'パターは「重心角」で選ぶな！ ネック形状で変わる本当の特性を知ろう', url: 'https://www.youtube.com/watch?v=9fqoHavrEEQ' },
+      { no: 33, date: '2026-10-15', cat: 'IR', title: '自作アイアンを持ち込んだクラブ診断の結末はどうなった？判断は？？？', url: 'https://www.youtube.com/watch?v=JVJPGWwX_KM' },
+      { no: 34, date: '2026-10-24', cat: 'DR', title: 'ドライバーとアイアンのシャフトスペックは合わせるべき？', url: 'https://www.youtube.com/watch?v=5sTFTSzFug4' },
+      { no: 35, date: '2026-10-28', cat: '総論・クラフト', title: '番手ずらしでシャフトの特性はどう変わるのか、プロの実例を交えて話します', url: 'https://www.youtube.com/watch?v=nQXMkbs8iZA' },
+      { no: 36, date: '2026-11-06', cat: 'WG', title: 'ウェッジの溝やフェースミーリングはスピン性能とどれぐらい関係があるのか？', url: 'https://www.youtube.com/watch?v=0jkwIRp4Ib0' },
+      { no: 37, date: '2026-11-12', cat: 'DR', title: '重心高さとか重心距離とかの数値は性能となんら関係がありません！気にするべきなのは…', url: 'https://www.youtube.com/watch?v=0r1-MSh8JFQ' },
+      { no: 38, date: '2026-11-15', cat: '総論・クラフト', title: '「クラブを短くする」と「短く持ってプレーする」は何が変わるのか、こう考えます', url: 'https://www.youtube.com/watch?v=oCFXS2sxIJk' },
+      { no: 39, date: '2026-11-21', cat: 'グリップ・ボール', title: 'グリップを太くしたがる人たちへ、まずはこの原則を知っといてください', url: 'https://www.youtube.com/watch?v=ap5U2z-ydp8' }
+    ];
+
+    const PRESETS = {
+      overspec: ['P01', 'P02', 'P04', 'P05', 'P19'],
+      woodflow: ['P03', 'P06', 'P07', 'P08'],
+      iron: ['P09', 'P10', 'P11', 'P20'],
+      wedge: ['P12', 'P13', 'P14'],
+      putter: ['P15', 'P16', 'P18'],
+      full: PROCEDURES.map(p => p.id)
+    };
+
+    const state = {
+      activeTab: 'procedures',
+      clubFilter: 'ALL',
+      partFilter: 'ALL',
+      searchQuery: '',
+      selectedIds: new Set(['P01', 'P04', 'P12', 'P17']),
+      mode: 'addon',
+      outputOptions: {
+        singleHtml: true,
+        designDoc: true,
+        testCases: false,
+        diffPatch: false
+      },
+      customNotes: '',
+      archiveCategory: 'ALL',
+      archiveQuery: ''
+    };
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.add('hidden'), 2600);
+    }
+
+    function updateSelectedCountUI() {
+      const count = state.selectedIds.size;
+      document.getElementById('selectedCount').textContent = String(count);
+      document.getElementById('builderSelCount').textContent = String(count);
+    }
+
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      ['procedures', 'builder', 'archive'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tabName);
+      });
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.toggle('tab-active', btn.dataset.tab === tabName);
+      });
+      if (tabName === 'builder') {
+        renderBuilder();
+      } else if (tabName === 'archive') {
+        renderArchive();
+      }
+    }
+
+    function getFilteredProcedures() {
+      const q = state.searchQuery.trim().toLowerCase();
+      return PROCEDURES.filter(p => {
+        if (state.clubFilter !== 'ALL' && p.club !== state.clubFilter) return false;
+        if (state.partFilter !== 'ALL' && p.part !== state.partFilter) return false;
+        if (q) {
+          const hay = [p.id, p.title, p.goal, p.ng, p.aiLogic, ...p.steps].join(' ').toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderProcedures() {
+      document.querySelectorAll('.club-pill').forEach(btn => {
+        btn.classList.toggle('pill-active', btn.dataset.club === state.clubFilter);
+      });
+      document.querySelectorAll('.part-pill').forEach(btn => {
+        btn.classList.toggle('pill-active', btn.dataset.part === state.partFilter);
+      });
+
+      const list = getFilteredProcedures();
+      document.getElementById('procCountBar').textContent = `該当するフィッティング手順: ${list.length}件 / 全${PROCEDURES.length}件`;
+      const grid = document.getElementById('procGrid');
+
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="col-span-full bg-white rounded-xl border border-[#E2DDD2] p-8 text-center text-sm text-[#5A6863]">条件に一致する手順がありません。フィルタを解除してください。</div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(p => {
+        const isSelected = state.selectedIds.has(p.id);
+        return `
+          <article class="bg-white rounded-xl border ${isSelected ? 'card-selected' : 'border-[#E2DDD2]'} p-4 sm:p-5 shadow-sm flex flex-col justify-between gap-3 transition">
+            <div class="space-y-3">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-[#0F3D2E] text-white">${p.id}</span>
+                  <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#F2EDE3] text-[#0F3D2E]">${p.clubLabel}</span>
+                  <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-[#8A6935] border border-[#B08D57]/30">${p.partLabel}</span>
+                </div>
+                <button type="button" data-toggle-id="${p.id}" class="toggle-proc-btn px-2.5 py-1 rounded-lg text-xs font-semibold border transition shrink-0 cursor-pointer ${
+                  isSelected
+                    ? 'bg-[#B08D57] text-white border-[#B08D57]'
+                    : 'bg-white text-[#0F3D2E] border-[#0F3D2E] hover:bg-[#FAF8F4]'
+                }">
+                  ${isSelected ? '✓ 選択中' : '+ プロンプトに追加'}
+                </button>
+              </div>
+
+              <div>
+                <h3 class="text-sm sm:text-base font-bold text-[#1C2522] leading-snug">${p.title}</h3>
+                <p class="text-xs text-[#5A6863] mt-1 leading-relaxed">${p.goal}</p>
+              </div>
+
+              <div class="bg-[#FAF8F4] rounded-lg p-3 border border-[#ECE7DC]">
+                <div class="text-[11px] font-bold text-[#0F3D2E] mb-1.5">具体的フィッティング手順</div>
+                <ol class="space-y-1 text-xs text-[#1C2522] list-decimal list-inside leading-relaxed">
+                  ${p.steps.map(s => `<li>${s}</li>`).join('')}
+                </ol>
+              </div>
+
+              <div class="grid grid-cols-1 gap-2 text-xs">
+                <div class="p-2.5 rounded-lg bg-rose-50/70 border border-rose-200/70">
+                  <span class="font-bold text-rose-900">避けるべきNG・勘違い: </span>
+                  <span class="text-rose-950">${p.ng}</span>
+                </div>
+                <div class="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200/70">
+                  <span class="font-bold text-[#0F3D2E]">AIアプリ実装ロジック要点: </span>
+                  <span class="text-[#1C2522]">${p.aiLogic}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-[#F0ECE3] flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-semibold text-[#5A6863]">出典動画:</span>
+              ${p.sources.map(s => `<a href="${s.url}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-[#0F3D2E] underline hover:text-[#B08D57]">${s.title}</a>`).join('<span class="text-[#C9C2B4]">|</span>')}
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function generatePromptText() {
+      const selected = PROCEDURES.filter(p => state.selectedIds.has(p.id));
+      const modeMap = {
+        addon: '既存のゴルフフィッティングWebアプリ（例：FIT LAB v4.0）に対する【機能追加・ロジック強化】',
+        new: '14本フルセット（DR〜PT）＋グリップ＋ボール対応のゴルフフィッティングWebアプリの【新規構築】',
+        algorithm: 'ゴルフフィッティングWebアプリに組み込む【診断アルゴリズム・判定ロジック設計書】の策定'
+      };
+
+      const reqs = [];
+      if (state.outputOptions.singleHtml) reqs.push('外部ビルド不要の単一HTMLファイル（index.html、HTML/CSS/JS完結、モバイル対応）として実装すること。');
+      if (state.outputOptions.designDoc) reqs.push('実装と同時に、計算式・閾値・分岐ツリーを明記したMarkdown形式の「機能設計書」を作成すること。');
+      if (state.outputOptions.testCases) reqs.push('代表的なゴルファータイプ（例：オーバースペック悩みの40代、チャックリ悩みのシニア等）での検証テストケースと期待出力を提示すること。');
+      if (state.outputOptions.diffPatch) reqs.push('既存コードのUIや既存ランキング構造を壊さず、該当モジュールへの差分追加・統合方針を明示すること。');
+
+      const lines = [];
+      lines.push('# AIへのゴルフフィッティングWebアプリ改善・開発依頼プロンプト');
+      lines.push('');
+      lines.push('## 1. 依頼目的・対象スコープ');
+      lines.push(`- **タスク種別**: ${modeMap[state.mode]}`);
+      lines.push(`- **参照理論**: クラブデザイナー（YouTubeチャンネル「クールデザイン」）のフィッティング哲学・物理的設計基準`);
+      lines.push(`- **組み込み対象手順数**: ${selected.length}件`);
+      if (state.customNotes.trim()) {
+        lines.push(`- **固有の要望・前提条件**: ${state.customNotes.trim()}`);
+      }
+      lines.push('');
+      lines.push('## 2. 出力・実装要件');
+      if (reqs.length === 0) {
+        lines.push('- 明確な根拠とユーザーへのわかりやすい解説を伴う形で出力すること。');
+      } else {
+        reqs.forEach(r => lines.push(`- ${r}`));
+      }
+      lines.push('- すべての推奨結果には「なぜそのスペックなのか」「どんなミスを防ぐのか」の具体的理由解説と注意すべきNG行動を併記すること。');
+      lines.push('');
+      lines.push('## 3. 組み込むべきMECEフィッティング手順とロジック要件');
+      if (selected.length === 0) {
+        lines.push('（※手順が選択されていません。Tab 1またはプリセットから手順を選択してください）');
+      } else {
+        selected.forEach((p, idx) => {
+          lines.push(`### ${idx + 1}. [${p.id}: ${p.clubLabel} × ${p.partLabel}] ${p.title}`);
+          lines.push(`- **目的**: ${p.goal}`);
+          p.steps.forEach((s, i) => lines.push(`  - 手順${i + 1}: ${s}`));
+          lines.push(`- **NG・是正対象**: ${p.ng}`);
+          lines.push(`- **アプリ実装仕様**: ${p.aiLogic}`);
+          lines.push('');
+        });
+      }
+      lines.push('## 4. 最終チェック項目（AIへの検収指示）');
+      lines.push('- [ ] 18H（3/4スイング）基準でのオーバースペック警告が機能しているか');
+      lines.push('- [ ] ウェッジのD5神話（35.0in=D0〜D1基準）やチップカット安全限界など、物理・公差に基づくガードが入っているか');
+      lines.push('- [ ] クラブ単体ではなく、14本＋グリップ＋ボールの連続性・構えの一貫性が担保されているか');
+
+      return lines.join('\n');
+    }
+
+    function renderBuilder() {
+      updateSelectedCountUI();
+      const chipsEl = document.getElementById('selectedChips');
+      const selected = PROCEDURES.filter(p => state.selectedIds.has(p.id));
+      if (selected.length === 0) {
+        chipsEl.innerHTML = `<span class="text-xs text-[#5A6863]">手順が未選択です。上のプリセットまたはTab 1から選択してください。</span>`;
+      } else {
+        chipsEl.innerHTML = selected.map(p => `
+          <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold bg-[#F2EDE3] text-[#0F3D2E] border border-[#E2DDD2]">
+            ${p.id} ${p.clubLabel}
+            <button type="button" data-remove-id="${p.id}" class="remove-chip-btn text-[#5A6863] hover:text-rose-700 font-bold ml-0.5 cursor-pointer" title="解除">×</button>
+          </span>
+        `).join('');
+      }
+
+      const text = generatePromptText();
+      document.getElementById('promptPreview').textContent = text;
+      document.getElementById('promptStats').textContent = `${text.length.toLocaleString()}文字 ／ ${selected.length}手順を選択中`;
+    }
+
+    function renderArchive() {
+      const q = state.archiveQuery.trim().toLowerCase();
+      const list = VIDEOS.filter(v => {
+        if (state.archiveCategory !== 'ALL' && v.cat !== state.archiveCategory) return false;
+        if (q && !v.title.toLowerCase().includes(q) && !v.cat.toLowerCase().includes(q)) return false;
+        return true;
+      });
+      const grid = document.getElementById('archiveGrid');
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="col-span-full bg-white rounded-xl border border-[#E2DDD2] p-8 text-center text-sm text-[#5A6863]">該当する動画がありません。</div>`;
+        return;
+      }
+      grid.innerHTML = list.map(v => `
+        <a href="${v.url}" target="_blank" rel="noopener noreferrer"
+           class="bg-white rounded-xl border border-[#E2DDD2] hover:border-[#B08D57] p-4 shadow-sm flex flex-col justify-between gap-2 transition group">
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#F2EDE3] text-[#0F3D2E]">${v.cat}</span>
+              <span class="text-[11px] text-[#5A6863]">#${v.no} ・ ${v.date}</span>
+            </div>
+            <h3 class="text-xs sm:text-sm font-bold text-[#1C2522] group-hover:text-[#0F3D2E] leading-snug">
+              ${v.title}
+            </h3>
+          </div>
+          <div class="text-[11px] font-semibold text-[#B08D57] flex items-center justify-between pt-2 border-t border-[#F4F0E8]">
+            <span>YouTubeで視聴する</span>
+            <span>↗</span>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    function copyTextToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+      }
+      return Promise.resolve(fallbackCopy(text));
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+
+    // Event Bindings
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    document.getElementById('goToBuilderBtn').addEventListener('click', () => switchTab('builder'));
+    document.getElementById('backToProcBtn').addEventListener('click', () => switchTab('procedures'));
+
+    document.querySelectorAll('.club-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.clubFilter = btn.dataset.club;
+        renderProcedures();
+      });
+    });
+
+    document.querySelectorAll('.part-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.partFilter = btn.dataset.part;
+        renderProcedures();
+      });
+    });
+
+    document.getElementById('procSearch').addEventListener('input', e => {
+      state.searchQuery = e.target.value;
+      renderProcedures();
+    });
+
+    document.getElementById('selectAllFilteredBtn').addEventListener('click', () => {
+      const list = getFilteredProcedures();
+      list.forEach(p => state.selectedIds.add(p.id));
+      updateSelectedCountUI();
+      renderProcedures();
+      showToast(`表示中の${list.length}件をすべて選択しました`);
+    });
+
+    document.getElementById('procGrid').addEventListener('click', e => {
+      const btn = e.target.closest('.toggle-proc-btn');
+      if (!btn) return;
+      const id = btn.dataset.toggleId;
+      if (state.selectedIds.has(id)) {
+        state.selectedIds.delete(id);
+      } else {
+        state.selectedIds.add(id);
+      }
+      updateSelectedCountUI();
+      renderProcedures();
+    });
+
+    document.getElementById('selectedChips').addEventListener('click', e => {
+      const btn = e.target.closest('.remove-chip-btn');
+      if (!btn) return;
+      state.selectedIds.delete(btn.dataset.removeId);
+      renderBuilder();
+      renderProcedures();
+    });
+
+    document.querySelectorAll('input[name="promptMode"]').forEach(radio => {
+      radio.addEventListener('change', e => {
+        state.mode = e.target.value;
+        renderBuilder();
+      });
+    });
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ids = PRESETS[btn.dataset.preset] || [];
+        state.selectedIds = new Set(ids);
+        renderBuilder();
+        renderProcedures();
+        showToast(`プリセットを適用しました（${ids.length}件選択）`);
+      });
+    });
+
+    document.getElementById('clearSelectionBtn').addEventListener('click', () => {
+      state.selectedIds.clear();
+      renderBuilder();
+      renderProcedures();
+    });
+
+    ['optSingleHtml', 'optDesignDoc', 'optTestCases', 'optDiffPatch'].forEach(id => {
+      document.getElementById(id).addEventListener('change', e => {
+        const keyMap = {
+          optSingleHtml: 'singleHtml',
+          optDesignDoc: 'designDoc',
+          optTestCases: 'testCases',
+          optDiffPatch: 'diffPatch'
+        };
+        state.outputOptions[keyMap[id]] = e.target.checked;
+        renderBuilder();
+      });
+    });
+
+    document.getElementById('customNotes').addEventListener('input', e => {
+      state.customNotes = e.target.value;
+      renderBuilder();
+    });
+
+    document.getElementById('copyPromptBtn').addEventListener('click', () => {
+      const text = generatePromptText();
+      copyTextToClipboard(text).then(() => {
+        showToast('プロンプトをクリップボードにコピーしました');
+      });
+    });
+
+    document.getElementById('downloadPromptBtn').addEventListener('click', () => {
+      const text = generatePromptText();
+      const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'miyagi_golf_fitting_ai_prompt.md';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('プロンプト(.md)をダウンロードしました');
+    });
+
+    document.getElementById('archiveCategory').addEventListener('change', e => {
+      state.archiveCategory = e.target.value;
+      renderArchive();
+    });
+
+    document.getElementById('archiveSearch').addEventListener('input', e => {
+      state.archiveQuery = e.target.value;
+      renderArchive();
+    });
+
+    // Initial Render
+    updateSelectedCountUI();
+    switchTab('procedures');
+    renderProcedures();
+  </script>
+
+<a href="../index.html" style="position:fixed;left:12px;bottom:12px;z-index:9999;background:#0F3D2E;color:#F7F4EE;font-size:13px;font-weight:700;padding:9px 14px;border-radius:999px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25);font-family:sans-serif">← ゴルフサイト目次へ</a>
+</body>
+</html>

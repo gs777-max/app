@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIT LAB Studio — MECEフィッティング手順 ＆ AIアプリ改善プロンプト生成</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Noto+Serif+JP:wght@600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F6F1E7;
+    --card: #FFFDF8;
+    --ink: #14201B;
+    --ink2: #2E3B34;
+    --muted: #526259;
+    --green: #0B352A;
+    --green2: #072A20;
+    --green-soft: #E4EFE7;
+    --green-line: #7FA98C;
+    --brass: #B9975B;
+    --brass-dark: #7A5F22;
+    --brass-soft: #F3E9CF;
+    --line: #D5C9A8;
+    --line-soft: #E8DFCB;
+    --blue: #2F5D7A;
+    --red: #9E3524;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; overflow-x: clip; background: var(--paper); color: var(--ink); font-family: 'Inter', 'Noto Sans JP', sans-serif; font-size: 15px; line-height: 1.65; }
+  h1, h2, h3, .serif { font-family: 'Fraunces', 'Noto Serif JP', serif; }
+  a { color: var(--green); }
+  button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px 48px; }
+  .masthead { border-bottom: 2px solid var(--ink); background: var(--paper); }
+  .masthead-in { max-width: 1120px; margin: 0 auto; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .brand { font-family: 'Fraunces', 'Noto Serif JP', serif; font-weight: 700; font-size: 21px; letter-spacing: .03em; }
+  .brand span { color: var(--brass-dark); }
+  .pill { background: var(--green); color: #F6F1E7; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 5px 12px; }
+
+  .hero { background: var(--green); color: #F6F1E7; border-bottom: 4px solid var(--brass); padding: 28px 20px; border-radius: 0 0 18px 18px; margin-bottom: 20px; }
+  .hero .kicker { font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #D9BC7A; }
+  .hero h1 { font-size: clamp(24px, 4.5vw, 36px); line-height: 1.3; margin: 8px 0 10px; color: #F6F1E7; }
+  .hero p { margin: 0; color: #DCE8DF; font-size: 14.5px; max-width: 780px; }
+  .hero-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(246,241,231,.22); }
+  @media (max-width: 640px) { .hero-stats { grid-template-columns: repeat(2, 1fr); } }
+  .hero-stats b { display: block; font-family: 'Fraunces', 'Noto Serif JP', serif; font-size: 22px; color: #E9CE8E; line-height: 1.15; }
+  .hero-stats span { font-size: 11.5px; color: #B9CDBF; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; border-bottom: 2px solid var(--line); padding-bottom: 10px; }
+  .tab-btn { min-height: 44px; padding: 8px 16px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink2); font-weight: 700; font-size: 14px; transition: .15s; }
+  .tab-btn:hover { border-color: var(--green); }
+  .tab-btn.active { background: var(--green); border-color: var(--green); color: #F6F1E7; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Filter bar */
+  .filter-box { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .filter-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .filter-label { font-size: 12px; font-weight: 700; color: var(--brass-dark); min-width: 78px; }
+  .chip { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--ink2); font-size: 12.5px; font-weight: 600; }
+  .chip.active { background: var(--green); border-color: var(--green); color: #F6F1E7; }
+  .search-inp { width: 100%; min-height: 42px; border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 14px; background: #fff; color: var(--ink); }
+
+  /* Procedure cards */
+  .proc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 820px) { .proc-grid { grid-template-columns: 1fr; } }
+  .proc-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .proc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .proc-badges { display: flex; flex-wrap: wrap; gap: 5px; }
+  .b-club { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--green-soft); color: var(--green); border: 1px solid var(--green-line); }
+  .b-part { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--brass-soft); color: var(--brass-dark); border: 1px solid #D9C08A; }
+  .proc-title { font-size: 16.5px; font-weight: 700; margin: 0; color: var(--ink); }
+  .steps-list { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--ink2); }
+  .steps-list li { margin-bottom: 4px; }
+  .threshold-box { background: rgba(11,53,42,.05); border-left: 3px solid var(--green); padding: 8px 10px; border-radius: 6px; font-size: 12.5px; }
+  .myth-box { background: rgba(158,53,36,.06); border-left: 3px solid var(--red); padding: 8px 10px; border-radius: 6px; font-size: 12.5px; }
+  .app-hook { font-size: 12px; color: var(--blue); font-weight: 600; background: rgba(47,93,122,.08); padding: 6px 10px; border-radius: 8px; }
+  .card-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line-soft); padding-top: 8px; margin-top: auto; }
+  .add-to-prompt-btn { padding: 5px 10px; border-radius: 8px; border: 1px solid var(--green); background: #fff; color: var(--green); font-size: 12px; font-weight: 700; }
+  .add-to-prompt-btn.added { background: var(--green); color: #F6F1E7; }
+
+  /* Builder Layout */
+  .builder-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .builder-grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+  .panel h2 { font-size: 19px; margin: 0 0 12px; }
+  .sec-lbl { font-size: 12px; font-weight: 700; color: var(--brass-dark); text-transform: uppercase; letter-spacing: .1em; margin: 14px 0 8px; }
+  .preset-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .preset-pill { padding: 6px 11px; border-radius: 10px; border: 1.5px solid var(--brass); background: var(--brass-soft); color: var(--ink); font-size: 12px; font-weight: 700; }
+  .preset-pill:hover { background: var(--brass); color: #fff; }
+  .chk-list { display: grid; grid-template-columns: 1fr; gap: 7px; max-height: 390px; overflow-y: auto; padding-right: 4px; }
+  .chk-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border: 1px solid var(--line-soft); border-radius: 10px; background: #fff; cursor: pointer; font-size: 13px; }
+  .chk-item input { margin-top: 3px; accent-color: var(--green); width: 16px; height: 16px; flex: none; }
+  .seg-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .seg-opt { flex: 1; min-width: 110px; padding: 8px 10px; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; font-size: 12.5px; font-weight: 700; color: var(--ink2); text-align: center; }
+  .seg-opt.active { background: var(--green); border-color: var(--green); color: #F6F1E7; }
+  textarea.notes { width: 100%; min-height: 74px; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px; font-family: inherit; font-size: 13.5px; background: #fff; color: var(--ink); resize: vertical; }
+  .prompt-out { width: 100%; min-height: 460px; border: 1.5px solid var(--green-line); border-radius: 12px; padding: 14px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; line-height: 1.6; background: #14201B; color: #F6F1E7; resize: vertical; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .btn-main { flex: 1; min-height: 44px; border-radius: 10px; border: 0; background: var(--green); color: #F6F1E7; font-weight: 700; font-size: 14px; padding: 10px 16px; }
+  .btn-main:hover { background: var(--green2); }
+  .btn-sub { min-height: 44px; border-radius: 10px; border: 1.5px solid var(--green); background: #fff; color: var(--green); font-weight: 700; font-size: 13.5px; padding: 10px 14px; }
+  .toast { font-size: 12.5px; font-weight: 700; color: var(--green); min-height: 20px; margin-top: 6px; }
+
+  /* Video Table */
+  .tbl-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
+  th { text-align: left; padding: 10px 12px; background: var(--green); color: #F6F1E7; font-size: 12px; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <div class="brand">FIT LAB <span>— MECE Procedure &amp; AI Prompt Studio</span></div>
+    <span class="pill">R&amp;D HOUR 全動画準拠</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="kicker">R&amp;D HOUR Knowledge → MECE Fitting Workflow → AI Improvement Prompt</div>
+    <h1>分類別MECEフィッティング手順 ＆<br>ゴルフフィッティングアプリ改善AI依頼スタジオ</h1>
+    <p>プロ×フィッター×クラフトマン「R&amp;D HOUR」全フィッティング回の知見を、クラブ別・パーツ別にMECE（漏れなくダブりなく）手順化。改善したい項目を選ぶだけで、他AIへそのまま渡せる高精度な機能改善プロンプトを生成します。</p>
+    <div class="hero-stats">
+      <div><b>19本</b><span>解析済みR&amp;D HOUR本編</span></div>
+      <div><b>7領域</b><span>クラブ・全体フロー分類</span></div>
+      <div><b>18手順</b><span>MECE実装ルール</span></div>
+      <div><b>1-Click</b><span>AI改善プロンプト出力</span></div>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" class="tab-btn active" data-tab="procedures">1. MECEフィッティング手順マスター</button>
+    <button type="button" class="tab-btn" data-tab="builder">2. AIアプリ改善プロンプト生成</button>
+    <button type="button" class="tab-btn" data-tab="videos">3. R&amp;D HOUR 動画エッセンス索引</button>
+  </nav>
+
+  <!-- TAB 1: MECE PROCEDURES -->
+  <section id="tab-procedures" class="tab-panel active">
+    <div class="filter-box">
+      <div class="filter-row">
+        <span class="filter-label">クラブ分類</span>
+        <div id="club-filters" class="filter-row"></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">パーツ分類</span>
+        <div id="part-filters" class="filter-row"></div>
+      </div>
+      <input type="text" id="proc-search" class="search-inp" placeholder="キーワード検索（例：短尺、バウンス、ロフト、M58、パター、108切り、波形）">
+    </div>
+    <div id="proc-grid" class="proc-grid"></div>
+  </section>
+
+  <!-- TAB 2: AI PROMPT BUILDER -->
+  <section id="tab-builder" class="tab-panel">
+    <div class="builder-grid">
+      <div class="panel">
+        <h2>AIへの改善依頼条件を設定</h2>
+        <div class="sec-lbl">クイック・プリセット</div>
+        <div class="preset-bar">
+          <button type="button" class="preset-pill" data-preset="all_mece">14本トータル完全版（全18手順）</button>
+          <button type="button" class="preset-pill" data-preset="pt_wg">パター＆ウェッジ機能追加</button>
+          <button type="button" class="preset-pill" data-preset="dr_shaft">DR短尺×シャフト波形強化</button>
+          <button type="button" class="preset-pill" data-preset="beginner">初心者108切りモード追加</button>
+        </div>
+
+        <div class="sec-lbl">1. 開発・出力モード</div>
+        <div class="seg-group" id="seg-devmode">
+          <button type="button" class="seg-opt active" data-val="addon">既存FIT LABへの機能追加</button>
+          <button type="button" class="seg-opt" data-val="new_spec">新規設計書＋実装プロンプト</button>
+          <button type="button" class="seg-opt" data-val="test_suite">検証テスト仕様追加</button>
+        </div>
+
+        <div class="sec-lbl">2. 対象ゴルファー層</div>
+        <div class="seg-group" id="seg-level">
+          <button type="button" class="seg-opt active" data-val="all">全レベル自動分岐</button>
+          <button type="button" class="seg-opt" data-val="beginner">初心者（〜108切り）</button>
+          <button type="button" class="seg-opt" data-val="average">アベレージ〜中級</button>
+          <button type="button" class="seg-opt" data-val="advanced">上級・競技志向</button>
+        </div>
+
+        <div class="sec-lbl">3. 組み込むMECEフィッティング手順（<span id="sel-count">0</span>件選択中）</div>
+        <div id="builder-chk-list" class="chk-list"></div>
+
+        <div class="sec-lbl">4. 追加要望・制約（任意）</div>
+        <textarea id="custom-notes" class="notes" placeholder="例：単独ランキングではなくギア総合ベスト10の中に統合表示すること、単一ファイルindex.htmlで出力すること等"></textarea>
+      </div>
+
+      <div class="panel">
+        <h2>生成されたAI依頼用プロンプト</h2>
+        <textarea id="prompt-output" class="prompt-out" readonly></textarea>
+        <div class="btn-row">
+          <button type="button" id="btn-copy-prompt" class="btn-main">プロンプトをコピー</button>
+          <button type="button" id="btn-download-md" class="btn-sub">Markdown (.md) で保存</button>
+        </div>
+        <div id="copy-toast" class="toast" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: VIDEO INDEX -->
+  <section id="tab-videos" class="tab-panel">
+    <div class="filter-box">
+      <input type="text" id="video-search" class="search-inp" placeholder="動画タイトル・テーマ・登壇者で絞り込み（例：パター、ウェッジ、シャフト、グリップ）">
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>回</th><th>タイトル（YouTubeリンク）</th><th>主分類</th><th>抽出した主要フィッティング知見</th></tr>
+        </thead>
+        <tbody id="video-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+'use strict';
+
+const CLUB_LABELS = {
+  all: 'すべて',
+  FLOW: '14本全体・総論',
+  DR: 'ドライバー',
+  IR_FW: 'アイアン・FW/UT',
+  WG: 'ウェッジ',
+  PT: 'パター',
+  GRIP: 'グリップ（共通）',
+  BALL: 'ボール（共通）'
+};
+
+const PART_LABELS = {
+  all: 'すべて',
+  FLOW: '診断フロー・計測',
+  HEAD: 'ヘッド',
+  SHAFT: 'シャフト',
+  GRIP: 'グリップ',
+  BALL: 'ボール',
+  CRAFT: 'クラフト・調整'
+};
+
+const PROCEDURES_DB = [
+  {
+    id: 'MECE-01',
+    club: 'FLOW', part: 'FLOW',
+    title: 'パター起点の14本連続性（つながり）診断',
+    steps: [
+      'スコアの約半分を占めるパター（ヘッドサイズ・振り感）を基準点として確定する。',
+      'DRが大型ヘッドならパターもマレット系で違和感を消す等、14本全体の視覚と重心バランスを接続する。',
+      'DRのみ短尺化・軽量化した場合は、FW/UT・IRの振り遅れや硬さズレが起きないか連動再計算する。'
+    ],
+    threshold: 'パターは14本中で最も柔らかく・ゆっくり振れる基準。1本変更時は前後番手の重量/振動数フローを再検証。',
+    myth: '「DR・IR・PTは別競技」は誤り。DRの大型化に引きずられてパターやIRの感覚が崩れる。',
+    appHook: 'アプリ改善案：単発クラブ診断に加え「14本つながり整合性チェック（DR×IR×WG×PT連続性アラート）」を実装。',
+    source: 'Part.03 / Part.04 / Part.08'
+  },
+  {
+    id: 'MECE-02',
+    club: 'FLOW', part: 'FLOW',
+    title: 'ブラインド試打＆「1球目・座り」最優先プロトコル',
+    steps: [
+      '重量・フレックス表記による先入観を排除するため、スペック非表示（ブラインド）状態で評価する。',
+      '構えた瞬間の違和感（モジモジ・座りの悪さ）が出たクラブは打つ前に候補から除外する。',
+      '器用な人ほど2球目以降にスイングをクラブへ合わせてしまうため、1球目の素の反応を重視する。'
+    ],
+    threshold: '構えた時点でフェースが左を向く・落ち着かない場合は即座にライ角/スリーブ補正または除外。',
+    myth: '「何球も打って慣れれば大丈夫」は誤り。本番の1発目で合わせられずミス（8割はクラブ起因）になる。',
+    appHook: 'アプリ改善案：問診ステップに「構えた時の違和感・左向き感」と「ミス原因のクラブ起因切り分け」を追加。',
+    source: 'Part.01 / Part.06 / Part.20'
+  },
+  {
+    id: 'MECE-03',
+    club: 'FLOW', part: 'FLOW',
+    title: '初心者・脱初心者（108切り）向けステップアップ設計',
+    steps: [
+      'スコア108切り前は14本を揃えず、PT・WG(52°)・8I/9I・UT(24°〜)等の5〜7本に絞る。',
+      '初期クラブは45"超の長尺DRを避け、35〜36"程度の短尺アイアンや適度なロフトのミニDR/5Wから始める。',
+      '基本動作と芯で打つ感覚を養うため、適度なロフトがある小ぶりヘッド／マッスルバック系も候補に含める。'
+    ],
+    threshold: '脱初心者ライン＝108切り（ダボペース）。5〜7本構成／ウェッジは52°基準（56/58°は重く難しいため後回し）。',
+    myth: '「初心者＝大型ヘッド・軽量・柔らかいシャフト・フルセット」は上達を遅らせる要因になり得る。',
+    appHook: 'アプリ改善案：スコア帯「108以上（初心者）」選択時に『短尺・本数絞り・小ぶり高ロフト推奨モード』へ自動分岐。',
+    source: 'Part.06 / Part.09'
+  },
+  {
+    id: 'MECE-04',
+    club: 'FLOW', part: 'SHAFT',
+    title: 'スイング波形（縦・横・斜め負荷）による「指紋」マッチング',
+    steps: [
+      'ワッグルや切り返しの癖から「横使い（長く引く・シャット）」か「縦使い（コックで上げる）」かを判定する。',
+      '横使いタイプには「手元しなり（元〜中元調子）」、縦使いタイプには「手元硬め（先〜中調子）」を割り当てる。',
+      'スイングとシャフトが調和すると全体のしなり量が減少し、トゥダウン過多とエネルギーロスが最小化される。'
+    ],
+    threshold: 'SLAP等のしなり方向は30年単位でほぼ不変の「指紋」。「斜め使い」は万能型として球筋補正側で最適化。',
+    myth: '「柔らかいシャフト＝しなり戻りで飛ぶ」は物理的に誤り（手元が止まるため初速は上がらない）。上がるから飛ぶだけ。',
+    appHook: 'アプリ改善案：Step1に「始動・ワッグルタイプ（横引き vs 縦コック vs 斜め）」の視覚カードを追加し調子判定へ直結。',
+    source: 'Part.07 / Part.18'
+  },
+  {
+    id: 'MECE-05',
+    club: 'DR', part: 'HEAD',
+    title: 'DRヘッド形状・利き目スクエア錯覚・投影面積フィッティング',
+    steps: [
+      '右利き目の人がスクエアに見えるフェース角（-0.5°〜-1.0°のわずかなオープン）を基準にする。',
+      '洋ナシ型（方向性重視）か丸型（反発エリア最大化・飛び重視）かを目標に合わせて選ぶ。',
+      'クラウン後方の頂点位置（トウ寄り）やマスキング塗装による見え方を確認し、左向き錯覚（逃がしカット誘発）を防ぐ。'
+    ],
+    threshold: 'スクエア錯覚補正：FA -0.5°〜-1.0°。外ブラは表示よりリアルロフトが多め（10.5°→実測約11°）の傾向に留意。',
+    myth: '「ドローバイアス（左向き顔）＝スライサー向き」とは限らない。左向きを嫌ってカット軌道が悪化する場合がある。',
+    appHook: 'アプリ改善案：ヘッドDBに「フェース見え方（FA）・形状（洋ナシ/丸型）・投影サイズ」属性を追加し、左嫌いユーザーを保護。',
+    source: 'Part.12'
+  },
+  {
+    id: 'MECE-06',
+    club: 'DR', part: 'SHAFT',
+    title: 'DR短尺化（43.75〜44.5"）＆ 重量・ロフト連動補正',
+    steps: [
+      '体格基準（みぞおち〜拳1個・曲げた肘）から扱い切れる最大長（目安43.75〜44.5"、180cmで45"）を設定する。',
+      '44.5"までは現行重量/フレックス維持を基本とし、44.0"以下へ切る場合はシャフト+10g重くしてバランス崩壊を防ぐ。',
+      '短尺化によるスピン減・低弾道化を防ぐため、スリーブでロフト+1.0°〜+1.5°（例:10.5°→12°）を補填する。'
+    ],
+    threshold: '44.5"＝重量据置上限 / 44.0"以下＝+10g増量推奨 / ロフト補正＝+1.0〜+1.5°。',
+    myth: '「短くすると飛ばなくなる」は誤り。ミート率(SF)と初速が上がり、予想外の大曲がりOBが激減する。',
+    appHook: 'アプリ改善案：身長とOB頻度から44.0〜44.5"短尺推奨ルートを実装し、+10g重量・+1.5°ロフトを自動連動させる。',
+    source: 'Part.01 / Part.07 / Part.20'
+  },
+  {
+    id: 'MECE-07',
+    club: 'DR', part: 'CRAFT',
+    title: 'メーカー別ホーゼル挿し込み深さと実質シャフト挙動補正',
+    steps: [
+      'ヘッドメーカーごとのシャフト挿し込み深さ（例：タイトリスト深め vs キャロウェイ浅め28mm）を確認する。',
+      '同じ45.25"仕上げでも、挿し込みが深いとチップ側が短く硬めに、浅いと先端が動きやすくなる点を加味する。',
+      'ヘッドを前年モデルから買い替える際は、同じシャフトを流用してもヘッド重量・重心・挿し込み差で別物になるため再調整する。'
+    ],
+    threshold: 'キャロウェイ系＝約28mm（浅挿し・先端動きやすい）。流用時は先端カット(1mm単位)や鉛で微調整。',
+    myth: '「エースシャフトさえ入れればどのヘッドでも同じ振り感になる」は誤り。',
+    appHook: 'アプリ改善案：HEAD_DBに挿し込み深さ補正係数を持ち、実効振動数・先端剛性の補正スコアに反映する。',
+    source: 'Part.07 / Part.12 / Part.20'
+  },
+  {
+    id: 'MECE-08',
+    club: 'IR_FW', part: 'HEAD',
+    title: 'アイアン「和顔 vs 洋顔」＆ グース・オフセット機能選定',
+    steps: [
+      'トップブレードの面取りと懐の立ち上がりから「和顔（シャープで線が出る）」か「洋顔（丸く曖昧で構えやすい）」かを選ぶ。',
+      '手元減速でヘッドを走らせるタイプはオフセット少なめ（顎出し）、手元加速で当てるタイプはオフセット有りを優先する。',
+      '7Iと8Iで顔が丸く切り替わるモデルが多いため、セット全番手（特に6I〜PW）を並べて構えやすさの連続性を確認する。'
+    ],
+    threshold: '「グースネック（ネックの曲がり）」≠「オフセット（刃の後退量）」。手元減速型＝低オフセット / 加速型＝有オフセット。',
+    myth: '「7番アイアン1本の試打だけでセット全体が決まる」は危険。6Iだけ被る・8Iから丸くて違和感が出ることがある。',
+    appHook: 'アプリ改善案：アイアン診断に「顔好み（和顔/洋顔）」「手元加速/減速タイプ」を追加し、セット内違和感アラートを出す。',
+    source: 'Part.13'
+  },
+  {
+    id: 'MECE-09',
+    club: 'IR_FW', part: 'CRAFT',
+    title: '0.1〜0.3°微調整（ライ・ロフト）＆ 年1回の定期点検',
+    steps: [
+      'ロフト・ライ角調整は「数値の均一化」だけでなく「構えた時のフェース向きの最適化」として行う。',
+      'プロ・上級者レベルの繊細な違和感には「メモリが動かない程度（0.1〜0.3°）」の微調整で抜けと向きを整える。',
+      'トランク放置や圧迫等で年間約0.5°角度が狂うため、シーズン前・年1回の定期計測と現状復帰をルール化する。'
+    ],
+    threshold: '微調整単位＝0.1〜0.3° / 経年ズレ目安＝約0.5°/年。夏場の車内放置は接着抜け・狂いの原因。',
+    myth: '「アイアンは打って曲がる」のではなく「車載やバッグ圧迫でじわじわ曲がる」のが主因。',
+    appHook: 'アプリ改善案：診断結果保存時に「前回点検からの経過月数リマインダー（年1回0.5°狂い点検推奨）」を表示。',
+    source: 'Part.06 / Part.20'
+  },
+  {
+    id: 'MECE-10',
+    club: 'IR_FW', part: 'HEAD',
+    title: 'FW/UTの番手役割分担と「逆球・差し方」カスタム',
+    steps: [
+      'DRと3Wで全く同じ性格にするのではなく、コース戦略上「DRが捕まるなら3Wは左に行かない仕様」等、役割を分ける。',
+      'グリーンで止めるUT・ロングアイアンはシャフトをわずかに右から挿して捕まりを補い、ミドル以下は真っ直ぐ挿す。',
+      '芝質（高麗・洋芝・北海道ベント）やホールの狭い幅に応じて、ウッド型UTとアイアン型UTを使い分ける。'
+    ],
+    threshold: '43"の3Wが打てない場合は42〜42.5"へ短尺化し、5W/7W/24°UT等ロフトを増やしてキャリーを安定させる。',
+    myth: '「ウッドは全部同じ向き・同じ球筋に揃えるべき」とは限らない（ティーショット用逃げクラブの有効性）。',
+    appHook: 'アプリ改善案：DR診断結果と連動し「次の一手（3W/5W/UTの推奨ロフト・捕まりバランス）」を自動提案。',
+    source: 'Part.07 / Part.16 / Part.19'
+  },
+  {
+    id: 'MECE-11',
+    club: 'WG', part: 'HEAD',
+    title: 'ウェッジ3本役割分担（52°転がし / 56°バンカー / 60°ロブ）',
+    steps: [
+      'ロフト間隔は4°刻み（例：52° / 56° / 60°、最大6°以内）で縦距離の階段を作る。',
+      '52°（AW）はフルショットと花道の転がし用に「アイアン寄り形状＋バウンス10°前後」でざっくりを防ぐ。',
+      '56°（SW）はバンカー抵抗力確保のため「大型・キャビティ軽量ヘッド＋ハイバウンス」を選び、60°は開いた時の抜け重視とする。'
+    ],
+    threshold: '推奨ギャップ＝4°刻み（最大6°）。PWの立角化に伴い48°/50°の追加も検討。',
+    myth: '「52/56/60をすべて同じ顔・同じマッスル形状で揃えるべき」ではない（役割が全く異なる）。',
+    appHook: 'アプリ改善案：ウェッジ診断モジュールで「花道ざっくり」「バンカー脱出」「ロブ」別に52/56/60を個別最適提案。',
+    source: 'Part.02 / UPPARウェッジ'
+  },
+  {
+    id: 'MECE-12',
+    club: 'WG', part: 'HEAD',
+    title: 'バウンス＝「許容入射角」選定 ＆ ソール接地診断',
+    steps: [
+      'バウンス角＝許容できるダウンブロー入射角（14°なら14°まで刺さらず滑る「補助輪」）と定義する。',
+      '多いバウンスを減らして使う工夫はできるが、少ないバウンスは増やせないため、迷ったら「ハイバウンス・広めソール」を選ぶ。',
+      '試打後にソール面の芝・砂痕（リーディング側・真ん中・トウ側・トレーリング側）を確認し、開いて打つ人は真ん中〜トウ側の抜けを検証する。'
+    ],
+    threshold: 'トレーリング側を削ると実効バウンスは保ったまま開きやすくなる。56°ハイバウンス＋60°ローバウンスの併用も有効。',
+    myth: '「上級者＝ローバウンス」「バウンスが多いとトップする（実は逆に高く上がる）」は誤解。',
+    appHook: 'アプリ改善案：ウェッジ入力に「入射角（鋭角/レベル）」「芝質」「ソール痕位置」を追加し最適バウンスとグラインドを提案。',
+    source: 'Part.02 / Part.14 / Part.17'
+  },
+  {
+    id: 'MECE-13',
+    club: 'WG', part: 'SHAFT',
+    title: 'ウェッジ重量・フレックス選定 ＆ イップス治療フロー',
+    steps: [
+      'ウェッジは最も飛ばしたくないクラブのため、原則「アイアンより半〜1フレックス柔らかく、同重量〜やや重め（DG S200/S400）」を選ぶ。',
+      '手先で操作したいプロ系のみX100や短尺・軽バランスを選択する。',
+      'アプローチイップス（手元だけ動きヘッドが出ない）には、一時的に全体を重くして鈍感にした後、軽量ヘッド（284〜289g級）＋重めシャフトへ移行する。'
+    ],
+    threshold: '一般最適＝DG S200（ウェッジフレックス）。軽量ヘッド基準＝284〜289g（通常303g前後）＋120g級シャフト。',
+    myth: '「アプローチがダフるから重くて硬いヘッド・シャフト一択」ではなく、軽いヘッドで頭を動かした方が治るケースが多い。',
+    appHook: 'アプリ改善案：アプローチイップス／ざっくり悩みの有無で「S200標準ルート」と「軽量ヘッド脱イップスルート」を分岐。',
+    source: 'Part.02 / Part.18 / UPPARウェッジ'
+  },
+  {
+    id: 'MECE-14',
+    club: 'PT', part: 'HEAD',
+    title: 'パター形状・重心深さ・ネック選定 ＆ 3本ローテーション法',
+    steps: [
+      '自分で距離・ラインを作りたい人は「重心浅め（ブレード/L字）」、直進性・打点ブレ耐性重視は「重心深め（マレット）」を選ぶ。',
+      '引っ掛け・プッシュのミス傾向に応じてネック（クランク＝捕まり／センター＝右逃げ・相殺／L字＝アーク）で調整する。',
+      '同じパターを固定し続けると癖が助長されるため、性格の異なる2〜3本（例：ピン型・センター・マレット）をローテーションして感覚をリセットする。'
+    ],
+    threshold: 'アーク強×L字は癖が過剰増幅するため、あえてフェースバランスで相殺する設計も有効。',
+    myth: '「ストロークタイプと全く同じ軌道のネックを1本だけ固定して使い続けるべき」とは限らない。',
+    appHook: 'アプリ改善案：パター診断で「エース1本」だけでなく「癖リセット用の対極サブパター1本」も併記する。',
+    source: 'Part.03 / Part.08'
+  },
+  {
+    id: 'MECE-15',
+    club: 'PT', part: 'CRAFT',
+    title: 'パター長さ・ロフト・素材（インサート vs 金属）診断',
+    steps: [
+      '前傾姿勢が無理なく保て、目の位置からラインを正しく見られる長さ（例:33〜34"）を最優先で合わせる。',
+      '「上りショート・下りオーバー」ならロフトが立ちすぎているため寝かせる。遅い高麗は多め、速いベントは少なめに調整する。',
+      'ショートパットをライン浅めにポンと転がしたいなら「樹脂インサート／AIフェース」、繊細な距離感・打感重視なら「金属削り出し」を選ぶ。'
+    ],
+    threshold: 'ライ角ルール上限＝80°未満（90°不可）。パターシャフトは14本で最も柔らかい手元しなり系、太グリップは手先の悪さ抑止用。',
+    myth: '「樹脂インサート＝球が飛ばない・柔らかいだけ」は逆。初速が出て直進性が高くなる設計が多い。',
+    appHook: 'アプリ改善案：上り/下りの距離ミス傾向とグリーンスピードから適正パターロフト・フェース素材を判定するロジックを追加。',
+    source: 'Part.03 / Part.08 / Part.11'
+  },
+  {
+    id: 'MECE-16',
+    club: 'GRIP', part: 'GRIP',
+    title: 'グリップ太さ逆説・下巻き硬度・口径0.2mm差の補正',
+    steps: [
+      '「力がない＝細い」の常識を捨て、隙間なく密着する範囲で「太い方がヘッドを少ない力で動かせる」物理特性を活用する。',
+      'シャフトの手元硬さにグリップ硬度を揃える（手元硬＝コード系／手元柔＝ラバー系）。',
+      '同外径でも「M58・1枚巻き（ゴム厚・柔）」と「M60・2枚巻き（テープ増・硬）」で打感が変わるため硬さ要望で使い分ける。'
+    ],
+    threshold: 'シャフトバット径の0.2mm差＝下巻き約1枚分（外径0.7mm体感差）。交換時は重量管理と毎ラウンド後の水拭きを推奨。',
+    myth: '「手が小さい／非力な女性は細いグリップ一択」は誤り。太めの方がしっかり握れてヘッドが動くケースが多い。',
+    appHook: 'アプリ改善案：現行FIT LABのグリップロジックに「M58(柔厚) vs M60+増巻(硬)」の硬さ分岐と「非力×太め提案」を追加。',
+    source: 'Part.05 / UPPARウェッジ'
+  },
+  {
+    id: 'MECE-17',
+    club: 'BALL', part: 'BALL',
+    title: 'TPI流「ショートゲーム起点」ボール選定テスト',
+    steps: [
+      'ドライバーからではなく、最も性能差が顕著に出る「ウェッジ ハーフショット（ラフ・バンカー含む）」からテストを開始する。',
+      '次にPWフル → 7Iフル（高さ・落下角） → ドライバー（スピン・耐風）の順に上へ確認し、パターの打音・打感で最終決定する。',
+      '芝質（硬い/柔らかい）やコース環境に合わせ、アプローチのスピン確保（ウレタン必須）を土台にDR低スピンを両立させる。'
+    ],
+    threshold: 'テスト順：WGハーフ → PW → 7I → DR ＋ PT打音。ラフからのスピン維持＝キャストウレタン必須。',
+    myth: '「ボールはドライバーの飛距離だけで選ぶ」は誤り（DRでは数yd差でもラフからのWGスピンは別物になる）。',
+    appHook: 'アプリ改善案：ボール診断で「ラフからのアプローチ停車力」「パター打音好み」のウェイトを高め、TPI順テストガイドを出力。',
+    source: 'Part.11 / Part.16 / Part.17'
+  },
+  {
+    id: 'MECE-18',
+    club: 'FLOW', part: 'CRAFT',
+    title: '現場クラフト微調整（鉛0.5g・シャフト貼付・見え方研磨）',
+    steps: [
+      'ヘッドの鉛は0.5g単位の微量で変化するため貼りすぎ（スイングウェイト偏重）を避ける。',
+      'シャフトのしなり過多や左引っ掛けを抑えたい場合、シャフト側への鉛貼付（0.5〜1.0g上限）で挙動を安定させる。',
+      '角度や重さを変えずに構えやすさ・抜けを改善したい場合、スコッチブライト（研磨パッド）でトップラインやエッジの明暗反射を整える。'
+    ],
+    threshold: 'ヘッド鉛最小単位＝0.5g / シャフト貼付上限＝0.5〜1.0g。SW数値に固執せず「構えやすさ・振りやすさ」を優先。',
+    myth: '「鉛はD2→D3のようにバランス計で何グラムも貼らないと意味がない」は誤り。0.5gで球筋は変わる。',
+    appHook: 'アプリ改善案：結果画面の「DIY・工房微調整レシピ」欄に0.5g鉛位置・シャフト貼付・反射調整の処方を出力。',
+    source: 'Part.06 / Part.19 / Part.20'
+  }
+];
+
+const VIDEO_INDEX = [
+  { ep: 'Part.01', title: 'プロがフィッターのフィッティングを受けてみた！', cat: '総論・短尺・14本連動', url: 'https://www.youtube.com/watch?v=Ji8zhYDdYVE', essence: 'ブラインド試打、1球目＆構え違和感チェック、DR短尺化から14本全体のフロー再構築、スペック先入観排除。' },
+  { ep: 'Part.02', title: 'Wedgeマスターとウェッジ談義', cat: 'ウェッジ', url: 'https://www.youtube.com/watch?v=vuUIMfZ5cTI', essence: '56°基準、ウェッジは柔らかく重め（DG S200/S400）、バウンス＝許容入射角（補助輪）、ハイバウンス優先。' },
+  { ep: 'Part.03', title: 'パターのアレコレ', cat: 'パター', url: 'https://www.youtube.com/watch?v=n3UzZEJbjGs', essence: '重心深さ（ブレードvsマレット）、アーク相殺、上りショート/下りオーバー＝ロフト立ちすぎ、太グリップ＝病のサイン。' },
+  { ep: 'Part.04', title: 'トップアマのセッティングに関する考え', cat: '14本連続性', url: 'https://www.youtube.com/watch?v=nJfLxPjbJes', essence: 'パターからの14本つながり、フラット思い込みからアップライトフェードへの転換、1本変更による連鎖影響。' },
+  { ep: 'Part.05', title: '永久保存版！？グリップの選び方', cat: 'グリップ', url: 'https://www.youtube.com/watch?v=BBWw3r-ILrA', essence: '太い方が先端は軽い力で動く逆説、M58 1枚vs M60 2枚（テープ増で硬い）、シャフト硬さ連動、0.2mm径差。' },
+  { ep: 'Part.06', title: 'クラブ調整のすゝめ', cat: 'クラフト・調整', url: 'https://www.youtube.com/watch?v=XtebvRWi9GY', essence: 'ミス8割はクラブ起因、ライ角は構えやすさ調整、年0.5°狂うため年1回点検、全レベル調整有効。' },
+  { ep: 'Part.07', title: 'シャフトの選び方', cat: 'シャフト・DR短尺', url: 'https://www.youtube.com/watch?v=w9txOJabTLY', essence: 'SLAP波形（縦使い＝手元硬 / 横使い＝手元柔）はスイングの指紋、43.75〜44.5"短尺化＆±10g、柔らかい≠飛ぶ。' },
+  { ep: 'Part.08', title: 'パターの選び方', cat: 'パター', url: 'https://www.youtube.com/watch?v=yLfRf1P2VoI', essence: 'ニューポートvs2（全体見vs線見）、DR大型化とマレット流行の連動、3本ローテーション、最も柔らかいシャフト。' },
+  { ep: 'Part.09', title: '初心者のクラブの選び', cat: '初心者・108切り', url: 'https://www.youtube.com/watch?v=CTZaLbcztos', essence: '108切りまで5〜7本・DR無し/ミニDR・短尺35〜36"・小ぶりヘッド/マッスル推奨、52°基準。' },
+  { ep: 'Part.11', title: 'パターの素材のお話', cat: 'パター・ボール', url: 'https://www.youtube.com/watch?v=QMbFv-o-qvQ', essence: '樹脂/AIフェース＝初速UP・ライン浅読み、金属＝繊細距離感、ボール打音判定、パター複数本使い分け。' },
+  { ep: 'Part.12', title: 'クラブのどこを見ているの？？？ドライバー編', cat: 'ドライバー', url: 'https://www.youtube.com/watch?v=P-S0X1f9j0U', essence: '右利き目スクエア＝FA -0.5〜-1.0°、洋ナシ＝方向性/丸型＝飛び、外ブラ表示ロフト甘め、挿し込み深さ差。' },
+  { ep: 'Part.13', title: 'クラブのどこを見ているの？？？アイアン編', cat: 'アイアン', url: 'https://www.youtube.com/watch?v=ttvAH7DzeZU', essence: '和顔vs洋顔、7Iと8Iの設計切替、グース≠オフセット（手元減速vs加速）、0.1〜0.3°微曲げ、番手顔揃え。' },
+  { ep: 'Part.14', title: 'クラブのどこを見ているの？？？ウェッジ編', cat: 'ウェッジ', url: 'https://www.youtube.com/watch?v=PWknGWbAo6o', essence: 'ティアドロップの意味、ソール接地痕チェック、トレーリング＆トウ側削りの物理効果、ハイバウンスの多様性。' },
+  { ep: 'Part.16', title: 'コースセッティングから考えるゴルフ', cat: 'コース・環境', url: 'https://www.youtube.com/watch?v=4PUKrtcrwEs', essence: '芝種（ベント/高麗/洋芝）とコース幅・グリーン硬さに応じたUT/ウェッジのクラブ最適化。' },
+  { ep: 'Part.17', title: 'プロ タイトリストTPI in カールズバッドへ行く', cat: 'ボール・TPI計測', url: 'https://www.youtube.com/watch?v=edCz5pRqovc', essence: 'TPIボールフィッティング順（WGハーフ→PW→7I→DR）、ラフからのスピン差、バンカー＆芝対応。' },
+  { ep: 'Part.18', title: '波形から見えてくるアプローチイップスの治し方', cat: '波形・イップス', url: 'https://www.youtube.com/watch?v=IjiXDwWufy4', essence: '効率UPで全体しなり量減少、裏返りトゥダウン過多がダフリ/イップスを生む、ショートスイング修正。' },
+  { ep: 'Part.19', title: 'R&D HOUR的 WITB ゲスト編', cat: '14本セッティング', url: 'https://www.youtube.com/watch?v=9o3CGUy8yX4', essence: 'DR高スピン化でコース内生存率UP、DRと3Wの逆球役割分担、番手別の右挿し/真っ直ぐ挿し調整。' },
+  { ep: 'Part.20', title: 'クラフトマンが疑問に思ったこと！', cat: 'クラフト・微調整', url: 'https://www.youtube.com/watch?v=pmw3EWfCjag', essence: '原点クラブ保持、メモリ不変の0.1°揺らし調整、激落ちくん研磨による見え方補正、鉛0.5g＆シャフト貼付。' },
+  { ep: 'UPPAR', title: '夢のUPPARウェッジ誕生！！', cat: 'ウェッジ・グリップ', url: 'https://www.youtube.com/watch?v=qnyN0kgl700', essence: '52°アイアン顔(転がし)/56°キャビティ軽量(バンカー)/60°ロブ、軽量ヘッド284-289g＋重シャフト120g、58口径太め。' }
+];
+
+const state = {
+  activeTab: 'procedures',
+  filterClub: 'all',
+  filterPart: 'all',
+  procQuery: '',
+  videoQuery: '',
+  selectedIds: new Set(PROCEDURES_DB.map(p => p.id)),
+  devMode: 'addon',
+  targetLevel: 'all',
+  customNotes: '単独ランキングは作らず、ギア総合ベストランキングの中に統合表示し、単一HTMLファイルで動作させること。'
+};
+
+function renderFilters() {
+  const cf = document.getElementById('club-filters');
+  cf.innerHTML = Object.entries(CLUB_LABELS).map(([k, v]) =>
+    `<button type="button" class="chip ${state.filterClub === k ? 'active' : ''}" data-club="${k}">${v}</button>`
+  ).join('');
+  cf.querySelectorAll('[data-club]').forEach(btn => {
+    btn.addEventListener('click', () => { state.filterClub = btn.dataset.club; renderFilters(); renderProcedures(); });
+  });
+
+  const pf = document.getElementById('part-filters');
+  pf.innerHTML = Object.entries(PART_LABELS).map(([k, v]) =>
+    `<button type="button" class="chip ${state.filterPart === k ? 'active' : ''}" data-part="${k}">${v}</button>`
+  ).join('');
+  pf.querySelectorAll('[data-part]').forEach(btn => {
+    btn.addEventListener('click', () => { state.filterPart = btn.dataset.part; renderFilters(); renderProcedures(); });
+  });
+}
+
+function renderProcedures() {
+  const q = state.procQuery.trim().toLowerCase();
+  const list = PROCEDURES_DB.filter(p => {
+    const matchClub = state.filterClub === 'all' || p.club === state.filterClub;
+    const matchPart = state.filterPart === 'all' || p.part === state.filterPart;
+    const text = (p.title + ' ' + p.steps.join(' ') + ' ' + p.threshold + ' ' + p.myth + ' ' + p.appHook).toLowerCase();
+    const matchQ = !q || text.includes(q);
+    return matchClub && matchPart && matchQ;
+  });
+
+  const grid = document.getElementById('proc-grid');
+  if (!list.length) {
+    grid.innerHTML = '<p style="color:var(--muted)">該当するフィッティング手順がありません。フィルタを変更してください。</p>';
+    return;
+  }
+  grid.innerHTML = list.map(p => {
+    const isSel = state.selectedIds.has(p.id);
+    return `
+      <article class="proc-card">
+        <div class="proc-head">
+          <div class="proc-badges">
+            <span class="b-club">${CLUB_LABELS[p.club]}</span>
+            <span class="b-part">${PART_LABELS[p.part]}</span>
+          </div>
+          <span style="font-size:11.5px;color:var(--muted);font-weight:700">${p.id}</span>
+        </div>
+        <h3 class="proc-title">${p.title}</h3>
+        <ol class="steps-list">${p.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+        <div class="threshold-box"><b>数値・判定基準：</b>${p.threshold}</div>
+        <div class="myth-box"><b>通説の罠：</b>${p.myth}</div>
+        <div class="app-hook">${p.appHook}</div>
+        <div class="card-foot">
+          <span>出典：${p.source}</span>
+          <button type="button" class="add-to-prompt-btn ${isSel ? 'added' : ''}" data-toggle-id="${p.id}">
+            ${isSel ? '✓ プロンプト選択中' : '+ AI依頼に追加'}
+          </button>
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('[data-toggle-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.toggleId;
+      if (state.selectedIds.has(id)) state.selectedIds.delete(id);
+      else state.selectedIds.add(id);
+      renderProcedures();
+      renderBuilderChecks();
+      generatePrompt();
+    });
+  });
+}
+
+function renderBuilderChecks() {
+  const box = document.getElementById('builder-chk-list');
+  document.getElementById('sel-count').textContent = state.selectedIds.size;
+  box.innerHTML = PROCEDURES_DB.map(p => {
+    const checked = state.selectedIds.has(p.id) ? 'checked' : '';
+    return `
+      <label class="chk-item">
+        <input type="checkbox" data-chk-id="${p.id}" ${checked}>
+        <div>
+          <div style="font-weight:700">[${p.id}] ${p.title}</div>
+          <div style="font-size:11.5px;color:var(--muted)">${CLUB_LABELS[p.club]} ／ ${PART_LABELS[p.part]}（${p.source}）</div>
+        </div>
+      </label>
+    `;
+  }).join('');
+
+  box.querySelectorAll('[data-chk-id]').forEach(chk => {
+    chk.addEventListener('change', () => {
+      const id = chk.dataset.chkId;
+      if (chk.checked) state.selectedIds.add(id);
+      else state.selectedIds.delete(id);
+      document.getElementById('sel-count').textContent = state.selectedIds.size;
+      renderProcedures();
+      generatePrompt();
+    });
+  });
+}
+
+function generatePrompt() {
+  const selected = PROCEDURES_DB.filter(p => state.selectedIds.has(p.id));
+  const modeText = {
+    addon: '既存のゴルフフィッティングWebアプリ（FIT LAB系 `index.html`）に対して、既存UIや計算ロジックを壊さずに以下のフィッティング手順・ルールを機能追加（アップグレード）してください。',
+    new_spec: '以下のMECEフィッティング手順をすべて統合した新しいゴルフフィッティングシステム（機能設計書＋単一ファイル `index.html`）を新規設計・実装してください。',
+    test_suite: '以下のMECEフィッティング手順が正しく発火・分岐することを検証するための標準テストケース（入力JSON・期待発火ルール・合格条件）とNode.js自動検証スクリプトを作成してください。'
+  }[state.devMode];
+
+  const levelText = {
+    all: '全レベル自動分岐（初心者108切り以下／アベレージ／上級者）',
+    beginner: '初心者〜108切り志向（5〜7本構成・短尺・小ぶり高ロフト優先）',
+    average: 'アベレージ〜中級者（ミス8割クラブ起因の解消・方向性安定）',
+    advanced: '上級者・競技志向（0.1°微調整・14本連続性・逆球役割分担）'
+  }[state.targetLevel];
+
+  const grouped = {};
+  for (const p of selected) {
+    const k = CLUB_LABELS[p.club];
+    if (!grouped[k]) grouped[k] = [];
+    grouped[k].push(p);
+  }
+
+  let body = '';
+  for (const [cat, items] of Object.entries(grouped)) {
+    body += `\n### 【${cat}】\n`;
+    for (const item of items) {
+      body += `- **${item.id}: ${item.title}**（${PART_LABELS[item.part]}）\n`;
+      body += `  - 手順: ${item.steps.join(' → ')}\n`;
+      body += `  - 判定基準: ${item.threshold}\n`;
+      body += `  - 実装要件: ${item.appHook.replace('アプリ改善案：', '')}\n`;
+    }
+  }
+  if (!selected.length) {
+    body = '\n（※ 左側のチェックリストから組み込むフィッティング手順を1つ以上選択してください）\n';
+  }
+
+  const prompt = `# 依頼内容：ゴルフフィッティングWebアプリの機能改善・MECEロジック実装
+
+あなたは経験豊富なツアーフィッター兼クラフトマン、およびフロントエンド開発のエキスパートです。
+${modeText}
+
+## 1. 基本条件・対象ユーザー
+- **対象ゴルファー層**：${levelText}
+- **設計原則**：
+  1. 推測表現（「〜と思われます」等）を禁止し、入力事実→発火ルール→物理メカニズム→具体的処方の因果構造で出力すること。
+  2. パター起点の「14本連続性（つながり）」を崩さず、単独パーツの切り離し表示ではなくギアトータル提案へ統合すること。
+  3. 初心者から測定器未所持者でも答えられる視覚UI（構え違和感・始動タイプ等）を維持すること。
+
+## 2. 組み込むMECEフィッティング手順と実装仕様（計${selected.length}項目）${body}
+## 3. 追加要望・出力制約
+- ${state.customNotes.trim() || '特になし'}
+- 実装後はJavaScript構文チェック・390pxスマホ幅レイアウト確認・各分岐の自動テストを実行し、全項目PASSを確認した上で納品すること。`;
+
+  document.getElementById('prompt-output').value = prompt;
+}
+
+function renderVideos() {
+  const q = state.videoQuery.trim().toLowerCase();
+  const rows = VIDEO_INDEX.filter(v => !q || (v.ep + ' ' + v.title + ' ' + v.cat + ' ' + v.essence).toLowerCase().includes(q));
+  document.getElementById('video-tbody').innerHTML = rows.map(v => `
+    <tr>
+      <td><b>${v.ep}</b></td>
+      <td><a href="${v.url}" target="_blank" rel="noopener noreferrer">${v.title}</a></td>
+      <td><span class="b-club">${v.cat}</span></td>
+      <td>${v.essence}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="4">該当する動画がありません。</td></tr>';
+}
+
+// Wire tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.activeTab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + state.activeTab));
+  });
+});
+
+// Wire searches
+document.getElementById('proc-search').addEventListener('input', e => { state.procQuery = e.target.value; renderProcedures(); });
+document.getElementById('video-search').addEventListener('input', e => { state.videoQuery = e.target.value; renderVideos(); });
+
+// Wire builder segments
+document.querySelectorAll('#seg-devmode .seg-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.devMode = btn.dataset.val;
+    document.querySelectorAll('#seg-devmode .seg-opt').forEach(b => b.classList.toggle('active', b === btn));
+    generatePrompt();
+  });
+});
+document.querySelectorAll('#seg-level .seg-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.targetLevel = btn.dataset.val;
+    document.querySelectorAll('#seg-level .seg-opt').forEach(b => b.classList.toggle('active', b === btn));
+    generatePrompt();
+  });
+});
+document.getElementById('custom-notes').value = state.customNotes;
+document.getElementById('custom-notes').addEventListener('input', e => { state.customNotes = e.target.value; generatePrompt(); });
+
+// Wire presets
+document.querySelectorAll('[data-preset]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const p = btn.dataset.preset;
+    if (p === 'all_mece') {
+      state.selectedIds = new Set(PROCEDURES_DB.map(x => x.id));
+      state.targetLevel = 'all';
+    } else if (p === 'pt_wg') {
+      state.selectedIds = new Set(['MECE-01', 'MECE-11', 'MECE-12', 'MECE-13', 'MECE-14', 'MECE-15', 'MECE-17']);
+      state.targetLevel = 'all';
+    } else if (p === 'dr_shaft') {
+      state.selectedIds = new Set(['MECE-02', 'MECE-04', 'MECE-05', 'MECE-06', 'MECE-07', 'MECE-16', 'MECE-18']);
+      state.targetLevel = 'average';
+    } else if (p === 'beginner') {
+      state.selectedIds = new Set(['MECE-01', 'MECE-02', 'MECE-03', 'MECE-11', 'MECE-12', 'MECE-16']);
+      state.targetLevel = 'beginner';
+    }
+    document.querySelectorAll('#seg-level .seg-opt').forEach(b => b.classList.toggle('active', b.dataset.val === state.targetLevel));
+    renderProcedures();
+    renderBuilderChecks();
+    generatePrompt();
+  });
+});
+
+// Copy & Download
+document.getElementById('btn-copy-prompt').addEventListener('click', () => {
+  const txt = document.getElementById('prompt-output').value;
+  const toast = document.getElementById('copy-toast');
+  function showMsg(ok) { toast.textContent = ok ? '✓ クリップボードにコピーしました。そのまま他のAIへ貼り付けられます。' : 'コピーに失敗しました。テキスト欄を手動で選択してコピーしてください。'; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(() => showMsg(true), () => showMsg(false));
+  } else {
+    const ta = document.getElementById('prompt-output');
+    ta.select();
+    try { showMsg(document.execCommand('copy')); } catch (e) { showMsg(false); }
+  }
+});
+
+document.getElementById('btn-download-md').addEventListener('click', () => {
+  const txt = document.getElementById('prompt-output').value;
+  const blob = new Blob([txt], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'fit_lab_improvement_prompt.md';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  document.getElementById('copy-toast').textContent = '✓ fit_lab_improvement_prompt.md をダウンロードしました。';
+});
+
+// Initial render
+renderFilters();
+renderProcedures();
+renderBuilderChecks();
+generatePrompt();
+renderVideos();
+})();
+</script>
+
+<a href="../index.html" style="position:fixed;left:12px;bottom:12px;z-index:9999;background:#0F3D2E;color:#F7F4EE;font-size:13px;font-weight:700;padding:9px 14px;border-radius:999px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25);font-family:sans-serif">← ゴルフサイト目次へ</a>
+</body>
+</html>
