@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Virtuoso Studio — Classical Piano Trainer</title>
     <meta name="description" content="Virtuoso Studioは、バッハ／ベートーヴェン／ショパン等のクラシック名曲を49鍵ピアノで練習できるWebアプリ。待機モード・実時間採点・和声分析・AI講評（Gemini）対応。" />
     <meta property="og:title" content="Virtuoso Studio — Classical Piano Trainer" />
@@ -17,11 +17,12 @@
 
   <!-- Google Fonts: Classical Serif, Clean Sans, Precision Monospace -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://tonejs.github.io" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Serif+JP:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
 
   <!-- Tone.js for Salamander Grand Piano & Synth Fallback -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js" integrity="sha512-jduERlz7En1IUZR54bqzpNI64AbffZWR//KJgF71SJ8D8/liKFZ+s1RxmUmB+bhCnIfzebdZsULwOrbVB5f3nQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <script>
     tailwind.config = {
@@ -354,21 +355,21 @@
 
       <!-- Left: Playback Controls -->
       <div class="flex items-center flex-wrap gap-1.5 sm:gap-2">
-        <button id="playPauseBtn" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-gold to-amber-500 text-obsidian font-semibold text-xs sm:text-sm shadow-lg hover:brightness-110 active:scale-95 transition">
+        <button id="playPauseBtn" aria-label="練習開始・一時停止" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-gold to-amber-500 text-obsidian font-semibold text-xs sm:text-sm shadow-lg hover:brightness-110 active:scale-95 transition">
           <span id="playIcon">▶</span>
           <span id="playBtnText">練習開始</span>
         </button>
 
-        <button id="stopBtn" class="px-3 py-2 rounded-lg bg-obsidian hover:bg-ebonyLight border border-white/15 text-xs sm:text-sm text-ivory transition active:scale-95">
+        <button id="stopBtn" aria-label="停止" class="px-3 py-2 rounded-lg bg-obsidian hover:bg-ebonyLight border border-white/15 text-xs sm:text-sm text-ivory transition active:scale-95">
           ■ 停止
         </button>
 
-        <button id="demoBtn" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-obsidian hover:bg-ebonyLight border border-gold/35 text-xs sm:text-sm text-goldLight transition active:scale-95">
+        <button id="demoBtn" aria-label="模範演奏を聴く" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-obsidian hover:bg-ebonyLight border border-gold/35 text-xs sm:text-sm text-goldLight transition active:scale-95">
           <span>♪</span>
           <span>模範演奏を聴く</span>
         </button>
 
-        <button id="finishEvalBtn" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/35 border border-emerald-400/40 text-xs sm:text-sm text-emerald-300 font-medium transition active:scale-95">
+        <button id="finishEvalBtn" aria-label="採点・講評" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/35 border border-emerald-400/40 text-xs sm:text-sm text-emerald-300 font-medium transition active:scale-95">
           <span>★</span>
           <span>採点・講評</span>
         </button>
@@ -400,13 +401,13 @@
         </div>
 
         <!-- Metronome -->
-        <button id="metronomeBtn" class="px-2.5 py-1.5 rounded-lg bg-obsidian border border-white/15 text-ivoryMuted hover:text-ivory transition">
+        <button id="metronomeBtn" aria-label="メトロノーム切替" class="px-2.5 py-1.5 rounded-lg bg-obsidian border border-white/15 text-ivoryMuted hover:text-ivory transition">
           メトロノーム: OFF
         </button>
 
         <!-- A-B Loop -->
         <div class="flex items-center gap-1.5 bg-obsidian px-2.5 py-1.5 rounded-lg border border-white/10">
-          <button id="loopToggleBtn" class="font-semibold text-ivoryMuted hover:text-goldLight transition">A-Bループ: OFF</button>
+          <button id="loopToggleBtn" aria-label="A-Bループ切替" class="font-semibold text-ivoryMuted hover:text-goldLight transition">A-Bループ: OFF</button>
           <select id="loopStartSelect" class="bg-ebony text-ivory font-mono text-[11px] rounded px-1.5 py-0.5 border border-white/10"></select>
           <span class="text-ivoryMuted">–</span>
           <select id="loopEndSelect" class="bg-ebony text-ivory font-mono text-[11px] rounded px-1.5 py-0.5 border border-white/10"></select>
@@ -497,6 +498,10 @@
           </div>
         </div>
 
+        <!-- Range caption (P2 fix 2026-11-22) -->
+        <div class="flex justify-end px-2 pb-1">
+          <span class="text-[10px] font-mono text-ivoryMuted">対応音域 C3〜C7（49鍵）</span>
+        </div>
         <!-- 4-Octave (C3 to C7) Interactive Grand Piano Keyboard -->
         <div id="pianoKeyboard" class="piano-container w-full select-none">
           <!-- Keys generated dynamically in JS for pixel-perfect canvas alignment -->
@@ -626,6 +631,7 @@
           <p class="text-xs text-ivoryMuted leading-relaxed">
             Google AI Studio で無料取得できるAPIキーを保存すると、演奏データ（音程・ms誤差・強弱・レガート率）を <code class="font-mono text-goldLight">gemini-2.5-flash</code> に送信し、世界的なコンサートピアニスト視点のパーソナル講評を受け取れます。キーはブラウザの localStorage のみに保存されます。
           </p>
+          <p class="text-[11px] text-amber-300/90 leading-relaxed">注意：キーは平文で保存されます。共用PCでは使用後に必ず「キーを削除」を押してください。</p>
           <input id="geminiApiKeyInput" type="password" placeholder="AIzaSy..." class="w-full bg-obsidian border border-white/15 focus:border-gold rounded-lg px-3 py-2 font-mono text-xs text-ivory focus:outline-none" />
           <div class="flex items-center justify-between">
             <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="text-[11px] text-gold hover:underline">
@@ -1197,6 +1203,12 @@
          5. AUDIO ENGINE (Tone.js Salamander Grand + Warm PolySynth Fallback)
       ===================================================================== */
       async function ensureAudioStarted() {
+        // Sound fix (2026-11-22): if the Tone.js CDN failed to load, say so instead of staying silent
+        if (typeof Tone === 'undefined') {
+          updateAudioBadge('synth', '音源読込失敗');
+          showToast('音源ライブラリの読み込みに失敗しました。通信環境を確認して再読み込みしてください', 'error');
+          return;
+        }
         if (state.audioReady) {
           if (Tone.context.state !== 'running') {
             await Tone.start();
@@ -1244,12 +1256,14 @@
             },
             onerror: () => {
               updateAudioBadge('synth', 'Concert Synth');
+              showToast('ピアノ音源の読み込みに失敗したため、シンセ音源で再生します', 'error');
             }
           }).connect(state.reverb);
           state.sampler.volume.value = -2;
         } catch (err) {
           console.error('Audio init error:', err);
           updateAudioBadge('synth', 'Synthモード');
+          showToast('音源の初期化に失敗しました。ブラウザの音量・消音設定を確認してください', 'error');
         }
       }
 
@@ -1344,6 +1358,8 @@
 
           const noteName = midiToNoteName(m);
           const pcLabel = MIDI_TO_PC_LABEL[m] || '';
+          el.setAttribute('role', 'button');
+          el.setAttribute('aria-label', `${noteName} の鍵盤`);
 
           if (!black) {
             const leftPct = whiteIndex * whiteWidthPct;
@@ -1438,8 +1454,9 @@
         // Spawn golden sparkle at hit line
         spawnKeyParticles(midi, '#D4AF37');
 
-        // P1 fix (2026-11-22): count-in period (currentBeat < 0) plays sound/visuals only, never judged
-        if (state.isPlaying && !state.isDemo && state.currentBeat >= 0) {
+        // P1 fix v2 (2026-11-22): in realtime mode the count-in period (currentBeat < 0) is not judged.
+        // Wait mode MUST still evaluate during count-in, otherwise the first note can never be hit and playback deadlocks.
+        if (state.isPlaying && !state.isDemo && (state.mode === 'wait' || state.currentBeat >= 0)) {
           evaluateUserNoteHit(midi, velocity);
         }
       }
@@ -1528,10 +1545,13 @@
           updateTimingHud(judge, offsetMs, color);
           spawnKeyParticles(midi, color);
         } else {
-          // Wrong / extra note pressed
-          state.session.wrongNotes.push({ beat: state.currentBeat, midi, timeMs: performance.now() });
-          state.session.streak = 0;
-          updateTimingHud('WRONG KEY', 0, '#FB7185');
+          // Wrong / extra note pressed.
+          // P1 fix v2 (2026-11-22): during count-in (currentBeat < 0) never record a wrong note.
+          if (state.currentBeat >= 0) {
+            state.session.wrongNotes.push({ beat: state.currentBeat, midi, timeMs: performance.now() });
+            state.session.streak = 0;
+            updateTimingHud('WRONG KEY', 0, '#FB7185');
+          }
         }
         updateLiveAccuracyHud();
       }
@@ -2540,6 +2560,11 @@ ${JSON.stringify(state.lastEvalSummary, null, 2)}`;
         updateTempoDisplay();
         resetSessionForPiece();
         updateMeasureAndHarmonyHud();
+        // P2 guard (2026-11-22): warn if a piece contains notes outside the 49-key range
+        const outOfRange = state.piece.notes.filter(n => n.midi < MIN_MIDI || n.midi > MAX_MIDI).length;
+        if (outOfRange > 0) {
+          showToast(`注意：この曲には鍵盤の音域（C3〜C7）外の音が${outOfRange}音含まれます`, 'error');
+        }
       }
 
       function centerScrollToMiddleC() {
@@ -2551,6 +2576,20 @@ ${JSON.stringify(state.lastEvalSummary, null, 2)}`;
       }
 
       function initEventListeners() {
+        // Sound fix (2026-11-22): unlock audio on the very first tap anywhere; audio badge doubles as a sound-test button
+        window.addEventListener('pointerdown', () => { ensureAudioStarted(); }, { once: true });
+        ['audioStatusDot', 'audioStatusText'].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.style.cursor = 'pointer';
+          el.title = 'クリックで音声テスト（ド＝C4）';
+          el.addEventListener('click', async () => {
+            await ensureAudioStarted();
+            playPianoNoteOn(60, 96);
+            setTimeout(() => playPianoNoteOff(60), 700);
+            showToast('音声テスト：ド（C4）を再生しました。聞こえない場合は端末の消音・音量を確認してください', 'info');
+          });
+        });
         // Piece select
         document.getElementById('pieceSelect').addEventListener('change', (e) => {
           selectPiece(parseInt(e.target.value, 10));
