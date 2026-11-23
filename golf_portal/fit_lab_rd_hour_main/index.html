@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="R&D HOUR FIT LAB フィッティング研究室 (main)。全45本動画解析に基づくMECE 18手順とAI改善プロンプト生成スタジオ。">
+  <meta name="theme-color" content="#0b1120">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛳</text></svg>">
+  <title>R&amp;D HOUR FIT LAB フィッティング研究室 (main)</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0b1120;
+      color: #e2e8f0;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+    .glass-card-active {
+      background: rgba(15, 31, 46, 0.94);
+      border: 1px solid rgba(16, 185, 129, 0.55);
+      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
+    }
+    .prompt-pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.5);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden items-center gap-2 rounded-xl border border-emerald-400/40 bg-slate-900/95 px-4 py-3 text-sm font-medium text-emerald-200 shadow-2xl transition-all">
+    <span class="inline-block h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+    <span id="toastText">通知</span>
+  </div>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-30 border-b border-slate-800 bg-slate-950/90 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-300 border border-emerald-500/30">全45本動画解析</span>
+          <span class="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-300 border border-amber-500/30">MECE 18手順</span>
+        </div>
+        <h1 class="mt-1 text-lg font-bold tracking-tight text-white sm:text-xl">
+          R&amp;D HOUR FIT LAB フィッティング研究室 (main) ― MECEフィッティング手順＆AIプロンプトスタジオ
+        </h1>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <span id="headerSelectedCount" class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-emerald-300">
+          選択中: 18 / 18 手順
+        </span>
+        <button id="quickGoBuilderBtn" type="button" class="rounded-lg bg-emerald-500 px-3.5 py-1.5 text-xs font-semibold text-slate-950 transition hover:bg-emerald-400">
+          AIプロンプトを生成 →
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="mx-auto max-w-7xl px-4 sm:px-6">
+      <nav class="flex gap-1 overflow-x-auto pb-2" aria-label="メインナビゲーション">
+        <button type="button" data-tab="matrix" class="tab-btn whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition">
+          1. クラブ×パーツ別 MECE手順 (18)
+        </button>
+        <button type="button" data-tab="builder" class="tab-btn whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition">
+          2. AI改善プロンプトビルダー
+        </button>
+        <button type="button" data-tab="archive" class="tab-btn whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition">
+          3. 解析動画アーカイブ (45本)
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <!-- TAB 1: MECE MATRIX -->
+    <section id="tab-matrix" class="space-y-6">
+      <!-- Shaft Wave 600-Golfer Interactive Reference Bar -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Shaft Wave 600名実測データ</span>
+              <a href="https://www.youtube.com/watch?v=hsSigoQICME" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-400 underline hover:text-sky-300">出典動画を見る ↗</a>
+            </div>
+            <h2 class="mt-0.5 text-base font-bold text-white">動的しなり2軸分類 × 実名推奨シャフト早見表</h2>
+          </div>
+          <div class="flex flex-wrap gap-2" id="swTabs">
+            <button type="button" data-sw="vertical" class="sw-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition">縦型（横広がり含む）70%</button>
+            <button type="button" data-sw="horizontal" class="sw-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition">横型 25%</button>
+            <button type="button" data-sw="diagonal" class="sw-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition">斜め型（両要素）5%</button>
+          </div>
+        </div>
+        <div id="swDetail" class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4"></div>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div class="relative flex-1 max-w-md">
+            <input id="matrixSearch" type="text" placeholder="キーワード検索（例：短尺、バウンス、イップス、400cpm、1球目）" class="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-white placeholder-slate-400 focus:border-emerald-400 focus:outline-none" />
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="selectFilteredBtn" type="button" class="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20">表示中を全選択</button>
+            <button id="selectAllBtn" type="button" class="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700">全18手順を選択</button>
+            <button id="clearAllBtn" type="button" class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-400 hover:bg-slate-800 hover:text-slate-200">選択解除</button>
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="mr-1 text-xs font-semibold text-slate-400">クラブ軸:</span>
+            <div id="clubFilters" class="flex flex-wrap gap-1.5"></div>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="mr-1 text-xs font-semibold text-slate-400">パーツ軸:</span>
+            <div id="partFilters" class="flex flex-wrap gap-1.5"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Procedure Cards Grid -->
+      <div id="matrixStats" class="flex items-center justify-between text-xs text-slate-400 px-1"></div>
+      <div id="procedureGrid" class="grid grid-cols-1 gap-4 lg:grid-cols-2"></div>
+    </section>
+
+    <!-- TAB 2: AI PROMPT BUILDER -->
+    <section id="tab-builder" class="hidden space-y-6">
+      <!-- Presets -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-base font-bold text-white">ワンクリック改善プリセット</h2>
+            <p class="text-xs text-slate-400">目的に応じて最適なMECE手順セットと改善モードを自動構成します。</p>
+          </div>
+        </div>
+        <div id="presetList" class="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5"></div>
+      </div>
+
+      <!-- Builder Split Layout -->
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <!-- Left Config -->
+        <div class="space-y-4 lg:col-span-5">
+          <div class="glass-card rounded-2xl p-5 space-y-4">
+            <h3 class="text-sm font-bold text-emerald-300 uppercase tracking-wider">依頼パラメータ設定</h3>
+
+            <div>
+              <label for="targetAppInput" class="block text-xs font-semibold text-slate-300 mb-1.5">対象アプリ・プロジェクト名</label>
+              <input id="targetAppInput" type="text" class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-sm text-white focus:border-emerald-400 focus:outline-none" />
+            </div>
+
+            <div>
+              <label for="modeSelect" class="block text-xs font-semibold text-slate-300 mb-1.5">AIへの依頼モード</label>
+              <select id="modeSelect" class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-sm text-white focus:border-emerald-400 focus:outline-none">
+                <option value="enhance">既存ゴルフフィッティングアプリへの機能追加・ロジック大改修</option>
+                <option value="scratch">新規フルスクラッチWebアプリ設計・単一HTML実装</option>
+                <option value="spec">アルゴリズム設計書・MECEロジックツリー（Markdown）作成</option>
+                <option value="audit">既存アプリのフィッティングロジック妥当性レビュー＆改善提案</option>
+              </select>
+            </div>
+
+            <div>
+              <span class="block text-xs font-semibold text-slate-300 mb-2">AIに生成させる成果物オプション</span>
+              <div class="space-y-2 text-sm text-slate-200">
+                <label class="flex items-center gap-2.5 cursor-pointer">
+                  <input id="optCode" type="checkbox" class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400" />
+                  <span>単一HTML実装コード（動作検証済み・依存なし）</span>
+                </label>
+                <label class="flex items-center gap-2.5 cursor-pointer">
+                  <input id="optSpec" type="checkbox" class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400" />
+                  <span>MECEアルゴリズム設計書＆判定ロジックツリー</span>
+                </label>
+                <label class="flex items-center gap-2.5 cursor-pointer">
+                  <input id="optJson" type="checkbox" class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400" />
+                  <span>Shaft Wave 600名実名シャフト＆重量フローJSONマスタ</span>
+                </label>
+                <label class="flex items-center gap-2.5 cursor-pointer">
+                  <input id="optTests" type="checkbox" class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400" />
+                  <span>境界値・エッジケース（イップス・加齢・軽量移行等）検証テスト</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label for="customNoteInput" class="block text-xs font-semibold text-slate-300 mb-1.5">追加要件・制約メモ（任意編集）</label>
+              <textarea id="customNoteInput" rows="4" class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs leading-relaxed text-white focus:border-emerald-400 focus:outline-none"></textarea>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300">組み込み中のMECE手順</span>
+                <button id="editSelectionBtn" type="button" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 underline">手順マトリクスで変更</button>
+              </div>
+              <div id="selectedChips" class="mt-2 flex flex-wrap gap-1.5 max-h-36 overflow-y-auto custom-scroll"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Live Prompt Preview -->
+        <div class="lg:col-span-7 flex flex-col">
+          <div class="glass-card rounded-2xl p-5 flex flex-col h-full">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+              <div>
+                <h3 class="text-sm font-bold text-white">生成済み AI依頼プロンプト（リアルタイム同期）</h3>
+                <p id="promptCharCount" class="text-xs text-slate-400 mt-0.5"></p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button id="copyPromptBtn" type="button" class="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:bg-emerald-400">
+                  プロンプトをコピー
+                </button>
+                <button id="downloadPromptBtn" type="button" class="rounded-lg border border-slate-600 bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-200 transition hover:bg-slate-700">
+                  .md ダウンロード
+                </button>
+              </div>
+            </div>
+            <pre id="promptPreview" class="prompt-pre custom-scroll mt-4 flex-1 max-h-[620px] overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 p-4 text-xs leading-relaxed text-slate-200"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: VIDEO ARCHIVE -->
+    <section id="tab-archive" class="hidden space-y-5">
+      <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 class="text-base font-bold text-white">解析済み動画アーカイブ（全45本）</h2>
+          <p class="text-xs text-slate-400 mt-0.5">すべての手順・数値の根拠となった動画のタイトル・公開日・抽出エッセンス・YouTube直リンク一覧です。</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <select id="archiveCatSelect" class="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white focus:border-emerald-400 focus:outline-none"></select>
+          <input id="archiveSearch" type="text" placeholder="動画タイトル・内容で検索..." class="rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs text-white placeholder-slate-400 focus:border-emerald-400 focus:outline-none" />
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto custom-scroll">
+          <table class="min-w-full divide-y divide-slate-800 text-left text-xs">
+            <thead class="bg-slate-900/90 text-slate-300 uppercase tracking-wider">
+              <tr>
+                <th class="px-4 py-3 font-semibold w-12">No.</th>
+                <th class="px-4 py-3 font-semibold w-28">カテゴリ</th>
+                <th class="px-4 py-3 font-semibold w-24">公開日</th>
+                <th class="px-4 py-3 font-semibold">動画タイトル（YouTubeリンク）</th>
+                <th class="px-4 py-3 font-semibold">抽出フィッティングエッセンス</th>
+              </tr>
+            </thead>
+            <tbody id="archiveTableBody" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SHAFT_WAVE_DATA = {
+      vertical: {
+        label: '縦型（横広がり型含む）',
+        ratio: '約70%（600名実測）',
+        profile: '手元がしっかりしたシャフト（中〜先中調子系）。縦のコック・腕の運動が主体。',
+        dr: 'Tour AD PT / Tour AD GC',
+        fw: 'Tour AD F',
+        ir: 'KBS Tour V / DG X100 / Project X / 島田 K\'s Tour'
+      },
+      horizontal: {
+        label: '横型',
+        ratio: '約25%（600名実測）',
+        profile: '手元がしなるシャフト（元調子系）。体幹・下半身主導でシャフト全体を横にしならせる。',
+        dr: 'Tour AD FI / Tour AD DI / Tour AD VF',
+        fw: '重めの元調子系（DRと剛性・重量連動）',
+        ir: 'DG S200 / KBS C-Taper / MODUS3 105・115・125'
+      },
+      diagonal: {
+        label: '斜め型（縦横両要素保有）',
+        ratio: '約5%（600名実測）',
+        profile: '中間・万能型。適応幅が広いため、DR〜IRのセット全体の流れ整合性を最優先する。',
+        dr: 'Tour AD PT / GC / FI（縦寄り・横寄りで分岐）',
+        fw: 'DRの流れに整合するモデル',
+        ir: 'KBS Tour（Tour Vではなく標準Tour）'
+      }
+    };
+
+    const CLUB_OPTIONS = [
+      { id: 'all', label: 'すべて' },
+      { id: 'total', label: '全体・診断' },
+      { id: 'dr', label: 'ドライバー (DR)' },
+      { id: 'fwut', label: 'FW・UT' },
+      { id: 'ir', label: 'アイアン (IR)' },
+      { id: 'wg', label: 'ウェッジ (WG)' },
+      { id: 'pt', label: 'パター (PT)' },
+      { id: 'common', label: '共通パーツ・クラフト' }
+    ];
+
+    const PART_OPTIONS = [
+      { id: 'all', label: 'すべて' },
+      { id: 'head', label: 'ヘッド' },
+      { id: 'shaft', label: 'シャフト' },
+      { id: 'grip', label: 'グリップ' },
+      { id: 'ball', label: 'ボール' },
+      { id: 'process', label: '診断・順序・クラフト' }
+    ];
+
+    const PROCEDURES = [
+      {
+        id: 'P01', club: 'total', clubLabel: '全体・診断', part: 'process', partLabel: '診断・順序',
+        title: 'ボトムアップ14本フィッティング順序＆重量フロー設計',
+        metrics: 'PT → WG → IR → UT/FW → DR ／ WG:DG → ショートIR:DG → 5/6I:100g → UT:80-90g → FW:70g → DR:60-70g',
+        steps: [
+          '1. 単体最適（DR先行）を禁止し、スコアの要であるPT→WGのショートゲーム基準から上番手へ積み上げる。',
+          '2. どの番手でも人間は同一タイミング・同一シャフト動作を再現しようとするため、下番手を「邪魔しない」重量・剛性フローを算出する。',
+          '3. WGがDynamic Gold基準なら、5/6Iは100g前後、UTは80-90g、FWは70g前後、DRは60-70gへ滑らかに接続し乖離を警告する。'
+        ],
+        sources: [
+          { title: 'トータルクラブフィッティング', url: 'https://www.youtube.com/watch?v=uVSJZE8SksA' },
+          { title: 'パターのイップス後編', url: 'https://www.youtube.com/watch?v=JEbeDqViWYE' }
+        ]
+      },
+      {
+        id: 'P02', club: 'total', clubLabel: '全体・診断', part: 'process', partLabel: '診断・順序',
+        title: '問診＆4点スイング観察（アドレス〜フィニッシュ静止）',
+        metrics: 'ミス原因の7〜9割はクラブ起因 ／ 観察4点：アドレスもじもじ・始動・切り返しの間・フィニッシュ静止',
+        steps: [
+          '1. 問診で「ナイスショットを見せようとせず、現状の悩み・ミス傾向・恥部をすべて開示」する入力UIを設ける。',
+          '2. スイングチェックは形ではなく①アドレスもじもじ（重量・ライ角違和感）、②始動のスムーズさ、③切り返しの「間」、④フィニッシュ静止の4点で診断する。',
+          '3. フィニッシュで前に釣られる／左肘が抜ける場合は「クラブに振り回されている（ヘッド過重・長すぎ）」と判定し、スイング修正よりスペック修正を優先提案する。'
+        ],
+        sources: [
+          { title: '理想のスイングとは 前編', url: 'https://www.youtube.com/watch?v=Bkpar6cyrHo' },
+          { title: '理想のスイングとは 後編', url: 'https://www.youtube.com/watch?v=4E6v6vJFnzY' },
+          { title: 'ミスショットを回避する', url: 'https://www.youtube.com/watch?v=mVhClYWUhm8' }
+        ]
+      },
+      {
+        id: 'P03', club: 'total', clubLabel: '全体・診断', part: 'process', partLabel: '診断・順序',
+        title: 'セルフフィッティング（1球目の法則・DR⇔7I交互テスト・長さ階段）',
+        metrics: '1球目評価 ／ DR→7Iでダフリ＝DR軽すぎ ／ DR→7Iでトップ＝DR軟すぎ・IR硬すぎ',
+        steps: [
+          '1. 試打前に現用DR＋現用7I（または8I）を基準入力し、順応前の「1球目」で持ち球が出たかを最重視判定する。',
+          '2. 1球目ミス診断：右プッシュ/スライス＝振り遅れ（重すぎ・軟すぎ・先重）、左引っ掛け＝タイミング/ライ角不適合、ダフリ＝ヘッド重すぎ、トップ＝軽すぎ。',
+          '3. DR試打直後に現用7Iを1球打つ「交互テスト」を実施。ダフるならDRを重めへ、トップするならDRを硬めへ寄せる（使用頻度の高いIRを基準）。',
+          '4. 14本を並べて「打ちたい距離順＝長さ順」になっているか（WGとPW、UTとロングIRの逆転有無）を検査する。'
+        ],
+        sources: [
+          { title: '自分でもできるセルフフィッティング', url: 'https://www.youtube.com/watch?v=_ut4gvVSF7M' },
+          { title: '初心者向けクラブの選び方 1', url: 'https://www.youtube.com/watch?v=lAPBFG8azjQ' }
+        ]
+      },
+      {
+        id: 'P04', club: 'total', clubLabel: '全体・診断', part: 'shaft', partLabel: 'シャフト',
+        title: 'Shaft Wave 2軸動的しなり診断（600名統計）＆実名シャフト適合',
+        metrics: '縦型（横広がり含む）70% ／ 横型25% ／ 斜め型5% ／ シャフトが性能の8割を決定',
+        steps: [
+          '1. 縦方向（コック・腕主体）と横方向（体幹・下半身主体）の2軸しなり傾向を5分類（純縦・縦横広がり・純横・横先走り・斜め）で判定する。',
+          '2. 縦型系（約70%）には手元がしっかりしたモデル（DR: Tour AD PT/GC, FW: Tour AD F, IR: KBS Tour V/DG X100/Project X/島田K\'s Tour）を適合。',
+          '3. 横型系（約25%）には手元調子（DR: Tour AD FI/DI/VF, IR: DG S200/KBS C-Taper/MODUS 105・115・125）を適合。',
+          '4. 斜め型（約5%）にはKBS Tour等を軸にDR〜IRのセット流れ整合性を優先選定する。'
+        ],
+        sources: [
+          { title: 'Shaft Wave Report 600名データ', url: 'https://www.youtube.com/watch?v=hsSigoQICME' },
+          { title: 'Shaft Waveの話 ①', url: 'https://www.youtube.com/watch?v=TVO0dX5kB9k' },
+          { title: '方向性③ シャフトの選び方', url: 'https://www.youtube.com/watch?v=wW1yLFuIGxA' }
+        ]
+      },
+      {
+        id: 'P05', club: 'total', clubLabel: '全体・診断', part: 'process', partLabel: '診断・順序',
+        title: '3大固定観念の打破ロジック（加齢・硬さ・上級者モデル）',
+        metrics: '加齢＝短く・硬く・重量維持 ／ ハードスペック＝重さ＋長さ（硬さではない）',
+        steps: [
+          '1. 「年齢が上がった／HSが落ちた」ユーザーに対し、自動的な軽量化・軟化提案をブロックし、「運動神経・柔軟性低下に対応するため短尺化＋硬化＋重量維持」を提案する。',
+          '2. 「硬いシャフトは難しい」という誤解に対し、5X/6X等の軽硬シャフトはインパクトに間に合い振り遅れを防ぐためむしろ優しいと明示解説する。',
+          '3. 「上達したら難しいクラブへ移行」を否定し、プロほど再現性の高い優しいクラブを使う事実に基づき、レベル不問で当てやすいスペックを推奨する。'
+        ],
+        sources: [
+          { title: '年齢とクラブの関係', url: 'https://www.youtube.com/watch?v=6p4b4Afg12Y' },
+          { title: '硬い＝難しい？の真実', url: 'https://www.youtube.com/watch?v=ey_YeUat2hI' },
+          { title: 'ハードスペックの話', url: 'https://www.youtube.com/watch?v=cM1Bbyx-B4Y' },
+          { title: '上級者・プロは難しいクラブ？', url: 'https://www.youtube.com/watch?v=_p8uK8qyWFw' }
+        ]
+      },
+      {
+        id: 'P06', club: 'dr', clubLabel: 'ドライバー (DR)', part: 'head', partLabel: 'ヘッド',
+        title: 'DRヘッド軽量化（185g前後）＆ロフト・ライ角最適化',
+        metrics: '200g基準は長尺では過重 → スリーブ込185g前後 ／ HS40m/sは11°以上 ／ フラットライ角検討',
+        steps: [
+          '1. 振り感を軽くする際、シャフト軽量化より先にヘッド軽量化（可変ウェイト外し、GT1等の軽量ヘッド採用、スリーブ込185g前後目安）を優先する。',
+          '2. ロフト角はキャリーとフェアウェイキープ優先で大きめを推奨（HS 40m/s前後なら11°以上）。',
+          '3. 現代市販DRはアップライト傾向が強いため、振れる層・身長が高すぎない層にはカチャカチャでのフラット調整を提案する。'
+        ],
+        sources: [
+          { title: 'ドライバーヘッドの話', url: 'https://www.youtube.com/watch?v=OO_MDq9YhUA' },
+          { title: '方向性① ドライバー編', url: 'https://www.youtube.com/watch?v=xTVrudumgXI' },
+          { title: '自分で飛ばすクラブ、スライス改善', url: 'https://www.youtube.com/watch?v=-dJnWEKGMW8' }
+        ]
+      },
+      {
+        id: 'P07', club: 'dr', clubLabel: 'ドライバー (DR)', part: 'shaft', partLabel: 'シャフト',
+        title: 'DR短尺化（43.5〜44.5in）・もたつき解消・NORM（400cpm）理論',
+        metrics: '推奨長43.5〜44.5in（みぞおち・肘下目安） ／ もたつき＝手元軟・軟すぎ → 硬化 ／ NORM 400cpm',
+        steps: [
+          '1. 45〜45.5inを長尺と定義し、みぞおち〜肘下基準（実戦43.5〜44.5in）への短尺化で振り感軽減・実質硬化・アウトサイドイン（スライス）解消を図る。',
+          '2. ヘッド重量固定のままシャフトだけ軽くすると重心が先へ偏り「持って軽い・振って重い」罠に陥るため、総重量ではなく振り感バランスで判定する。',
+          '3. 切り返しでヘッドが遅れる「もたつき」申告時は、ブラインド試打前提でフレックスを上げる（手元しっかり化）。究極の基準としてパター振動数（350〜400cpm）に近づけるNORM思考（70/80/90g・400cpm）も選択肢に提示する。'
+        ],
+        sources: [
+          { title: 'シャフトの話', url: 'https://www.youtube.com/watch?v=cdLEXSTcNrA' },
+          { title: '方向性② アイアン編（DR長さ言及）', url: 'https://www.youtube.com/watch?v=zEvAQZmVSvg' },
+          { title: 'もたつくとは？', url: 'https://www.youtube.com/watch?v=r_KjcgPUTRc' },
+          { title: 'NORMシャフトについて', url: 'https://www.youtube.com/watch?v=OzGPoNXR_IA' }
+        ]
+      },
+      {
+        id: 'P08', club: 'fwut', clubLabel: 'FW・UT', part: 'head', partLabel: 'ヘッド',
+        title: 'FW・UT軽量ヘッド・実測ロフト管理＆アイアン軽量化後の再調整',
+        metrics: '表記より実測ロフト優先（例：17°/20°） ／ 可変ウェイト全外しから鉛で最適重量確定 ／ 夏ラフUT追加',
+        steps: [
+          '1. 番手表記ではなく実測ロフトと実戦距離差でセッティングする（例：21°表記が実測20°だった場合は実測基準で17°/20°と組む）。',
+          '2. 軽量アイアン（UPPAR等）導入後にFW/UTが重く感じる場合、可変ウェイトを一旦全部外して最軽量からIRとの交互打ちを行い、鉛で微増しながら最適重量を特定する。',
+          '3. ラフが深くなる夏シーズンには、ロングIRの代わりにラフ脱出用UTの追加・入れ替えを提案する。'
+        ],
+        sources: [
+          { title: 'MOE86 開発秘話 4 FW・WG編', url: 'https://www.youtube.com/watch?v=oT0Z0TM4BQo' },
+          { title: 'UPPARアイアン使用者の声と対処', url: 'https://www.youtube.com/watch?v=YmO6cldfL18' },
+          { title: '夏シーズン対策', url: 'https://www.youtube.com/watch?v=IT1dEfNtZ7E' }
+        ]
+      },
+      {
+        id: 'P09', club: 'fwut', clubLabel: 'FW・UT', part: 'shaft', partLabel: 'シャフト',
+        title: 'FW・UT重量＆剛性ブリッジ設計（軽量ヘッド×重めシャフト）',
+        metrics: 'UT: 80〜90g ／ FW: 70g前後（軽量ヘッドなら70〜90g・体力あれば100gスチールも可）',
+        steps: [
+          '1. IRとDRの断絶を防ぐため、UTは80〜90g、FWは70g前後を標準ブリッジ帯として設定する。',
+          '2. ヘッドを軽量化できた場合は、シャフトを70〜90gの重め・しっかりめ（あるいは体力派は100gスチール）へ引き上げることで安定性を高める。',
+          '3. Shaft Wave縦型にはTour AD Fなど、DRの剛性傾向（手元しっかり／手元しなり）と整合するシャフトを割り当てる。'
+        ],
+        sources: [
+          { title: 'トータルクラブフィッティング', url: 'https://www.youtube.com/watch?v=uVSJZE8SksA' },
+          { title: 'Shaft Wave Report 600名データ', url: 'https://www.youtube.com/watch?v=hsSigoQICME' },
+          { title: 'MOE86 開発秘話 4', url: 'https://www.youtube.com/watch?v=oT0Z0TM4BQo' }
+        ]
+      },
+      {
+        id: 'P10', club: 'ir', clubLabel: 'アイアン (IR)', part: 'head', partLabel: 'ヘッド',
+        title: 'IR 3大角度（ロフト・ライ・バウンス）＆UPPAR型最新ヘッド設計',
+        metrics: '上5°/下4°ピッチ ／ 7I相当254g軽量 ／ ハイバウンス優先（過度な幅広ソール回避） ／ 逆オフセット',
+        steps: [
+          '1. 7番単体ではなく全番手のロフト間隔を確認（標準4〜5°で10〜15yd差）。上番手は距離差が出にくいため5°ピッチ、下番手は上がりすぎ防止で4°ピッチを推奨（UPPAR設計：22/27/32/36/40/44/48°）。',
+          '2. ターフ跡（トウ側のみ削れ＝フラットすぎ／ヒール側のみ削れ＝アップライトすぎ）からライ角を診断し、調整可能なモデルを推奨。',
+          '3. 地面への潜りを防ぐハイバウンスを重視（幅広ソールによる深重心・厚入りより角度のあるバウンスを優先）。',
+          '4. ロングほどオフセット小（球が上がる視覚効果）・ショートほどオフセット大（WGとの顔繋ぎ）の逆プログレッシブ設計と軽量ヘッド（7I相当254g級）の利点を評価軸に加える。'
+        ],
+        sources: [
+          { title: 'アイアン ヘッド編', url: 'https://www.youtube.com/watch?v=CjivwVt7ctk' },
+          { title: '優しいクラブとは？ アイアン編', url: 'https://www.youtube.com/watch?v=04jStIHNa6o' },
+          { title: 'New UPPARアイアン解説動画', url: 'https://www.youtube.com/watch?v=stpTuNbmKmM' }
+        ]
+      },
+      {
+        id: 'P11', club: 'ir', clubLabel: 'アイアン (IR)', part: 'shaft', partLabel: 'シャフト',
+        title: 'IR短尺化（0.25〜0.5in）・番手ずらし・軽量移行時の左ミス対処',
+        metrics: '0.25〜0.5in短尺化 ／ 上番手は0.75in長差＆2番手硬ずらし ／ 44°・48°はWGシャフト ／ 左ミスは1〜2g鉛',
+        steps: [
+          '1. 標準から0.25〜0.5in短くすることでバランス軽減・実質硬化・ミート率向上を実現（低弾道化すればロフトを寝かせて補完）。',
+          '2. 長い番手ほどしなり過多を抑えるため1〜2番手硬めずらし（ソフトステップの逆）を検討し、44°・48°の下番手にはアプローチ用WGシャフトを繋ぐ。',
+          '3. 軽量ヘッド移行直後の「左引っ掛け」はヘッドが早く降りる正常反応のため、スイングを変えず1〜2ラウンド慣れるか、一時的に1〜2g鉛を貼って慣れたら剥がす移行プロトコルを提示する。'
+        ],
+        sources: [
+          { title: '方向性② アイアン編', url: 'https://www.youtube.com/watch?v=zEvAQZmVSvg' },
+          { title: 'New UPPARアイアン解説', url: 'https://www.youtube.com/watch?v=stpTuNbmKmM' },
+          { title: 'UPPARアイアン使用者の声と対処', url: 'https://www.youtube.com/watch?v=YmO6cldfL18' },
+          { title: 'UPPARアイアン48°の使い方', url: 'https://www.youtube.com/watch?v=f0nbttNFRPM' }
+        ]
+      },
+      {
+        id: 'P12', club: 'wg', clubLabel: 'ウェッジ (WG)', part: 'head', partLabel: 'ヘッド',
+        title: 'WGハイバウンス（補助輪）・ロフト上限56°・C前半バランス＆48°活用',
+        metrics: 'ハイバウンス最優先 ／ ロフト上限56°（優しさ54°） ／ 53°・59°の1°立て ／ C前半バランス ／ 48°チッパー',
+        steps: [
+          '1. 市販品に大きすぎるバウンスはほぼ無いため、自転車の補助輪としてハイバウンスを最優先推奨する（1°立てた53°/59°を寝かせて使う手法も有効）。',
+          '2. 60°は潜りミスが残りやすいため、優しさ重視のSW上限は56°（理想54°）とし、登り・エッジ近接アプローチの第一候補に48°（チッパー的活用）を組み込む。',
+          '3. Dバランスはヘッド過重と判定し、スイングウェイト「C前半」程度を目安に設定（ただし極端に軽すぎると飛びすぎるため適度な重量感を維持）。'
+        ],
+        sources: [
+          { title: '優しいクラブとは？ ウェッジ編', url: 'https://www.youtube.com/watch?v=gY-S6rT-w_M' },
+          { title: 'MOE86 開発秘話 4', url: 'https://www.youtube.com/watch?v=oT0Z0TM4BQo' },
+          { title: 'UPPARアイアン48°の使い方', url: 'https://www.youtube.com/watch?v=f0nbttNFRPM' }
+        ]
+      },
+      {
+        id: 'P13', club: 'wg', clubLabel: 'ウェッジ (WG)', part: 'shaft', partLabel: 'シャフト',
+        title: 'WGシャフト選定（IR同一基準 → +10〜20g・やや軟・手元調子）',
+        metrics: 'IR比 +10〜20g以内 ／ 同フレックス〜0.5〜1フレックス軟 ／ 元調子（手元しなり）推奨',
+        steps: [
+          '1. まずは気に入っているアイアンと同一シャフトを基準としてセットの流れを崩さない。',
+          '2. アプローチ特化でチューニングする場合は、アイアン比＋10〜20g以内、硬さは同〜0.5〜1フレックス軟に設定する。',
+          '3. 短いクラブほど硬く感じやすいため、全体がしなりやすい「手元調子（元調子系）」を推奨し、ゆっくり振る距離感・フィーリングを引き出す。'
+        ],
+        sources: [
+          { title: 'ウェッジ シャフト編', url: 'https://www.youtube.com/watch?v=3pJZRkru4y8' },
+          { title: '優しいクラブとは？ ウェッジ編', url: 'https://www.youtube.com/watch?v=gY-S6rT-w_M' }
+        ]
+      },
+      {
+        id: 'P14', club: 'pt', clubLabel: 'パター (PT)', part: 'head', partLabel: 'ヘッド',
+        title: 'PT 5大スペック先決（長さ・ライ角・重さ・オフセット）＆シンプル形状',
+        metrics: 'アーク論より「イントゥ・スクエア（前後1〜5cm）」 ／ 戻らない人はセンターシャフト ／ ブレード型推奨',
+        steps: [
+          '1. ヘッド形状（ピン型/マレット型）をアーク論だけで決めるのをやめ、先に①長さ、②ライ角、③重さ、④オフセット量、⑤シャフト硬さの5大スペックを確定させる。',
+          '2. パーフィー君の原理に基づき、肩から腕を自然に垂らした位置（近すぎ＝外膨らみ、遠すぎ＝イン引っ張り）でソールが座る長さ・ライ角を決める。',
+          '3. パターはシャフトのしなり戻りが極めて少ないため、オフセットでヘッドが遅れて戻らない人には「センターシャフト（オフセット小）」を提案する。',
+          '4. 多彩な距離・ラインを操る優しさの観点では、大型高MOIより重心操作が素直な「シンプル・ブレード型」を推奨する。'
+        ],
+        sources: [
+          { title: 'パターの選び方とスイングの関係', url: 'https://www.youtube.com/watch?v=YOHo0gIxdxk' },
+          { title: 'パター選び ストロークと形状', url: 'https://www.youtube.com/watch?v=4lXwYWOjeEo' },
+          { title: '優しいパターとは？', url: 'https://www.youtube.com/watch?v=WpYXJbEEd-8' }
+        ]
+      },
+      {
+        id: 'P15', club: 'pt', clubLabel: 'パター (PT)', part: 'shaft', partLabel: 'シャフト',
+        title: 'PTイップス物理対策（軽量化＆硬シャフト）＆フルショット連動修正',
+        metrics: 'イップス＝重すぎヘッドが動かないセンサー異常 ／ 硬シャフト（例：DG X100） ／ 1日5〜10分PT修正',
+        steps: [
+          '1. イップス・ショートパット不調の申告時、「ヘッドを重く・グリップを太く」する悪循環を警告し、逆に「ヘッド軽量化＋硬めシャフト（例：DG X100等）」を提案する。',
+          '2. パッティングのShaft Wave乱れ（ループ）はDR等フルショットの切り返しループの縮図であるため、フルショット側のシャフト適正化（硬化等）も同時処方する。',
+          '3. 自己流で全癖が凝縮するパッティングのセットアップ（窮屈さ解消・手元スペース確保）を1日5〜10分修正することで、フルショット全体の好転へ繋げる導線を設計する。'
+        ],
+        sources: [
+          { title: 'パターのイップスについて 前編', url: 'https://www.youtube.com/watch?v=s5FXNhFX-os' },
+          { title: 'パターのイップスについて 後編', url: 'https://www.youtube.com/watch?v=JEbeDqViWYE' },
+          { title: 'パッティングとフルショットの関係', url: 'https://www.youtube.com/watch?v=Z9p5Ssnvi2Y' }
+        ]
+      },
+      {
+        id: 'P16', club: 'common', clubLabel: '共通パーツ・クラフト', part: 'grip', partLabel: 'グリップ',
+        title: 'グリップ物理選定（シャフト手元剛性連動・50g基準・太さの逆転法則）',
+        metrics: '手元硬×硬グリップ ／ 手元軟×軟グリップ ／ 50g前後基準 ／ 太＝ヘッド動く・細＝繊細 ／ 隙間ゼロ密着',
+        steps: [
+          '1. グリップをスイング中に変形する「シャフトの一部」として扱い、手元硬シャフトには硬め（コード等）、手元軟シャフトにはやや軟め（軟すぎは振り遅れ）を連動選定する。',
+          '2. 25〜30g台の超軽量グリップは先重（振って重い）を招くため、原則50g前後を基準とする。',
+          '3. 太さの物理法則を反映：太い＝ヘッドを動かしやすい（力弱・ヘッドが動かない人向け）、細い＝繊細に動く（力み強い人・繊細タッチ向け）。',
+          '4. 手のひらに隙間ができない密着度を最優先し、WGでは短く持つ場面向けに右手側（先端側）の下巻き増しオプションを提案する（極端な偏りは他番手へ悪影響）。'
+        ],
+        sources: [
+          { title: 'グリップの話', url: 'https://www.youtube.com/watch?v=BOaYa7T6wuM' },
+          { title: 'ウェッジ グリップ編', url: 'https://www.youtube.com/watch?v=xBDqezyA4I4' },
+          { title: '優しいパターとは？', url: 'https://www.youtube.com/watch?v=WpYXJbEEd-8' }
+        ]
+      },
+      {
+        id: 'P17', club: 'common', clubLabel: '共通パーツ・クラフト', part: 'ball', partLabel: 'ボール',
+        title: 'ボール1種固定プロトコル（最低1年統一＆開発上位モデル推奨）',
+        metrics: '1種類固定（最低1年） ／ フィッティング時ボール統一 ／ 価格と開発費・再現性は比例',
+        steps: [
+          '1. キャディバッグ内の複数ボール混在をチェックし、混在時は「クラブかボールか原因切り分け不能」と警告して1種類への統一を促す。',
+          '2. 決めた1種類を最低1年間使い続けることで初めてクラブの挙動差が把握できる運用ルールを提示する。',
+          '3. スコアメイク優先ユーザーには、各社で最も開発費がかかり再現性・スピン性能が高い最上位モデルを推奨する。'
+        ],
+        sources: [
+          { title: '種類の違うボールを入れていませんか？', url: 'https://www.youtube.com/watch?v=sKnp8lqiYOY' }
+        ]
+      },
+      {
+        id: 'P18', club: 'common', clubLabel: '共通パーツ・クラフト', part: 'process', partLabel: '診断・順序',
+        title: '季節運用・怪我防止・工房クラフト微調整（0.3°・1g未満・1mm）',
+        metrics: '冬＝短く持つ（スペック不変） ／ 夏＝バウンス＆UT ／ 0.3°ライ角・1g未満鉛・1mmチップカット',
+        steps: [
+          '1. 季節アドバイス：冬は軟シャフトへ替えず「短く持つ」（距離10%減・スコア10%増は許容）、夏は春先決定スペックを維持しつつハイバウンスWG＆ラフ用UTを追加。',
+          '2. 怪我防止チェック：左親指・手首・肘・腰の痛みがある場合、長尺・先重・軟シャフトによる制御負荷を疑い、軽量ヘッド＋短尺＋硬めへ誘導。',
+          '3. 工房クラフト調律メニュー出力：0.3°ライ角調整、1g未満のヘッド/手元鉛貼付、1mmチップカット、シャフト挿し方向変更、ホーゼル奥挿し確認を推奨アクションに含める。'
+        ],
+        sources: [
+          { title: 'シンプルな冬ゴルフ対策', url: 'https://www.youtube.com/watch?v=ne59sFleUJQ' },
+          { title: '夏シーズン対策', url: 'https://www.youtube.com/watch?v=IT1dEfNtZ7E' },
+          { title: 'ゴルフクラブと怪我の話', url: 'https://www.youtube.com/watch?v=KuM5CSZqwEQ' },
+          { title: 'クラブの調律', url: 'https://www.youtube.com/watch?v=g29Ue5SFrS0' },
+          { title: 'フィッティング時のクラフト作業', url: 'https://www.youtube.com/watch?v=DwbR7giMZnk' }
+        ]
+      }
+    ];
+
+    const PRESETS = [
+      {
+        id: 'full',
+        title: 'フル改修（全18手順統合）',
+        desc: 'ボトムアップ14本＋Shaft Wave 600名＋全パーツを完全統合',
+        mode: 'enhance',
+        ids: PROCEDURES.map(p => p.id)
+      },
+      {
+        id: 'shaftwave',
+        title: 'Shaft Wave & もたつき診断',
+        desc: '縦70%/横25%/斜5%マトリクス＋固定観念打破＋NORM理論',
+        mode: 'enhance',
+        ids: ['P01', 'P04', 'P05', 'P07', 'P09', 'P11', 'P13', 'P16']
+      },
+      {
+        id: 'driver',
+        title: 'DR短尺・軽量ヘッド改修',
+        desc: '185gヘッド・43.5-44.5in・HS40→11°+・スライス自己改善',
+        mode: 'enhance',
+        ids: ['P02', 'P03', 'P04', 'P05', 'P06', 'P07', 'P16', 'P17']
+      },
+      {
+        id: 'shortgame',
+        title: 'PT・WG起点（イップス対策）',
+        desc: 'イントゥスクエア・5大スペック先決・補助輪バウンス・48°活用',
+        mode: 'enhance',
+        ids: ['P01', 'P12', 'P13', 'P14', 'P15', 'P16', 'P17']
+      },
+      {
+        id: 'selffit',
+        title: 'セルフフィッティング機能追加',
+        desc: '1球目の法則・DR⇔7I交互テスト・季節/怪我/クラフト調律',
+        mode: 'enhance',
+        ids: ['P01', 'P02', 'P03', 'P05', 'P10', 'P17', 'P18']
+      }
+    ];
+
+    const VIDEOS = [
+      { no: 1, cat: '総論・哲学', date: '2024-06-15', title: 'ゴルフクラブの話をする前に大切な前提の話です！', url: 'https://www.youtube.com/watch?v=pWXndcjcymw', summary: '物理現象と人間の習性に基づく検証姿勢・先入観排除' },
+      { no: 2, cat: '総論・調律', date: '2024-06-30', title: 'ゴルフクラブ フィッティング 1 クラブの調律', url: 'https://www.youtube.com/watch?v=g29Ue5SFrS0', summary: '現有14本の「調律」、番手間の微差、1g未満の鉛・ライロフト調整' },
+      { no: 3, cat: '総論・全体', date: '2024-08-03', title: 'ゴルフクラブ フィッティング 2 トータルクラブフィッティング', url: 'https://www.youtube.com/watch?v=uVSJZE8SksA', summary: 'ボトムアップ順序（PT→WG→IR→UT/FW→DR）、重量フロー、問診' },
+      { no: 4, cat: '総論・初心者', date: '2024-06-19', title: '初心者向けクラブの選び方 1 ーシャフト編', url: 'https://www.youtube.com/watch?v=lAPBFG8azjQ', summary: 'ミスの7〜8割はクラブ、硬めシャフト＆みぞおち/肘下長さ、長さ階段' },
+      { no: 5, cat: '総論・初心者', date: '2024-08-05', title: '初心者向けクラブの選び方 2 ーシャフト編', url: 'https://www.youtube.com/watch?v=ZmTLhGL5Jdk', summary: 'セット全体の繋がり、扱いやすさ最優先、肘下・みぞおち長さ基準' },
+      { no: 6, cat: '総論・セルフ', date: '2024-12-15', title: '【保存版】自分でもできるセルフフィッティング', url: 'https://www.youtube.com/watch?v=_ut4gvVSF7M', summary: '1球目の法則、DR⇔7I交互1球テスト、ダフリ/トップ/左右ミス診断' },
+      { no: 7, cat: '総論・再現性', date: '2025-10-13', title: '【ゴルフクラブ基礎】スイングの再現性', url: 'https://www.youtube.com/watch?v=XwSKJJbXfFo', summary: '再現性＝タイミングと当たりの再現性、現場対応力、長すぎない道具' },
+      { no: 8, cat: '総論・原因', date: '2025-11-16', title: '【ゴルフクラブ基礎】クラブ選びの重要性ーミスショットを回避する', url: 'https://www.youtube.com/watch?v=mVhClYWUhm8', summary: 'ミスの9割近くがクラブ起因、ヘッド過重による肘抜け・クラブ立て反応' },
+      { no: 9, cat: '総論・スイング', date: '2026-11-10', title: 'フィッターの考える理想のスイングとは 前編', url: 'https://www.youtube.com/watch?v=Bkpar6cyrHo', summary: '悪いスイングは存在しない、順序よい運動連鎖、縦＝腕・横＝体幹反応' },
+      { no: 10, cat: '総論・スイング', date: '2026-11-17', title: 'フィッターの考える理想のスイングとは 後編', url: 'https://www.youtube.com/watch?v=4E6v6vJFnzY', summary: 'アドレスもじもじ・始動・切り返しの「間」・フィニッシュ静止の4観察点' },
+      { no: 11, cat: '総論・固定観念', date: '2024-11-10', title: '【ゴルフ用語シリーズ】ハードスペックの話', url: 'https://www.youtube.com/watch?v=cM1Bbyx-B4Y', summary: 'ハードスペックの正体は重さ＋長さ、5X/6Xの優しさ、調子ミスマッチ' },
+      { no: 12, cat: '総論・固定観念', date: '2026-08-02', title: '【固定観念シリーズ】年齢とクラブの関係/歳を取ったらシャフトは？', url: 'https://www.youtube.com/watch?v=6p4b4Afg12Y', summary: '加齢時は短く・硬く・重量維持、運動神経低下と柔らかシャフトの罠' },
+      { no: 13, cat: '総論・固定観念', date: '2026-08-09', title: '【固定観念シリーズ】シャフトの話/硬い＝難しい？ ハードスペックの真実', url: 'https://www.youtube.com/watch?v=ey_YeUat2hI', summary: '硬い方がインパクトに間に合う、振り遅れ防止、軽硬シャフトの合理性' },
+      { no: 14, cat: '総論・固定観念', date: '2026-08-23', title: '【固定観念シリーズ】上級者・プロは難しいクラブ？', url: 'https://www.youtube.com/watch?v=_p8uK8qyWFw', summary: 'プロこそ優しいクラブを使用、上達するほど優しいクラブへ寄せる' },
+      { no: 15, cat: '総論・季節', date: '2025-01-19', title: '【ゴルフクラブ基礎】シンプルな冬ゴルフ対策', url: 'https://www.youtube.com/watch?v=ne59sFleUJQ', summary: '冬に軟シャフトへ替えるリスク、短く持つ対策、飛距離10%減の割り切り' },
+      { no: 16, cat: '総論・季節', date: '2026-07-12', title: '【ゴルフクラブ基礎】夏シーズン対策クラブスペックの考え方', url: 'https://www.youtube.com/watch?v=IT1dEfNtZ7E', summary: '夏はシャフト維持（春に確定）、ハイバウンス化＆ラフ脱出用UT導入' },
+      { no: 17, cat: '総論・怪我', date: '2024-10-09', title: 'DN MOE86 ゴルフクラブと怪我の話', url: 'https://www.youtube.com/watch?v=KuM5CSZqwEQ', summary: '長尺・先重・軟シャフトによる親指/手首/肘/腰の怪我、軽量ヘッドの恩恵' },
+      { no: 18, cat: 'Shaft Wave', date: '2025-02-24', title: 'Shaft Waveの話 ①', url: 'https://www.youtube.com/watch?v=TVO0dX5kB9k', summary: 'ワイヤレス2軸歪みゲージの原理、5タイプ分類、始動〜インパクト軌跡' },
+      { no: 19, cat: 'Shaft Wave', date: '2026-06-28', title: '【Shaft Wave Report】 600名データからシャフト傾向を公開', url: 'https://www.youtube.com/watch?v=hsSigoQICME', summary: '600名比率（縦70%/横25%/斜5%）＆DR/FW/IR実名推奨シャフト一覧' },
+      { no: 20, cat: 'シャフト', date: '2024-08-04', title: '【保存版】ゴルフクラブ基礎 シャフトの話', url: 'https://www.youtube.com/watch?v=cdLEXSTcNrA', summary: 'シャフトが性能の8割、軽量化の重心偏り罠、フレックス軟化、手打ち誘発' },
+      { no: 21, cat: 'シャフト', date: '2026-04-26', title: '【ゴルフクラブ基礎】クラブ選びの方向性③ シャフトの選び方', url: 'https://www.youtube.com/watch?v=wW1yLFuIGxA', summary: '柔らかくせず硬くする方向性、8〜9割が手元硬適合、好調調子の継続' },
+      { no: 22, cat: 'シャフト', date: '2026-10-05', title: 'もたつくとは？', url: 'https://www.youtube.com/watch?v=r_KjcgPUTRc', summary: '切り返し遅れ＝もたつきの定義、手元軟・ヘッド重が原因、硬化で解消' },
+      { no: 23, cat: 'シャフト', date: '2026-10-18', title: 'NORMシャフトについて', url: 'https://www.youtube.com/watch?v=OzGPoNXR_IA', summary: 'パター振動数（350〜400cpm）基準の400cpm・80g（70/80/90g）設計' },
+      { no: 24, cat: 'ドライバー', date: '2024-07-28', title: '【保存版】ゴルフクラブ基礎 ドライバーヘッドの話', url: 'https://www.youtube.com/watch?v=OO_MDq9YhUA', summary: 'ロフト（HS40なら11°以上）、ライ角（フラット検討）、200g過重問題' },
+      { no: 25, cat: 'ドライバー', date: '2026-04-05', title: '【ゴルフクラブ基礎】クラブ選びの方向性① ドライバー編', url: 'https://www.youtube.com/watch?v=xTVrudumgXI', summary: '総重量より「振り感軽量化」、ヘッド軽量化（GT1・ウェイト外し）＆短尺' },
+      { no: 26, cat: 'ドライバー', date: '2025-08-11', title: '自分で飛ばすクラブ、スライス改善について', url: 'https://www.youtube.com/watch?v=-dJnWEKGMW8', summary: 'スリーブ込185g前後・43.5〜44.5インチ、長尺起因のスライスを短尺で改善' },
+      { no: 27, cat: 'FW・UT・WG', date: '2024-08-28', title: 'MOE86 開発秘話 4 フェアウェイ・ウェッジ開発編', url: 'https://www.youtube.com/watch?v=oT0Z0TM4BQo', summary: '軽量FW（17°/20°）×重めシャフト（70〜90g）、WG補助輪バウンス・53/59°' },
+      { no: 28, cat: 'アイアン', date: '2024-09-15', title: '【保存版】ゴルフクラブ基礎 アイアン ヘッド編', url: 'https://www.youtube.com/watch?v=CjivwVt7ctk', summary: '3大角度（ロフト＆4〜5°ピッチ、ライ角とターフ跡、バウンス角と海外/国産差）' },
+      { no: 29, cat: 'アイアン', date: '2024-12-22', title: '【保存版】優しいクラブとは？ アイアン編', url: 'https://www.youtube.com/watch?v=04jStIHNa6o', summary: '優しいIR＝短め・100g前後・硬め・小ぶり・ハイバウンス・均一ロフトピッチ' },
+      { no: 30, cat: 'アイアン', date: '2026-04-12', title: '【ゴルフクラブ基礎】クラブ選びの方向性② アイアン編', url: 'https://www.youtube.com/watch?v=zEvAQZmVSvg', summary: '0.25〜0.5インチ短尺化の絶大効果、DR 43.5〜44.5推奨、ロフト寝かせ補完' },
+      { no: 31, cat: 'アイアン', date: '2026-04-21', title: 'New UPPARアイアン解説動画', url: 'https://www.youtube.com/watch?v=stpTuNbmKmM', summary: 'ロフト表記7本（22〜48°）、上5°/下4°、254g軽量、逆オフセット、2番手硬ずらし' },
+      { no: 32, cat: 'アイアン', date: '2026-05-31', title: 'UPPARアイアン使用者の声と対処方法', url: 'https://www.youtube.com/watch?v=YmO6cldfL18', summary: '軽量IR移行時の左引っ掛け対処（慣れ＋1〜2g鉛）、DR/FW/UTウェイト外し' },
+      { no: 33, cat: 'アイアン・WG', date: '2026-06-07', title: 'UPPARアイアン48°の使い方', url: 'https://www.youtube.com/watch?v=f0nbttNFRPM', summary: '48°をアプローチ第一候補（チッパー活用）、AW同一シャフト＆顔揃え' },
+      { no: 34, cat: 'ウェッジ', date: '2024-09-01', title: '【保存版】ゴルフクラブ基礎 ウェッジ シャフト編', url: 'https://www.youtube.com/watch?v=3pJZRkru4y8', summary: 'IR比+10〜20g以内、同〜1フレックス軟、手元調子推奨、セット流れ重視' },
+      { no: 35, cat: 'ウェッジ', date: '2024-09-08', title: '【保存版】ゴルフクラブ基礎 ウェッジ グリップ編', url: 'https://www.youtube.com/watch?v=xBDqezyA4I4', summary: 'セット統一基本、太＝ヘッド動く／細＝繊細、短く持つ用の右手下巻き増し' },
+      { no: 36, cat: 'ウェッジ', date: '2025-01-05', title: '【保存版】優しいクラブとは？ ウェッジ編', url: 'https://www.youtube.com/watch?v=gY-S6rT-w_M', summary: 'ハイバウンス最優先、ロフト上限56°（理想54°）、C前半バランス目安' },
+      { no: 37, cat: 'パター', date: '2025-01-26', title: '【完全保存版】もう迷わない！パターの選び方とスイングの関係', url: 'https://www.youtube.com/watch?v=YOHo0gIxdxk', summary: 'パーフィー君の自然垂下、長さ・ライ角最優先、オフセット遅れとセンターシャフト' },
+      { no: 38, cat: 'パター', date: '2025-02-02', title: '【保存版】パターのイップスについて 前編', url: 'https://www.youtube.com/watch?v=s5FXNhFX-os', summary: 'イップス＝ヘッドが動かないセンサー異常、軽量化＆硬めシャフト、DRループ連動' },
+      { no: 39, cat: 'パター', date: '2025-02-09', title: '【保存版】パターのイップスについて 後編', url: 'https://www.youtube.com/watch?v=JEbeDqViWYE', summary: 'PT→WG起点のフィッティング効果、ショートゲーム改善が全体の好循環を生む' },
+      { no: 40, cat: 'パター', date: '2025-12-21', title: '【ゴルフクラブ基礎】優しいパターとは？', url: 'https://www.youtube.com/watch?v=WpYXJbEEd-8', summary: 'ブレード型＋硬めシャフト（DG X100等）、グリップ太さは力み度合いで逆選択' },
+      { no: 41, cat: 'パター', date: '2026-05-25', title: '【ゴルフ基礎 保存版】パッティングとフルショットの関係', url: 'https://www.youtube.com/watch?v=Z9p5Ssnvi2Y', summary: '自己流PTに全癖が凝縮、PTセットアップ修正（1日5〜10分）がフルショット改善' },
+      { no: 42, cat: 'パター', date: '2026-06-21', title: '【ゴルフクラブ基礎 保存版】パター選び ストロークとパター形状の考え方', url: 'https://www.youtube.com/watch?v=4lXwYWOjeEo', summary: 'アーク論より「イントゥ・スクエア」、形状より先に長さ・ライ角・重さ・グリップ' },
+      { no: 43, cat: 'グリップ', date: '2024-08-18', title: '【保存版】ゴルフクラブ基礎 グリップの話', url: 'https://www.youtube.com/watch?v=BOaYa7T6wuM', summary: 'シャフト剛性連動、50g基準、隙間ゼロ密着、太＝ヘッド動く／細＝繊細操作' },
+      { no: 44, cat: 'ボール', date: '2024-07-14', title: 'キャディバッグの中に種類の違うボールを入れていませんか？', url: 'https://www.youtube.com/watch?v=sKnp8lqiYOY', summary: 'ボール1種類1年固定の鉄則、開発費のかかった上位モデル推奨' },
+      { no: 45, cat: 'クラフト', date: '2025-05-25', title: '【Good One GOLF】 フィッティング時のクラフト作業について', url: 'https://www.youtube.com/watch?v=DwbR7giMZnk', summary: '0.3°ライ角調整、1mmチップカット、挿し方向変更、速乾5〜10分テスト手順' }
+    ];
+
+    const state = {
+      activeTab: 'matrix',
+      clubFilter: 'all',
+      partFilter: 'all',
+      matrixSearch: '',
+      selectedIds: new Set(PROCEDURES.map(p => p.id)),
+      shaftWaveTab: 'vertical',
+      activePreset: 'full',
+      builder: {
+        targetApp: 'FIT LAB v5.0（単一HTMLゴルフフィッティングアプリ）',
+        mode: 'enhance',
+        includeCode: true,
+        includeSpec: true,
+        includeJson: true,
+        includeTests: false,
+        customNote: '・「歳を取ったら軽く・柔らかく」「硬い＝難しい」等の固定観念を打破する物理的根拠をUI上の解説カードに明示すること。\n・ヘッド・シャフト・グリップ・ボールを単独表示せず、ボトムアップ14本フロー整合性スコア付きのトータルランキングで提示すること。'
+      },
+      archiveCategory: 'all',
+      archiveSearch: ''
+    };
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      const txt = document.getElementById('toastText');
+      txt.textContent = msg;
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.classList.add('hidden');
+        el.classList.remove('flex');
+      }, 2400);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function getFilteredProcedures() {
+      const q = state.matrixSearch.trim().toLowerCase();
+      return PROCEDURES.filter(p => {
+        if (state.clubFilter !== 'all' && p.club !== state.clubFilter) return false;
+        if (state.partFilter !== 'all' && p.part !== state.partFilter) return false;
+        if (q) {
+          const hay = (p.id + ' ' + p.title + ' ' + p.clubLabel + ' ' + p.partLabel + ' ' + p.metrics + ' ' + p.steps.join(' ')).toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderTabs() {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        const isActive = btn.dataset.tab === state.activeTab;
+        btn.className = 'tab-btn whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition ' +
+          (isActive ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200 border border-transparent');
+      });
+      ['matrix', 'builder', 'archive'].forEach(t => {
+        const sec = document.getElementById('tab-' + t);
+        if (t === state.activeTab) sec.classList.remove('hidden');
+        else sec.classList.add('hidden');
+      });
+      document.getElementById('headerSelectedCount').textContent = `選択中: ${state.selectedIds.size} / ${PROCEDURES.length} 手順`;
+    }
+
+    function renderShaftWave() {
+      document.querySelectorAll('.sw-btn').forEach(btn => {
+        const active = btn.dataset.sw === state.shaftWaveTab;
+        btn.className = 'sw-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition ' +
+          (active ? 'bg-amber-400 text-slate-950' : 'border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800');
+      });
+      const d = SHAFT_WAVE_DATA[state.shaftWaveTab];
+      document.getElementById('swDetail').innerHTML = `
+        <div class="rounded-xl border border-slate-800 bg-slate-900/90 p-3">
+          <div class="text-[11px] font-semibold text-amber-300">構成比・剛性特性</div>
+          <div class="mt-1 text-sm font-bold text-white">${escapeHtml(d.label)}（${escapeHtml(d.ratio)}）</div>
+          <p class="mt-1 text-xs text-slate-300 leading-relaxed">${escapeHtml(d.profile)}</p>
+        </div>
+        <div class="rounded-xl border border-slate-800 bg-slate-900/90 p-3">
+          <div class="text-[11px] font-semibold text-emerald-400">推奨ドライバーシャフト</div>
+          <div class="mt-1 text-sm font-bold text-white">${escapeHtml(d.dr)}</div>
+        </div>
+        <div class="rounded-xl border border-slate-800 bg-slate-900/90 p-3">
+          <div class="text-[11px] font-semibold text-sky-400">推奨FWシャフト</div>
+          <div class="mt-1 text-sm font-bold text-white">${escapeHtml(d.fw)}</div>
+        </div>
+        <div class="rounded-xl border border-slate-800 bg-slate-900/90 p-3">
+          <div class="text-[11px] font-semibold text-violet-400">推奨アイアンシャフト</div>
+          <div class="mt-1 text-sm font-bold text-white">${escapeHtml(d.ir)}</div>
+        </div>
+      `;
+    }
+
+    function renderFilterPills() {
+      document.getElementById('clubFilters').innerHTML = CLUB_OPTIONS.map(o => {
+        const active = state.clubFilter === o.id;
+        return `<button type="button" data-club="${o.id}" class="club-pill rounded-full px-3 py-1 text-xs font-semibold transition ${active ? 'bg-emerald-500 text-slate-950' : 'border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800'}">${escapeHtml(o.label)}</button>`;
+      }).join('');
+
+      document.getElementById('partFilters').innerHTML = PART_OPTIONS.map(o => {
+        const active = state.partFilter === o.id;
+        return `<button type="button" data-part="${o.id}" class="part-pill rounded-full px-3 py-1 text-xs font-semibold transition ${active ? 'bg-sky-400 text-slate-950' : 'border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800'}">${escapeHtml(o.label)}</button>`;
+      }).join('');
+    }
+
+    function renderProcedures() {
+      const list = getFilteredProcedures();
+      document.getElementById('matrixStats').innerHTML = `
+        <span>表示中: <strong class="text-white">${list.length}</strong> / ${PROCEDURES.length} 手順</span>
+        <span>プロンプト採用中: <strong class="text-emerald-300">${state.selectedIds.size}</strong> 手順</span>
+      `;
+
+      const grid = document.getElementById('procedureGrid');
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="col-span-full rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm text-slate-400">条件に一致するフィッティング手順がありません。フィルタを変更してください。</div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(p => {
+        const checked = state.selectedIds.has(p.id);
+        return `
+          <article class="${checked ? 'glass-card-active' : 'glass-card'} rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition">
+            <div>
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="rounded-md bg-slate-800 px-2 py-0.5 text-[11px] font-bold text-slate-300">${escapeHtml(p.id)}</span>
+                  <span class="rounded-md bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">${escapeHtml(p.clubLabel)}</span>
+                  <span class="rounded-md bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 text-[11px] font-semibold text-sky-300">${escapeHtml(p.partLabel)}</span>
+                </div>
+                <label class="flex items-center gap-1.5 cursor-pointer shrink-0 select-none">
+                  <input type="checkbox" data-proc-id="${p.id}" class="proc-check h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400" ${checked ? 'checked' : ''} />
+                  <span class="text-xs font-semibold ${checked ? 'text-emerald-300' : 'text-slate-400'}">採用</span>
+                </label>
+              </div>
+              <h3 class="mt-2.5 text-sm sm:text-base font-bold text-white leading-snug">${escapeHtml(p.title)}</h3>
+              <div class="mt-2 rounded-lg bg-slate-950/80 border border-slate-800 px-3 py-2 text-xs font-medium text-amber-300">
+                基準指標: ${escapeHtml(p.metrics)}
+              </div>
+              <ul class="mt-3 space-y-1.5 text-xs leading-relaxed text-slate-300">
+                ${p.steps.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+              </ul>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-semibold text-slate-400">根拠動画:</span>
+              ${p.sources.map(src => `<a href="${src.url}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-sky-400 hover:text-sky-300 underline">${escapeHtml(src.title)} ↗</a>`).join('')}
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderPresets() {
+      document.getElementById('presetList').innerHTML = PRESETS.map(pr => {
+        const active = state.activePreset === pr.id;
+        return `
+          <button type="button" data-preset="${pr.id}" class="preset-btn text-left rounded-xl p-3 transition border ${active ? 'border-emerald-400 bg-emerald-500/15' : 'border-slate-800 bg-slate-900/80 hover:border-slate-600'}">
+            <div class="text-xs font-bold ${active ? 'text-emerald-300' : 'text-white'}">${escapeHtml(pr.title)}</div>
+            <div class="mt-1 text-[11px] leading-snug text-slate-400">${escapeHtml(pr.desc)}</div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function buildPromptText() {
+      const selected = PROCEDURES.filter(p => state.selectedIds.has(p.id));
+      const modeMap = {
+        enhance: '既存ゴルフフィッティングWebアプリのロジック大改修・機能追加',
+        scratch: '新規フルスクラッチでの単一HTMLゴルフフィッティングWebアプリ設計・実装',
+        spec: 'MECEゴルフフィッティング・アルゴリズム設計書＆ロジックツリー（Markdown）作成',
+        audit: '既存ゴルフフィッティングアプリの妥当性レビュー＆改善実装プラン策定'
+      };
+
+      const outputs = [];
+      if (state.builder.includeCode) outputs.push('- 単一ファイル（index.html）で動作する検証済みWebアプリ実装コード');
+      if (state.builder.includeSpec) outputs.push('- MECEアルゴリズム設計書および分岐ロジックツリー（Markdown形式）');
+      if (state.builder.includeJson) outputs.push('- Shaft Wave 600名実名シャフトマトリクス＆ボトムアップ重量フローJSONマスタ');
+      if (state.builder.includeTests) outputs.push('- 境界値・エッジケース（イップス・加齢・軽量アイアン移行・季節対策）検証テストケース');
+
+      const procBlocks = selected.length === 0
+        ? '（手順が未選択です。タブ1「クラブ×パーツ別 MECE手順」で組み込む手順を選択してください。）'
+        : selected.map(p => {
+            const links = p.sources.map(s => `[${s.title}](${s.url})`).join(' / ');
+            return `### ${p.id}. [${p.clubLabel} × ${p.partLabel}] ${p.title}\n- **定量・判定基準**: ${p.metrics}\n- **実装すべき具体手順**:\n${p.steps.map(s => `  - ${s}`).join('\n')}\n- **根拠動画**: ${links}`;
+          }).join('\n\n');
+
+      return `# ゴルフフィッティングアプリ改善依頼プロンプト（R&amp;D HOUR FIT LAB (main) 統合版）
+
+## 1. ミッション・対象アプリ
+- **対象アプリ**: ${state.builder.targetApp || 'ゴルフフィッティングWebアプリ'}
+- **依頼モード**: ${modeMap[state.builder.mode]}
+- **知識ソース**: R&amp;D HOUR FIT LAB (main)（公開動画45本解析・600名Shaft Wave統計）
+
+## 2. 期待する成果物
+${outputs.length > 0 ? outputs.join('\n') : '- 依頼モードに応じた設計・実装一式'}
+
+## 3. コアフィッティング原則（必ずシステム全体に貫通させること）
+1. **ボトムアップ14本設計**: DR単体最適を禁止し、PT → WG → IR → UT/FW → DR の順でショートゲームを「邪魔しない」重量・剛性・長さフローを構築する。
+2. **Shaft Wave 600名統計の反映**: 縦型（横広がり含む）約70%＝手元しっかり系、横型約25%＝手元調子系、斜め型約5%＝中間系として実名シャフトを割り当てる。
+3. **固定観念の物理的打破**: 「加齢＝軽く・柔らかく」「硬い＝難しい（ハードスペック）」「プロ＝難しいクラブ」を論理否定し、ヘッド軽量化・短尺化・適正硬化の根拠をUIで分かりやすく解説する。
+
+## 4. 組み込むMECEフィッティング手順（全${selected.length}モジュール）
+
+${procBlocks}
+
+## 5. 追加要件・UI/UX制約
+${state.builder.customNote.trim() || '特記事項なし'}
+- すべての推奨結果には「なぜそのスペックなのか（物理的根拠・セット整合性・出典動画リンク）」を併記し、根拠なき推論を排除すること。
+- ブラウザ単体でエラーなく動作し、PC・モバイル双方で快適に操作できるレスポンシブUIとすること。
+`;
+    }
+
+    function renderBuilder() {
+      renderPresets();
+      document.getElementById('targetAppInput').value = state.builder.targetApp;
+      document.getElementById('modeSelect').value = state.builder.mode;
+      document.getElementById('optCode').checked = state.builder.includeCode;
+      document.getElementById('optSpec').checked = state.builder.includeSpec;
+      document.getElementById('optJson').checked = state.builder.includeJson;
+      document.getElementById('optTests').checked = state.builder.includeTests;
+      document.getElementById('customNoteInput').value = state.builder.customNote;
+
+      const chipsEl = document.getElementById('selectedChips');
+      const selected = PROCEDURES.filter(p => state.selectedIds.has(p.id));
+      chipsEl.innerHTML = selected.length === 0
+        ? '<span class="text-xs text-rose-400">未選択（1つ以上選択してください）</span>'
+        : selected.map(p => `<span class="inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-200">${escapeHtml(p.id)} ${escapeHtml(p.clubLabel)}</span>`).join('');
+
+      const text = buildPromptText();
+      document.getElementById('promptPreview').textContent = text;
+      document.getElementById('promptCharCount').textContent = `採用手順: ${selected.length}件 ／ 文字数: ${text.length.toLocaleString()}文字`;
+    }
+
+    function renderArchive() {
+      const catSelect = document.getElementById('archiveCatSelect');
+      if (catSelect.options.length === 0) {
+        const cats = ['all', ...Array.from(new Set(VIDEOS.map(v => v.cat)))];
+        catSelect.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">${c === 'all' ? '全カテゴリ（45本）' : escapeHtml(c)}</option>`).join('');
+      }
+      catSelect.value = state.archiveCategory;
+
+      const q = state.archiveSearch.trim().toLowerCase();
+      const filtered = VIDEOS.filter(v => {
+        if (state.archiveCategory !== 'all' && v.cat !== state.archiveCategory) return false;
+        if (q && !(v.title + ' ' + v.summary + ' ' + v.cat).toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      const tbody = document.getElementById('archiveTableBody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">一致する動画がありません。</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = filtered.map(v => `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="px-4 py-3 font-mono text-slate-400">${v.no}</td>
+          <td class="px-4 py-3"><span class="rounded-md bg-slate-800 px-2 py-0.5 text-[11px] font-semibold text-emerald-300 whitespace-nowrap">${escapeHtml(v.cat)}</span></td>
+          <td class="px-4 py-3 font-mono text-slate-400 whitespace-nowrap">${escapeHtml(v.date)}</td>
+          <td class="px-4 py-3 font-semibold"><a href="${v.url}" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300 underline">${escapeHtml(v.title)} ↗</a></td>
+          <td class="px-4 py-3 text-slate-300 leading-relaxed">${escapeHtml(v.summary)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderAll() {
+      renderTabs();
+      renderShaftWave();
+      renderFilterPills();
+      renderProcedures();
+      renderBuilder();
+      renderArchive();
+    }
+
+    // Event Wiring
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.activeTab = btn.dataset.tab;
+        renderTabs();
+        if (state.activeTab === 'builder') renderBuilder();
+      });
+    });
+
+    document.getElementById('quickGoBuilderBtn').addEventListener('click', () => {
+      state.activeTab = 'builder';
+      renderTabs();
+      renderBuilder();
+      showToast('AI改善プロンプトビルダーを表示しました');
+    });
+
+    document.getElementById('editSelectionBtn').addEventListener('click', () => {
+      state.activeTab = 'matrix';
+      renderTabs();
+    });
+
+    document.getElementById('swTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.sw-btn');
+      if (!btn) return;
+      state.shaftWaveTab = btn.dataset.sw;
+      renderShaftWave();
+    });
+
+    document.getElementById('clubFilters').addEventListener('click', e => {
+      const btn = e.target.closest('.club-pill');
+      if (!btn) return;
+      state.clubFilter = btn.dataset.club;
+      renderFilterPills();
+      renderProcedures();
+    });
+
+    document.getElementById('partFilters').addEventListener('click', e => {
+      const btn = e.target.closest('.part-pill');
+      if (!btn) return;
+      state.partFilter = btn.dataset.part;
+      renderFilterPills();
+      renderProcedures();
+    });
+
+    document.getElementById('matrixSearch').addEventListener('input', e => {
+      state.matrixSearch = e.target.value;
+      renderProcedures();
+    });
+
+    document.getElementById('procedureGrid').addEventListener('change', e => {
+      if (!e.target.classList.contains('proc-check')) return;
+      const id = e.target.dataset.procId;
+      if (e.target.checked) state.selectedIds.add(id);
+      else state.selectedIds.delete(id);
+      state.activePreset = '';
+      renderTabs();
+      renderProcedures();
+      renderBuilder();
+    });
+
+    document.getElementById('selectFilteredBtn').addEventListener('click', () => {
+      const list = getFilteredProcedures();
+      list.forEach(p => state.selectedIds.add(p.id));
+      state.activePreset = '';
+      renderTabs();
+      renderProcedures();
+      renderBuilder();
+      showToast(`表示中の${list.length}手順を選択しました`);
+    });
+
+    document.getElementById('selectAllBtn').addEventListener('click', () => {
+      PROCEDURES.forEach(p => state.selectedIds.add(p.id));
+      state.activePreset = 'full';
+      renderTabs();
+      renderProcedures();
+      renderBuilder();
+      showToast('全18手順を選択しました');
+    });
+
+    document.getElementById('clearAllBtn').addEventListener('click', () => {
+      state.selectedIds.clear();
+      state.activePreset = '';
+      renderTabs();
+      renderProcedures();
+      renderBuilder();
+      showToast('選択をすべて解除しました');
+    });
+
+    document.getElementById('presetList').addEventListener('click', e => {
+      const btn = e.target.closest('.preset-btn');
+      if (!btn) return;
+      const pr = PRESETS.find(x => x.id === btn.dataset.preset);
+      if (!pr) return;
+      state.activePreset = pr.id;
+      state.selectedIds = new Set(pr.ids);
+      state.builder.mode = pr.mode;
+      renderTabs();
+      renderProcedures();
+      renderBuilder();
+      showToast(`プリセット「${pr.title}」を適用しました`);
+    });
+
+    document.getElementById('targetAppInput').addEventListener('input', e => {
+      state.builder.targetApp = e.target.value;
+      renderBuilder();
+    });
+    document.getElementById('modeSelect').addEventListener('change', e => {
+      state.builder.mode = e.target.value;
+      renderBuilder();
+    });
+    document.getElementById('optCode').addEventListener('change', e => {
+      state.builder.includeCode = e.target.checked;
+      renderBuilder();
+    });
+    document.getElementById('optSpec').addEventListener('change', e => {
+      state.builder.includeSpec = e.target.checked;
+      renderBuilder();
+    });
+    document.getElementById('optJson').addEventListener('change', e => {
+      state.builder.includeJson = e.target.checked;
+      renderBuilder();
+    });
+    document.getElementById('optTests').addEventListener('change', e => {
+      state.builder.includeTests = e.target.checked;
+      renderBuilder();
+    });
+    document.getElementById('customNoteInput').addEventListener('input', e => {
+      state.builder.customNote = e.target.value;
+      renderBuilder();
+    });
+
+    document.getElementById('copyPromptBtn').addEventListener('click', () => {
+      const text = buildPromptText();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('AI依頼プロンプトをクリップボードにコピーしました');
+        }).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    });
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('AI依頼プロンプトをコピーしました');
+      } catch (err) {
+        showToast('コピーに失敗しました。手動で選択してコピーしてください');
+      }
+      document.body.removeChild(ta);
+    }
+
+    document.getElementById('downloadPromptBtn').addEventListener('click', () => {
+      const text = buildPromptText();
+      const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'fit_lab_main_ai_fitting_prompt.md';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('プロンプト（.md）をダウンロードしました');
+    });
+
+    document.getElementById('archiveCatSelect').addEventListener('change', e => {
+      state.archiveCategory = e.target.value;
+      renderArchive();
+    });
+    document.getElementById('archiveSearch').addEventListener('input', e => {
+      state.archiveSearch = e.target.value;
+      renderArchive();
+    });
+
+    renderAll();
+  </script>
+
+<a href="../index.html" style="position:fixed;left:12px;bottom:12px;z-index:9999;background:#0F3D2E;color:#F7F4EE;font-size:13px;font-weight:700;padding:9px 14px;border-radius:999px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25);font-family:sans-serif">← ゴルフサイト目次へ</a>
+</body>
+</html>
