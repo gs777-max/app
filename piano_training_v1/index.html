@@ -324,6 +324,7 @@
           <span id="audioStatusDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
           <span id="audioStatusText">音源待機中</span>
         </span>
+          <span class="text-[9px] font-mono text-ivoryMuted/60" title="アプリの版">v2026.11.23.4</span>
 
         <!-- MIDI Button -->
         <button id="midiBtn" title="USB / Bluetooth MIDIキーボード接続" class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-obsidian hover:bg-ebonyLight border border-white/15 text-ivoryMuted hover:text-ivory transition">
@@ -1232,12 +1233,18 @@
           state.reverb = new Tone.Reverb({ decay: 2.6, wet: state.reverbEnabled ? 0.24 : 0 }).toDestination();
 
           // Warm immediate fallback PolySynth
+          // Beep fix (2026-11-23): piano-like decay envelope (sustain 0) + lowpass, so a fallback
+          // note always fades out within ~2s and can never ring like an electronic beep,
+          // even while the sampler is still loading or if a note-off is ever lost.
           state.fallbackSynth = new Tone.PolySynth(Tone.Synth, {
             maxPolyphony: 24,
             oscillator: { type: 'triangle' },
-            envelope: { attack: 0.008, decay: 0.35, sustain: 0.35, release: 1.4 }
-          }).connect(state.reverb);
-          state.fallbackSynth.volume.value = -6;
+            envelope: { attack: 0.004, decay: 1.6, sustain: 0, release: 0.6 }
+          });
+          const fallbackFilter = new Tone.Filter(2600, 'lowpass');
+          state.fallbackSynth.connect(fallbackFilter);
+          fallbackFilter.connect(state.reverb);
+          state.fallbackSynth.volume.value = -7;
 
           // Metronome clicks
           state.metroHigh = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 2, envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.01 } }).toDestination();
