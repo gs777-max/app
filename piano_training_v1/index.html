@@ -253,25 +253,34 @@
       animation: pulseGold 2s infinite;
     }
   
-    /* ===== スマホ横画面（ランドスケープ）対応 2026-11-22 =====
-       横向き・丈の低い画面では、ヘッダーと操作バーを圧縮し、ステージ幅を
-       画面幅に合わせ、ピアノロールと鍵盤を画面内に収めて
-       スクロールなしで弾けるようにする（縦画面・PCには影響しない） */
-    @media (orientation: landscape) and (max-height: 560px) {
+    /* ===== 案A：固定アプリシェル（〜1024px：スマホ縦・横／タブレット）2026-11-23 =====
+       画面スクロールをなくし、上部（ヘッダー／操作バー／HUD）を圧縮して固定、
+       ピアノロールを伸縮させ、鍵盤を最下部に常時全表示する。全機能は維持する。
+       PC（1025px以上）には影響しない。 */
+    @media (max-width: 1024px) {
       html, body { height: 100vh; height: 100dvh; }
-      body { min-height: 100vh; min-height: 100dvh; overflow: hidden; }
-      header { padding-top: 4px; padding-bottom: 4px; }
-      main { overflow: hidden; }
-      main > div:first-of-type { padding-top: 4px; padding-bottom: 4px; }
-      main > div:first-of-type > div { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; }
-      main > div:first-of-type > div::-webkit-scrollbar { display: none; }
-      #stageScrollWrapper { overflow-x: hidden; }
-      #stageInner { min-width: 100% !important; max-width: 100% !important; }
-      #stageInner > div:first-child { height: 26vh !important; height: 26dvh !important; min-height: 84px; }
-      .piano-container { height: 38vh !important; height: 38dvh !important; min-height: 124px; }
+      body { min-height: 0; height: 100vh; height: 100dvh; overflow: hidden; }
+      header { position: static; flex: none; padding: 6px 10px; }
+      header > div { gap: 6px !important; }
+      body > section { flex: none; padding: 6px 10px; }
+      body > section > div { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; }
+      body > section > div::-webkit-scrollbar { display: none; }
+      body > section > div > div { flex: none; }
+      main { flex: 1 1 auto; min-height: 0; overflow: hidden; justify-content: flex-start; }
+      main > div:first-of-type { flex: none; flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; padding-top: 4px; padding-bottom: 2px; gap: 6px; }
+      main > div:first-of-type::-webkit-scrollbar { display: none; }
+      main > div:first-of-type > div { flex: none; padding: 4px 8px; }
+      main > div:nth-of-type(2) { flex: none; padding-top: 2px; padding-bottom: 2px; }
+      #stageScrollWrapper { flex: 1 1 auto; min-height: 0; overflow-x: hidden; }
+      #stageInner { min-width: 100% !important; max-width: 100% !important; height: 100%; }
+      #stageInner > div:first-child { flex: 1 1 auto; height: auto !important; min-height: 0; }
+      .piano-container { flex: none; height: clamp(118px, 30vh, 300px); height: clamp(118px, 30dvh, 300px); }
       .white-key { padding-bottom: 2px; }
     }
-</style>
+    @media (max-width: 1024px) and (orientation: landscape) {
+      .piano-container { height: clamp(104px, 34vh, 260px); height: clamp(104px, 34dvh, 260px); }
+    }
+    </style>
 </head>
 <body class="min-h-screen flex flex-col bg-obsidian text-ivory">
 
