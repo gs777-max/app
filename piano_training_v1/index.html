@@ -1316,6 +1316,27 @@
         } catch (e) { /* safe ignore */ }
       }
 
+      // Stuck-note fix (2026-11-23): safety net so a note can never ring forever.
+      const noteSafetyTimers = new Map();
+      function releaseAllUserNotes() {
+        [...state.activeNotes.entries()].forEach(([m, a]) => {
+          if (a && a.source === 'user') handleUserNoteOff(m);
+        });
+      }
+      function panicReleaseAll() {
+        try { if (state.sampler) state.sampler.releaseAll(Tone.now()); } catch (e) {}
+        try { if (state.fallbackSynth) state.fallbackSynth.releaseAll(Tone.now()); } catch (e) {}
+        state.sustainedNotes.clear();
+        [...state.activeNotes.keys()].forEach(m => {
+          setKeyVisual(m, 'active-user', false);
+          setKeyVisual(m, 'active-rh', false);
+          setKeyVisual(m, 'active-lh', false);
+        });
+        state.activeNotes.clear();
+        noteSafetyTimers.forEach(t => clearTimeout(t));
+        noteSafetyTimers.clear();
+      }
+
       function setSustainPedal(isDown) {
         state.sustainOn = isDown;
         const ind = document.getElementById('sustainIndicator');
@@ -1458,6 +1479,8 @@
 
         playPianoNoteOn(midi, velocity);
         state.activeNotes.set(midi, { source: 'user', pressTime: performance.now(), pressBeat: state.currentBeat, vel: velocity });
+        if (noteSafetyTimers.has(midi)) clearTimeout(noteSafetyTimers.get(midi));
+        noteSafetyTimers.set(midi, setTimeout(() => { if (state.activeNotes.has(midi)) handleUserNoteOff(midi); }, 5000));
         setKeyVisual(midi, 'active-user', true);
 
         // Spawn golden sparkle at hit line
@@ -1471,6 +1494,7 @@
       }
 
       function handleUserNoteOff(midi) {
+        if (noteSafetyTimers.has(midi)) { clearTimeout(noteSafetyTimers.get(midi)); noteSafetyTimers.delete(midi); }
         const active = state.activeNotes.get(midi);
         if (active && active.source === 'user') {
           // Record release beat for legato/articulation evaluation
@@ -1650,6 +1674,7 @@
         state.isPlaying = false;
         state.isDemo = false;
         stopAllAutoNotes();
+        panicReleaseAll(); // Stuck-note fix: Stop must always silence every note
         // P0 fix (2026-11-22): keep the finished performance so 採点・講評 still works after Stop
         const sess = state.session;
         const hasActivity = sess && (sess.wrongNotes.length > 0 || sess.noteStates.some(ns => ns.hit));
@@ -2587,6 +2612,11 @@ ${JSON.stringify(state.lastEvalSummary, null, 2)}`;
       function initEventListeners() {
         // Sound fix (2026-11-22): unlock audio on the very first tap anywhere; audio badge doubles as a sound-test button
         window.addEventListener('pointerdown', () => { ensureAudioStarted(); }, { once: true });
+        // Stuck-note fix (2026-11-23): global release nets for missed per-key note-off events
+        window.addEventListener('touchend', (e) => { if (e.touches && e.touches.length === 0) releaseAllUserNotes(); });
+        window.addEventListener('touchcancel', () => releaseAllUserNotes());
+        window.addEventListener('mouseup', () => releaseAllUserNotes());
+        window.addEventListener('blur', () => panicReleaseAll());
         ['audioStatusDot', 'audioStatusText'].forEach(id => {
           const el = document.getElementById(id);
           if (!el) return;
