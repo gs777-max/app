@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FIT LAB v4.0.10 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ×ボール）</title>
+<title>FIT LAB v4.0.11 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ×ボール）</title>
 <meta name="description" content="絵を選ぶだけ。あなたの振りに合うドライバー（ヘッド14×シャフト115×グリップ19×ボール20）を物理アルゴリズムと2系統因果ロジックツリーで総合診断し、ベスト10でお渡しします。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -394,7 +394,7 @@ footer b{color:var(--ink2)}
 <header class="masthead">
   <div class="wrap masthead-in">
     <div class="brand">FIT LAB <span>— Driver Fitting</span></div>
-    <div class="masthead-note">2026.11 最新版 v4.0.10 ・ <b>ヘッド14 / シャフト115 / グリップ19 / ボール20</b>を収録</div>
+    <div class="masthead-note">2026.11 最新版 v4.0.11 ・ <b>ヘッド14 / シャフト115 / グリップ19 / ボール20</b>を収録</div>
     <span class="masthead-pill">診断は無料</span>
   </div>
 </header>
@@ -403,7 +403,7 @@ footer b{color:var(--ink2)}
 
   <!-- ================= HERO ================= -->
   <section class="hero">
-    <div class="kicker">Driver Total Fitting v4.0.10 · Head × Shaft × Grip × Ball Physics Engine</div>
+    <div class="kicker">Driver Total Fitting v4.0.11 · Head × Shaft × Grip × Ball Physics Engine</div>
     <h1>絵を選ぶだけ。<br>あなたの振りに合う<em>ドライバー</em>を、物理で選ぶ。</h1>
     <p class="lede">計測器の数値がなくても大丈夫です。普段の球の高さと球筋を絵で選ぶだけで、<b>ヘッド×シャフト×グリップ×ボール（コンプレッション・スピン・弾道窓）</b>まで4ギア一気通貫で物理演算し、トータル最適セッティングをベスト10でお渡しします。</p>
     <div class="hero-stats">
@@ -1056,7 +1056,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Total Fitting v4.0.10 (Head × Shaft × Grip × Ball)</b><br>
+<b>FIT LAB — Driver Total Fitting v4.0.11 (Head × Shaft × Grip × Ball)</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
@@ -2488,7 +2488,7 @@ footer b{color:var(--ink2)}
       });
 
       renderTop10(top10, { dplane, spinDiagnosis, idealShaftWeight, effectiveHs });
-      renderSensitivity(top10[0], { antiLeftLevel, need10kMoi, spinAction, effectiveHs });
+      renderSensitivity(top10[0], { antiLeftLevel, need10kMoi, spinAction, effectiveHs, recLength });
       renderDiagnosis({ effectiveHs, trueCarry, trueRoll, idealDriverTotalWeight, idealShaftWeight, targetCpm, maxTorque, dplane, optLaunch, optSpin, spinDiagnosis, need10kMoi }, top10[0], { antiLeftLevel, spinAction, need10kMoi });
     }
 
@@ -2796,6 +2796,15 @@ footer b{color:var(--ink2)}
       const kickAlt = kickNow.includes('元') ? '中元調子（Diamana PD / TOUR AD VF / VENTUS TR BLUE）'
         : (kickNow.includes('先') ? '中調子（TOUR AD GC / SPEEDER NX VIOLET）' : '元調子（VENTUS BLACK / Diamana WB）');
 
+      // v4.0.11: spec §2-2 route ② — HS 44m/s+ low-heel hooker gets the forced
+      // prescription (short length + flat lie + shallow-forward CG head + CB or
+      // ultra-low-torque tip-stiff shaft) instead of the generic CB line.
+      // Route-② length is the engine's own recLength (45.0 / 45.25 inch).
+      const isRoute2 = ctx.effectiveHs >= 44 && state.impactChoice === 'low_heel' && ctx.antiLeftLevel >= 1;
+      const cbLine = isRoute2
+        ? `<p class="text-slate-300"><strong class="text-white">・【仕様書 §2-2 ルート②】HS 44m/s以上のローヒール・フッカー対策：</strong> クラブ長を ${ctx.recLength}inch へ短尺化し、スリーブをフラットライに設定。浅・前重心ヘッドで縦ギア効果のスピン増を抑え、カウンターバランス（TENSEI Pro Orange 1K等）または超低トルク・先端超高剛性シャフト（VENTUS BLACK／Diamana PD・WB／TOUR AD VF等）でトゥダウン変形 δ_toe を抑える。</p>`
+        : `<p class="text-slate-300"><strong class="text-white">・カウンターバランス化（TENSEI Pro Orange 1K等）：</strong> ヘッドのトゥダウン変形 δ_toe を抑え、ローヒール打点が出にくくなる。</p>`;
+
       const container = document.getElementById('sensitivity-container');
       container.innerHTML = `
         <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
@@ -2813,7 +2822,7 @@ footer b{color:var(--ink2)}
         <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
           <div class="font-bold text-amber-300 text-sm">Test C：キックポイント（調子）のみ変えた場合（現在 ${kickNow}）</div>
           <p class="text-slate-300"><strong class="text-white">・${kickNow} → ${kickAlt.split('（')[0]}：</strong> 切り返しの「間（タイミング）」とトゥダウン量が変化。ベタ足・強振時に手元が硬すぎると感じたら ${kickAlt} へ変えると、タイミングが取りやすくなる。</p>
-          <p class="text-slate-300"><strong class="text-white">・カウンターバランス化（TENSEI Pro Orange 1K等）：</strong> ヘッドのトゥダウン変形 δ_toe を抑え、ローヒール打点が出にくくなる。</p>
+          ${cbLine}
         </div>
       `;
     }
