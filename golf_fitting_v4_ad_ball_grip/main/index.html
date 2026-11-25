@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FIT LAB v4.0.11 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ×ボール）</title>
+<title>FIT LAB v4.0.14 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ×ボール）</title>
 <meta name="description" content="絵を選ぶだけ。あなたの振りに合うドライバー（ヘッド14×シャフト115×グリップ19×ボール20）を物理アルゴリズムと2系統因果ロジックツリーで総合診断し、ベスト10でお渡しします。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -216,6 +216,11 @@ img,svg{max-width:100%}
 .diag-prob.ok .no{background:var(--green);color:#F6F1E7}
 .diag-prob.ok h3{color:var(--green)}
 .diag-prob.ok .val{color:var(--green)}
+/* v4.0.13: spec §3-2 quadrant summary row (brass-tinted, distinct from problems/OK) */
+.diag-prob.quad{background:var(--brass-soft);border-color:#D9C08A}
+.diag-prob.quad .no{background:var(--brass);color:#1A2420}
+.diag-prob.quad h3{color:var(--brass-dark)}
+.diag-prob.quad .val{color:var(--brass-dark)}
 .diag-panel{background:#0F1B16;color:#F6F1E7;border-radius:16px;padding:20px 18px;margin:14px 0 8px}
 .diag-panel h3{font-size:18px;margin:0 0 4px;color:#fff}
 .diag-panel .sub{font-size:13px;color:#B9C4BC;margin:0 0 8px;line-height:1.7}
@@ -394,7 +399,7 @@ footer b{color:var(--ink2)}
 <header class="masthead">
   <div class="wrap masthead-in">
     <div class="brand">FIT LAB <span>— Driver Fitting</span></div>
-    <div class="masthead-note">2026.11 最新版 v4.0.11 ・ <b>ヘッド14 / シャフト115 / グリップ19 / ボール20</b>を収録</div>
+    <div class="masthead-note">2026.11 最新版 v4.0.14 ・ <b>ヘッド14 / シャフト115 / グリップ19 / ボール20</b>を収録</div>
     <span class="masthead-pill">診断は無料</span>
   </div>
 </header>
@@ -403,7 +408,7 @@ footer b{color:var(--ink2)}
 
   <!-- ================= HERO ================= -->
   <section class="hero">
-    <div class="kicker">Driver Total Fitting v4.0.11 · Head × Shaft × Grip × Ball Physics Engine</div>
+    <div class="kicker">Driver Total Fitting v4.0.14 · Head × Shaft × Grip × Ball Physics Engine</div>
     <h1>絵を選ぶだけ。<br>あなたの振りに合う<em>ドライバー</em>を、物理で選ぶ。</h1>
     <p class="lede">計測器の数値がなくても大丈夫です。普段の球の高さと球筋を絵で選ぶだけで、<b>ヘッド×シャフト×グリップ×ボール（コンプレッション・スピン・弾道窓）</b>まで4ギア一気通貫で物理演算し、トータル最適セッティングをベスト10でお渡しします。</p>
     <div class="hero-stats">
@@ -1056,7 +1061,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Total Fitting v4.0.11 (Head × Shaft × Grip × Ball)</b><br>
+<b>FIT LAB — Driver Total Fitting v4.0.14 (Head × Shaft × Grip × Ball)</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
@@ -2574,8 +2579,25 @@ footer b{color:var(--ink2)}
           value: 'フェース角が ' + mag + '° 開いている' });
       }
       const imp = state.impactChoice;
+      // v4.0.14: spec §2-2 low-heel two-route split — the mechanism differs
+      // by route (same discriminator as Test C in v4.0.11/v4.0.12: HS ≥44 +
+      // hooker = route ②, HS ≤42 + non-hooker = route ①). The old generic
+      // "スピン増" line was wrong for route ① slicers (heel rub costs ball
+      // speed + slice, per the spec's own contradiction note) and covered
+      // only half of route ② (spin-up OR tip-loss + closed-face low
+      // pull-hook). HS 43 and the other in-between cases keep the generic
+      // line. The row is a problem row (counted in the dashboard), unlike
+      // the §3-2 quadrant summary row. Prescription stays in Test C (Pro).
+      const isRoute2 = data.effectiveHs >= 44 && imp === 'low_heel' && ctx.antiLeftLevel >= 1;
+      const isRoute1 = data.effectiveHs <= 42 && imp === 'low_heel' && ctx.antiLeftLevel === 0;
       if (imp === 'low_heel') {
-        problems.push({ title: '打点がロー・ヒール（下・根元）', sev: '重度',
+        problems.push(isRoute2 ? { title: '打点がロー・ヒール（下・根元） <span class="chip amber">§2-2 ルート②</span>', sev: '重度',
+          desc: 'ハードヒッターのローヒール打点：遠心力によるトゥダウン変形と手元浮きでヒール下に当たり、縦ギア効果でスピンが増えるか、先端当たり負け＋クローズフェースで低弾道プルフックが出ます。',
+          value: 'スピン増／低弾道プルフックの傾向あり' }
+        : isRoute1 ? { title: '打点がロー・ヒール（下・根元） <span class="chip amber">§2-2 ルート①</span>', sev: '重度',
+          desc: 'アウトサイドインでヒールに擦り当たり、初速低下＋スライスが出やすい打点です。',
+          value: '初速低下＋スライスの傾向あり' }
+        : { title: '打点がロー・ヒール（下・根元）', sev: '重度',
           desc: '縦ギア効果でスピンが増えやすく、トゥダウンも出やすい打点です。',
           value: 'スピン増の傾向あり' });
       } else if (imp === 'high_toe') {
@@ -2597,6 +2619,38 @@ footer b{color:var(--ink2)}
           desc: '黄金目標はスピン ' + data.optSpin + 'rpm。今のスピンは約 ' + estSpin + 'rpmと推定されます。',
           value: '目標 ' + data.optSpin + 'rpm に対し約 ' + (data.optSpin - estSpin) + 'rpm 少ない' });
       }
+      // v4.0.13: spec §3-2 quadrant summary — derive the decision-tree cell
+      // from the engine's own two axes: spin (spinAction) and launch
+      // (heightChoice, with impact as a weak fallback; the height choice is
+      // the user's direct ball-height observation and wins over impact).
+      // A quadrant is shown ONLY when BOTH axes are off-window; both
+      // in-window shows an explicit OK row; one axis off (or height
+      // 'unknown') shows nothing new — the existing spin/launch problem
+      // rows already cover the single-axis case. The row is NOT counted
+      // in the dashboard (it is a summary, not a problem).
+      const QUADRANTS = {
+        I: { label: '象限Ⅰ（高スピン＋低打ち出し）', cause: '動的ロフトに対し入射角が鋭角（ダウンブロー）またはローヒール縦ギア効果', fix: '低・浅重心ヘッド × ロフト角維持（9.5〜10.5°）' },
+        II: { label: '象限Ⅱ（高スピン＋高打ち出し）', cause: 'ロフト過多＋後重心による動的ロフト増大とスピン過多', fix: '浅重心LS × 低ロフト（8〜9°）・前方ウェイト最大化・スリーブでロフト-1.0°' },
+        III: { label: '象限Ⅲ（低スピン＋高打ち出し）', cause: '縦ギア効果等でスピンが減りすぎ、滞空後半で失速懸念', fix: '浅〜中重心 × 低ロフト・ロフトを9.0°または-0.5°立てて打ち出し角を適正化しつつ、高MOIでドロップとチーピンを防止' },
+        IV: { label: '象限Ⅳ（低スピン＋低打ち出し）', cause: 'リアルロフト不足＋ボールを上げる揚力不足', fix: '深重心MAX × 高ロフト・基準ロフト10.5°（または+1.0°）・後方ウェイト増量' }
+      };
+      const spinAxis = ctx.spinAction === 'low_spin' ? 'high' : (ctx.spinAction === 'high_launch' ? 'low' : 'ok');
+      let launchAxis = 'ok', launchWord = '';
+      if (state.heightChoice === 'low') { launchAxis = 'low'; launchWord = '低め'; }
+      else if (state.heightChoice === 'high' || state.heightChoice === 'balloon') { launchAxis = 'high'; launchWord = '高め'; }
+      else if (state.heightChoice === 'unknown') { launchAxis = 'unknown'; }
+      else if (imp === 'low_heel') { launchAxis = 'low'; launchWord = '低め'; }
+      else if (imp === 'high_toe') { launchAxis = 'high'; launchWord = '高め'; }
+      let quadrant = null;
+      if (spinAxis === 'high' && launchAxis === 'low') quadrant = QUADRANTS.I;
+      else if (spinAxis === 'high' && launchAxis === 'high') quadrant = QUADRANTS.II;
+      else if (spinAxis === 'low' && launchAxis === 'high') quadrant = QUADRANTS.III;
+      else if (spinAxis === 'low' && launchAxis === 'low') quadrant = QUADRANTS.IV;
+      const gapInWindow = spinAxis === 'ok' && launchAxis === 'ok';
+      const quadrantRow = quadrant ? {
+        title: '弾道ギャップ：' + quadrant.label,
+        desc: 'スピン 約' + estSpin + 'rpm（目標 ' + data.optSpin + 'rpm）・打出は' + launchWord + 'の傾向。原因：' + quadrant.cause + '。',
+        value: '対策：' + quadrant.fix } : null;
       problems.push({ title: 'シャフト重量が目標とズレる', sev: '注意',
         desc: '目標は総重量 ' + data.idealDriverTotalWeight + 'g・シャフト ' + data.idealShaftWeight + 'g前後。振動数 ' + data.targetCpm + 'cpm・トルク上限 ' + data.maxTorque + '°が適正です。',
         value: '目標シャフト ' + data.idealShaftWeight + 'g前後' });
@@ -2637,7 +2691,7 @@ footer b{color:var(--ink2)}
       // v4.0.9: engine-derived D-Plane values for the "方向性：問題なし" row.
       const directionOkValue = hasDirectionProblem ? null
         : ('フェース ' + fmt(face) + '° ／ パス ' + fmt(path) + '° ／ Face to Path ' + fmt(f2p) + '°');
-      return { problems, improvements, hasDirectionProblem, directionOkValue };
+      return { problems, improvements, hasDirectionProblem, directionOkValue, quadrantRow, gapInWindow };
     }
 
     function renderDiagnosis(data, top1, ctx) {
@@ -2666,6 +2720,16 @@ footer b{color:var(--ink2)}
     <div class="diag-prob ok">
       <div class="no">✓</div>
       <div><h3>方向性：問題なし <span class="chip ok">OK</span></h3><p>フェース・パスともに真っ直ぐで、左右のミス傾向はありません。方向性は今のままで大丈夫です。</p><p class="val">${d.directionOkValue}</p></div>
+    </div>` : ''}
+    ${d.quadrantRow ? `
+    <div class="diag-prob quad">
+      <div class="no">§</div>
+      <div><h3>${d.quadrantRow.title} <span class="chip amber">§3-2</span></h3><p>${d.quadrantRow.desc}</p><p class="val">${d.quadrantRow.value}</p></div>
+    </div>` : ''}
+    ${d.gapInWindow ? `
+    <div class="diag-prob ok">
+      <div class="no">✓</div>
+      <div><h3>弾道ギャップ：黄金ウィンドウ内 <span class="chip ok">OK</span></h3><p>スピンも打出角も黄金ウィンドウに入っています。弾道ギャップの補正は不要です。</p><p class="val">目標 打出 ${data.optLaunch}°・スピン ${data.optSpin}rpm</p></div>
     </div>` : ''}
     <div class="diag-panel">
       <h3>改善レポート <span style="font-size:13px;color:var(--brass)">Pro 限定</span></h3>
@@ -2801,8 +2865,16 @@ footer b{color:var(--ink2)}
       // ultra-low-torque tip-stiff shaft) instead of the generic CB line.
       // Route-② length is the engine's own recLength (45.0 / 45.25 inch).
       const isRoute2 = ctx.effectiveHs >= 44 && state.impactChoice === 'low_heel' && ctx.antiLeftLevel >= 1;
+      // v4.0.12: spec §2-2 route ① — the mirror case: HS 42m/s or less low-heel
+      // slicer (antiLeftLevel 0, the same hooker/slicer discriminator v4.0.11
+      // used for route ②) gets the short-CG draw-bias + deep/high-MOI head +
+      // mid-tip shaft prescription. HS 43 sits between the spec's two thresholds
+      // (① ≤42, ② ≥44) and keeps the generic line, as do hookers below HS 44.
+      const isRoute1 = ctx.effectiveHs <= 42 && state.impactChoice === 'low_heel' && ctx.antiLeftLevel === 0;
       const cbLine = isRoute2
         ? `<p class="text-slate-300"><strong class="text-white">・【仕様書 §2-2 ルート②】HS 44m/s以上のローヒール・フッカー対策：</strong> クラブ長を ${ctx.recLength}inch へ短尺化し、スリーブをフラットライに設定。浅・前重心ヘッドで縦ギア効果のスピン増を抑え、カウンターバランス（TENSEI Pro Orange 1K等）または超低トルク・先端超高剛性シャフト（VENTUS BLACK／Diamana PD・WB／TOUR AD VF等）でトゥダウン変形 δ_toe を抑える。</p>`
+        : isRoute1
+        ? `<p class="text-slate-300"><strong class="text-white">・【仕様書 §2-2 ルート①】HS 42m/s以下のローヒール・スライサー対策：</strong> 重心距離が短めでフェースが返りやすいヘッドを選び、深重心・高MOIでヒール下の初速ロスを救済。先中〜中調子シャフト（TOUR AD GC／SPEEDER NX VIOLET／VENTUS RED等）で球をつかまえる。</p>`
         : `<p class="text-slate-300"><strong class="text-white">・カウンターバランス化（TENSEI Pro Orange 1K等）：</strong> ヘッドのトゥダウン変形 δ_toe を抑え、ローヒール打点が出にくくなる。</p>`;
 
       const container = document.getElementById('sensitivity-container');
