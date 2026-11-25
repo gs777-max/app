@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FIT LAB v4.0.14 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ×ボール）</title>
+<title>FIT LAB v4.0.15 — ドライバー総合フィッティング（ヘッド×シャフト×グリップ×ボール）</title>
 <meta name="description" content="絵を選ぶだけ。あなたの振りに合うドライバー（ヘッド14×シャフト115×グリップ19×ボール20）を物理アルゴリズムと2系統因果ロジックツリーで総合診断し、ベスト10でお渡しします。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -399,7 +399,7 @@ footer b{color:var(--ink2)}
 <header class="masthead">
   <div class="wrap masthead-in">
     <div class="brand">FIT LAB <span>— Driver Fitting</span></div>
-    <div class="masthead-note">2026.11 最新版 v4.0.14 ・ <b>ヘッド14 / シャフト115 / グリップ19 / ボール20</b>を収録</div>
+    <div class="masthead-note">2026.11 最新版 v4.0.15 ・ <b>ヘッド14 / シャフト115 / グリップ19 / ボール20</b>を収録</div>
     <span class="masthead-pill">診断は無料</span>
   </div>
 </header>
@@ -408,7 +408,7 @@ footer b{color:var(--ink2)}
 
   <!-- ================= HERO ================= -->
   <section class="hero">
-    <div class="kicker">Driver Total Fitting v4.0.14 · Head × Shaft × Grip × Ball Physics Engine</div>
+    <div class="kicker">Driver Total Fitting v4.0.15 · Head × Shaft × Grip × Ball Physics Engine</div>
     <h1>絵を選ぶだけ。<br>あなたの振りに合う<em>ドライバー</em>を、物理で選ぶ。</h1>
     <p class="lede">計測器の数値がなくても大丈夫です。普段の球の高さと球筋を絵で選ぶだけで、<b>ヘッド×シャフト×グリップ×ボール（コンプレッション・スピン・弾道窓）</b>まで4ギア一気通貫で物理演算し、トータル最適セッティングをベスト10でお渡しします。</p>
     <div class="hero-stats">
@@ -1061,7 +1061,7 @@ footer b{color:var(--ink2)}
 </section>
 
 <footer>
-<b>FIT LAB — Driver Total Fitting v4.0.14 (Head × Shaft × Grip × Ball)</b><br>
+<b>FIT LAB — Driver Total Fitting v4.0.15 (Head × Shaft × Grip × Ball)</b><br>
 診断結果は目安であり、購入を保証するものではありません。シャフト・ヘッドの仕様値はメーカー公表値および仕様書の範囲に基づきます。価格は表示していません。購入・試打の前に、必ず取扱店で実打確認をしてください。<br>
 データ：2026年11月時点の各メーカー公表モデル。追加シャフトの一部は仕様書の重量帯・トルク範囲からの代表値です。<br>
 © 2026 FIT LAB
@@ -2254,7 +2254,7 @@ footer b{color:var(--ink2)}
       // -----------------------------------------------------------------------
       // Stage 3: Hybrid Ball-Height + Optimal Launch/Spin Window Decision Tree
       // -----------------------------------------------------------------------
-      const LAUNCH_SPIN_TABLE = [[35, 16.5, 2700], [40, 15.0, 2425], [43, 13.9, 2300], [46, 12.65, 2200], [48, 11.9, 2100], [51, 11.1, 2000]]; // v2.0: 仕様書 §3-1 の6点表（各ウィンドウの中点）
+      const LAUNCH_SPIN_TABLE = [[35, 16.5, 2700, 36, 39], [40, 15.0, 2425, 37, 40], [43, 13.9, 2300, 37, 40], [46, 12.65, 2200, 38, 41], [48, 11.9, 2100, 38, 41], [51, 11.1, 2000, 38, 42]]; // v2.0: 仕様書 §3-1 の6点表（各ウィンドウの中点）。v4.0.15: 理想落下角 θ_land の範囲（下限・上限）も同表から補間する
       const _interpWin = (hs, col) => {
         const t = LAUNCH_SPIN_TABLE;
         if (hs <= t[0][0]) return t[0][col];
@@ -2269,6 +2269,11 @@ footer b{color:var(--ink2)}
       };
       const optLaunch = +_interpWin(effectiveHs, 1).toFixed(1);
       const optSpin = Math.round(_interpWin(effectiveHs, 2));
+      // v4.0.15: spec §3-1 ideal landing angle θ_land — shown as a target only
+      // (the engine does not compute the user's actual landing angle).
+      const optLandLo = Math.round(_interpWin(effectiveHs, 3));
+      const optLandHi = Math.round(_interpWin(effectiveHs, 4));
+      const optLand = optLandLo + '〜' + optLandHi + '°';
 
       let spinDiagnosis = '適正スピンウィンドウ';
       let spinAction = 'balanced'; // low_spin, balanced, high_launch
@@ -2486,6 +2491,7 @@ footer b{color:var(--ink2)}
         dplane,
         optLaunch,
         optSpin,
+        optLand,
         spinDiagnosis,
         need10kMoi,
         topGrip: top10[0] ? top10[0].gripBest : null,
@@ -2494,7 +2500,7 @@ footer b{color:var(--ink2)}
 
       renderTop10(top10, { dplane, spinDiagnosis, idealShaftWeight, effectiveHs });
       renderSensitivity(top10[0], { antiLeftLevel, need10kMoi, spinAction, effectiveHs, recLength });
-      renderDiagnosis({ effectiveHs, trueCarry, trueRoll, idealDriverTotalWeight, idealShaftWeight, targetCpm, maxTorque, dplane, optLaunch, optSpin, spinDiagnosis, need10kMoi }, top10[0], { antiLeftLevel, spinAction, need10kMoi });
+      renderDiagnosis({ effectiveHs, trueCarry, trueRoll, idealDriverTotalWeight, idealShaftWeight, targetCpm, maxTorque, dplane, optLaunch, optSpin, optLand, spinDiagnosis, need10kMoi }, top10[0], { antiLeftLevel, spinAction, need10kMoi });
     }
 
     // =========================================================================
@@ -2535,7 +2541,7 @@ footer b{color:var(--ink2)}
         <div class="p-4 rounded-xl bg-slate-900/95 border border-slate-800 space-y-1.5">
           <div class="text-[11px] font-bold text-amber-400 uppercase">Stage 3: 黄金ウィンドウ ＆ 弾道効率</div>
           <div class="text-sm font-extrabold text-white">${data.spinDiagnosis}</div>
-          <div class="text-xs text-slate-300">黄金目標: 打出 <strong class="text-amber-300">${data.optLaunch}°</strong> ／ スピン <strong class="text-amber-300">${data.optSpin} rpm</strong></div>
+          <div class="text-xs text-slate-300">黄金目標: 打出 <strong class="text-amber-300">${data.optLaunch}°</strong> ／ スピン <strong class="text-amber-300">${data.optSpin} rpm</strong> ／ 落下角 <strong class="text-amber-300">${data.optLand}</strong></div>
           <div class="text-[11px] text-slate-400">実効HS ${data.effectiveHs.toFixed(1)}m/s ｜ 推定キャリー ${data.trueCarry}y (ラン ${data.trueRoll}y)</div>
           ${data.topGrip ? `<div class="text-[11px] text-emerald-300">グリップ連動 [${data.topGrip.firedRules.slice(0,4).join('/')}]: 右手計${data.topGrip.totalRightEq}巻相当・${data.topGrip.wrapMethodName}</div>` : ''}
           ${data.topBall ? `<div class="text-[11px] text-cyan-300">ボール連動 [${data.topBall.firedRules.slice(0,4).join('/')}]: ${data.topBall.ball.brand} ${data.topBall.ball.model} (硬度${data.topBall.ball.comp}/DR:${data.topBall.ball.drSpinLabel})</div>` : ''}
@@ -2649,7 +2655,7 @@ footer b{color:var(--ink2)}
       const gapInWindow = spinAxis === 'ok' && launchAxis === 'ok';
       const quadrantRow = quadrant ? {
         title: '弾道ギャップ：' + quadrant.label,
-        desc: 'スピン 約' + estSpin + 'rpm（目標 ' + data.optSpin + 'rpm）・打出は' + launchWord + 'の傾向。原因：' + quadrant.cause + '。',
+        desc: 'スピン 約' + estSpin + 'rpm（目標 ' + data.optSpin + 'rpm）・打出は' + launchWord + 'の傾向。理想落下角 ' + data.optLand + '。原因：' + quadrant.cause + '。',
         value: '対策：' + quadrant.fix } : null;
       problems.push({ title: 'シャフト重量が目標とズレる', sev: '注意',
         desc: '目標は総重量 ' + data.idealDriverTotalWeight + 'g・シャフト ' + data.idealShaftWeight + 'g前後。振動数 ' + data.targetCpm + 'cpm・トルク上限 ' + data.maxTorque + '°が適正です。',
@@ -2729,7 +2735,7 @@ footer b{color:var(--ink2)}
     ${d.gapInWindow ? `
     <div class="diag-prob ok">
       <div class="no">✓</div>
-      <div><h3>弾道ギャップ：黄金ウィンドウ内 <span class="chip ok">OK</span></h3><p>スピンも打出角も黄金ウィンドウに入っています。弾道ギャップの補正は不要です。</p><p class="val">目標 打出 ${data.optLaunch}°・スピン ${data.optSpin}rpm</p></div>
+      <div><h3>弾道ギャップ：黄金ウィンドウ内 <span class="chip ok">OK</span></h3><p>スピンも打出角も黄金ウィンドウに入っています。弾道ギャップの補正は不要です。</p><p class="val">目標 打出 ${data.optLaunch}°・スピン ${data.optSpin}rpm・落下角 ${data.optLand}</p></div>
     </div>` : ''}
     <div class="diag-panel">
       <h3>改善レポート <span style="font-size:13px;color:var(--brass)">Pro 限定</span></h3>
@@ -3272,7 +3278,7 @@ arc.className = 'traj';
 arc.id = 'top1-traj';
 arc.innerHTML = '<h4>この組み合わせの弾道イメージ</h4>' +
 '<svg viewBox="0 0 340 130" style="width:100%;height:auto;display:block" role="img" aria-label="理想の打ち出し角の弾道イメージ"><line x1="10" y1="112" x2="330" y2="112" stroke="rgba(246,241,231,.5)" stroke-width="2"/><circle cx="16" cy="112" r="4" fill="#B9975B"/><path d="M 16 112 Q 170 ' + (112 - 2 * peak) + ' 324 112" fill="none" stroke="#E9CE8E" stroke-width="3"/><text x="170" y="' + Math.max(14, 112 - 2 * peak - 8) + '" text-anchor="middle" fill="#F6F1E7" font-size="13" font-weight="bold">打ち出し ' + launch + '°</text><text x="330" y="126" text-anchor="end" fill="#B9CDBF" font-size="11">キャリー ' + sum.trueCarry + 'y</text></svg>' +
-'<p>理想ウィンドウは打ち出し ' + sum.optLaunch + '°・スピン ' + sum.optSpin + 'rpm。いまの球の高さと飛距離から、この組み合わせが最も近い弾道になります。</p>';
+'<p>理想ウィンドウは打ち出し ' + sum.optLaunch + '°・スピン ' + sum.optSpin + 'rpm・落下角 ' + sum.optLand + '。いまの球の高さと飛距離から、この組み合わせが最も近い弾道になります。</p>';
 cards[0].appendChild(arc);
 }
 }
