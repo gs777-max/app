@@ -299,6 +299,10 @@
     #shot-result-hero .hero-card { background: rgba(16,18,22,0.86); backdrop-filter: blur(6px); border: 1px solid rgba(255,98,26,0.55); border-radius: 14px; padding: 8px 14px 9px; box-shadow: 0 8px 28px rgba(0,0,0,0.55); text-align: left; }
     #shot-result-hero.hero-pop .hero-card { animation: hero-pop 0.45s ease; }
     @keyframes hero-pop { 0% { transform: scale(1.07); } 100% { transform: scale(1); } }
+    /* Mobile-only weather failure notice inside the hero card (desktop uses the header badge, hidden lg:flex) */
+    #hero-weather { display: none; }
+    #hero-weather.show { display: block; }
+    @media (min-width: 1024px) { #hero-weather.show { display: none; } }
     @keyframes fab-pulse { 0% { box-shadow: 0 4px 16px rgba(255,98,26,0.55), 0 0 0 0 rgba(255,98,26,0.45); } 70% { box-shadow: 0 4px 16px rgba(255,98,26,0.55), 0 0 0 14px rgba(255,98,26,0); } 100% { box-shadow: 0 4px 16px rgba(255,98,26,0.55), 0 0 0 0 rgba(255,98,26,0); } }
     /* ---- Mobile quick-adjust bar (hidden on desktop) ---- */
     #quick-bar { display: none; }
@@ -884,6 +888,7 @@
             <div class="text-[11px] font-bold text-gray-300 tracking-widest">キャリー</div>
             <div class="font-num leading-none"><span id="hero-carry" class="text-[40px] font-extrabold text-white">222.2</span><span class="text-lg font-bold text-gray-200 ml-1">yds</span></div>
             <div class="text-[12px] font-bold text-gray-200">トータル <span id="hero-total" class="text-[#ff7a33]">236.0</span> yds ・ <span id="hero-shape">ストレート打出・直進弾道</span></div>
+            <div id="hero-weather" class="text-[11px] font-bold text-amber-300">⚠ 気象取得失敗 — 直前の値で計算中</div>
           </div>
         </div>
 
@@ -1162,6 +1167,7 @@
       airDensity: 1.204,
       windSpeedMs: 0.0,
       windDirDeg: 180,
+      weatherFailed: false,
 
       layoutMode: 'pro_split',
       impactViewMode: '2d',
@@ -2477,6 +2483,7 @@
         state.altitudeM = 0;
         state.airDensity = 1.225;
         state.windSpeedMs = 0.0;
+        state.weatherFailed = false;
         updateWeatherBadges();
         recalculateAndRefreshUI(true);
         return;
@@ -2485,7 +2492,8 @@
       if (val === 'gps' && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => fetchMeteoCoords(pos.coords.latitude, pos.coords.longitude, 30),
-          () => fetchMeteoCoords(35.915, 139.406, 45)
+          // GPS拒否時は霞ヶ関CCの気象でフォールバックするため、選択表示も霞ヶ関CCに戻して取得元を正直に表示する
+          () => { document.getElementById('course-weather-select').value = '35.915,139.406,45'; fetchMeteoCoords(35.915, 139.406, 45); }
         );
         return;
       }
@@ -2497,6 +2505,7 @@
     async function fetchMeteoCoords(lat, lon, fallbackAlt) {
       try {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,surface_pressure,wind_speed_10m,wind_direction_10m`);
+        if (!res.ok) throw new Error('Open-Meteo HTTP ' + res.status);
         const data = await res.json();
         const cur = data.current || {};
         state.tempC = typeof cur.temperature_2m === 'number' ? cur.temperature_2m : 20.0;
@@ -2505,7 +2514,10 @@
         state.windSpeedMs = typeof cur.wind_speed_10m === 'number' ? +(cur.wind_speed_10m / 3.6).toFixed(1) : 2.0;
         state.windDirDeg = typeof cur.wind_direction_10m === 'number' ? Math.round(cur.wind_direction_10m) : 180;
         state.airDensity = +((state.pressureHpa * 100) / (287.058 * (state.tempC + 273.15))).toFixed(3);
+        state.weatherFailed = false;
       } catch (e) {
+        // 取得失敗時は直前の値で計算を続けるが、バッジで失敗が分かるようにする
+        state.weatherFailed = true;
         state.altitudeM = fallbackAlt;
         state.pressureHpa = +(1013.25 * Math.pow(1 - (0.0065 * fallbackAlt) / 288.15, 5.255)).toFixed(1);
         state.airDensity = +((state.pressureHpa * 100) / (287.058 * (state.tempC + 273.15))).toFixed(3);
@@ -2517,6 +2529,16 @@
     }
 
     function updateWeatherBadges() {
+      // モバイル用：失敗時のみヒーロー内に注意表示（デスクトップはヘッダーバッジで表示）
+      document.getElementById('hero-weather').classList.toggle('show', state.weatherFailed);
+      if (state.weatherFailed) {
+        document.getElementById('meteo-temp').textContent = '気象取得失敗';
+        document.getElementById('meteo-rho').textContent = 'ρ —';
+        document.getElementById('meteo-wind').textContent = '風 —';
+        document.getElementById('lbl-wind-spd').textContent = `${state.windSpeedMs.toFixed(1)} m/s`;
+        document.getElementById('lbl-wind-dir').textContent = `${state.windDirDeg}°`;
+        return;
+      }
       document.getElementById('meteo-temp').textContent = `${state.tempC.toFixed(1)}°C`;
       document.getElementById('meteo-rho').textContent = `ρ ${state.airDensity.toFixed(3)}`;
       document.getElementById('meteo-wind').textContent = `風 ${state.windSpeedMs.toFixed(1)}m/s`;
@@ -3463,7 +3485,7 @@
       const color = SHOT_COLORS[state.shotHistory.length % SHOT_COLORS.length];
       state.shotHistory.unshift({
         id: Date.now(),
-        label: `ショット #${state.shotHistory.length + 1} (${shot.carryYards.toFixed(0)}y)`,
+        label: `ショット #${state.shotHistory.length + 1}`,
         params: {
           club: state.club, chs: state.chs, aoa: state.aoa, clubPath: state.clubPath,
           faceAngle: state.faceAngle, dynamicLoft: state.dynamicLoft, dynamicLie: state.dynamicLie,
