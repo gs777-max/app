@@ -1486,10 +1486,10 @@
       <div class="hud-value" id="hud-elev-diff">±0.0m</div>
       <div class="hud-sub" id="hud-elev-yards">(±0y)</div>
     </div>
-    <div class="hud-card">
+    <div class="hud-card" id="wind-card" onclick="retryWindFetch()" title="タップで風を再取得" style="pointer-events:auto; cursor:pointer;">
       <div class="hud-label">💨 風</div>
-      <div class="hud-value amber" id="wind-spd-val" style="font-size:18px;">2.5m</div>
-      <div class="hud-sub" id="wind-relative-detail" style="font-size:11px; white-space:nowrap;">向かい風</div>
+      <div class="hud-value amber" id="wind-spd-val" style="font-size:18px;">—</div>
+      <div class="hud-sub" id="wind-relative-detail" style="font-size:11px; white-space:nowrap;">—</div>
       <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
         <span id="wind-arrow" style="display:inline-block; font-size:16px; line-height:1; color:#b45309; transition:transform .3s;">⬆</span>
         <span id="wind-fresh" style="font-size:10px; color:var(--text-muted); white-space:nowrap;">未取得</span>
@@ -2481,7 +2481,9 @@
 
     let userElevation = 15.0;
     let pinElevation = 18.2;
-    let windInfo = { speed: 2.8, direction: 45, gust: 4.1, temp: 21.0 };
+    // ★ 風は未取得のままプレースホルダー値を置かない。取得前は speed/direction/temp ともに null で、
+    //   HUD は「—」表示、playsLike・シミュレーションは風補正なし（実測に見える偽の数値を出さない）。
+    let windInfo = { speed: null, direction: null, gust: null, temp: null };
     let currentSunsetDate = null;
     let elevationCache = new Map();
     let lastManualTapTime = 0;
@@ -2928,8 +2930,10 @@
     //   成功時は HUD を即座に更新して表示へ反映する。
     let windFetchRetries = 0;
     let windRetryTimer = null;
+    let windFetching = false;
     async function fetchRealWeather(lat, lon, _attempt) {
       const attempt = _attempt || 0;
+      windFetching = true;
       try {
         const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
         const timer = ctrl ? setTimeout(() => { try { ctrl.abort(); } catch (e) {} }, 10000) : null;
@@ -2968,7 +2972,27 @@
             fetchRealWeather(cLat, cLon, attempt + 1);
           }, delay);
         }
+      } finally {
+        windFetching = false;
+        // ★ 取得終了時に HUD を再描画する：失敗時は「取得失敗」へ戻す
+        //   （手動再取得で表示した「再取得中…」が残り続けるのを防ぐ）。
+        //   成功時は try 内で既に更新済みのため重複描画は無害。
+        if (typeof updateHUDAndSimulation === 'function') { try { updateHUDAndSimulation(); } catch (e) {} }
       }
+    }
+
+    // ★ 風カードのタップで手動再取得：全リトライ失敗後は次の30分自動取得まで
+    //   待つしかなかったため、タップで即座に再取得できるようにする。
+    //   取得中の連打は無視し、pending のリトライタイマーは破棄して attempt 0 から開始する。
+    function retryWindFetch() {
+      if (typeof currentCourse === 'undefined' || !currentCourse) { showCalibrationToast('コースが選択されていません'); return; }
+      if (windFetching) return;
+      if (windRetryTimer) { clearTimeout(windRetryTimer); windRetryTimer = null; }
+      windInfo.failed = false;
+      const wFresh = document.getElementById('wind-fresh');
+      if (wFresh) wFresh.innerText = '再取得中…';
+      showCalibrationToast('💨 風を再取得中…');
+      fetchRealWeather(currentCourse.lat, currentCourse.lon, 0);
     }
 
     async function fetchSunsetTime(lat, lon) {
@@ -4210,7 +4234,8 @@
       const playsLike = plEl ? plEl.innerText.replace('y', '') : '';
       const relWind = document.getElementById('wind-relative-detail')?.innerText || '';
       if (playsLike) {
-        text += `風は${relWind.replace(/[()]/g, '')}、PlaysLike推奨${playsLike}ヤードです。`;
+        // ★ 風未取得（表示「—」）の間は風の文言を入れない（実測に見える偽の読み上げをしない）。
+        text += (relWind && relWind !== '—') ? `風は${relWind.replace(/[()]/g, '')}、PlaysLike推奨${playsLike}ヤードです。` : `PlaysLike推奨${playsLike}ヤードです。`;
       }
 
       const targetDist = parseInt(playsLike, 10) || 150;
@@ -4616,14 +4641,16 @@
       } catch (e) {}
 
       const targetBearing = calcBearing(userCoord, currentPinCoord);
-      const relAngle = ((windInfo.direction - targetBearing + 540) % 360) - 180;
+      // ★ 風未取得（speed/direction が null）の間は風補正を適用しない。headwind/crosswind は 0。
+      const windKnown = Number.isFinite(windInfo.speed) && Number.isFinite(windInfo.direction);
+      const relAngle = windKnown ? ((windInfo.direction - targetBearing + 540) % 360) - 180 : 0;
       const rad = relAngle * Math.PI / 180;
 
-      const headwind = Math.cos(rad) * windInfo.speed;
-      const crosswind = Math.sin(rad) * windInfo.speed;
+      const headwind = windKnown ? Math.cos(rad) * windInfo.speed : 0;
+      const crosswind = windKnown ? Math.sin(rad) * windInfo.speed : 0;
 
       const wspdEl = document.getElementById('wind-spd-val');
-      if (wspdEl) wspdEl.innerText = `${windInfo.speed.toFixed(1)}m`;
+      if (wspdEl) wspdEl.innerText = windKnown ? `${windInfo.speed.toFixed(1)}m` : '—';
 
       let windText = "穏やか";
       const crossDir = crosswind > 0 ? "右から" : "左から";
@@ -4636,17 +4663,20 @@
       }
 
       const wrelEl = document.getElementById('wind-relative-detail');
-      if (wrelEl) wrelEl.innerText = `(${windText})`;
+      // ★ 取得失敗時は相対風も「—」（古い風向を現行値として残さない）。
+      if (wrelEl) wrelEl.innerText = (windKnown && !windInfo.failed) ? `(${windText})` : '—';
 
       // ★ 風の相対矢印 (打つ方向に対して風が吹いていく向き) と鮮度・強さの色分け
+      //   風未取得の間は矢印の向き・色を変えない（初期表示のまま）。
       const wArrow = document.getElementById('wind-arrow');
-      if (wArrow) {
+      if (wArrow && windKnown) {
         wArrow.style.transform = `rotate(${relAngle + 180}deg)`;
         wArrow.style.color = windInfo.speed >= 8 ? '#dc2626' : (windInfo.speed >= 5 ? '#b45309' : '#6b6b58');
       }
       const wFresh = document.getElementById('wind-fresh');
       if (wFresh) {
-        if (windInfo.failed) wFresh.innerText = '取得失敗';
+        if (windFetching) wFresh.innerText = '再取得中…';
+        else if (windInfo.failed) wFresh.innerText = '取得失敗';
         else if (windInfo.fetchedAt) { const d = new Date(windInfo.fetchedAt); wFresh.innerText = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}取得`; }
       }
       if (wspdEl && windInfo.failed) wspdEl.innerText = '—';
