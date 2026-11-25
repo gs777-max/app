@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   SEAT WARS ― 満員電車椅子取合戦 (単一ファイル版)
-  Version: 1.5.1
+  Version: 1.5.2
   Created: 20261107
   Three.js (CDN) によるブラウザ3D FPS。音楽は Internet Archive API から情景に合うクラシックをランダム再生。
   v1.1.0 (20261107): 路線・乗車駅セレクト、十字キー/Enter操作、スマホのタッチ操作（ジョイスティック/視点ドラッグ/ボタン）を復活。
@@ -17,6 +17,7 @@
   v1.4.3 (20261119): UI大刷新（ゼロベース）— ガラスモーフィズムを全廃し、鉄道運行ボード風のフラット＆ソリッドなデザインシステムに。信号イエローを主アクセントに、スタート画面をセクション型レイアウトに再設計、HUD（駅名ボード・目的ストリップ・警告プロンプト・スキルバー・ボタン群）を刷新。操作ルール・ゲームロジック・3Dシーンは不変。
   v1.5.0 (20261119): 大改善 — スマホの視認性・操作性・没入性をマネタイズ水準へ。3Dシーンの明るさ（環境光・ヘッドランプ・床/バラスト/トンネル壁の明度）、吊り下げ駅名標、ホーム備品（ベンチ・自販機・ポスター・時計）、NPCの徘徊・首振り、窓外景色の到着前非表示、ジョイスティックの応答カーブと振動フィードバック、スキルボタンの選択・クールダウン表示、ブレーキ音。ゲームバランス・操作ルール・RUSH HOUR OPSデザインは不変。
   v1.5.1 (20261121): NPCの個性と混雑の自然さ＋フェーズ①バナーの重なり修正 — NPCの体型・服装色に個体差（全7タイプがランダム出現、身長・体幅・スーツ/肌/髪色を個体ごとに jitter）、ホーム上のNPC同士が重ならないパーソナルスペース（徘徊NPCを押し出し、整列・仁王立ちは不動）、吊り下げ駅名標を下げて目的ストリップとの重なりを解消。ゲームバランス・操作ルール・RUSH HOUR OPSデザインは不変。
+  v1.5.2 (20261125): トンネル照明の灯具化 — ホームからベージュの長方形に見えていたトンネル照明に、暗色の筐体枠・壁への光の滲み・取付ブラケット・配線ダクトを追加し、照明器具として読めるようにした。発光面の位置・サイズは不変。ゲームバランス・操作ルール・RUSH HOUR OPSデザインは不変。
 -->
 <html lang="ja">
 <head>
@@ -24,7 +25,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SEAT WARS ― 満員電車椅子取合戦</title>
 <style>
-  /* ============ SEAT WARS v1.5.1 — RUSH HOUR OPS ============
+  /* ============ SEAT WARS v1.5.2 — RUSH HOUR OPS ============
      ゼロベース刷新。旧ガラスモーフィズムを全廃し、東京の鉄道運行ボードを
      モチーフにしたフラット＆ソリッドなUIに。半透明・ぼかし・グラデーション
      は使わない。面は不透明、角は小さく、影はハードなオフセット。
@@ -188,7 +189,7 @@
     <header class="mast">
       <div class="eyebrow">TOKYO COMMUTER BATTLE<span class="eyebrow-ja">通勤サバイバル</span></div>
       <h1>SEAT WARS</h1>
-      <div class="mast-sub"><span class="jp-title">満員電車椅子取合戦</span><span class="ver-chip" id="verLabel">ver 1.5.1</span></div>
+      <div class="mast-sub"><span class="jp-title">満員電車椅子取合戦</span><span class="ver-chip" id="verLabel">ver 1.5.2</span></div>
       <p class="lede">朝の首都圏。座席は、戦場だ。一人称視点でホームの陣取りから乗車ダッシュ、下車予測の心理戦、そして着席防衛戦を戦い抜き、目的地まで生き延びろ。画面にゲージはない。視界の揺れ・心音・赤い視界が、あなたの状態を物語る。</p>
     </header>
     <section class="howto">
@@ -546,9 +547,19 @@ const _wWallM=new THREE.MeshBasicMaterial({color:0x39434f}); /* v1.5.0: brighter
 const _wBase={light:_wLightM.color.clone(),cool:_wCoolM.color.clone(),slab:_wSlabM.color.clone(),wall:_wWallM.color.clone()};
 const _wItems=[];
 (function(){const back=new THREE.Mesh(new THREE.PlaneGeometry(190,9),_wWallM);back.position.set(0,2.2,-5.2);tunnelG.add(back);
- /* tunnel light strips on the wall, visible above the train roof from the platform */
+ /* v1.5.2: tunnel light fixtures — the bare strips read as beige rectangles from the
+    platform, so each lamp now gets a dark housing frame, a soft glow spill on the
+    wall, a mounting bracket and a shared cable duct along the wall, so they read as
+    tunnel lamps. Positions of the glowing strips themselves are unchanged. */
  const _tunLightM=new THREE.MeshBasicMaterial({color:0xffe9b8});
- for(let x=-24;x<=24;x+=8){const p=new THREE.Mesh(new THREE.PlaneGeometry(2.2,0.35),_tunLightM);p.position.set(x,4.6,-5.15);tunnelG.add(p);}
+ const _tunHouseM=new THREE.MeshBasicMaterial({color:0x23272e}); /* v1.5.2: fixture housing / bracket / duct */
+ const _tunGlowM=new THREE.MeshBasicMaterial({color:0xffe9b8,transparent:true,opacity:0.16,depthWrite:false}); /* v1.5.2: glow spill on the wall */
+ const _tunDuct=new THREE.Mesh(new THREE.BoxGeometry(54,0.12,0.08),_tunHouseM);_tunDuct.position.set(0,5.05,-5.17);tunnelG.add(_tunDuct);
+ for(let x=-24;x<=24;x+=8){
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(2.2,0.35),_tunLightM);p.position.set(x,4.6,-5.14);tunnelG.add(p);
+  const h=new THREE.Mesh(new THREE.BoxGeometry(2.5,0.55,0.06),_tunHouseM);h.position.set(x,4.6,-5.18);tunnelG.add(h);
+  const g=new THREE.Mesh(new THREE.PlaneGeometry(3.2,1.0),_tunGlowM);g.position.set(x,4.6,-5.19);tunnelG.add(g);
+  const b=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.25,0.05),_tunHouseM);b.position.set(x,4.96,-5.17);tunnelG.add(b);}
  for(let i=0;i<26;i++){const kind=i%5;const m=new THREE.Mesh(_wGeo,kind===4?_wSlabM:(kind%2?_wCoolM:_wLightM));
   if(kind===4){m.scale.set(4.5+Math.random()*1.5,3.4,0.4);m.position.set(-85+i*6.8+Math.random()*2,1.9,-3.4);
    const st=new THREE.Mesh(_wGeo,_wStripeM);st.scale.set(0.96,0.09,1.05);st.position.set(0,0.15,0);m.add(st);}
