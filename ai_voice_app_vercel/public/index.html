@@ -19,7 +19,7 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f6b5c'/%3E%3Ccircle cx='26' cy='26' r='9' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M18 44h20a8 8 0 0 0 8-8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preload" as="image" href="./assets/cyber_holo_face.jpg" fetchpriority="high">
-  <title>AIボイス — 日常ではなす相棒 (v3.7.7)</title>
+  <title>AIボイス — 日常ではなす相棒 (v3.8.0)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -681,10 +681,9 @@
         </div>
       </div>
       <div class="partner-list" id="partner-list"></div>
-      <p class="char-soon-note">「近日公開」の3人は写真の差し替え準備中です。用意できしだい選べるようになります。</p>
     </section>
 
-    <p class="fineprint">AIボイス v3.7.7 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
+    <p class="fineprint">AIボイス v3.8.0 — 音声は Google Gemini Live API を使います。会話の内容はあなたの端末と接続先のサービスで処理されます。</p>
   </main>
 
   <!-- 親指ドック -->
@@ -1015,6 +1014,33 @@
           speed: 1.0, pitch: 0,
           personality: '30代の男性。落ち着いていて頼れる、日常の会話パートナー。',
           systemPrompt: 'あなたは30代の男性「レン」です。日常の会話パートナーとして、落ち着いた自然な日本語で話します。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短い自然な日本語でテンポよく返答してください。簡潔に、リズムよく応対してください。'
+        },
+        misaki: {
+          name: 'ミサキ',
+          photoKey: 'misaki',
+          voice: 'Leda',
+          desc: '40代・女性・やさしく丁寧',
+          speed: 1.0, pitch: -20,
+          personality: '40代の女性。やさしく丁寧で、落ち着いた日常の会話パートナー。',
+          systemPrompt: 'あなたは40代の女性「ミサキ」です。日常の会話パートナーとして、やさしく丁寧な日本語で話します。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短く自然な日本語で返答してください。長文は避け、自然な会話のやりとりを楽しんでください。'
+        },
+        kenji: {
+          name: 'ケンジ',
+          photoKey: 'kenji',
+          voice: 'Fenrir',
+          desc: '50代・男性・ユーモアのある先輩',
+          speed: 0.98, pitch: -60,
+          personality: '50代の男性。ユーモアのある頼れる先輩として、日常の会話パートナー。',
+          systemPrompt: 'あなたは50代の男性「ケンジ」です。日常の会話パートナーとして、ユーモアを交えつつ落ち着いた自然な日本語で話します。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短い自然な日本語でテンポよく返答してください。簡潔に、リズムよく応対してください。'
+        },
+        satoko: {
+          name: 'サトコ',
+          photoKey: 'satoko',
+          voice: 'Vindemiatrix',
+          desc: '60代・女性・人生経験豊かな相談相手',
+          speed: 0.95, pitch: -40,
+          personality: '60代の女性。人生経験豊かな相談相手として、日常の会話パートナー。',
+          systemPrompt: 'あなたは60代の女性「サトコ」です。日常の会話パートナーとして、人生経験豊かな相談相手らしく、やさしく落ち着いた日本語で話します。【最優先指示・超高速応答】ユーザーの発話が終わったら考え込まず、即座に1〜2文の短く自然な日本語で返答してください。長文は避け、自然な会話のやりとりを楽しんでください。'
         },
         ellie: {
           name: 'エリー・カーター',
@@ -1384,7 +1410,7 @@
       _charPhotosLoading = true;
       const flush = () => { const cbs = _charPhotosCallbacks; _charPhotosCallbacks = []; cbs.forEach(cb => { try { cb(); } catch (_) {} }); };
       const sc = document.createElement('script');
-      sc.src = './assets/char-photos.js?v=377';
+      sc.src = './assets/char-photos.js?v=380';
       sc.onerror = () => {
         // v3.7.3: 読込失敗時に再試行できるようフラグを戻す。
         _charPhotosLoading = false;
@@ -1417,17 +1443,13 @@
       { key: 'piano', label: 'ピアノ' }
     ];
     const CHAR_CATEGORY_OF = {
-      holo: 'chat', luna: 'chat', ren: 'chat',
+      holo: 'chat', luna: 'chat', ren: 'chat', misaki: 'chat', kenji: 'chat', satoko: 'chat',
       ellie: 'golf', marcus: 'golf', ai: 'golf', yuri: 'golf',
       gensan: 'golf', rei: 'golf', george: 'golf', hana: 'golf', rose: 'golf',
       rio: 'it', kaito: 'it',
       maria: 'piano'
     };
-    const SOON_CHARS = [
-      { name: 'ミサキ', category: 'chat', desc: '40代・女性・やさしく丁寧' },
-      { name: 'ケンジ', category: 'chat', desc: '50代・男性・ユーモアのある先輩' },
-      { name: 'サトコ', category: 'chat', desc: '60代・女性・人生経験豊かな相談相手' }
-    ];
+    // v3.8.0: 近日公開3人（ミサキ／ケンジ／サトコ）を正式キャラとして追加済み。SOON_CHARS は廃止。
     // v3.7.3: カテゴリ選択後はキャラ一覧（写真・名前・特徴・声）を表示する。
     function renderPartnerList(catKey) {
       const box = document.getElementById('partner-list');
@@ -1441,9 +1463,6 @@
           : `<img src="${c.image || ''}" alt="${c.name}の写真" loading="lazy" decoding="async">`;
         return `<button class="char-card${on ? ' active' : ''}" data-char="${k}" aria-pressed="${on}"><span class="char-photo-wrap">${img}<span class="selected-badge">選択中</span></span><span class="char-name">${c.name}</span><span class="char-desc">${c.desc || ''}</span><span class="char-tags"><span class="voice-tag">声: ${c.voice}</span></span></button>`;
       }).join('');
-      SOON_CHARS.filter(s => s.category === catKey).forEach(s => {
-        html += `<button class="char-card soon" disabled aria-disabled="true"><span class="char-photo"><span class="soon-blur" aria-hidden="true"></span><span class="lock-badge">近日公開</span><span class="soon-label">写真準備中</span></span><span class="char-name">${s.name}</span><span class="char-desc">${s.desc || ''}</span></button>`;
-      });
       box.innerHTML = html;
       box.querySelectorAll('.char-card[data-char]').forEach(btn => {
         btn.addEventListener('click', () => selectCharacter(btn.dataset.char));
@@ -3095,7 +3114,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-      logMessage('AIボイス v3.7.7 を起動しました', 'info');
+      logMessage('AIボイス v3.8.0 を起動しました', 'info');
       checkAuth();
       startSpectrumVisualizer();
       updateEmotionMeters('joy');
