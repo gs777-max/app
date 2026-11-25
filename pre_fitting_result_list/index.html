@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ゴルフ試打クラブ＆計測結果 管理表ツール（2026年版）</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif; }
+    .tab-active { background-color: #065F46; color: #FFFFFF; }
+    .tab-inactive { background-color: #FFFFFF; color: #334155; border: 1px solid #CBD5E1; }
+    .tab-inactive:hover { background-color: #F1F5F9; }
+    .num-cell { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-emerald-800 text-white flex items-center justify-center font-bold text-sm">GT</div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">ゴルフ試打クラブ＆計測結果 管理表ツール</h1>
+          <p id="subtitle-stats" class="text-xs text-slate-500">2026年版リアルタイム自動評価ダッシュボード</p>
+          <p class="text-xs text-slate-500">v1.0（打者欄追加・編集時のデータ消失修正）— 集計は下の表示から自動計算されます</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btn-open-add" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-semibold transition">
+          <i data-lucide="plus" class="w-4 h-4"></i>新規試打を登録
+        </button>
+        <button id="btn-export-csv" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs sm:text-sm font-medium transition">
+          <i data-lucide="download" class="w-4 h-4"></i>CSV出力
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 pb-3 flex flex-wrap gap-2">
+      <button id="tab-dashboard" type="button" class="tab-btn tab-active px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">ダッシュボード＆ランキング</button>
+      <button id="tab-logs" type="button" class="tab-btn tab-inactive px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">試打ログ管理（編集・登録）</button>
+      <button id="tab-compare" type="button" class="tab-btn tab-inactive px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">因子別集計＆A/B比較</button>
+      <button id="tab-master" type="button" class="tab-btn tab-inactive px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">ギアマスタ＆管理ルール</button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+    <!-- ==================== VIEW 1: DASHBOARD ==================== -->
+    <section id="view-dashboard" class="space-y-6">
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <p class="text-xs font-medium text-slate-500">有効セッション数</p>
+          <p id="kpi-valid-count" class="text-2xl font-bold text-slate-900 mt-1 num-cell">-</p>
+          <p id="kpi-total-shots" class="text-xs text-slate-500 mt-1">-</p>
+        </div>
+        <div class="bg-white rounded-xl border border-emerald-200 border-t-4 border-t-emerald-700 p-4 shadow-sm">
+          <p class="text-xs font-medium text-emerald-700">総合ランキング 1位</p>
+          <p id="kpi-top-score" class="text-2xl font-bold text-emerald-800 mt-1 num-cell">-</p>
+          <p id="kpi-top-label" class="text-xs text-slate-600 mt-1 truncate">-</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <p class="text-xs font-medium text-slate-500">最高平均飛距離</p>
+          <p id="kpi-max-dist" class="text-2xl font-bold text-slate-900 mt-1 num-cell">-</p>
+          <p id="kpi-max-dist-sub" class="text-xs text-slate-500 mt-1">-</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <p class="text-xs font-medium text-slate-500">最小Off Pin / 最狭左右幅</p>
+          <p id="kpi-best-lat" class="text-2xl font-bold text-blue-700 mt-1 num-cell">-</p>
+          <p id="kpi-best-lat-sub" class="text-xs text-slate-500 mt-1">-</p>
+        </div>
+      </div>
+
+      <!-- Weighting Control + Filter Bar -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex-1 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label for="slider-dist-weight" class="text-xs sm:text-sm font-semibold text-slate-800">評価ウェイト調整（飛距離 vs 方向安定性）</label>
+            <span id="weight-readout" class="text-xs sm:text-sm font-bold text-emerald-800 num-cell">飛距離 45% / 方向安定 55%</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-slate-500 whitespace-nowrap">方向重視</span>
+            <input id="slider-dist-weight" type="range" min="0" max="100" step="5" value="45" class="w-full accent-emerald-700 cursor-pointer">
+            <span class="text-xs text-slate-500 whitespace-nowrap">飛距離重視</span>
+            <button id="btn-reset-weight" type="button" class="px-2.5 py-1 rounded border border-slate-300 text-xs text-slate-600 hover:bg-slate-100 whitespace-nowrap">45:55に戻す</button>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 border-t lg:border-t-0 lg:border-l border-slate-200 pt-3 lg:pt-0 lg:pl-4">
+          <select id="filter-dash-date" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white"><option value="ALL">全計測日 (11/12〜11/23)</option></select>
+          <select id="filter-dash-head" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white">
+            <option value="ALL">全ヘッド</option>
+          </select>
+          <select id="filter-dash-shaft" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white">
+            <option value="ALL">全シャフト</option>
+          </select>
+          <select id="filter-dash-tester" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white">
+            <option value="ALL">全打者</option>
+          </select>
+          <select id="filter-dash-verdict" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white">
+            <option value="ALL">全判定</option>
+            <option value="マッチ（主力候補）">マッチ（主力候補）</option>
+            <option value="条件付マッチ">条件付マッチ</option>
+            <option value="アンマッチ">アンマッチ</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h2 class="text-sm font-bold text-slate-800 mb-1">飛距離 vs Off Pin平均（右上ほど理想）</h2>
+          <p class="text-xs text-slate-500 mb-3">有効セッションの2次元ポジション（点にカーソルを合わせると詳細を表示）</p>
+          <div class="relative h-72">
+            <canvas id="chart-scatter"></canvas>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h2 class="text-sm font-bold text-slate-800 mb-1">総合スコア内訳ランキング</h2>
+          <p class="text-xs text-slate-500 mb-3">スライダーの配点に連動して飛距離スコア＋方向安定スコアがリアルタイム更新</p>
+          <div class="relative h-72">
+            <canvas id="chart-score"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto Ranking Table -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+          <h2 class="text-sm sm:text-base font-bold text-slate-900">有効セッション 総合スコア自動ランキング</h2>
+          <span id="dash-count-badge" class="text-xs font-medium text-slate-500"></span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-emerald-800 text-white text-xs">
+                <th class="px-3 py-2.5 text-right">順位</th>
+                <th class="px-3 py-2.5">ID / 計測日</th>
+                <th class="px-3 py-2.5">打者</th>
+                <th class="px-3 py-2.5">ヘッド・設定</th>
+                <th class="px-3 py-2.5">シャフト / グリップ</th>
+                <th class="px-3 py-2.5 text-right">平均飛距離</th>
+                <th class="px-3 py-2.5 text-right">Off Pin</th>
+                <th class="px-3 py-2.5 text-right">左右幅</th>
+                <th class="px-3 py-2.5 text-right">サイドスピン (rpm)</th>
+                <th class="px-3 py-2.5 text-right">総合点</th>
+                <th class="px-3 py-2.5">判定</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-ranking" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+      <p class="text-xs text-slate-500 leading-relaxed px-1">※ 総合点は「現在の有効セッション内での相対順位」（最小〜最大を0〜100点に換算）です。セッションの追加・削除・有効/対象外の切替で、過去の点数と判定（72点以上=マッチ／50点以上=条件付マッチ）も変わります。絶対基準ではありません。マスタ画面の「エース超え合格判定基準」（268/293yd・BS 2,600rpm以下など）はスコア計算には使われていません。※ ±30yd率は31/46の有効セッションで未記録のため、その場合は50%として補完されています。</p>
+    </section>
+
+    <!-- ==================== VIEW 2: LOGS MANAGEMENT ==================== -->
+    <section id="view-logs" class="hidden space-y-4">
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2 flex-1">
+          <input id="input-log-search" type="text" placeholder="打者・ヘッド・シャフト・メモで検索..." class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm w-full sm:w-64">
+          <select id="filter-log-valid" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white">
+            <option value="ALL">すべて表示（有効＋対象外）</option>
+            <option value="VALID">有効のみ</option>
+            <option value="EXCL">対象外・過去アーカイブのみ</option>
+          </select>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btn-export-json" type="button" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-100">JSON保存</button>
+          <label for="input-import-json" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-100 cursor-pointer">JSON読込</label>
+          <input id="input-import-json" type="file" accept=".json" class="hidden">
+          <button id="btn-reset-data" type="button" class="px-3 py-1.5 rounded-lg border border-rose-300 text-xs font-medium text-rose-700 hover:bg-rose-50">初期データに戻す</button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-slate-800 text-white text-xs">
+                <th class="px-3 py-2.5">ID / 日付</th>
+                <th class="px-3 py-2.5">打者</th>
+                <th class="px-3 py-2.5">集計対象</th>
+                <th class="px-3 py-2.5">ヘッド / 設定</th>
+                <th class="px-3 py-2.5">シャフト / グリップ</th>
+                <th class="px-3 py-2.5 text-right">球数</th>
+                <th class="px-3 py-2.5 text-right">平均飛距離</th>
+                <th class="px-3 py-2.5 text-right">Off Pin</th>
+                <th class="px-3 py-2.5 text-right">左右幅</th>
+                <th class="px-3 py-2.5 text-right">BS / CS</th>
+                <th class="px-3 py-2.5">メモ</th>
+                <th class="px-3 py-2.5 text-center">操作</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-logs" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 3: CROSS TAB & A/B COMPARE ==================== -->
+    <section id="view-compare" class="hidden space-y-6">
+      <!-- A/B Direct Comparison -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-slate-900">2セッション直接 A/B 比較</h2>
+            <p class="text-xs text-slate-500">1要素違い（例：S05 vs S02、S10右手8巻 vs S12右手5巻）の物理差を即座に比較</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="select-ab-a" class="px-2.5 py-1.5 rounded-lg border border-emerald-400 bg-emerald-50 text-xs sm:text-sm font-medium text-emerald-900"></select>
+            <span class="text-xs font-bold text-slate-400">VS</span>
+            <select id="select-ab-b" class="px-2.5 py-1.5 rounded-lg border border-blue-400 bg-blue-50 text-xs sm:text-sm font-medium text-blue-900"></select>
+          </div>
+        </div>
+        <div id="ab-compare-container" class="overflow-x-auto"></div>
+      </div>
+
+      <!-- Cross-tabulation Grids -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-200 font-bold text-sm text-slate-900">ヘッド別 動的クロス集計（有効データ）</div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 text-xs">
+                  <th class="px-3 py-2">ヘッド</th>
+                  <th class="px-3 py-2 text-right">件数</th>
+                  <th class="px-3 py-2 text-right">平均飛距離</th>
+                  <th class="px-3 py-2 text-right">Off Pin</th>
+                  <th class="px-3 py-2 text-right">左右幅</th>
+                  <th class="px-3 py-2 text-right">平均点</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-by-head" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-200 font-bold text-sm text-slate-900">シャフト別 動的クロス集計（有効データ）</div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 text-xs">
+                  <th class="px-3 py-2">シャフト</th>
+                  <th class="px-3 py-2 text-right">件数</th>
+                  <th class="px-3 py-2 text-right">平均飛距離</th>
+                  <th class="px-3 py-2 text-right">Off Pin</th>
+                  <th class="px-3 py-2 text-right">左右幅</th>
+                  <th class="px-3 py-2 text-right">平均点</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-by-shaft" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-200 font-bold text-sm text-slate-900">PINGウェイト位置別 集計（G440 MAX/LST）</div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 text-xs">
+                  <th class="px-3 py-2">ウェイト</th>
+                  <th class="px-3 py-2 text-right">件数</th>
+                  <th class="px-3 py-2 text-right">平均飛距離</th>
+                  <th class="px-3 py-2 text-right">Off Pin</th>
+                  <th class="px-3 py-2 text-right">SS(rpm)</th>
+                  <th class="px-3 py-2 text-right">平均点</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-by-weight" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-200 font-bold text-sm text-slate-900">グリップ下巻き別 集計（有効データ）</div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 text-xs">
+                  <th class="px-3 py-2">グリップ・下巻き</th>
+                  <th class="px-3 py-2 text-right">件数</th>
+                  <th class="px-3 py-2 text-right">平均飛距離</th>
+                  <th class="px-3 py-2 text-right">左右幅</th>
+                  <th class="px-3 py-2 text-right">Face角</th>
+                  <th class="px-3 py-2 text-right">平均点</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-by-grip" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 4: MASTER & RULES ==================== -->
+    <section id="view-master" class="hidden space-y-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-200 font-bold text-sm sm:text-base text-slate-900">検証対象ギア 公式カタログスペック＆リンク</div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-emerald-800 text-white text-xs">
+                <th class="px-3 py-2.5">区分</th>
+                <th class="px-3 py-2.5">ギア名</th>
+                <th class="px-3 py-2.5">公式スペック・特徴</th>
+                <th class="px-3 py-2.5">公式リンク</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-master" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-emerald-200 shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-emerald-200 bg-emerald-50 font-bold text-sm sm:text-base text-emerald-900">エース超え合格判定基準（11/12〜11/19 全324球総括シートより）</div>
+        <div class="p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+          <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200"><div class="text-slate-500">Side Spin</div><div class="font-bold text-emerald-800 text-sm mt-0.5">330 rpm 以下</div><div class="text-slate-500">1,000超 0球</div></div>
+          <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200"><div class="text-slate-500">左右最大幅</div><div class="font-bold text-emerald-800 text-sm mt-0.5">65.0 yd 以内</div><div class="text-slate-500">片側最大 35yd内</div></div>
+          <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200"><div class="text-slate-500">Off Pin 平均</div><div class="font-bold text-emerald-800 text-sm mt-0.5">19.0 yd 以内</div><div class="text-slate-500">エース基準 17〜25</div></div>
+          <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200"><div class="text-slate-500">Back Spin</div><div class="font-bold text-emerald-800 text-sm mt-0.5">2,600 rpm 以下</div><div class="text-slate-500">2,400台理想</div></div>
+          <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200"><div class="text-slate-500">Carry / Total</div><div class="font-bold text-emerald-800 text-sm mt-0.5">268 / 293 yd↑</div><div class="text-slate-500">45.25"・70X基準</div></div>
+          <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200"><div class="text-slate-500">ミート率 (SF)</div><div class="font-bold text-emerald-800 text-sm mt-0.5">1.50 以上</div><div class="text-slate-500">1.45未満 0球</div></div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+          <div class="font-bold text-sm sm:text-base text-slate-900">ねじれにくくミスヒットに強い低トルクシャフト ベスト30（2026年市場版）</div>
+          <input id="input-top30-search" type="text" placeholder="モデル名・メーカーで絞り込み..." class="px-3 py-1 rounded-lg border border-slate-300 text-xs w-56">
+        </div>
+        <div class="overflow-x-auto max-h-96 overflow-y-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead class="sticky top-0">
+              <tr class="bg-slate-800 text-white text-xs">
+                <th class="px-3 py-2 text-right">順位</th>
+                <th class="px-3 py-2">モデル名</th>
+                <th class="px-3 py-2">メーカー</th>
+                <th class="px-3 py-2">重量帯</th>
+                <th class="px-3 py-2">トルク / 調子</th>
+                <th class="px-3 py-2">剛性・耐ミスヒット特性</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-top30" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 class="text-sm font-bold text-emerald-800 mb-2">1. 「1セッション＝1行」＆条件分離ルール</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">スリーブ（例：<code>-1.5°</code>、<code>N/-1</code>）・ウェイト（<code>ノーマル</code>、<code>前13g/後6g</code>）・グリップ下巻き（<code>左1/右5巻</code>）を必ず別項目で記録することで、1要素だけ変えたA/B比較が正確に行えます。</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 class="text-sm font-bold text-emerald-800 mb-2">2. 「集計対象（有効／対象外）」フラグの活用</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">重複した2回目計測（例：S08）やウォームアップ、定性メモのみの試打会は削除せず「対象外」に切り替えます。履歴を保持しながら自動ランキングの歪みを防げます。</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 class="text-sm font-bold text-emerald-800 mb-2">3. 「左右最大幅」と「左右バイアス」の必須記録</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">Off Pin平均が小さくても1球のOB級ミスがあるクラブはコースで危険です。最右−最左の「左右最大幅」と左負・右正の「バイアス」を並べて管理するのが実戦的です。</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 class="text-sm font-bold text-emerald-800 mb-2">4. 毎回エース基準を10球打って体調差を補正</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">計測日や計測器が変わる場合は、最初にエース（ELYTE TD＋PD 70X等）を10球計測して基準行を残すことで、日ごとのスイング状態に左右されない比較ができます。</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 pb-6 text-xs text-slate-400">ゴルフ試打クラブ＆計測結果 管理表ツール v1.0 — 元ファイル（2026-11-23版）を基に、打者（個人名）欄の追加・編集時の打ち出し角／ミート率の消失修正・集計表示の自動計算・JSON読込の検証・CSVの項目追加を行った版。詳細は ISSUES.md を参照。データはブラウザの localStorage にのみ保存されます（サーバー送信なし）。</footer>
+
+  <!-- ==================== ADD / EDIT MODAL ==================== -->
+  <div id="modal-editor" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white">
+        <h3 id="modal-title" class="text-base font-bold text-slate-900">新規試打セッション登録</h3>
+        <button id="btn-close-modal" type="button" class="text-slate-400 hover:text-slate-700 p-1">✕</button>
+      </div>
+      <form id="form-session" class="p-5 space-y-4 text-xs sm:text-sm">
+        <input id="f-orig-id" type="hidden">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">打者（個人名）</label>
+            <input id="f-tester" type="text" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" placeholder="例：山田 太郎（未記入可）">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">管理ID *</label>
+            <input id="f-id" type="text" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" placeholder="S15">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">計測日 *</label>
+            <input id="f-date" type="date" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">計測環境</label>
+            <input id="f-env" type="text" value="OKONGOLF" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">集計対象</label>
+            <select id="f-valid" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white">
+              <option value="true">有効</option>
+              <option value="false">対象外</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">クラブ</label>
+            <input id="f-club" type="text" value="1W" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" placeholder="1W">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">ヘッド *</label>
+            <input id="f-head" type="text" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" placeholder="PING G440 LST">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">ロフト(°)</label>
+            <input id="f-loft" type="number" step="0.5" value="9" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">スリーブ設定</label>
+            <input id="f-sleeve" type="text" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" placeholder="-1.5° / N/-1">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">ウェイト配置</label>
+            <input id="f-weight" type="text" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" placeholder="ノーマル / 前13g/後6g">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">シャフト *</label>
+            <input id="f-shaft" type="text" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" placeholder="TENSEI Pro Blue 1K 70X">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">グリップ・下巻き</label>
+            <input id="f-grip" type="text" value="標準" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" placeholder="左1/右5巻">
+          </div>
+        </div>
+
+        <div class="border-t border-slate-200 pt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">球数</label>
+            <input id="f-shots" type="number" value="10" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">平均飛距離(yd)</label>
+            <input id="f-totalAvg" type="number" step="0.1" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">最大飛距離(yd)</label>
+            <input id="f-totalMax" type="number" step="0.1" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">平均キャリー(yd)</label>
+            <input id="f-carryAvg" type="number" step="0.1" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Off Pin平均(yd)</label>
+            <input id="f-offPinAvg" type="number" step="0.1" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">左右最大幅(yd)</label>
+            <input id="f-corridor" type="number" step="0.1" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">左右バイアス(yd)</label>
+            <input id="f-bias" type="number" step="0.1" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" placeholder="左は負・右は正">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">±30yd率(%)</label>
+            <input id="f-fw30" type="number" step="1" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">平均BS・初速 (m/s)</label>
+            <input id="f-bs" type="number" step="0.1" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">平均CS・ヘッドスピード (m/s)</label>
+            <input id="f-cs" type="number" step="0.1" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">打ち出し角 (°)</label>
+            <input id="f-la" type="number" step="0.1" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">ミート率 (SF)</label>
+            <input id="f-sf" type="number" step="0.01" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">バックスピン(rpm)</label>
+            <input id="f-backSpin" type="number" step="1" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">サイドスピン(rpm)</label>
+            <input id="f-sideSpin" type="number" step="1" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">平均Face角(°)</label>
+            <input id="f-face" type="number" step="0.01" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">平均Path(°)</label>
+            <input id="f-path" type="number" step="0.01" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">メモ・フィーリング</label>
+            <input id="f-note" type="text" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg" placeholder="打感・画像ファイル名など">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-200">
+          <button id="btn-cancel-modal" type="button" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100">キャンセル</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-semibold">保存して再計算</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== CONFIRM DIALOG MODAL ==================== -->
+  <div id="modal-confirm" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-5 space-y-4">
+      <h3 id="confirm-title" class="text-base font-bold text-slate-900">確認</h3>
+      <p id="confirm-msg" class="text-sm text-slate-600"></p>
+      <div class="flex justify-end gap-2">
+        <button id="btn-confirm-cancel" type="button" class="px-3.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm text-slate-700 hover:bg-slate-100">キャンセル</button>
+        <button id="btn-confirm-ok" type="button" class="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-semibold">実行する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-lg shadow-lg text-xs sm:text-sm font-medium"></div>
+
+<script>
+const STORAGE_KEY = 'golf_trial_tracker_v3';
+const LEGACY_STORAGE_KEY = 'golf_trial_tracker_v2_merged_49sessions';
+
+// v1.0: 打者欄を追加。旧データ・旧キー・JSON読込には tester が無いため
+// 未記入 '' で補完する（名前を推測して入れることはしない）。
+function normalizeSession(s) {
+  return { ...s, tester: (s && s.tester != null) ? String(s.tester) : '', club: (s && s.club) || '1W' };
+}
+
+const DEFAULT_SESSIONS = [{"id": "S01", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "PING G440 MAX", "loft": 9, "sleeve": "ノーマル (0°)", "weight": "ノーマル", "shaft": "TENSEI Pro White 1K 70X", "grip": "標準", "shots": 10, "totalAvg": 287.4, "totalMax": 295.4, "carryAvg": 262.8, "offPinAvg": 21.3, "bias": -15.2, "corridor": 71.9, "fw30": 80, "bs": 68.6, "cs": 46.3, "sf": 1.48, "la": 15.4, "backSpin": 2801, "sideSpin": 304, "face": -3.12, "path": -0.6, "note": "○ IMG_8232"}, {"id": "S02", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "PING G440 LST", "loft": 9, "sleeve": "-1.5°", "weight": "フェード", "shaft": "TENSEI Pro White 1K 70X", "grip": "標準", "shots": 10, "totalAvg": 277.1, "totalMax": 289.2, "carryAvg": 252.6, "offPinAvg": 35.0, "bias": 25.5, "corridor": 100.1, "fw30": 30, "bs": 67.4, "cs": 45.6, "sf": 1.48, "la": 14.1, "backSpin": 2779, "sideSpin": 844, "face": -2.03, "path": -0.54, "note": "× IMG_8242 (4重右逃げ)"}, {"id": "S03", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "PING G440 LST", "loft": 9, "sleeve": "ノーマル (0°)", "weight": "フェード", "shaft": "TENSEI Pro Blue 1K 70X", "grip": "標準", "shots": 10, "totalAvg": 279.1, "totalMax": 292.5, "carryAvg": 255.1, "offPinAvg": 26.0, "bias": 12.6, "corridor": 89.9, "fw30": 60, "bs": 67.9, "cs": 45.6, "sf": 1.49, "la": 14.6, "backSpin": 2838, "sideSpin": 619, "face": -1.12, "path": -0.6, "note": "× IMG_8229"}, {"id": "S04", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "PING G440 MAX", "loft": 9, "sleeve": "ノーマル (0°)", "weight": "ノーマル", "shaft": "TENSEI Pro Blue 1K 70X", "grip": "標準", "shots": 10, "totalAvg": 286.9, "totalMax": 293.3, "carryAvg": 262.7, "offPinAvg": 17.2, "bias": 8.3, "corridor": 82.4, "fw30": 70, "bs": 69.0, "cs": 46.9, "sf": 1.47, "la": 14.2, "backSpin": 2835, "sideSpin": 425, "face": -0.98, "path": -0.84, "note": "○ IMG_8225 (11/23 Off Pin最少)"}, {"id": "S05", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "PING G440 LST", "loft": 9, "sleeve": "-1.5°", "weight": "フェード", "shaft": "TENSEI Pro Blue 1K 70X", "grip": "標準", "shots": 10, "totalAvg": 291.0, "totalMax": 298.4, "carryAvg": 266.3, "offPinAvg": 17.8, "bias": -6.2, "corridor": 82.9, "fw30": 70, "bs": 69.4, "cs": 46.4, "sf": 1.5, "la": 14.5, "backSpin": 2814, "sideSpin": 297, "face": -1.68, "path": -0.98, "note": "IMG_8235 (11/23 1位・SS最少)"}, {"id": "S06", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "PING G440 MAX", "loft": 9, "sleeve": "-1.5°", "weight": "ノーマル", "shaft": "TENSEI Pro White 1K 70X", "grip": "標準", "shots": 10, "totalAvg": 289.7, "totalMax": 295.6, "carryAvg": 265.0, "offPinAvg": 22.8, "bias": -3.7, "corridor": 107.0, "fw30": 80, "bs": 69.6, "cs": 46.3, "sf": 1.5, "la": 13.6, "backSpin": 2789, "sideSpin": 383, "face": -2.08, "path": -0.61, "note": "○ IMG_8239 (1回目)"}, {"id": "S07", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "PING G440 LST", "loft": 9, "sleeve": "-1.5°", "weight": "ドロー", "shaft": "TENSEI Pro White 1K 70X", "grip": "標準", "shots": 10, "totalAvg": 283.3, "totalMax": 291.4, "carryAvg": 258.9, "offPinAvg": 23.7, "bias": 17.0, "corridor": 82.0, "fw30": 70, "bs": 68.2, "cs": 46.1, "sf": 1.48, "la": 14.0, "backSpin": 2769, "sideSpin": 569, "face": -1.97, "path": -0.55, "note": "△ IMG_8248"}, {"id": "S08", "date": "2026-11-23", "env": "OKONGOLF", "valid": false, "club": "1W", "head": "PING G440 MAX", "loft": 9, "sleeve": "-1.5°", "weight": "ノーマル", "shaft": "TENSEI Pro White 1K 70X", "grip": "標準", "shots": 10, "totalAvg": 283.2, "totalMax": 292.1, "carryAvg": 258.9, "offPinAvg": 20.4, "bias": -11.2, "corridor": 56.7, "fw30": 80, "bs": 68.2, "cs": 46.2, "sf": 1.48, "la": 13.4, "backSpin": 2758, "sideSpin": 286, "face": -2.93, "path": 0.25, "note": "○ IMG_8245 (S06重複2回目・対象外)"}, {"id": "S09", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "PING G440 LST", "loft": 9, "sleeve": "ノーマル (0°)", "weight": "フェード", "shaft": "TENSEI Pro White 1K 70X", "grip": "標準", "shots": 10, "totalAvg": 291.3, "totalMax": 302.0, "carryAvg": 266.5, "offPinAvg": 26.8, "bias": -21.6, "corridor": 97.4, "fw30": 70, "bs": 69.4, "cs": 46.1, "sf": 1.51, "la": 14.4, "backSpin": 2774, "sideSpin": 326, "face": -2.72, "path": -0.1, "note": "IMG_8221 (11/23最高平均・302yd)"}, {"id": "S10", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "N/-1", "weight": "前13g/後6g", "shaft": "Diamana PD 70X", "grip": "左1/右8巻", "shots": 10, "totalAvg": 290.6, "totalMax": 294.2, "carryAvg": 266.1, "offPinAvg": 24.9, "bias": 13.0, "corridor": 98.0, "fw30": 60, "bs": 69.7, "cs": 46.4, "sf": 1.5, "la": 15.1, "backSpin": 2867, "sideSpin": 512, "face": 1.28, "path": -0.95, "note": "IMG_8218 (11/23最高BS 69.7)"}, {"id": "S11", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "PING G440 MAX", "loft": 9, "sleeve": "-1.5°", "weight": "ドロー", "shaft": "TENSEI Pro Blue 1K 70X", "grip": "標準", "shots": 10, "totalAvg": 277.0, "totalMax": 284.8, "carryAvg": 252.7, "offPinAvg": 25.2, "bias": 10.2, "corridor": 103.5, "fw30": 50, "bs": 67.2, "cs": 45.7, "sf": 1.47, "la": 14.6, "backSpin": 2783, "sideSpin": 589, "face": -2.49, "path": -0.19, "note": "△ IMG_8257"}, {"id": "S12", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後6g", "shaft": "Diamana PD 70X", "grip": "左1/右5巻", "shots": 10, "totalAvg": 283.9, "totalMax": 290.7, "carryAvg": 259.7, "offPinAvg": 25.2, "bias": 25.2, "corridor": 54.6, "fw30": 60, "bs": 68.3, "cs": 46.3, "sf": 1.47, "la": 16.5, "backSpin": 2890, "sideSpin": 510, "face": -0.44, "path": -1.19, "note": "IMG_8260 (11/23最狭幅54.6yd・左ミス0)"}, {"id": "S13", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "PING G440 MAX", "loft": 9, "sleeve": "-1.5°", "weight": "フェード", "shaft": "TENSEI Pro Blue 1K 70X", "grip": "標準", "shots": 10, "totalAvg": 284.0, "totalMax": 292.4, "carryAvg": 259.3, "offPinAvg": 25.0, "bias": 18.8, "corridor": 81.6, "fw30": 60, "bs": 68.2, "cs": 45.9, "sf": 1.49, "la": 14.8, "backSpin": 2797, "sideSpin": 585, "face": -2.0, "path": -0.79, "note": "○△ IMG_8254"}, {"id": "S14", "date": "2026-11-23", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "TaylorMade Qi4D", "loft": 9, "sleeve": "-1.5° (ノーマル)", "weight": "ノーマル", "shaft": "24 VENTUS Blue 6X", "grip": "標準", "shots": 9, "totalAvg": 287.4, "totalMax": 297.9, "carryAvg": 262.8, "offPinAvg": 28.1, "bias": -9.0, "corridor": 111.5, "fw30": 67, "bs": 69.3, "cs": 46.2, "sf": 1.5, "la": 13.2, "backSpin": 2790, "sideSpin": 469, "face": -2.71, "path": 0.76, "note": "IMG_8266 (9球・60g台で幅最大)"}, {"id": "M33", "date": "2026-11-19", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway Quantum TD", "loft": 10.5, "sleeve": "N/-1", "weight": "前13g/後10g", "shaft": "Tour AD CQ 7X", "grip": "標準", "shots": 10, "totalAvg": 287.5, "totalMax": null, "carryAvg": 262.7, "offPinAvg": 27.2, "bias": null, "corridor": 68.6, "fw30": null, "bs": 70.1, "cs": 46.9, "sf": 1.49, "la": 11.4, "backSpin": 2750, "sideSpin": 741, "face": 2.5, "path": 4.9, "note": "#33 計23g過重でPath+4.9°・SS最悪741"}, {"id": "M32", "date": "2026-11-19", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway Quantum TD", "loft": 10.5, "sleeve": "N/-1", "weight": "前13g/後10g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 286.7, "totalMax": null, "carryAvg": 262.4, "offPinAvg": 35.2, "bias": null, "corridor": 139.3, "fw30": null, "bs": 69.4, "cs": 45.8, "sf": 1.52, "la": 13.8, "backSpin": 2840, "sideSpin": 647, "face": 1.5, "path": 1.0, "note": "#32 計23g過重で全計測最悪幅139.3yd"}, {"id": "M31", "date": "2026-11-19", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 291.5, "totalMax": 300.4, "carryAvg": 266.7, "offPinAvg": 25.0, "bias": null, "corridor": 94.6, "fw30": null, "bs": 69.9, "cs": 46.7, "sf": 1.5, "la": 13.1, "backSpin": 2807, "sideSpin": 477, "face": 1.7, "path": 1.1, "note": "#31 全10球Closed・左最大55.7yd"}, {"id": "M30", "date": "2026-11-19", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "N/-1", "weight": "前13g/後2g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 292.1, "totalMax": null, "carryAvg": 267.4, "offPinAvg": 25.0, "bias": null, "corridor": 76.5, "fw30": null, "bs": 69.7, "cs": 46.6, "sf": 1.49, "la": 14.2, "backSpin": 2818, "sideSpin": 385, "face": 1.9, "path": 0.9, "note": "#30 11/19 1位・N/-1効果完全実証"}, {"id": "M29", "date": "2026-11-19", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "N/-1", "weight": "前13g/後2g", "shaft": "Tour AD CQ 7X", "grip": "標準", "shots": 9, "totalAvg": 287.1, "totalMax": null, "carryAvg": 262.4, "offPinAvg": 30.5, "bias": null, "corridor": 118.1, "fw30": null, "bs": 69.2, "cs": 46.4, "sf": 1.49, "la": 14.2, "backSpin": 2812, "sideSpin": 624, "face": 1.8, "path": 1.3, "note": "#29 先中調子で幅118.1yd・2ウェイミス"}, {"id": "M28", "date": "2026-11-19", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "N/-1", "weight": "前9g/後6g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 285.1, "totalMax": null, "carryAvg": 260.6, "offPinAvg": 33.6, "bias": null, "corridor": 125.0, "fw30": null, "bs": 69.5, "cs": 46.5, "sf": 1.49, "la": 11.8, "backSpin": 2785, "sideSpin": 614, "face": 2.1, "path": 0.7, "note": "#28 PD7X後6gで幅125.0yd破綻"}, {"id": "M27", "date": "2026-11-19", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway Quantum TD", "loft": 10.5, "sleeve": "N/-1", "weight": "前2g/後10g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 281.1, "totalMax": null, "carryAvg": 261.1, "offPinAvg": 32.3, "bias": null, "corridor": 124.5, "fw30": null, "bs": 69.5, "cs": 46.3, "sf": 1.5, "la": 12.7, "backSpin": 2781, "sideSpin": 612, "face": 2.1, "path": 0.9, "note": "#27 後重10g不適合・幅124.5yd"}, {"id": "M26", "date": "2026-11-19", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway Quantum TD", "loft": 10.5, "sleeve": "N/-1", "weight": "前2g/後10g", "shaft": "Tour AD CQ 7X", "grip": "標準", "shots": 10, "totalAvg": 276.6, "totalMax": null, "carryAvg": 256.8, "offPinAvg": 23.7, "bias": null, "corridor": 62.9, "fw30": null, "bs": 68.1, "cs": 46.4, "sf": 1.47, "la": 12.8, "backSpin": 2784, "sideSpin": 432, "face": 2.1, "path": 0.8, "note": "#26 最小幅62.9ydだがSF1.47・飛距離-15.5yd"}, {"id": "M25", "date": "2026-11-18", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "N/-1", "weight": "前9g/後6g", "shaft": "Diamana BB 6S", "grip": "標準", "shots": 9, "totalAvg": 288.7, "totalMax": 303.9, "carryAvg": 265.5, "offPinAvg": 21.4, "bias": null, "corridor": 73.4, "fw30": null, "bs": 69.6, "cs": 46.4, "sf": 1.5, "la": 12.9, "backSpin": 2830, "sideSpin": 404, "face": 1.0, "path": 0.7, "note": "#25 11/18 1位・Path 0.7°(0.0°が4球)・右最大10.3y"}, {"id": "M24", "date": "2026-11-18", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "N/-1", "weight": "前9g/後6g", "shaft": "Diamana PD 6X", "grip": "標準", "shots": 10, "totalAvg": 284.3, "totalMax": null, "carryAvg": 262.6, "offPinAvg": 23.0, "bias": null, "corridor": 84.2, "fw30": null, "bs": 68.8, "cs": 46.1, "sf": 1.49, "la": 14.6, "backSpin": 2794, "sideSpin": 502, "face": 1.8, "path": 1.2, "note": "#24 N/-1化で左引っ掛け解消・右フェード集約"}, {"id": "M23", "date": "2026-11-18", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "Diamana PD 6X", "grip": "標準", "shots": 10, "totalAvg": 283.0, "totalMax": null, "carryAvg": 261.9, "offPinAvg": 21.4, "bias": null, "corridor": 77.2, "fw30": null, "bs": 68.6, "cs": 46.4, "sf": 1.48, "la": 14.4, "backSpin": 2797, "sideSpin": 333, "face": 2.3, "path": 1.0, "note": "#23 D/-1で左8球"}, {"id": "M22", "date": "2026-11-18", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前9g/後6g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 290.0, "totalMax": 301.0, "carryAvg": 266.4, "offPinAvg": 31.6, "bias": null, "corridor": 76.3, "fw30": null, "bs": 70.0, "cs": 46.8, "sf": 1.49, "la": 13.0, "backSpin": 2824, "sideSpin": 500, "face": 1.6, "path": 2.2, "note": "#22 ②後半Path+4.6°左フック暴発"}, {"id": "M21", "date": "2026-11-18", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前9g/後6g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 289.6, "totalMax": 300.0, "carryAvg": 265.2, "offPinAvg": 24.4, "bias": null, "corridor": 89.4, "fw30": null, "bs": 69.4, "cs": 46.2, "sf": 1.5, "la": 14.2, "backSpin": 2850, "sideSpin": 468, "face": 0.9, "path": 1.0, "note": "#21 ①後6g+D/-1で左6球(最大64.1y)"}, {"id": "M20", "date": "2026-11-18", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 289.7, "totalMax": 301.0, "carryAvg": 265.9, "offPinAvg": 19.4, "bias": null, "corridor": 90.0, "fw30": null, "bs": 69.5, "cs": 46.2, "sf": 1.5, "la": 13.5, "backSpin": 2795, "sideSpin": 424, "face": 1.7, "path": 1.5, "note": "#20 11/18 Off Pin最小19.4yd・最小Spin 2795"}, {"id": "M19", "date": "2026-11-17", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前2g/後13g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 7, "totalAvg": 286.8, "totalMax": 290.6, "carryAvg": 262.9, "offPinAvg": 16.8, "bias": null, "corridor": 48.4, "fw30": 100, "bs": 68.9, "cs": 46.7, "sf": 1.48, "la": 13.6, "backSpin": 2820, "sideSpin": 312, "face": 1.0, "path": 1.2, "note": "#19 ②歴代最小Off Pin 16.8yd・最小幅48.4yd"}, {"id": "M18", "date": "2026-11-17", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前2g/後12g", "shaft": "Diamana BB 6S", "grip": "標準", "shots": 9, "totalAvg": 280.2, "totalMax": 326.2, "carryAvg": 256.2, "offPinAvg": 32.1, "bias": null, "corridor": 120.2, "fw30": null, "bs": 67.9, "cs": 45.7, "sf": 1.49, "la": 14.7, "backSpin": 2861, "sideSpin": 544, "face": 1.4, "path": 0.8, "note": "#18 ②後重ギア効果暴走・幅120.2yd"}, {"id": "M17", "date": "2026-11-17", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前2g/後13g", "shaft": "Diamana BB 6S", "grip": "標準", "shots": 10, "totalAvg": 284.8, "totalMax": null, "carryAvg": 262.5, "offPinAvg": 21.3, "bias": null, "corridor": 77.9, "fw30": null, "bs": 68.8, "cs": 46.6, "sf": 1.48, "la": 14.4, "backSpin": 2823, "sideSpin": 426, "face": 1.7, "path": 1.0, "note": "#17 ①後重13g・打出14.4°"}, {"id": "M16", "date": "2026-11-17", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前2g/後13g", "shaft": "Diamana PD 6X", "grip": "標準", "shots": 10, "totalAvg": 287.4, "totalMax": null, "carryAvg": 265.5, "offPinAvg": 25.3, "bias": null, "corridor": 87.8, "fw30": null, "bs": 69.4, "cs": 47.0, "sf": 1.48, "la": 14.9, "backSpin": 2855, "sideSpin": 387, "face": 1.4, "path": 1.4, "note": "#16 ①後重13g・打出14.9°"}, {"id": "M15", "date": "2026-11-17", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前2g/後13g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 288.0, "totalMax": null, "carryAvg": 265.8, "offPinAvg": 24.4, "bias": null, "corridor": 78.7, "fw30": null, "bs": 69.4, "cs": 46.8, "sf": 1.48, "la": 14.3, "backSpin": 2818, "sideSpin": 399, "face": 1.7, "path": 1.7, "note": "#15 ①後重13gでSF1.48へ低下"}, {"id": "M14", "date": "2026-11-16", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "24 VENTUS Black 6S", "grip": "標準", "shots": 10, "totalAvg": 291.8, "totalMax": 300.1, "carryAvg": 268.1, "offPinAvg": 20.8, "bias": null, "corridor": 59.9, "fw30": null, "bs": 70.2, "cs": 46.5, "sf": 1.51, "la": 11.9, "backSpin": 2794, "sideSpin": 320, "face": 1.7, "path": 0.8, "note": "#14 ②幅59.9yd(右最大19.6yd)・スピン幅67rpm"}, {"id": "M13", "date": "2026-11-16", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "26 VENTUS Blue 7S", "grip": "標準", "shots": 10, "totalAvg": 291.2, "totalMax": 302.3, "carryAvg": 265.2, "offPinAvg": 19.6, "bias": null, "corridor": 90.2, "fw30": null, "bs": 69.4, "cs": 46.0, "sf": 1.51, "la": 13.3, "backSpin": 2794, "sideSpin": 270, "face": 1.7, "path": 0.9, "note": "#13 ②20球連続キャリー260yd超・SS 270"}, {"id": "M12", "date": "2026-11-16", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 298.3, "totalMax": 310.2, "carryAvg": 270.3, "offPinAvg": 17.1, "bias": -8.3, "corridor": 73.3, "fw30": 80, "bs": 70.8, "cs": 47.0, "sf": 1.5, "la": 11.7, "backSpin": 2803, "sideSpin": 247, "face": 1.6, "path": 0.7, "note": "#12 ②歴代最高平均298.3yd(最大310.2)・最小SS 247"}, {"id": "M11", "date": "2026-11-16", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "Diamana WB 6S [BB63S]", "grip": "標準", "shots": 10, "totalAvg": 285.2, "totalMax": 307.6, "carryAvg": 262.9, "offPinAvg": 26.1, "bias": null, "corridor": 101.5, "fw30": null, "bs": 70.1, "cs": 46.5, "sf": 1.51, "la": 11.4, "backSpin": 2834, "sideSpin": 577, "face": 0.8, "path": 0.5, "note": "#11 Path 0.5°/Face 0.8°歴代1位・6Sトゥダウンで右SS増"}, {"id": "M10", "date": "2026-11-16", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "Diamana PD 6X", "grip": "標準", "shots": 10, "totalAvg": 290.7, "totalMax": 307.1, "carryAvg": 268.8, "offPinAvg": 31.8, "bias": null, "corridor": 118.6, "fw30": null, "bs": 70.8, "cs": 47.2, "sf": 1.5, "la": 11.7, "backSpin": 2764, "sideSpin": 510, "face": 2.6, "path": 0.8, "note": "#10 HS 47.2最速だが軽すぎて幅118.6yd暴れ"}, {"id": "M09", "date": "2026-11-16", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "24 VENTUS Black 6S", "grip": "標準", "shots": 10, "totalAvg": 290.7, "totalMax": 307.7, "carryAvg": 267.5, "offPinAvg": 20.2, "bias": null, "corridor": 65.3, "fw30": null, "bs": 70.9, "cs": 47.1, "sf": 1.5, "la": 10.3, "backSpin": 2794, "sideSpin": 381, "face": 1.4, "path": 0.9, "note": "#09 ①BS 70.9最速・幅65.3yd"}, {"id": "M08", "date": "2026-11-16", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "26 VENTUS Blue 7S", "grip": "標準", "shots": 10, "totalAvg": 293.3, "totalMax": 305.4, "carryAvg": 269.0, "offPinAvg": 23.7, "bias": null, "corridor": 73.9, "fw30": null, "bs": 70.6, "cs": 46.7, "sf": 1.51, "la": 11.6, "backSpin": 2815, "sideSpin": 356, "face": 1.2, "path": 1.1, "note": "#08 ①全球SF1.50↑・キャリー幅9.8yd"}, {"id": "M07", "date": "2026-11-16", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 292.4, "totalMax": 300.0, "carryAvg": 269.9, "offPinAvg": 22.3, "bias": null, "corridor": 81.6, "fw30": null, "bs": 70.7, "cs": 47.0, "sf": 1.5, "la": 12.6, "backSpin": 2807, "sideSpin": 350, "face": 1.9, "path": 2.1, "note": "#07 ①300yd超5球・SS 350"}, {"id": "M06", "date": "2026-11-14", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "26 VENTUS TR Red 6X", "grip": "標準", "shots": 10, "totalAvg": 281.3, "totalMax": null, "carryAvg": 262.5, "offPinAvg": 31.5, "bias": null, "corridor": 117.5, "fw30": null, "bs": 68.1, "cs": 45.1, "sf": 1.51, "la": 12.4, "backSpin": 2770, "sideSpin": 509, "face": 1.9, "path": 1.2, "note": "#06 先中調子で幅117.5yd散乱"}, {"id": "M05", "date": "2026-11-14", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 276.0, "totalMax": null, "carryAvg": 257.5, "offPinAvg": 21.8, "bias": null, "corridor": 48.5, "fw30": null, "bs": 68.2, "cs": 45.3, "sf": 1.51, "la": 12.3, "backSpin": 2791, "sideSpin": 342, "face": 2.0, "path": 1.7, "note": "#05 幅48.5yd(歴代2位)・全10球Closed"}, {"id": "M04", "date": "2026-11-12", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "PING G440 MAX", "loft": 9, "sleeve": "STD (0°)", "weight": "ノーマル", "shaft": "PING TOUR 2.0 65S", "grip": "標準", "shots": 10, "totalAvg": 282.1, "totalMax": null, "carryAvg": 261.7, "offPinAvg": 28.5, "bias": null, "corridor": 83.5, "fw30": null, "bs": 68.7, "cs": 45.9, "sf": 1.5, "la": 14.4, "backSpin": 2790, "sideSpin": 445, "face": 2.5, "path": 0.7, "note": "#04 Path 0.7°だが大MOIでFace +2.5°右プッシュ"}, {"id": "M03", "date": "2026-11-12", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "Diamana BB 6S", "grip": "標準", "shots": 10, "totalAvg": 291.5, "totalMax": null, "carryAvg": 267.6, "offPinAvg": 25.8, "bias": null, "corridor": 75.2, "fw30": null, "bs": 69.9, "cs": 45.9, "sf": 1.52, "la": 13.3, "backSpin": 2817, "sideSpin": 393, "face": 1.5, "path": 1.7, "note": "#03 ミート率1.52(最高効率)"}, {"id": "M02", "date": "2026-11-12", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "Diamana PD 70X", "grip": "標準", "shots": 10, "totalAvg": 294.8, "totalMax": null, "carryAvg": 268.0, "offPinAvg": 19.7, "bias": null, "corridor": 81.1, "fw30": null, "bs": 69.9, "cs": 46.7, "sf": 1.5, "la": 14.8, "backSpin": 2834, "sideSpin": 397, "face": 2.2, "path": 0.9, "note": "#02 6球が13.8yd以内・294.8yd"}, {"id": "M01", "date": "2026-11-12", "env": "OKONGOLF", "valid": true, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "D/-1", "weight": "前13g/後2g", "shaft": "TENSEI CK 60X", "grip": "標準", "shots": 10, "totalAvg": 278.2, "totalMax": null, "carryAvg": 260.0, "offPinAvg": 25.8, "bias": null, "corridor": 125.0, "fw30": null, "bs": 68.9, "cs": 46.0, "sf": 1.5, "la": 13.6, "backSpin": 2789, "sideSpin": 573, "face": 1.9, "path": 1.6, "note": "#01 カウンターバランス不適合・幅125.0yd"}, {"id": "H03", "date": "2026-09-12", "env": "川口大試打会", "valid": false, "club": "1W", "head": "PING G440 LST", "loft": 9, "sleeve": "標準", "weight": "標準", "shaft": "24V青6X / 24V赤7X / WB6X", "grip": "標準", "shots": null, "totalAvg": null, "totalMax": null, "carryAvg": null, "offPinAvg": null, "bias": null, "corridor": null, "fw30": null, "bs": null, "cs": null, "sf": null, "la": null, "backSpin": null, "sideSpin": null, "face": null, "path": null, "note": "定性評価：24V青6X ★★★、24V赤7X ★★、WB6X ★"}, {"id": "H04", "date": "2026-09-12", "env": "川口大試打会", "valid": false, "club": "1W", "head": "Callaway ELYTE TD", "loft": 9, "sleeve": "標準", "weight": "標準", "shaft": "WB6X / 24V赤7X / 24V青6X", "grip": "標準", "shots": null, "totalAvg": null, "totalMax": null, "carryAvg": null, "offPinAvg": null, "bias": null, "corridor": null, "fw30": null, "bs": null, "cs": null, "sf": null, "la": null, "backSpin": null, "sideSpin": null, "face": null, "path": null, "note": "定性評価：WB6X ★★、24V赤7X ★★、24V青6X ★"}];
+
+const TOP30_SHAFTS = [[1, "HZRDUS Smoke Green RDX", "Project X", "60g / 70g帯", "70g: 2.5° / 元調子(CB)", "4種高弾性カーボン・最超低トルク"], [2, "26 VENTUS TR BLACK", "フジクラ", "6X: 69.5g / 7X: 79.5g", "7X: 2.7° / 元調子", "VeloCore+ × 手元Spread Tow Fabric"], [3, "VENTUS TR BLACK", "フジクラ", "6X: 70.0g / 7X: 80.0g", "7X: 2.7° / 元調子", "Pitch 70t VeloCore・強い切り返し耐性"], [4, "24 VENTUS BLACK", "フジクラ", "6X: 66.5g / 7X: 75.5g", "7X: 2.9° / 元調子", "VeloCore Plus・叩ける万能ブラック"], [5, "TENSEI Pro White 1K", "三菱ケミカル", "60X: 65.0g / 70X: 74.5g", "70X: 3.3° / 元調子", "手元1Kクロス・強靭な先端剛性"], [6, "TENSEI Pro Orange 1K", "三菱ケミカル", "60X: 72.5g / 70X: 81.5g", "70X: 2.7° / 元調子(CB)", "カウンターバランス・トゥダウン抑制"], [7, "Diamana D-LIMITED", "三菱ケミカル", "60X: 66.0g / 70X: 75.5g", "70X: 2.9° / 元調子", "手元DIALEAD・先端MDI補強"], [8, "Diamana WB", "三菱ケミカル", "63X: 63.5g / 73X: 72.0g", "73X: 2.9° / 元調子", "NEW TIP TEC・MR70＋DIALEAD"], [9, "TOUR AD VF", "グラファイトデザイン", "6X: 67.0g / 7X: 75.0g", "7X: 3.0° / 中元調子", "手元M40X・先端〜中間T1100G"], [10, "Diamana PD", "三菱ケミカル", "60X: 66.5g / 70X: 75.0g", "70X: 3.0° / 中元調子", "X-LINK TECH・MR70・ボロン繊維"], [11, "TENSEI Pro Black 1K Core", "三菱ケミカル", "60X: 65.5g / 70X: 75.5g", "70X: 2.7° / 元調子", "1Kクロス内層CORE・厚いインパクト"], [12, "LIN-Q WHITE EX", "USTマミヤ", "6X: 70.0g / 7X: 78.0g", "7X: 2.9° / 元調子", "QPly Core × M40X・フェード強弾道"], [13, "SPEEDER TR", "フジクラ", "661X: 67.0g / 757X: 77.5g", "757X: 2.9° / 中元調子", "マルチフーププライ・90tカーボン"], [14, "HZRDUS Black Gen 5", "Project X", "60 6.5: 66g / 70 TX: 77g", "70TX: 2.6° / 元調子", "4D Optimized Carbon・低弾道低スピン"], [15, "Diamana WS", "三菱ケミカル", "60X: 63.0g / 70X: 71.0g", "70X: 2.9° / 元調子", "先端40t・手元DIALEAD・左巻き抑制"], [16, "LIN-Q BLUE EX", "USTマミヤ", "6X: 70.0g / 7X: 79.0g", "7X: 2.8° / 中元調子", "60g台2.9°超低トルク・直進初速重視"], [17, "26 VENTUS TR BLUE", "フジクラ", "6X: 69.5g / 7X: 79.5g", "7X: 2.7° / 中元調子", "24 BLUE母体＋Spread Tow Fabric"], [18, "24 VENTUS BLUE", "フジクラ", "6X: 66.0g / 7X: 76.0g", "7X: 2.9° / 中元調子", "VeloCore Plus・高MOIヘッド最適"], [19, "TOUR AD GC", "グラファイトデザイン", "6X: 67.0g / 7X: 74.0g", "7X: 2.7° / 中調子", "先太NEW SHAPE＋AD SHIELD"], [20, "TOUR AD UB", "グラファイトデザイン", "6X: 66.0g / 7X: 75.0g", "7X: 3.0° / 中調子", "M40X＋T1100G・高MOI安定化"], [21, "N.S.PRO Regio Formula B+", "日本シャフト", "65X: 68.5g / 75S: 75.0g", "75X: 2.5° / 中調子", "16軸組布＋T1100G・MODUS3 120適合"], [22, "N.S.PRO Regio Formula MB+", "日本シャフト", "65 / 75展開", "75X: 2.6° / 中元調子", "中間〜手元9軸組布・高弾性シート"], [23, "TOUR AD XC", "グラファイトデザイン", "6X: 65.0g / 7X: 75.0g", "7X: 3.0° / 中元調子", "M40X＋T1100G・強いしなり戻り"], [24, "Project X Denali Black", "Project X", "60TX: 66g / 70TX: 74g", "70TX: 2.4° / 元寄り", "手元高剛性・2.4°超低トルク"], [25, "TOUR AD FI", "グラファイトデザイン", "6X: 65.0g / 7X: 74.0g", "7X: 2.9° / 中調子", "AD SHIELD＋トルネードチップ"], [26, "Diamana BB", "三菱ケミカル", "63X: 61.5g / 73X: 70.5g", "73X: 2.9° / 中元調子", "変曲点のない剛性分布・素直な挙動"], [27, "Basileus Z III", "トライファス", "60X: 64.5g / 70X: 74.0g", "70X: 2.8° / 中調子", "全長ボロン＋PAN系50t＋先端70t"], [28, "LIN-Q M40X TSPX Black", "USTマミヤ", "6F5: 67g / 7F5: 77g", "7F5: 3.2° / 低弾道", "Q-Ply＋M40X・横方向安定"], [29, "Kai'li White", "三菱ケミカル", "70X: 約77g", "70X: 3.7° / 元調子", "MR70先端補強・コスパ重視"], [30, "SPEEDER NX GREEN", "フジクラ", "60: S/X展開", "60: 3.8° / 中調子", "VTC技術で先端と手元を部分強化"]];
+
+const GEAR_MASTER = [
+  { cat:'ヘッド', name:'PING G440 MAX (9°)', spec:'飛び重心・高MOI・可変ウェイト(Draw/Neutral/Fade)・±1.5°スリーブ', url:'https://www.clubping.jp/product/product2025_g440_d_max.html' },
+  { cat:'ヘッド', name:'PING G440 LST (9°)', spec:'低スピン強弾道・操作性重視・可変ウェイト(Draw/Neutral/Fade)・±1.5°スリーブ', url:'https://www.clubping.jp/product/product2025_g440_d_lst.html' },
+  { cat:'ヘッド', name:'Callaway ELYTE TD (9°)', spec:'前後可変ウェイト(今回 前13g/後6g)・OptiFitホーゼル(N/-1, D/-1)', url:'https://www.callawaygolf.jp/golf/clubs/drivers/BP_011346.html' },
+  { cat:'ヘッド', name:'TaylorMade Qi4D (9°)', spec:'2026年モデル・ロフトスリーブ(-1.5°調整可)', url:'https://www.taylormadegolf.jp/taylormade-clubs/Qi4D-%E3%83%89%E3%83%A9%E3%82%A4%E3%83%90%E3%83%BC/DW-TH050.html' },
+  { cat:'シャフト', name:'TENSEI Pro Blue 1K 70X', spec:'重量 72.5g / トルク 3.3 / 中調子・クセのない全体しなり', url:'https://www.mitsubishichemicalgolf.jp/products/detail/?product_id=5' },
+  { cat:'シャフト', name:'TENSEI Pro White 1K 70X', spec:'重量 74.5g / トルク 3.3 / 元調子・強靭な先端剛性', url:'https://www.mitsubishichemicalgolf.jp/products/detail/?product_id=21' },
+  { cat:'シャフト', name:'Diamana PD 70X', spec:'重量 75.0g / トルク 3.0 / 中元調子・先端高剛性', url:'https://www.mitsubishichemicalgolf.jp/products/detail/?product_id=2' },
+  { cat:'シャフト', name:'24 VENTUS Blue 6X', spec:'重量 66.0g / トルク 3.1 / 中元調子・VeloCore Plus搭載', url:'https://www.fujikurashaft.jp/material/ventus/24ventus/' },
+  { cat:'グリップ', name:'Golf Pride PLUS4 テクノロジー', spec:'グリップ下部（右手側）テーパーレス形状・下巻きテープ4枚分相当', url:'https://www.fawick.co.jp/gp/function/plus4/' }
+];
+
+let state = {
+  sessions: [],
+  distWeight: 45,
+  activeTab: 'dashboard',
+  dashDate: 'ALL',
+  dashHead: 'ALL',
+  dashShaft: 'ALL',
+  dashVerdict: 'ALL',
+  dashTester: 'ALL',
+  logSearch: '',
+  logValid: 'ALL',
+  abA: 'S05',
+  abB: 'M12',
+  top30Search: ''
+};
+
+let scatterChart = null;
+let scoreChart = null;
+let pendingConfirmAction = null;
+
+function loadState() {
+  for (const key of [STORAGE_KEY, LEGACY_STORAGE_KEY]) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          state.sessions = parsed.map(normalizeSession);
+          if (key === LEGACY_STORAGE_KEY) saveState(); // v2 -> v3 へ移行保存
+          return;
+        }
+      }
+    } catch (e) {}
+  }
+  state.sessions = DEFAULT_SESSIONS.map(s => normalizeSession({ ...s }));
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.sessions));
+  } catch (e) {
+    showToast('保存に失敗しました（ブラウザの保存容量オーバーの可能性）。JSON保存でバックアップしてください');
+  }
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => el.classList.add('hidden'), 2600);
+}
+
+function normHi(val, arr) {
+  if (val == null || arr.length === 0) return 50;
+  const lo = Math.min(...arr), hi = Math.max(...arr);
+  return hi > lo ? (100 * (val - lo)) / (hi - lo) : 50;
+}
+
+function normLo(val, arr) {
+  if (val == null || arr.length === 0) return 50;
+  const lo = Math.min(...arr), hi = Math.max(...arr);
+  return hi > lo ? (100 * (hi - val)) / (hi - lo) : 50;
+}
+
+function computeScoredSessions() {
+  const validList = state.sessions.filter(s => s.valid && s.totalAvg != null && s.offPinAvg != null && s.corridor != null && s.sideSpin != null);
+  const tArr = validList.map(s => s.totalAvg);
+  const oArr = validList.map(s => s.offPinAvg);
+  const cArr = validList.map(s => s.corridor);
+  const ssArr = validList.map(s => s.sideSpin);
+  const fwArr = validList.map(s => s.fw30 != null ? s.fw30 : 50);
+  const dw = state.distWeight / 100;
+  const lw = 1 - dw;
+
+  return state.sessions.map(s => {
+    const isScorable = s.valid && s.totalAvg != null && s.offPinAvg != null && s.corridor != null && s.sideSpin != null;
+    if (!isScorable) {
+      return { ...s, distScore: null, latScore: null, compScore: null, verdict: '参考/対象外' };
+    }
+    const distScore = Number(normHi(s.totalAvg, tArr).toFixed(1));
+    const latScore = Number((
+      0.45 * normLo(s.offPinAvg, oArr) +
+      0.25 * normLo(s.corridor, cArr) +
+      0.20 * normLo(s.sideSpin, ssArr) +
+      0.10 * normHi(s.fw30 != null ? s.fw30 : 50, fwArr)
+    ).toFixed(1));
+    const compScore = Number((dw * distScore + lw * latScore).toFixed(1));
+    const verdict = compScore >= 72 ? 'マッチ（主力候補）' : (compScore >= 50 ? '条件付マッチ' : 'アンマッチ');
+    return { ...s, distScore, latScore, compScore, verdict };
+  });
+}
+
+function fmt(val, digits = 1, suffix = '') {
+  if (val === null || val === undefined || Number.isNaN(val)) return '-';
+  return Number(val).toFixed(digits) + suffix;
+}
+
+function verdictBadge(v) {
+  if (v === 'マッチ（主力候補）') return '<span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 whitespace-nowrap">マッチ（主力候補）</span>';
+  if (v === '条件付マッチ') return '<span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 whitespace-nowrap">条件付マッチ</span>';
+  if (v === 'アンマッチ') return '<span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 whitespace-nowrap">アンマッチ</span>';
+  return '<span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-600 whitespace-nowrap">参考/対象外</span>';
+}
+
+function syncFilterOptions(scored) {
+  const validOnly = scored.filter(s => s.compScore !== null);
+  const dates = [...new Set(validOnly.map(s => s.date))].sort().reverse();
+  const dSel = document.getElementById('filter-dash-date');
+  const prevD = state.dashDate;
+  dSel.innerHTML = '<option value="ALL">全計測日 (11/12〜11/23)</option>' + dates.map(d => `<option value="${d}">${d}</option>`).join('');
+  dSel.value = dates.includes(prevD) ? prevD : 'ALL';
+  state.dashDate = dSel.value;
+
+  const heads = [...new Set(validOnly.map(s => s.head))];
+  const shafts = [...new Set(validOnly.map(s => s.shaft))];
+
+  const hSel = document.getElementById('filter-dash-head');
+  const prevH = state.dashHead;
+  hSel.innerHTML = '<option value="ALL">全ヘッド</option>' + heads.map(h => `<option value="${h}">${h}</option>`).join('');
+  hSel.value = heads.includes(prevH) ? prevH : 'ALL';
+  state.dashHead = hSel.value;
+
+  const tSel = document.getElementById('filter-dash-tester');
+  if (tSel) {
+    const testers = [...new Set(scored.map(s => s.tester || ''))].sort();
+    const prevT = state.dashTester;
+    tSel.innerHTML = '<option value="ALL">全打者</option><option value="NONE">未記入のみ</option>' + testers.filter(t => t !== '').map(t => `<option value="${t}">${t}</option>`).join('');
+    tSel.value = (prevT === 'ALL' || prevT === 'NONE' || testers.includes(prevT)) ? prevT : 'ALL';
+    state.dashTester = tSel.value;
+  }
+
+  const sSel = document.getElementById('filter-dash-shaft');
+  const prevS = state.dashShaft;
+  sSel.innerHTML = '<option value="ALL">全シャフト</option>' + shafts.map(sh => `<option value="${sh}">${sh}</option>`).join('');
+  sSel.value = shafts.includes(prevS) ? prevS : 'ALL';
+  state.dashShaft = sSel.value;
+
+  // A/B selects
+  const abA = document.getElementById('select-ab-a');
+  const abB = document.getElementById('select-ab-b');
+  const opts = scored.filter(s => s.totalAvg != null).map(s => `<option value="${s.id}">${s.id}${s.tester ? ' [' + s.tester + ']' : ''}: ${s.head} (${s.sleeve}/${s.weight}) / ${s.shaft}${s.grip !== '標準' ? ' ['+s.grip+']' : ''}</option>`).join('');
+  abA.innerHTML = opts;
+  abB.innerHTML = opts;
+  if (scored.some(s => s.id === state.abA && s.totalAvg != null)) abA.value = state.abA;
+  if (scored.some(s => s.id === state.abB && s.totalAvg != null)) abB.value = state.abB;
+  state.abA = abA.value;
+  state.abB = abB.value;
+}
+
+function renderDashboard(scored) {
+  const validAll = scored.filter(s => s.compScore !== null).sort((a, b) => b.compScore - a.compScore);
+  const filtered = validAll.filter(s => {
+    if (state.dashDate !== 'ALL' && s.date !== state.dashDate) return false;
+    if (state.dashHead !== 'ALL' && s.head !== state.dashHead) return false;
+    if (state.dashShaft !== 'ALL' && s.shaft !== state.dashShaft) return false;
+    if (state.dashVerdict !== 'ALL' && s.verdict !== state.dashVerdict) return false;
+    if (state.dashTester === 'NONE' && (s.tester || '') !== '') return false;
+    if (state.dashTester !== 'ALL' && state.dashTester !== 'NONE' && s.tester !== state.dashTester) return false;
+    return true;
+  });
+
+  // v1.0: ヘッダーの集計表示を実データから計算（固定文言の食い違いを修正）
+  const allDates = scored.map(s => s.date).filter(Boolean).sort();
+  const allShots = scored.reduce((acc, s) => acc + (Number(s.shots) || 0), 0);
+  const validShots = validAll.reduce((acc, s) => acc + (Number(s.shots) || 0), 0);
+  const sub = document.getElementById('subtitle-stats');
+  if (sub) sub.textContent = `2026年版（${allDates[0]}〜${allDates[allDates.length - 1]} 全${scored.length}セッション・${allShots}球／有効${validAll.length}件・${validShots}球）リアルタイム自動評価ダッシュボード`;
+
+  // KPIs (from all valid sessions)
+  const totalShots = validShots;
+  document.getElementById('kpi-valid-count').textContent = `${validAll.length} 件`;
+  document.getElementById('kpi-total-shots').textContent = `有効合計 ${totalShots} 球（全${scored.length}件中）`;
+
+  if (validAll.length > 0) {
+    const top = validAll[0];
+    document.getElementById('kpi-top-score').textContent = `${top.compScore.toFixed(1)} 点`;
+    document.getElementById('kpi-top-label').textContent = `${top.id}: ${top.head} ${top.sleeve} ${top.weight} / ${top.shaft}`;
+
+    const maxD = validAll.reduce((a, b) => a.totalAvg > b.totalAvg ? a : b);
+    document.getElementById('kpi-max-dist').textContent = `${maxD.totalAvg.toFixed(1)} yd`;
+    document.getElementById('kpi-max-dist-sub').textContent = `${maxD.id} (${maxD.head} / 最大 ${fmt(maxD.totalMax,1,'yd')})`;
+
+    const minO = validAll.reduce((a, b) => a.offPinAvg < b.offPinAvg ? a : b);
+    const minC = validAll.reduce((a, b) => a.corridor < b.corridor ? a : b);
+    document.getElementById('kpi-best-lat').textContent = `${minO.offPinAvg.toFixed(1)} / ${minC.corridor.toFixed(1)} yd`;
+    document.getElementById('kpi-best-lat-sub').textContent = `Off Pin最少 ${minO.id} ・ 最狭幅 ${minC.id}`;
+  } else {
+    document.getElementById('kpi-top-score').textContent = '-';
+    document.getElementById('kpi-top-label').textContent = '有効データなし';
+    document.getElementById('kpi-max-dist').textContent = '-';
+    document.getElementById('kpi-max-dist-sub').textContent = '-';
+    document.getElementById('kpi-best-lat').textContent = '-';
+    document.getElementById('kpi-best-lat-sub').textContent = '-';
+  }
+
+  document.getElementById('weight-readout').textContent = `飛距離 ${state.distWeight}% / 方向安定 ${100 - state.distWeight}%`;
+  document.getElementById('dash-count-badge').textContent = `表示中：${filtered.length} / ${validAll.length} 件`;
+
+  // Ranking Table
+  const tbody = document.getElementById('tbody-ranking');
+  tbody.innerHTML = filtered.map((s, idx) => {
+    const rank = validAll.findIndex(v => v.id === s.id) + 1;
+    const rowBg = rank <= 3 ? 'bg-emerald-50/60' : (s.verdict === 'アンマッチ' ? 'bg-rose-50/50' : 'hover:bg-slate-50');
+    return `<tr class="${rowBg} transition">
+      <td class="px-3 py-2.5 text-right font-bold num-cell ${rank <= 3 ? 'text-emerald-800' : 'text-slate-700'}">${rank}位</td>
+      <td class="px-3 py-2.5"><span class="font-bold text-slate-900">${s.id}</span><div class="text-xs text-slate-500">${s.date}</div></td>
+      <td class="px-3 py-2.5">${s.tester ? s.tester : '<span class="text-slate-400">未記入</span>'}</td>
+      <td class="px-3 py-2.5"><div class="font-semibold text-slate-900">${s.head} ${s.loft}°</div><div class="text-xs text-slate-500">${s.sleeve} / ${s.weight}</div></td>
+      <td class="px-3 py-2.5"><div class="text-slate-800">${s.shaft}</div><div class="text-xs text-slate-500">グリップ: ${s.grip}</div></td>
+      <td class="px-3 py-2.5 text-right num-cell"><div class="font-bold text-slate-900">${fmt(s.totalAvg,1)}</div><div class="text-xs text-slate-500">Max ${fmt(s.totalMax,1)}</div></td>
+      <td class="px-3 py-2.5 text-right num-cell font-semibold">${fmt(s.offPinAvg,1)}</td>
+      <td class="px-3 py-2.5 text-right num-cell">${fmt(s.corridor,1)}</td>
+      <td class="px-3 py-2.5 text-right num-cell">${s.sideSpin != null ? s.sideSpin : '-'}</td>
+      <td class="px-3 py-2.5 text-right num-cell font-bold text-base ${rank <= 3 ? 'text-emerald-700' : 'text-slate-800'}">${s.compScore.toFixed(1)}</td>
+      <td class="px-3 py-2.5">${verdictBadge(s.verdict)}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="11" class="px-4 py-8 text-center text-slate-500">条件に一致する有効セッションがありません。</td></tr>';
+
+  renderCharts(filtered, validAll);
+}
+
+function renderCharts(filtered, validAll) {
+  if (typeof Chart === 'undefined') return;
+  if (scatterChart) { scatterChart.destroy(); scatterChart = null; }
+  if (scoreChart) { scoreChart.destroy(); scoreChart = null; }
+
+  const scatterCtx = document.getElementById('chart-scatter').getContext('2d');
+  const points = filtered.map(s => ({
+    x: s.totalAvg,
+    y: s.offPinAvg,
+    meta: s,
+    rank: validAll.findIndex(v => v.id === s.id) + 1
+  }));
+
+  scatterChart = new Chart(scatterCtx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: '有効セッション',
+        data: points,
+        pointRadius: ctx => (ctx.raw && ctx.raw.rank <= 3 ? 8 : 6),
+        pointHoverRadius: 10,
+        pointBackgroundColor: ctx => {
+          if (!ctx.raw) return '#64748B';
+          if (ctx.raw.rank <= 3) return '#047857';
+          if (ctx.raw.meta.verdict === 'アンマッチ') return '#DC2626';
+          return '#2563EB';
+        },
+        pointBorderColor: '#FFFFFF',
+        pointBorderWidth: 1.5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { title: { display: true, text: '平均飛距離 (yd) → 右ほど飛ぶ', font: { size: 11 } } },
+        y: { reverse: true, title: { display: true, text: 'Off Pin平均 (yd) → 上ほど曲がらない', font: { size: 11 } } }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const s = ctx.raw.meta;
+              return `${ctx.raw.rank}位 ${s.id}: ${s.head} (${s.sleeve}/${s.weight}) / ${s.shaft} | ${s.totalAvg}yd・Off ${s.offPinAvg}yd・幅${s.corridor}yd (${s.compScore}点)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  const scoreCtx = document.getElementById('chart-score').getContext('2d');
+  const dw = state.distWeight / 100;
+  const lw = 1 - dw;
+  const chartRows = filtered.slice(0, 15);
+  scoreChart = new Chart(scoreCtx, {
+    type: 'bar',
+    data: {
+      labels: chartRows.map(s => `${s.id} (${s.date.slice(5)}) ${s.head.replace('PING ','').replace('Callaway ','').replace('TaylorMade ','')} / ${s.shaft.replace('TENSEI Pro ','1K ').replace(' 1K','')}`),
+      datasets: [
+        {
+          label: `飛距離 (${state.distWeight}%)`,
+          data: chartRows.map(s => Number((dw * s.distScore).toFixed(1))),
+          backgroundColor: '#047857',
+          borderRadius: 3
+        },
+        {
+          label: `方向安定 (${100 - state.distWeight}%)`,
+          data: chartRows.map(s => Number((lw * s.latScore).toFixed(1))),
+          backgroundColor: '#2563EB',
+          borderRadius: 3
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { stacked: true, max: 100, title: { display: true, text: '総合スコア (100点満点)', font: { size: 11 } } },
+        y: { stacked: true, ticks: { font: { size: 10 } } }
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function renderLogs(scored) {
+  const q = state.logSearch.trim().toLowerCase();
+  const list = scored.filter(s => {
+    if (state.logValid === 'VALID' && !s.valid) return false;
+    if (state.logValid === 'EXCL' && s.valid) return false;
+    if (q) {
+      const hay = `${s.id} ${s.tester || ''} ${s.head} ${s.sleeve} ${s.weight} ${s.shaft} ${s.grip} ${s.note || ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const tbody = document.getElementById('tbody-logs');
+  tbody.innerHTML = list.map(s => {
+    const validBtnCls = s.valid
+      ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
+      : 'bg-slate-200 text-slate-600 border-slate-300 hover:bg-slate-300';
+    return `<tr class="${s.valid ? 'bg-white' : 'bg-slate-50 text-slate-500'}">
+      <td class="px-3 py-2.5"><div class="font-bold text-slate-900">${s.id}</div><div class="text-xs text-slate-500">${s.date}</div></td>
+      <td class="px-3 py-2.5">${s.tester ? s.tester : '<span class="text-slate-400">未記入</span>'}</td>
+      <td class="px-3 py-2.5">
+        <button type="button" data-action="toggle-valid" data-id="${s.id}" class="px-2.5 py-1 rounded-full border text-xs font-semibold transition ${validBtnCls}">${s.valid ? '有効' : '対象外'}</button>
+      </td>
+      <td class="px-3 py-2.5"><div class="font-semibold">${s.head} ${s.loft || ''}°</div><div class="text-xs text-slate-500">${s.sleeve} / ${s.weight}</div></td>
+      <td class="px-3 py-2.5"><div>${s.shaft}</div><div class="text-xs text-slate-500">${s.grip}</div></td>
+      <td class="px-3 py-2.5 text-right num-cell">${s.shots != null ? s.shots : '-'}</td>
+      <td class="px-3 py-2.5 text-right num-cell font-semibold">${fmt(s.totalAvg,1)}</td>
+      <td class="px-3 py-2.5 text-right num-cell">${fmt(s.offPinAvg,1)}</td>
+      <td class="px-3 py-2.5 text-right num-cell">${fmt(s.corridor,1)}</td>
+      <td class="px-3 py-2.5 text-right num-cell">${fmt(s.bs,1)} / ${fmt(s.cs,1)}</td>
+      <td class="px-3 py-2.5 text-xs max-w-[180px] truncate" title="${(s.note || '').replace(/"/g, '&quot;')}">${s.note || '-'}</td>
+      <td class="px-3 py-2.5 text-center whitespace-nowrap">
+        <button type="button" data-action="edit" data-id="${s.id}" class="px-2 py-1 rounded text-xs font-medium text-blue-700 hover:bg-blue-50">編集</button>
+        <button type="button" data-action="delete" data-id="${s.id}" class="px-2 py-1 rounded text-xs font-medium text-rose-700 hover:bg-rose-50">削除</button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="12" class="px-4 py-8 text-center text-slate-500">該当するログがありません。</td></tr>';
+}
+
+function groupAvg(list, keyFn) {
+  const map = new Map();
+  list.forEach(s => {
+    const k = keyFn(s);
+    if (!map.has(k)) map.set(k, []);
+    map.get(k).push(s);
+  });
+  return [...map.entries()].map(([key, rows]) => {
+    const mean = field => {
+      const vals = rows.map(r => r[field]).filter(v => v != null);
+      return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+    };
+    return {
+      key,
+      count: rows.length,
+      totalAvg: mean('totalAvg'),
+      offPinAvg: mean('offPinAvg'),
+      corridor: mean('corridor'),
+      sideSpin: mean('sideSpin'),
+      face: mean('face'),
+      compScore: mean('compScore')
+    };
+  }).sort((a, b) => (b.compScore || 0) - (a.compScore || 0));
+}
+
+function renderCompare(scored) {
+  const validAll = scored.filter(s => s.compScore !== null);
+
+  // Head
+  document.getElementById('tbody-by-head').innerHTML = groupAvg(validAll, s => s.head).map(g => `
+    <tr>
+      <td class="px-3 py-2 font-semibold text-slate-900">${g.key}</td>
+      <td class="px-3 py-2 text-right num-cell">${g.count}</td>
+      <td class="px-3 py-2 text-right num-cell font-semibold">${fmt(g.totalAvg,1,'yd')}</td>
+      <td class="px-3 py-2 text-right num-cell">${fmt(g.offPinAvg,1,'yd')}</td>
+      <td class="px-3 py-2 text-right num-cell">${fmt(g.corridor,1,'yd')}</td>
+      <td class="px-3 py-2 text-right num-cell font-bold text-emerald-700">${fmt(g.compScore,1)}</td>
+    </tr>`).join('');
+
+  // Shaft
+  document.getElementById('tbody-by-shaft').innerHTML = groupAvg(validAll, s => s.shaft).map(g => `
+    <tr>
+      <td class="px-3 py-2 font-semibold text-slate-900">${g.key}</td>
+      <td class="px-3 py-2 text-right num-cell">${g.count}</td>
+      <td class="px-3 py-2 text-right num-cell font-semibold">${fmt(g.totalAvg,1,'yd')}</td>
+      <td class="px-3 py-2 text-right num-cell">${fmt(g.offPinAvg,1,'yd')}</td>
+      <td class="px-3 py-2 text-right num-cell">${fmt(g.corridor,1,'yd')}</td>
+      <td class="px-3 py-2 text-right num-cell font-bold text-emerald-700">${fmt(g.compScore,1)}</td>
+    </tr>`).join('');
+
+  // PING Weight
+  const pingOnly = validAll.filter(s => s.head.includes('PING'));
+  document.getElementById('tbody-by-weight').innerHTML = groupAvg(pingOnly, s => s.weight).map(g => `
+    <tr>
+      <td class="px-3 py-2 font-semibold text-slate-900">${g.key}</td>
+      <td class="px-3 py-2 text-right num-cell">${g.count}</td>
+      <td class="px-3 py-2 text-right num-cell font-semibold">${fmt(g.totalAvg,1,'yd')}</td>
+      <td class="px-3 py-2 text-right num-cell">${fmt(g.offPinAvg,1,'yd')}</td>
+      <td class="px-3 py-2 text-right num-cell">${fmt(g.sideSpin,0)}</td>
+      <td class="px-3 py-2 text-right num-cell font-bold text-emerald-700">${fmt(g.compScore,1)}</td>
+    </tr>`).join('');
+
+  // Grip
+  document.getElementById('tbody-by-grip').innerHTML = groupAvg(validAll, s => s.grip).map(g => `
+    <tr>
+      <td class="px-3 py-2 font-semibold text-slate-900">${g.key}</td>
+      <td class="px-3 py-2 text-right num-cell">${g.count}</td>
+      <td class="px-3 py-2 text-right num-cell font-semibold">${fmt(g.totalAvg,1,'yd')}</td>
+      <td class="px-3 py-2 text-right num-cell">${fmt(g.corridor,1,'yd')}</td>
+      <td class="px-3 py-2 text-right num-cell">${fmt(g.face,2,'°')}</td>
+      <td class="px-3 py-2 text-right num-cell font-bold text-emerald-700">${fmt(g.compScore,1)}</td>
+    </tr>`).join('');
+
+  // A/B Direct Comparison
+  const a = scored.find(s => s.id === state.abA);
+  const b = scored.find(s => s.id === state.abB);
+  const cont = document.getElementById('ab-compare-container');
+  if (!a || !b) {
+    cont.innerHTML = '<p class="text-xs text-slate-500">比較対象を選択してください。</p>';
+    return;
+  }
+
+  const metrics = [
+    { label:'総合スコア', va:a.compScore, vb:b.compScore, digits:1, unit:'点', hiBetter:true },
+    { label:'平均飛距離', va:a.totalAvg, vb:b.totalAvg, digits:1, unit:'yd', hiBetter:true },
+    { label:'最大飛距離', va:a.totalMax, vb:b.totalMax, digits:1, unit:'yd', hiBetter:true },
+    { label:'Off Pin平均', va:a.offPinAvg, vb:b.offPinAvg, digits:1, unit:'yd', hiBetter:false },
+    { label:'左右最大幅', va:a.corridor, vb:b.corridor, digits:1, unit:'yd', hiBetter:false },
+    { label:'サイドスピン', va:a.sideSpin, vb:b.sideSpin, digits:0, unit:'rpm', hiBetter:false },
+    { label:'±30ydキープ率', va:a.fw30, vb:b.fw30, digits:0, unit:'%', hiBetter:true },
+    { label:'平均ボール初速(BS)', va:a.bs, vb:b.bs, digits:1, unit:'m/s', hiBetter:true },
+    { label:'平均Face角', va:a.face, vb:b.face, digits:2, unit:'°', hiBetter:null }
+  ];
+
+  cont.innerHTML = `
+    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+      <thead>
+        <tr class="bg-slate-100 text-slate-700 text-xs">
+          <th class="px-3 py-2">比較項目</th>
+          <th class="px-3 py-2 text-right text-emerald-800">A: ${a.id} (${a.head} / ${a.sleeve} / ${a.shaft})</th>
+          <th class="px-3 py-2 text-right text-blue-800">B: ${b.id} (${b.head} / ${b.sleeve} / ${b.shaft})</th>
+          <th class="px-3 py-2 text-right">差分 (A − B)</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-200">
+        ${metrics.map(m => {
+          const diff = (m.va != null && m.vb != null) ? (m.va - m.vb) : null;
+          let diffCls = 'text-slate-600';
+          if (diff != null && m.hiBetter !== null) {
+            const aWins = m.hiBetter ? diff > 0 : diff < 0;
+            diffCls = diff === 0 ? 'text-slate-500' : (aWins ? 'text-emerald-700 font-bold' : 'text-blue-700 font-bold');
+          }
+          const diffStr = diff == null ? '-' : ((diff > 0 ? '+' : '') + diff.toFixed(m.digits) + m.unit);
+          return `<tr>
+            <td class="px-3 py-2 font-medium text-slate-700">${m.label}</td>
+            <td class="px-3 py-2 text-right num-cell font-semibold">${fmt(m.va, m.digits, m.unit)}</td>
+            <td class="px-3 py-2 text-right num-cell font-semibold">${fmt(m.vb, m.digits, m.unit)}</td>
+            <td class="px-3 py-2 text-right num-cell ${diffCls}">${diffStr}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function renderTop30() {
+  const q = state.top30Search.trim().toLowerCase();
+  const rows = TOP30_SHAFTS.filter(r => !q || `${r[1]} ${r[2]} ${r[4]} ${r[5]}`.toLowerCase().includes(q));
+  document.getElementById('tbody-top30').innerHTML = rows.map(r => `
+    <tr class="${r[0] <= 10 ? 'bg-emerald-50/40' : ''}">
+      <td class="px-3 py-2 text-right font-bold num-cell text-slate-700">${r[0]}位</td>
+      <td class="px-3 py-2 font-bold text-slate-900 whitespace-nowrap">${r[1]}</td>
+      <td class="px-3 py-2 text-slate-700 whitespace-nowrap">${r[2]}</td>
+      <td class="px-3 py-2 text-slate-600 whitespace-nowrap">${r[3]}</td>
+      <td class="px-3 py-2 text-slate-700 whitespace-nowrap">${r[4]}</td>
+      <td class="px-3 py-2 text-slate-600">${r[5]}</td>
+    </tr>`).join('');
+}
+
+function renderMaster() {
+  renderTop30();
+  document.getElementById('tbody-master').innerHTML = GEAR_MASTER.map(g => `
+    <tr>
+      <td class="px-3 py-2.5 font-semibold text-slate-700 whitespace-nowrap">${g.cat}</td>
+      <td class="px-3 py-2.5 font-bold text-slate-900 whitespace-nowrap">${g.name}</td>
+      <td class="px-3 py-2.5 text-slate-600">${g.spec}</td>
+      <td class="px-3 py-2.5 whitespace-nowrap"><a href="${g.url}" target="_blank" rel="noopener noreferrer" class="text-emerald-700 underline hover:text-emerald-900 font-medium">公式ページ</a></td>
+    </tr>`).join('');
+}
+
+function renderAll() {
+  const scored = computeScoredSessions();
+  syncFilterOptions(scored);
+  renderDashboard(scored);
+  renderLogs(scored);
+  renderCompare(scored);
+  renderMaster();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function switchTab(tabName) {
+  state.activeTab = tabName;
+  ['dashboard', 'logs', 'compare', 'master'].forEach(t => {
+    document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tabName);
+    const btn = document.getElementById(`tab-${t}`);
+    btn.classList.toggle('tab-active', t === tabName);
+    btn.classList.toggle('tab-inactive', t !== tabName);
+  });
+  if (tabName === 'dashboard') renderAll();
+}
+
+function openEditor(session = null) {
+  document.getElementById('modal-title').textContent = session ? `セッション編集 (${session.id})` : '新規試打セッション登録';
+  document.getElementById('f-orig-id').value = session ? session.id : '';
+  document.getElementById('f-tester').value = session ? (session.tester || '') : '';
+  document.getElementById('f-id').value = session ? session.id : `S${String(state.sessions.length + 1).padStart(2, '0')}`;
+  document.getElementById('f-date').value = session ? session.date : '2026-11-23';
+  document.getElementById('f-env').value = session ? session.env : 'OKONGOLF';
+  document.getElementById('f-valid').value = session ? String(session.valid) : 'true';
+  document.getElementById('f-club').value = session ? (session.club || '1W') : '1W';
+  document.getElementById('f-head').value = session ? session.head : '';
+  document.getElementById('f-loft').value = session && session.loft != null ? session.loft : 9;
+  document.getElementById('f-sleeve').value = session ? session.sleeve : 'ノーマル (0°)';
+  document.getElementById('f-weight').value = session ? session.weight : 'ノーマル';
+  document.getElementById('f-shaft').value = session ? session.shaft : '';
+  document.getElementById('f-grip').value = session ? session.grip : '標準';
+  document.getElementById('f-shots').value = session && session.shots != null ? session.shots : 10;
+  document.getElementById('f-totalAvg').value = session && session.totalAvg != null ? session.totalAvg : '';
+  document.getElementById('f-totalMax').value = session && session.totalMax != null ? session.totalMax : '';
+  document.getElementById('f-carryAvg').value = session && session.carryAvg != null ? session.carryAvg : '';
+  document.getElementById('f-offPinAvg').value = session && session.offPinAvg != null ? session.offPinAvg : '';
+  document.getElementById('f-corridor').value = session && session.corridor != null ? session.corridor : '';
+  document.getElementById('f-bias').value = session && session.bias != null ? session.bias : '';
+  document.getElementById('f-fw30').value = session && session.fw30 != null ? session.fw30 : '';
+  document.getElementById('f-bs').value = session && session.bs != null ? session.bs : '';
+  document.getElementById('f-cs').value = session && session.cs != null ? session.cs : '';
+  document.getElementById('f-la').value = session && session.la != null ? session.la : '';
+  document.getElementById('f-sf').value = session && session.sf != null ? session.sf : '';
+  document.getElementById('f-backSpin').value = session && session.backSpin != null ? session.backSpin : '';
+  document.getElementById('f-sideSpin').value = session && session.sideSpin != null ? session.sideSpin : '';
+  document.getElementById('f-face').value = session && session.face != null ? session.face : '';
+  document.getElementById('f-path').value = session && session.path != null ? session.path : '';
+  document.getElementById('f-note').value = session && session.note ? session.note : '';
+  document.getElementById('modal-editor').classList.remove('hidden');
+}
+
+function closeEditor() {
+  document.getElementById('modal-editor').classList.add('hidden');
+}
+
+function openConfirm(title, msg, onOk) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  pendingConfirmAction = onOk;
+  document.getElementById('modal-confirm').classList.remove('hidden');
+}
+
+function closeConfirm() {
+  pendingConfirmAction = null;
+  document.getElementById('modal-confirm').classList.add('hidden');
+}
+
+function numOrNull(id) {
+  const v = document.getElementById(id).value.trim();
+  if (v === '') return null;
+  const n = Number(v);
+  return Number.isNaN(n) ? null : n;
+}
+
+function exportCSV() {
+  const scored = computeScoredSessions();
+  const headers = ['打者','管理ID','計測日','計測環境','集計対象','クラブ','ヘッド','ロフト','スリーブ','ウェイト','シャフト','グリップ','球数','平均飛距離','最大飛距離','キャリー','OffPin平均','左右バイアス','左右最大幅','±30yd率','BS・初速','CS・ヘッドスピード','打ち出し角','ミート率','バックスピン','サイドスピン','Face角','Path','総合スコア','自動判定','メモ'];
+  const csvCell = v => { const t = (v == null ? '' : String(v)); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const rows = scored.map(s => [
+    s.tester || '', s.id, s.date, s.env, s.valid ? '有効' : '対象外', s.club || '', s.head, s.loft ?? '', s.sleeve, s.weight, s.shaft, s.grip,
+    s.shots ?? '', s.totalAvg ?? '', s.totalMax ?? '', s.carryAvg ?? '', s.offPinAvg ?? '', s.bias ?? '', s.corridor ?? '',
+    s.fw30 ?? '', s.bs ?? '', s.cs ?? '', s.la ?? '', s.sf ?? '', s.backSpin ?? '', s.sideSpin ?? '', s.face ?? '', s.path ?? '',
+    s.compScore ?? '', s.verdict, s.note || ''
+  ].map(csvCell).join(','));
+  const blob = new Blob(['\uFEFF' + headers.join(',') + '\n' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'golf_trial_log_2026.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSVファイルを書き出しました');
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(state.sessions, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'golf_trial_backup_2026.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('JSONバックアップを保存しました');
+}
+
+// Event Listeners
+document.getElementById('tab-dashboard').addEventListener('click', () => switchTab('dashboard'));
+document.getElementById('tab-logs').addEventListener('click', () => switchTab('logs'));
+document.getElementById('tab-compare').addEventListener('click', () => switchTab('compare'));
+document.getElementById('tab-master').addEventListener('click', () => switchTab('master'));
+
+document.getElementById('slider-dist-weight').addEventListener('input', e => {
+  state.distWeight = Number(e.target.value);
+  renderAll();
+});
+document.getElementById('btn-reset-weight').addEventListener('click', () => {
+  state.distWeight = 45;
+  document.getElementById('slider-dist-weight').value = 45;
+  renderAll();
+  showToast('配点を標準（45:55）に戻しました');
+});
+
+document.getElementById('filter-dash-date').addEventListener('change', e => { state.dashDate = e.target.value; renderAll(); });
+document.getElementById('input-top30-search').addEventListener('input', e => { state.top30Search = e.target.value; renderTop30(); });
+document.getElementById('filter-dash-head').addEventListener('change', e => { state.dashHead = e.target.value; renderAll(); });
+document.getElementById('filter-dash-shaft').addEventListener('change', e => { state.dashShaft = e.target.value; renderAll(); });
+document.getElementById('filter-dash-verdict').addEventListener('change', e => { state.dashVerdict = e.target.value; renderAll(); });
+document.getElementById('filter-dash-tester').addEventListener('change', e => { state.dashTester = e.target.value; renderAll(); });
+
+document.getElementById('input-log-search').addEventListener('input', e => { state.logSearch = e.target.value; renderAll(); });
+document.getElementById('filter-log-valid').addEventListener('change', e => { state.logValid = e.target.value; renderAll(); });
+
+document.getElementById('select-ab-a').addEventListener('change', e => { state.abA = e.target.value; renderAll(); });
+document.getElementById('select-ab-b').addEventListener('change', e => { state.abB = e.target.value; renderAll(); });
+
+document.getElementById('btn-open-add').addEventListener('click', () => openEditor(null));
+document.getElementById('btn-close-modal').addEventListener('click', closeEditor);
+document.getElementById('btn-cancel-modal').addEventListener('click', closeEditor);
+
+document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
+document.getElementById('btn-export-json').addEventListener('click', exportJSON);
+
+document.getElementById('input-import-json').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!Array.isArray(imported) || imported.length === 0) throw new Error('Invalid JSON');
+      const seen = new Set();
+      for (const r of imported) {
+        if (!r || typeof r.id !== 'string' || !r.id || typeof r.head !== 'string' || !r.head || typeof r.shaft !== 'string' || !r.shaft || typeof r.date !== 'string' || !r.date) throw new Error('Invalid record');
+        if (seen.has(r.id)) throw new Error('Duplicate ID: ' + r.id);
+        seen.add(r.id);
+      }
+      state.sessions = imported.map(normalizeSession);
+      saveState();
+      renderAll();
+      showToast(`${imported.length}件のデータを読み込みました`);
+    } catch (err) {
+      showToast('JSONの読み込みに失敗しました（形式・必須項目・ID重複を確認してください）。現在のデータは変更していません');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.getElementById('btn-reset-data').addEventListener('click', () => {
+  openConfirm('初期データへリセット', '現在の変更を破棄し、統合初期データ（11/12〜11/23 全49件・有効46件453球）に戻しますか？', () => {
+    state.sessions = DEFAULT_SESSIONS.map(s => ({ ...s }));
+    saveState();
+    renderAll();
+    showToast('初期データにリセットしました');
+  });
+});
+
+document.getElementById('btn-confirm-cancel').addEventListener('click', closeConfirm);
+document.getElementById('btn-confirm-ok').addEventListener('click', () => {
+  if (pendingConfirmAction) pendingConfirmAction();
+  closeConfirm();
+});
+
+document.getElementById('tbody-logs').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id = btn.dataset.id;
+  const idx = state.sessions.findIndex(s => s.id === id);
+  if (idx < 0) return;
+
+  if (action === 'toggle-valid') {
+    state.sessions[idx].valid = !state.sessions[idx].valid;
+    saveState();
+    renderAll();
+    showToast(`${id} を「${state.sessions[idx].valid ? '有効' : '対象外'}」に変更しました`);
+  } else if (action === 'edit') {
+    openEditor(state.sessions[idx]);
+  } else if (action === 'delete') {
+    openConfirm('セッション削除', `管理ID「${id}」を削除しますか？`, () => {
+      state.sessions.splice(idx, 1);
+      saveState();
+      renderAll();
+      showToast(`${id} を削除しました`);
+    });
+  }
+});
+
+document.getElementById('form-session').addEventListener('submit', e => {
+  e.preventDefault();
+  const origId = document.getElementById('f-orig-id').value;
+  const newId = document.getElementById('f-id').value.trim();
+  const dup = state.sessions.find(s => s.id === newId);
+  if (!origId && dup) { showToast(`管理ID ${newId} は既に存在します。別のIDにしてください`); return; }
+  if (origId && newId !== origId && dup) { showToast(`管理ID ${newId} は既に存在します。別のIDにしてください`); return; }
+  const rec = {
+    tester: document.getElementById('f-tester').value.trim(),
+    id: newId,
+    date: document.getElementById('f-date').value,
+    env: document.getElementById('f-env').value.trim() || 'OKONGOLF',
+    valid: document.getElementById('f-valid').value === 'true',
+    club: document.getElementById('f-club').value.trim() || '1W',
+    head: document.getElementById('f-head').value.trim(),
+    loft: numOrNull('f-loft'),
+    sleeve: document.getElementById('f-sleeve').value.trim() || 'ノーマル (0°)',
+    weight: document.getElementById('f-weight').value.trim() || 'ノーマル',
+    shaft: document.getElementById('f-shaft').value.trim(),
+    grip: document.getElementById('f-grip').value.trim() || '標準',
+    shots: numOrNull('f-shots'),
+    totalAvg: numOrNull('f-totalAvg'),
+    totalMax: numOrNull('f-totalMax'),
+    carryAvg: numOrNull('f-carryAvg'),
+    offPinAvg: numOrNull('f-offPinAvg'),
+    corridor: numOrNull('f-corridor'),
+    bias: numOrNull('f-bias'),
+    fw30: numOrNull('f-fw30'),
+    bs: numOrNull('f-bs'),
+    cs: numOrNull('f-cs'),
+    sf: numOrNull('f-sf'),
+    la: numOrNull('f-la'),
+    backSpin: numOrNull('f-backSpin'),
+    sideSpin: numOrNull('f-sideSpin'),
+    face: numOrNull('f-face'),
+    path: numOrNull('f-path'),
+    note: document.getElementById('f-note').value.trim()
+  };
+  if (origId) {
+    const idx = state.sessions.findIndex(s => s.id === origId);
+    if (idx >= 0) state.sessions[idx] = { ...state.sessions[idx], ...rec };
+  } else {
+    state.sessions.unshift(rec);
+  }
+  saveState();
+  closeEditor();
+  renderAll();
+  showToast(origId ? `${rec.id} を更新しました` : `${rec.id} を新規登録しました`);
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  renderAll();
+});
+</script>
+</body>
+</html>
