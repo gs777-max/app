@@ -21,7 +21,7 @@ window.__goatDiagLoopOk = function(slot){ try{ var D = window.__GOAT_DIAG__; if(
   var TL = new THREE.TextureLoader();
   /* v4.9: アセット版数（boot 層の __GOAT_AV__ と連動）。テクスチャ/GLB の URL に付与し、
      30日キャッシュ下でも版上げで確実に差し替わるようにする */
-  var AVQ = '?v=' + (window.__GOAT_AV__ || 'N11');
+  var AVQ = '?v=' + (window.__GOAT_AV__ || 'N12');
   var __WARM = /[?&]warmup=1/.test(location.search); /* v4.5: 先読み時はテクスチャを読み込まない */
   function loadTex(name, srgb, rx, ry){
     if(__WARM) return null;
@@ -8538,7 +8538,7 @@ this.yaw = 0;
 }
 Actor.prototype.load = function(loader){
 var self = this;
-loader.loadAsync("assets/chars/" + this.file + "?v=N11").then(function(gltf){
+loader.loadAsync("assets/chars/" + this.file + "?v=N12").then(function(gltf){
 var model = gltf.scene;
 /* MPFB 由来マテリアルは BLEND 指定だと同一メッシュ内の描画順が崩れて透けるため、
 テストページで実証した対処（不透明化＋alphaTest）を適用する。
@@ -8813,15 +8813,23 @@ log("hooks installed");
 
 /* ---------------- カメラ ---------------- */
 function addressCamPose(ballPos, dirWorld, chestWorld, dist, height, lookAhead){
+/* N12: 縦持ち（横画角が狭い画面）では主体が画面端に寄るため、胸方向の
+   カメラオフセットをアスペクト比で縮め、注視点を主体側へ寄せる。
+   横長（aspect>=1）では従来どおり（side=1.7・lookSide=0）。
+   注視距離（lookAhead）は変えず、コースの見え方は維持する。 */
+var asp = (window.innerWidth || 1280) / Math.max(1, (window.innerHeight || 720));
+var b = Math.min(1, Math.max(0, (1 - asp) / 0.55));
+var side = 1.7 - 1.2 * b;
+var lookSide = -1.3 * b;
 return {
 pos: new THREE.Vector3(
-ballPos.x - dirWorld.x*dist + chestWorld.x*1.7,
+ballPos.x - dirWorld.x*dist + chestWorld.x*side,
 ballPos.y + height,
-ballPos.z - dirWorld.z*dist + chestWorld.z*1.7),
+ballPos.z - dirWorld.z*dist + chestWorld.z*side),
 look: new THREE.Vector3(
-ballPos.x + dirWorld.x*lookAhead,
+ballPos.x + dirWorld.x*lookAhead + chestWorld.x*lookSide,
 ballPos.y + 1.0,
-ballPos.z + dirWorld.z*lookAhead)
+ballPos.z + dirWorld.z*lookAhead + chestWorld.z*lookSide)
 };
 }
 function playerAddressPose(){
